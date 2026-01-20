@@ -1,6 +1,6 @@
-// Auto-detect environment: production (cariara.com) or local development
-const isProduction = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com';
-const BACKEND_URL = isProduction ? 'https://api.cariara.com' : 'http://localhost:8000';
+// Auto-detect environment: production or local development
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const BACKEND_URL = isProduction ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
 const API_BASE = `${BACKEND_URL}/api`;
 const AUTH_BASE = `${BACKEND_URL}/auth`;
 
