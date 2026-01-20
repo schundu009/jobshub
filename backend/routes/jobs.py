@@ -230,14 +230,9 @@ async def get_jobs(
     - GET /api/jobs?all=true → All jobs without filtering
     - GET /api/jobs?min_score=50 → Only highly relevant jobs
     """
-    # Build base query - filter by user for multi-tenancy
-    # If user is logged in, show their jobs + public jobs; otherwise show only public jobs
-    if current_user:
-        query = db.query(Job).filter(
-            or_(Job.user_id == current_user.id, Job.user_id == None)
-        )
-    else:
-        query = db.query(Job).filter(Job.user_id == None)
+    # Build base query
+    # For public job discovery, show all jobs regardless of user_id
+    query = db.query(Job)
 
     if status:
         query = query.filter(Job.status == status)
