@@ -2100,6 +2100,12 @@
         }
 
         function buildCompanyChips() {
+            const container = document.getElementById('company-chips');
+            if (!container) {
+                console.warn('Company chips container not found');
+                return;
+            }
+
             // Count jobs per company
             const companyCounts = {};
             processedJobs.forEach(job => {
@@ -2112,7 +2118,6 @@
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 15);
 
-            const container = document.getElementById('company-chips');
             container.innerHTML = sorted.map(([name, count]) => {
                 const isActive = selectedCompanies.has(name);
                 return `<button class="company-chip ${isActive ? 'active' : ''}" data-company="${name}">
