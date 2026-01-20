@@ -1,0 +1,226 @@
+"""
+Celery Tasks for Maintenance Operations.
+
+Tasks:
+- cleanup_old_scraper_runs: Remove old scraper run records
+- mark_stale_jobs_inactive: Mark jobs not seen recently as inactive
+- compute_relevance_scores: Recompute relevance scores for new jobs
+"""
+
+import logging
+from datetime import datetime, timedelta
+
+from celery_app import celery_app
+from database import SessionLocal
+from models import ScraperRun, Job, ScraperConfigDB
+
+logger = logging.getLogger(__name__)
+
+
+def get_db():
+    """Get a database session."""
+    return SessionLocal()
+
+
+@celery_app.task
+def cleanup_old_scraper_runs(days: int = 30) -> dict:
+    """
+    Clean up scraper run records older than specified days.
+
+    Args:
+        days: Number of days to keep records (default: 30)
+
+    Returns:
+        Dict with cleanup results
+    """
+    logger.info(f"Cleaning up scraper runs older than {days} days")
+
+    db = get_db()
+    try:
+        cutoff = datetime.utcnow() - timedelta(days=days)
+
+        # Count records to delete
+        count = db.query(ScraperRun).filter(
+            ScraperRun.run_at < cutoff
+        ).count()
+
+        # Delete old records
+        db.query(ScraperRun).filter(
+            ScraperRun.run_at < cutoff
+        ).delete()
+
+        db.commit()
+
+        logger.info(f"Deleted {count} old scraper run records")
+
+        return {
+            "status": "success",
+            "deleted_count": count,
+            "cutoff_date": cutoff.isoformat(),
+        }
+
+    except Exception as e:
+        logger.exception("Error cleaning up old scraper runs")
+        db.rollback()
+        return {
+            "status": "error",
+            "error": str(e),
+        }
+
+    finally:
+        db.close()
+
+
+@celery_app.task
+def mark_stale_jobs_inactive(days: int = 14) -> dict:
+    """
+    Mark jobs not seen in recent scrapes as inactive.
+
+    Jobs from custom scrapers that haven't been updated in the
+    specified number of days are marked as inactive (likely removed
+    from the company's career page).
+
+    Args:
+        days: Number of days without update to consider stale (default: 14)
+
+    Returns:
+        Dict with results
+    """
+    logger.info(f"Marking jobs not updated in {days} days as inactive")
+
+    db = get_db()
+    try:
+        cutoff = datetime.utcnow() - timedelta(days=days)
+
+        # Find jobs from scrapers (source is the company slug, not 'manual')
+        # that haven't been updated and are still marked active
+        count = db.query(Job).filter(
+            Job.source != "manual",
+            Job.is_active == True,
+            Job.updated_at < cutoff,
+        ).update({"is_active": False})
+
+        db.commit()
+
+        logger.info(f"Marked {count} stale jobs as inactive")
+
+        return {
+            "status": "success",
+            "marked_inactive": count,
+            "cutoff_date": cutoff.isoformat(),
+        }
+
+    except Exception as e:
+        logger.exception("Error marking stale jobs")
+        db.rollback()
+        return {
+            "status": "error",
+            "error": str(e),
+        }
+
+    finally:
+        db.close()
+
+
+@celery_app.task
+def reset_failed_scrapers(threshold: int = 5) -> dict:
+    """
+    Reset consecutive failure count for scrapers that have been failing.
+
+    This is useful for manual intervention after fixing scraper issues.
+
+    Args:
+        threshold: Only reset scrapers with failures >= threshold
+
+    Returns:
+        Dict with results
+    """
+    logger.info(f"Resetting scrapers with >= {threshold} consecutive failures")
+
+    db = get_db()
+    try:
+        count = db.query(ScraperConfigDB).filter(
+            ScraperConfigDB.consecutive_failures >= threshold
+        ).update({"consecutive_failures": 0})
+
+        db.commit()
+
+        logger.info(f"Reset failure count for {count} scrapers")
+
+        return {
+            "status": "success",
+            "reset_count": count,
+        }
+
+    except Exception as e:
+        logger.exception("Error resetting failed scrapers")
+        db.rollback()
+        return {
+            "status": "error",
+            "error": str(e),
+        }
+
+    finally:
+        db.close()
+
+
+@celery_app.task
+def generate_scraper_health_report() -> dict:
+    """
+    Generate a health report for all scrapers.
+
+    Returns:
+        Dict with scraper health information
+    """
+    logger.info("Generating scraper health report")
+
+    db = get_db()
+    try:
+        configs = db.query(ScraperConfigDB).all()
+
+        healthy = []
+        warning = []
+        critical = []
+
+        for config in configs:
+            status = {
+                "company_slug": config.company_slug,
+                "is_enabled": config.is_enabled,
+                "consecutive_failures": config.consecutive_failures,
+                "total_runs": config.total_runs,
+                "total_jobs_found": config.total_jobs_found,
+                "last_success_at": config.last_success_at.isoformat() if config.last_success_at else None,
+                "last_failure_at": config.last_failure_at.isoformat() if config.last_failure_at else None,
+            }
+
+            if not config.is_enabled:
+                continue
+            elif config.consecutive_failures >= 5:
+                critical.append(status)
+            elif config.consecutive_failures >= 2:
+                warning.append(status)
+            else:
+                healthy.append(status)
+
+        report = {
+            "generated_at": datetime.utcnow().isoformat(),
+            "summary": {
+                "healthy": len(healthy),
+                "warning": len(warning),
+                "critical": len(critical),
+                "total": len(healthy) + len(warning) + len(critical),
+            },
+            "healthy": healthy,
+            "warning": warning,
+            "critical": critical,
+        }
+
+        logger.info(
+            f"Health report: {len(healthy)} healthy, "
+            f"{len(warning)} warning, {len(critical)} critical"
+        )
+
+        return report
+
+    finally:
+        db.close()

@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Jobs</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <!-- AG Grid CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-theme-alpine.css">
+    <!-- Theme Toggle Support -->
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        :root, [data-theme="dark"] {
+            /* Dark Theme Colors */
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f2e;
+            --bg-tertiary: #242b3d;
+            --bg-card: #1e2536;
+            --bg-hover: #2a3347;
+
+            /* Accent Colors */
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #60a5fa;
+            --accent-green: #22c55e;
+            --accent-green-light: #4ade80;
+            --accent-yellow: #eab308;
+            --accent-yellow-light: #facc15;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+            --accent-orange: #f97316;
+            --accent-cyan: #06b6d4;
+
+            /* Text Colors */
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            /* Border Colors */
+            --border-color: #2d3748;
+            --border-light: #374151;
+        }
+
+        [data-theme="light"] {
+            /* Light Theme Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-hover: #e2e8f0;
+
+            /* Accent Colors (same or slightly darker for better contrast) */
+            --accent-blue: #2563eb;
+            --accent-blue-light: #3b82f6;
+            --accent-green: #16a34a;
+            --accent-green-light: #22c55e;
+            --accent-yellow: #ca8a04;
+            --accent-yellow-light: #eab308;
+            --accent-purple: #9333ea;
+            --accent-red: #dc2626;
+            --accent-orange: #ea580c;
+            --accent-cyan: #0891b2;
+
+            /* Text Colors */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+
+            /* Border Colors */
+            --border-color: #e2e8f0;
+            --border-light: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            background: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
+            line-height: 1.5 !important;
+            display: flex !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Hide default header from theme.css */
+        header {
+            display: none !important;
+        }
+
+        /* Sidebar Layout */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header .logo {
+            height: 32px;
+            width: auto;
+        }
+
+        .sidebar-header .brand-name {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar-nav a svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Theme Switch - Top Right */
+        .theme-switch-container {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 200;
+        }
+
+        .theme-switch {
+            display: flex;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .theme-switch button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-switch button:hover {
+            color: var(--text-primary);
+        }
+
+        .theme-switch button.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .theme-switch button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 20px 24px;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                padding: 8px 12px;
+                gap: 4px;
+                overflow-x: auto;
+            }
+
+            .sidebar-nav a {
+                white-space: nowrap;
+                margin-bottom: 0;
+            }
+        }
+
+        /* Main Container */
+        .discover-container {
+            max-width: 100%;
+        }
+
+        /* Freshness Indicator */
+        .freshness-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .freshness-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0;
+            color: #6ee7b7;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .freshness-badge::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: #6ee7b7;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .freshness-text {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Header */
+        .discover-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .discover-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .discover-header h2 span {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .header-stats strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .header-stats .stat-separator {
+            color: var(--border-color);
+        }
+
+        /* Controls Bar */
+        .controls-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+
+        .filter-select {
+            padding: 10px 32px 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        .filter-select:hover {
+            border-color: var(--border-light);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: transparent;
+            color: #7aa2d6;
+            border: 1px solid rgba(122,162,214,0.3);
+        }
+
+        .btn-primary:hover {
+            color: #93c5fd;
+            border-color: rgba(147,197,253,0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--border-light);
+        }
+
+        .btn-secondary.active {
+            color: #7aa2d6;
+            border-color: rgba(122,162,214,0.4);
+        }
+
+        /* Checkbox Filters */
+        .checkbox-filters {
+            display: flex;
+            gap: 16px;
+            margin-left: auto;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-label input {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .checkbox-label:hover {
+            color: var(--text-secondary);
+        }
+
+        /* Company Chips */
+        .company-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .company-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            background: transparent;
+            border: none;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .company-chip:hover {
+            color: var(--text-secondary);
+        }
+
+        .company-chip.active {
+            color: #7aa2d6;
+        }
+
+        .company-chip .count {
+            color: var(--text-dim);
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .company-chip.active .count {
+            color: #7aa2d6;
+        }
+
+        /* Role Selector */
+        .role-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .role-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .role-btn:hover {
+            color: var(--text-secondary);
+            border-color: var(--border-light);
+        }
+
+        .role-btn.active {
+            color: #7aa2d6;
+            border-color: rgba(122,162,214,0.4);
+        }
+
+        /* AG Grid Container */
+        .grid-container {
+            height: calc(100vh - 350px);
+            min-height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Dark Theme AG Grid */
+        .ag-theme-alpine {
+            --ag-background-color: var(--bg-secondary);
+            --ag-header-background-color: var(--bg-tertiary);
+            --ag-header-foreground-color: var(--text-secondary);
+            --ag-foreground-color: var(--text-primary);
+            --ag-row-hover-color: var(--bg-hover);
+            --ag-selected-row-background-color: rgba(59, 130, 246, 0.15);
+            --ag-border-color: var(--border-color);
+            --ag-odd-row-background-color: var(--bg-secondary);
+            --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
+            --ag-font-size: 13px;
+        }
+
+        .ag-theme-alpine .ag-header-cell-label {
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ag-theme-alpine .ag-paging-panel {
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* Custom Cell Styles */
+        .role-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .role-title {
+            font-weight: 500;
+            color: #f1f5f9 !important;
+            font-size: 14px;
+        }
+
+        .role-title a {
+            color: #f1f5f9 !important;
+            text-decoration: none;
+        }
+
+        .role-title a:hover {
+            color: #60a5fa !important;
+            text-decoration: underline;
+        }
+
+        .ag-theme-alpine .ag-cell {
+            color: #f1f5f9 !important;
+        }
+
+        .ag-theme-alpine .ag-row {
+            color: #f1f5f9 !important;
+        }
+
+        .ag-theme-alpine .ag-cell a {
+            color: #60a5fa !important;
+        }
+
+        .ag-theme-alpine .ag-cell a:hover {
+            color: #93c5fd !important;
+        }
+
+        /* Description Cell with Match + Tech Stack */
+        .desc-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 0;
+        }
+
+        .match-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .match-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .match-high { background: rgba(34, 197, 94, 0.2); color: var(--accent-green-light); }
+        .match-medium { background: rgba(234, 179, 8, 0.2); color: var(--accent-yellow-light); }
+        .match-low { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .tech-tag {
+            padding: 2px 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .tech-tag.highlight {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue-light);
+        }
+
+        /* Posted Cell */
+        .posted-cell {
+            font-size: 13px;
+        }
+
+        .posted-today { color: var(--accent-green-light); font-weight: 500; }
+        .posted-recent { color: var(--accent-yellow-light); }
+        .posted-old { color: var(--text-muted); }
+
+        /* Salary Cell */
+        .salary-cell {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-green-light);
+        }
+
+        .salary-cell.empty {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Company Cell */
+        .company-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .company-logo {
+            width: 28px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .company-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Location Cell */
+        .location-cell {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .location-icon {
+            color: var(--text-muted);
+            margin-right: 4px;
+        }
+
+        /* Distance Cell */
+        .distance-cell {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Type Badge */
+        .type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .type-onsite { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .type-hybrid { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+        .type-remote { background: rgba(34, 197, 94, 0.2); color: var(--accent-green-light); }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .action-btn.apply {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .action-btn.apply:hover {
+            background: var(--accent-blue-light);
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text-secondary);
+        }
+
+        /* Active Filters Indicator */
+        .active-filters-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .active-filters-bar.hidden {
+            display: none;
+        }
+        .active-filters-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .filter-tag.warning {
+            background: var(--accent-orange);
+        }
+        .filter-tag .remove-filter {
+            cursor: pointer;
+            opacity: 0.8;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .filter-tag .remove-filter:hover {
+            opacity: 1;
+        }
+        .clear-all-filters {
+            margin-left: auto;
+            padding: 4px 12px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 14px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .clear-all-filters:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        .filter-select.active {
+            border-color: var(--accent-blue) !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Source Badge */
+        .source-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .source-greenhouse { background: rgba(34, 197, 94, 0.2); color: var(--accent-green-light); }
+        .source-lever { background: rgba(234, 179, 8, 0.2); color: var(--accent-yellow-light); }
+        .source-ashby { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue-light); }
+        .source-workday { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .source-apple { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
+        .source-smartrecruiters { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .source-manual { background: var(--bg-tertiary); color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="../images/toritchLogo.png" alt="Cariara" class="logo">
+            <h1 class="brand-name">Cariara</h1>
+        </div>
+        <div class="sidebar-nav">
+            <a href="discover.html" class="active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Jobs
+            </a>
+            <a href="contacts.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Contacts
+            </a>
+            <a href="analytics.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Analytics
+            </a>
+        </div>
+    </aside>
+
+    <!-- Theme Switch - Top Right -->
+    <div class="theme-switch-container">
+        <div class="theme-switch">
+            <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+            <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+    <div class="discover-container">
+        <!-- Freshness Indicator -->
+        <div class="freshness-bar">
+            <span class="freshness-badge" id="freshness-badge">LIVE</span>
+        </div>
+
+        <!-- Header -->
+        <div class="discover-header">
+            <h2>Listed <span>Jobs</span></h2>
+            <div class="header-stats">
+                <span>Total Jobs: <strong id="total-jobs">0</strong></span>
+                <span class="stat-separator">|</span>
+                <span>Companies: <strong id="total-companies">0</strong></span>
+                <span class="stat-separator">|</span>
+                <span>Updated: <strong id="last-updated">-</strong></span>
+            </div>
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="search-input" placeholder="Search jobs by title, company, or keywords...">
+            </div>
+            <select class="filter-select" id="location-filter">
+                <option value="" selected>All Locations</option>
+                <option value="remote">Remote</option>
+                <option value="united states">US Locations</option>
+                <option value="san francisco">San Francisco</option>
+                <option value="new york">New York</option>
+                <option value="seattle">Seattle</option>
+                <option value="europe">Europe</option>
+                <option value="uk">United Kingdom</option>
+                <option value="canada">Canada</option>
+            </select>
+            <select class="filter-select" id="time-range-filter">
+                <option value="6">Last 6 hours</option>
+                <option value="12">Last 12 hours</option>
+                <option value="24">Last 24 hours</option>
+                <option value="48">Last 2 days</option>
+                <option value="72" selected>Last 3 days</option>
+                <option value="168">Last 7 days</option>
+                <option value="336">Last 14 days</option>
+                <option value="720">Last 30 days</option>
+            </select>
+            <select class="filter-select" id="salary-min-filter">
+                <option value="">Min Salary</option>
+                <option value="50000">$50k+</option>
+                <option value="75000">$75k+</option>
+                <option value="100000">$100k+</option>
+                <option value="125000">$125k+</option>
+                <option value="150000">$150k+</option>
+                <option value="175000">$175k+</option>
+                <option value="200000">$200k+</option>
+                <option value="250000">$250k+</option>
+                <option value="300000">$300k+</option>
+            </select>
+            <select class="filter-select" id="salary-max-filter">
+                <option value="">Max Salary</option>
+                <option value="100000">Up to $100k</option>
+                <option value="150000">Up to $150k</option>
+                <option value="200000">Up to $200k</option>
+                <option value="250000">Up to $250k</option>
+                <option value="300000">Up to $300k</option>
+                <option value="400000">Up to $400k</option>
+                <option value="500000">Up to $500k</option>
+            </select>
+            <button class="btn btn-primary" onclick="loadJobs()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Refresh
+            </button>
+            <button class="btn btn-secondary" id="applied-toggle">
+                Applied
+            </button>
+            <button class="btn btn-secondary" id="hidden-toggle">
+                Hidden
+            </button>
+        </div>
+
+        <!-- Active Filters Indicator -->
+        <div class="active-filters-bar hidden" id="active-filters-bar">
+            <span class="active-filters-label">Active filters:</span>
+            <div id="active-filter-tags"></div>
+            <button class="clear-all-filters" onclick="clearAllFilters()">Clear all</button>
+        </div>
+
+        <!-- Checkbox Filters -->
+        <div style="display:flex;gap:16px;margin-bottom:16px;align-items:center;">
+            <label class="checkbox-label">
+                <input type="checkbox" id="exclude-govt">
+                Exclude Govt/Clearance
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="exclude-citizenship">
+                Exclude US Citizenship Req
+            </label>
+            <label class="checkbox-label" title="Excludes jobs without descriptions">
+                <input type="checkbox" id="exclude-no-desc">
+                Exclude No Description
+            </label>
+        </div>
+
+        <!-- Role Selector -->
+        <div class="role-selector" id="role-selector">
+            <button class="role-btn active" data-role="">All Jobs</button>
+            <button class="role-btn" data-role="devops">DevOps</button>
+            <button class="role-btn" data-role="backend">Backend</button>
+            <button class="role-btn" data-role="frontend">Frontend</button>
+            <button class="role-btn" data-role="fullstack">Full Stack</button>
+            <button class="role-btn" data-role="data">Data</button>
+            <button class="role-btn" data-role="ml">ML/AI</button>
+            <button class="role-btn" data-role="mobile">Mobile</button>
+            <button class="role-btn" data-role="security">Security</button>
+        </div>
+
+        <!-- AG Grid -->
+        <div id="jobsGrid" class="ag-theme-alpine grid-container"></div>
+    </div>
+    </main>
+
+    <!-- AG Grid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        // Authentication removed - will be implemented separately for user portal
+
+        // Theme switch functions
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('jobtrails-theme', theme);
+            updateThemeSwitch(theme);
+        }
+
+        function updateThemeSwitch(theme) {
+            const lightBtn = document.getElementById('theme-light-btn');
+            const darkBtn = document.getElementById('theme-dark-btn');
+            if (theme === 'light') {
+                lightBtn.classList.add('active');
+                darkBtn.classList.remove('active');
+            } else {
+                darkBtn.classList.add('active');
+                lightBtn.classList.remove('active');
+            }
+        }
+
+        // Initialize theme on page load
+        initTheme();
+        const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
+        updateThemeSwitch(currentTheme);
+
+        let gridApi = null;
+        let allJobs = [];
+        let processedJobs = [];
+        let currentRole = '';
+        let selectedCompanies = new Set();
+
+        // Role keyword configurations
+        const ROLE_KEYWORDS = {
+            'devops': {
+                title: ['devops', 'sre', 'site reliability', 'platform engineer', 'infrastructure', 'cloud engineer', 'systems engineer', 'release engineer', 'build engineer'],
+                keywords: ['kubernetes', 'k8s', 'docker', 'terraform', 'ansible', 'jenkins', 'ci/cd', 'aws', 'gcp', 'azure', 'linux', 'prometheus', 'grafana', 'helm', 'argocd']
+            },
+            'backend': {
+                title: ['backend', 'back-end', 'back end', 'server', 'api engineer', 'software engineer', 'platform engineer'],
+                keywords: ['python', 'java', 'golang', 'go', 'node.js', 'ruby', 'rust', 'api', 'microservices', 'postgresql', 'mysql', 'redis', 'kafka', 'grpc', 'rest']
+            },
+            'frontend': {
+                title: ['frontend', 'front-end', 'front end', 'ui engineer', 'ui developer', 'web developer'],
+                keywords: ['react', 'vue', 'angular', 'javascript', 'typescript', 'css', 'html', 'next.js', 'webpack', 'tailwind']
+            },
+            'fullstack': {
+                title: ['fullstack', 'full-stack', 'full stack', 'software engineer', 'web developer'],
+                keywords: ['react', 'node', 'python', 'javascript', 'typescript', 'api', 'database', 'frontend', 'backend']
+            },
+            'data': {
+                title: ['data engineer', 'data scientist', 'data analyst', 'analytics', 'bi engineer', 'etl'],
+                keywords: ['sql', 'python', 'spark', 'airflow', 'snowflake', 'redshift', 'bigquery', 'etl', 'dbt', 'pandas', 'tableau', 'looker']
+            },
+            'ml': {
+                title: ['machine learning', 'ml engineer', 'ai engineer', 'deep learning', 'nlp', 'computer vision', 'research scientist'],
+                keywords: ['pytorch', 'tensorflow', 'ml', 'ai', 'deep learning', 'neural', 'llm', 'nlp', 'computer vision', 'model', 'training', 'inference']
+            },
+            'mobile': {
+                title: ['mobile', 'ios', 'android', 'react native', 'flutter'],
+                keywords: ['swift', 'kotlin', 'ios', 'android', 'react native', 'flutter', 'mobile', 'app']
+            },
+            'security': {
+                title: ['security', 'cybersecurity', 'infosec', 'appsec', 'devsecops', 'penetration', 'soc analyst'],
+                keywords: ['security', 'vulnerability', 'penetration', 'siem', 'firewall', 'encryption', 'compliance', 'soc', 'threat']
+            }
+        };
+
+        // Govt/Clearance keywords - more precise to avoid false positives
+        const GOVT_CLEARANCE_KEYWORDS = [
+            'security clearance required', 'clearance required', 'active clearance',
+            'ts/sci', 'top secret clearance', 'secret clearance', 'ts clearance',
+            'must have clearance', 'must possess clearance', 'clearance is required',
+            'dod clearance', 'government clearance', 'sci clearance'
+        ];
+
+        // Companies that primarily do government/defense work
+        const GOVT_COMPANIES = [
+            'lockheed martin', 'raytheon', 'northrop grumman', 'general dynamics',
+            'bae systems', 'leidos', 'booz allen', 'saic', 'caci', 'l3harris',
+            'palantir defense', 'anduril'
+        ];
+
+        const US_CITIZENSHIP_KEYWORDS = [
+            'u.s. citizenship required', 'us citizenship required', 'must be a u.s. citizen',
+            'must be a us citizen', 'requires u.s. citizenship', 'requires us citizenship',
+            'u.s. persons only', 'us persons only', 'united states citizenship is required',
+            'u.s. citizen or permanent resident', 'must be us citizen'
+        ];
+
+        // Tech keywords to extract
+        const TECH_KEYWORDS = [
+            'kubernetes', 'k8s', 'docker', 'terraform', 'ansible', 'jenkins', 'aws', 'gcp', 'azure',
+            'python', 'java', 'go', 'golang', 'rust', 'node.js', 'nodejs', 'typescript', 'javascript',
+            'react', 'vue', 'angular', 'next.js', 'postgresql', 'mysql', 'mongodb', 'redis', 'kafka',
+            'pytorch', 'tensorflow', 'spark', 'airflow', 'prometheus', 'grafana', 'datadog',
+            'linux', 'git', 'ci/cd', 'graphql', 'rest', 'grpc', 'scala', 'ruby', 'swift', 'kotlin',
+            'snowflake', 'redshift', 'bigquery', 'dbt', 'etl', 'mlflow', 'multi-cloud', 'oci', 'databricks'
+        ];
+
+        function isGovtClearanceJob(job) {
+            const text = ((job.title || '') + ' ' + (job.job_description || '')).toLowerCase();
+            const companyName = (job.company_name || '').toLowerCase();
+
+            // Check for clearance requirement keywords in job text
+            for (const keyword of GOVT_CLEARANCE_KEYWORDS) {
+                if (text.includes(keyword)) return true;
+            }
+
+            // Check if company is primarily a govt/defense contractor
+            for (const gc of GOVT_COMPANIES) {
+                if (companyName.includes(gc)) return true;
+            }
+
+            return false;
+        }
+
+        function requiresUSCitizenship(job) {
+            const text = ((job.title || '') + ' ' + (job.job_description || '')).toLowerCase();
+            for (const keyword of US_CITIZENSHIP_KEYWORDS) {
+                if (text.includes(keyword)) return true;
+            }
+            return false;
+        }
+
+        function computeRelevance(job, roleConfig) {
+            if (!roleConfig) return { score: 0, isRelevant: false };
+            const title = (job.title || '').toLowerCase();
+            const description = (job.job_description || '').toLowerCase();
+            let score = 0;
+            let titleMatch = false;
+
+            for (const pattern of roleConfig.title) {
+                if (title.includes(pattern)) {
+                    score += 40;
+                    titleMatch = true;
+                    break;
+                }
+            }
+
+            let keywordMatches = 0;
+            for (const keyword of roleConfig.keywords) {
+                if (description.includes(keyword) || title.includes(keyword)) {
+                    keywordMatches++;
+                }
+            }
+            score += Math.min(keywordMatches * 5, 40);
+            if (keywordMatches >= 5) score += 10;
+            if (keywordMatches >= 8) score += 10;
+
+            return {
+                score: Math.min(score, 100),
+                isRelevant: score >= 30 || titleMatch
+            };
+        }
+
+        function extractTechStack(description) {
+            if (!description) return [];
+            const lowerDesc = description.toLowerCase();
+            const found = [];
+            for (const tech of TECH_KEYWORDS) {
+                const regex = new RegExp(`\\b${tech.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                if (regex.test(lowerDesc)) {
+                    found.push(tech.toUpperCase());
+                }
+            }
+            return [...new Set(found)].slice(0, 8);
+        }
+
+        function extractSalary(job) {
+            // First check database fields
+            if (job.salary_min || job.salary_max) {
+                return { min: job.salary_min, max: job.salary_max };
+            }
+            // Then try parsing from description
+            const description = job.job_description;
+            if (!description) return null;
+
+            let text = description.replace(/—/g, '-').replace(/–/g, '-').replace(/<[^>]+>/g, ' ');
+            const patterns = [
+                /\$\s*([\d,]+)(?:\.\d{2})?\s*-\s*\$?\s*([\d,]+)(?:\.\d{2})?\s*(?:USD)?/i,
+                /\$\s*(\d+)\s*[kK]\s*-\s*\$?\s*(\d+)\s*[kK]/i,
+                /\$\s*([\d,]+)(?:\.\d{2})?\s+to\s+\$?\s*([\d,]+)(?:\.\d{2})?/i,
+            ];
+
+            for (const pattern of patterns) {
+                const match = pattern.exec(text);
+                if (match) {
+                    let min = parseInt(match[1].replace(/,/g, ''));
+                    let max = match[2] ? parseInt(match[2].replace(/,/g, '')) : null;
+                    if (min < 1000) min *= 1000;
+                    if (max && max < 1000) max *= 1000;
+                    if (min >= 30000 && min <= 2000000) {
+                        return { min, max };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function formatSalary(salary) {
+            if (!salary) return null;
+            const fmt = (n) => '$' + Math.round(n / 1000) + 'K';
+            if (salary.max) {
+                return `${fmt(salary.min)} - ${fmt(salary.max)}`;
+            }
+            return fmt(salary.min) + '+';
+        }
+
+        function detectJobType(job) {
+            const text = ((job.title || '') + ' ' + (job.location || '') + ' ' + (job.job_description || '')).toLowerCase();
+            if (text.includes('remote') || text.includes('work from home') || text.includes('wfh')) {
+                if (text.includes('hybrid') || text.includes('office') || text.includes('onsite')) {
+                    return 'hybrid';
+                }
+                return 'remote';
+            }
+            if (text.includes('hybrid')) return 'hybrid';
+            if (text.includes('on-site') || text.includes('onsite') || text.includes('in-office')) return 'onsite';
+            return 'hybrid'; // Default
+        }
+
+        function getPostedText(dateString) {
+            if (!dateString) return { text: '-', class: 'posted-old' };
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) return { text: 'Soon', class: 'posted-today' };
+            if (diffDays === 0) return { text: 'Today', class: 'posted-today' };
+            if (diffDays === 1) return { text: 'Yesterday', class: 'posted-today' };
+            if (diffDays < 7) return { text: `${diffDays} days ago`, class: 'posted-recent' };
+            return { text: `${Math.floor(diffDays / 7)}w ago`, class: 'posted-old' };
+        }
+
+        // Cell Renderers
+        function roleCellRenderer(params) {
+            const jobId = params.data.id;
+            return `<div class="role-cell">
+                <div class="role-title"><a href="../admin/job_detail.html?id=${jobId}" style="color:#cbd5e1;font-weight:500;font-size:13px;text-decoration:none;">${params.value || 'Unknown'}</a></div>
+            </div>`;
+        }
+
+        function descriptionCellRenderer(params) {
+            const job = params.data;
+            const score = job.relevance_score || 0;
+            const techs = job.tech_stack || [];
+
+            let matchColor = '#6b7280';
+            if (score >= 80) matchColor = '#6ee7b7';
+            else if (score >= 50) matchColor = '#d4a84a';
+
+            const showMatch = currentRole && score > 0;
+            const matchHtml = showMatch ? `<span style="color:${matchColor};font-size:11px;font-weight:500;">Match: ${Math.round(score)}%</span>` : '';
+
+            const techHtml = techs.slice(0, 6).map(t => {
+                const isHighlight = currentRole && ROLE_KEYWORDS[currentRole]?.keywords.some(k => t.toLowerCase().includes(k));
+                const color = isHighlight ? '#7aa2d6' : '#6b7280';
+                return `<span style="color:${color};font-size:9px;font-weight:500;text-transform:uppercase;margin-right:6px;">${t}</span>`;
+            }).join('');
+
+            return `<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0;">
+                <div>${matchHtml}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:2px;">${techHtml || '<span style="color:#4b5563;font-size:10px;">-</span>'}</div>
+            </div>`;
+        }
+
+        function postedCellRenderer(params) {
+            const posted = getPostedText(params.value);
+            const colors = {
+                'posted-today': '#86efac',
+                'posted-recent': '#d4d4aa',
+                'posted-old': '#6b7280'
+            };
+            const color = colors[posted.class] || '#6b7280';
+            return `<span style="color:${color};font-size:12px;font-weight:400;">${posted.text}</span>`;
+        }
+
+        function salaryCellRenderer(params) {
+            const salary = params.value;
+            if (!salary) return `<span style="color:#4b5563;font-size:12px;">--</span>`;
+            return `<span style="color:#86efac;font-weight:500;font-size:12px;">${salary}</span>`;
+        }
+
+        function companyCellRenderer(params) {
+            const initial = (params.value || 'J')[0].toUpperCase();
+            return `<div class="company-cell">
+                <div class="company-logo" style="background:rgba(71,85,105,0.5);color:#9ca3af;font-size:11px;">${initial}</div>
+                <span class="company-name" style="color:#b0bec5;font-weight:400;font-size:12px;">${params.value || 'Unknown'}</span>
+            </div>`;
+        }
+
+        function locationCellRenderer(params) {
+            const loc = params.value || '-';
+            let display = loc;
+            if (loc.length > 25) {
+                display = loc.substring(0, 23) + '...';
+            }
+            return `<span title="${loc}" style="color:#7a8a9a;font-size:11px;">📍${display}</span>`;
+        }
+
+        function typeCellRenderer(params) {
+            const type = params.value || 'hybrid';
+            const colors = {
+                'onsite': '#a78bfa',
+                'hybrid': '#67e8f9',
+                'remote': '#6ee7b7'
+            };
+            const color = colors[type] || colors.hybrid;
+            return `<span style="color:${color};font-size:10px;font-weight:500;text-transform:uppercase;">${type}</span>`;
+        }
+
+        function actionsCellRenderer(params) {
+            const jobUrl = params.data.job_url;
+            const jobId = params.data.id;
+            const linkStyle = 'color:#7aa2d6;font-size:11px;text-decoration:none;';
+            if (jobUrl) {
+                return `<div style="display:flex;gap:12px;">
+                    <a href="${jobUrl}" target="_blank" style="${linkStyle}">Apply</a>
+                    <a href="../admin/job_detail.html?id=${jobId}" style="color:#6b7280;font-size:11px;text-decoration:none;">Details</a>
+                </div>`;
+            }
+            return `<div>
+                <a href="../admin/job_detail.html?id=${jobId}" style="${linkStyle}">View</a>
+            </div>`;
+        }
+
+        // Column Definitions
+        const columnDefs = [
+            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, flex: 1, minWidth: 200, filter: true, sortable: true },
+            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, width: 280, sortable: false },
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 100, sortable: true, sort: 'desc' },
+            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 130, sortable: true },
+            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 160, filter: true, sortable: true },
+            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 180, filter: true, sortable: true },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 90, filter: true, sortable: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 140, sortable: false, filter: false }
+        ];
+
+        // Grid Options
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: [],
+            defaultColDef: { resizable: true },
+            animateRows: true,
+            rowHeight: 64,
+            headerHeight: 44,
+            pagination: true,
+            paginationPageSize: 50,
+            paginationPageSizeSelector: [25, 50, 100, 200],
+            suppressCellFocus: true,
+            onGridReady: (params) => {
+                gridApi = params.api;
+                loadJobs();
+            },
+            getRowId: (params) => String(params.data.id)
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridDiv = document.querySelector('#jobsGrid');
+            agGrid.createGrid(gridDiv, gridOptions);
+            setupEventListeners();
+
+            // Load saved preferences
+            const savedLocation = localStorage.getItem('preferredLocation');
+            if (savedLocation) {
+                document.getElementById('location-filter').value = savedLocation;
+            }
+            const savedSalaryMin = localStorage.getItem('preferredSalaryMin');
+            if (savedSalaryMin) {
+                document.getElementById('salary-min-filter').value = savedSalaryMin;
+            }
+            const savedSalaryMax = localStorage.getItem('preferredSalaryMax');
+            if (savedSalaryMax) {
+                document.getElementById('salary-max-filter').value = savedSalaryMax;
+            }
+        });
+
+        function setupEventListeners() {
+            // Role buttons
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentRole = btn.dataset.role;
+                    applyRoleFilter();
+                    updateActiveFilters();
+                });
+            });
+
+            // Search
+            let searchTimeout;
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (gridApi) gridApi.setGridOption('quickFilterText', e.target.value);
+                }, 300);
+            });
+
+            // Filters
+            document.getElementById('location-filter').addEventListener('change', (e) => {
+                if (e.target.value) localStorage.setItem('preferredLocation', e.target.value);
+                else localStorage.removeItem('preferredLocation');
+                applyFilters();
+                updateActiveFilters();
+            });
+            document.getElementById('salary-min-filter').addEventListener('change', (e) => {
+                if (e.target.value) localStorage.setItem('preferredSalaryMin', e.target.value);
+                else localStorage.removeItem('preferredSalaryMin');
+                applyFilters();
+                updateActiveFilters();
+            });
+            document.getElementById('salary-max-filter').addEventListener('change', (e) => {
+                if (e.target.value) localStorage.setItem('preferredSalaryMax', e.target.value);
+                else localStorage.removeItem('preferredSalaryMax');
+                applyFilters();
+                updateActiveFilters();
+            });
+
+            document.getElementById('time-range-filter').addEventListener('change', () => { loadJobs(); updateActiveFilters(); });
+            document.getElementById('exclude-govt').addEventListener('change', () => { applyFilters(); updateActiveFilters(); });
+            document.getElementById('exclude-citizenship').addEventListener('change', () => { applyFilters(); updateActiveFilters(); });
+            document.getElementById('exclude-no-desc').addEventListener('change', () => { applyFilters(); updateActiveFilters(); });
+        }
+
+        function updateActiveFilters() {
+            const bar = document.getElementById('active-filters-bar');
+            const tagsContainer = document.getElementById('active-filter-tags');
+            const tags = [];
+
+            // Check location filter
+            const locationFilter = document.getElementById('location-filter');
+            if (locationFilter.value) {
+                const locationText = locationFilter.options[locationFilter.selectedIndex].text;
+                tags.push({ text: `Location: ${locationText}`, clear: () => { locationFilter.value = ''; applyFilters(); updateActiveFilters(); } });
+                locationFilter.classList.add('active');
+            } else {
+                locationFilter.classList.remove('active');
+            }
+
+            // Check time filter (only show if not default 72h)
+            const timeFilter = document.getElementById('time-range-filter');
+            if (timeFilter.value !== '72') {
+                const timeText = timeFilter.options[timeFilter.selectedIndex].text;
+                tags.push({ text: `Time: ${timeText}`, clear: () => { timeFilter.value = '72'; loadJobs(); updateActiveFilters(); } });
+                timeFilter.classList.add('active');
+            } else {
+                timeFilter.classList.remove('active');
+            }
+
+            // Check salary min filter
+            const salaryMinFilter = document.getElementById('salary-min-filter');
+            if (salaryMinFilter.value) {
+                const salaryText = salaryMinFilter.options[salaryMinFilter.selectedIndex].text;
+                tags.push({ text: `Min: ${salaryText}`, clear: () => { salaryMinFilter.value = ''; applyFilters(); updateActiveFilters(); } });
+                salaryMinFilter.classList.add('active');
+            } else {
+                salaryMinFilter.classList.remove('active');
+            }
+
+            // Check salary max filter
+            const salaryMaxFilter = document.getElementById('salary-max-filter');
+            if (salaryMaxFilter.value) {
+                const salaryText = salaryMaxFilter.options[salaryMaxFilter.selectedIndex].text;
+                tags.push({ text: `Max: ${salaryText}`, clear: () => { salaryMaxFilter.value = ''; applyFilters(); updateActiveFilters(); } });
+                salaryMaxFilter.classList.add('active');
+            } else {
+                salaryMaxFilter.classList.remove('active');
+            }
+
+            // Check role filter
+            if (currentRole) {
+                const roleBtn = document.querySelector(`.role-btn[data-role="${currentRole}"]`);
+                const roleText = roleBtn ? roleBtn.textContent : currentRole;
+                tags.push({ text: `Role: ${roleText}`, clear: () => { document.querySelector('.role-btn[data-role=""]').click(); updateActiveFilters(); }, warning: true });
+            }
+
+            // Check checkboxes
+            if (document.getElementById('exclude-govt').checked) {
+                tags.push({ text: 'Excluding Govt/Clearance', clear: () => { document.getElementById('exclude-govt').checked = false; applyFilters(); updateActiveFilters(); } });
+            }
+            if (document.getElementById('exclude-citizenship').checked) {
+                tags.push({ text: 'Excluding US Citizenship Req', clear: () => { document.getElementById('exclude-citizenship').checked = false; applyFilters(); updateActiveFilters(); } });
+            }
+            if (document.getElementById('exclude-no-desc').checked) {
+                tags.push({ text: 'Excluding No Description', clear: () => { document.getElementById('exclude-no-desc').checked = false; applyFilters(); updateActiveFilters(); } });
+            }
+
+            // Check company selection
+            if (selectedCompanies.size > 0) {
+                tags.push({ text: `${selectedCompanies.size} companies selected`, clear: () => { selectedCompanies.clear(); document.querySelectorAll('.company-chip').forEach(c => c.classList.remove('selected')); applyFilters(); updateActiveFilters(); }, warning: true });
+            }
+
+            // Update UI
+            if (tags.length > 0) {
+                bar.classList.remove('hidden');
+                tagsContainer.innerHTML = tags.map(tag =>
+                    `<span class="filter-tag${tag.warning ? ' warning' : ''}">
+                        ${tag.text}
+                        <span class="remove-filter" onclick="event.stopPropagation();">×</span>
+                    </span>`
+                ).join('');
+                // Attach click handlers
+                tagsContainer.querySelectorAll('.filter-tag').forEach((el, i) => {
+                    el.querySelector('.remove-filter').onclick = (e) => { e.stopPropagation(); tags[i].clear(); };
+                });
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+
+        function clearAllFilters() {
+            // Reset all filters to defaults
+            document.getElementById('location-filter').value = '';
+            document.getElementById('time-range-filter').value = '72';
+            document.getElementById('salary-min-filter').value = '';
+            document.getElementById('salary-max-filter').value = '';
+            document.getElementById('exclude-govt').checked = false;
+            document.getElementById('exclude-citizenship').checked = false;
+            document.getElementById('exclude-no-desc').checked = false;
+            selectedCompanies.clear();
+            document.querySelectorAll('.company-chip').forEach(c => c.classList.remove('selected'));
+
+            // Reset role
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.role-btn[data-role=""]').classList.add('active');
+            currentRole = '';
+
+            // Clear search
+            document.getElementById('search-input').value = '';
+            if (gridApi) gridApi.setGridOption('quickFilterText', '');
+
+            // Reload and update
+            loadJobs();
+            updateActiveFilters();
+        }
+
+        function buildCompanyChips() {
+            // Count jobs per company
+            const companyCounts = {};
+            processedJobs.forEach(job => {
+                const name = job.company_name || 'Unknown';
+                companyCounts[name] = (companyCounts[name] || 0) + 1;
+            });
+
+            // Sort by count descending, take top 15
+            const sorted = Object.entries(companyCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 15);
+
+            const container = document.getElementById('company-chips');
+            container.innerHTML = sorted.map(([name, count]) => {
+                const isActive = selectedCompanies.has(name);
+                return `<button class="company-chip ${isActive ? 'active' : ''}" data-company="${name}">
+                    ${name}
+                    <span class="count">${count}</span>
+                </button>`;
+            }).join('');
+
+            // Add click handlers
+            container.querySelectorAll('.company-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const company = chip.dataset.company;
+                    if (selectedCompanies.has(company)) {
+                        selectedCompanies.delete(company);
+                        chip.classList.remove('active');
+                    } else {
+                        selectedCompanies.add(company);
+                        chip.classList.add('active');
+                    }
+                    applyFilters();
+                });
+            });
+        }
+
+        function applyRoleFilter() {
+            if (!gridApi || allJobs.length === 0) {
+                loadJobs();
+                return;
+            }
+
+            const roleConfig = currentRole ? ROLE_KEYWORDS[currentRole] : null;
+
+            processedJobs = allJobs.map(job => {
+                const salary = extractSalary(job);
+                const relevance = computeRelevance(job, roleConfig);
+                return {
+                    ...job,
+                    tech_stack: extractTechStack(job.job_description),
+                    relevance_score: relevance.score,
+                    is_relevant: relevance.isRelevant,
+                    salary_display: formatSalary(salary),
+                    salary_min_val: salary?.min || 0,
+                    job_type: detectJobType(job)
+                };
+            });
+
+            let jobsToDisplay = processedJobs;
+            if (currentRole) {
+                jobsToDisplay = processedJobs.filter(j => j.is_relevant);
+                jobsToDisplay.sort((a, b) => b.relevance_score - a.relevance_score);
+            }
+
+            gridApi.setGridOption('rowData', jobsToDisplay);
+
+            if (currentRole) {
+                gridApi.applyColumnState({ state: [{ colId: 'relevance_score', sort: 'desc' }] });
+            } else {
+                gridApi.applyColumnState({ state: [{ colId: 'posted_date', sort: 'desc' }] });
+            }
+
+            buildCompanyChips();
+            applyFilters();
+            setTimeout(() => updateStats(allJobs.length, jobsToDisplay.length), 100);
+        }
+
+        function applyFilters() {
+            if (!gridApi) return;
+
+            const locationFilter = document.getElementById('location-filter').value.toLowerCase();
+            const salaryMinFilter = parseInt(document.getElementById('salary-min-filter').value) || 0;
+            const salaryMaxFilter = parseInt(document.getElementById('salary-max-filter').value) || 0;
+            const excludeGovt = document.getElementById('exclude-govt').checked;
+            const excludeCitizenship = document.getElementById('exclude-citizenship').checked;
+            const excludeNoDesc = document.getElementById('exclude-no-desc').checked;
+
+            gridApi.setGridOption('isExternalFilterPresent', () => {
+                return !!(locationFilter || salaryMinFilter || salaryMaxFilter || excludeGovt || excludeCitizenship || excludeNoDesc || selectedCompanies.size > 0);
+            });
+
+            gridApi.setGridOption('doesExternalFilterPass', (node) => {
+                // Company filter
+                if (selectedCompanies.size > 0 && !selectedCompanies.has(node.data.company_name)) {
+                    return false;
+                }
+
+                if (excludeNoDesc) {
+                    const desc = (node.data.job_description || '').trim();
+                    if (!desc || desc.length < 50) return false;
+                }
+
+                if (excludeGovt && isGovtClearanceJob(node.data)) return false;
+                if (excludeCitizenship && requiresUSCitizenship(node.data)) return false;
+
+                // Salary filters - check min and max
+                if (salaryMinFilter && node.data.salary_min_val < salaryMinFilter) {
+                    return false;
+                }
+                if (salaryMaxFilter && node.data.salary_min_val > salaryMaxFilter) {
+                    return false;
+                }
+
+                if (locationFilter) {
+                    const loc = (node.data.location || '').toLowerCase();
+                    if (locationFilter === 'united states') {
+                        if (!(loc.includes('united states') || loc.includes('usa') || loc.includes('us') ||
+                              loc.includes('new york') || loc.includes('san francisco') || loc.includes('seattle') ||
+                              loc.includes('austin') || loc.includes('boston') || loc.includes('los angeles') ||
+                              loc.includes('california') || loc.includes('texas') || loc.includes('washington') ||
+                              loc.includes(', ca') || loc.includes(', ny') || loc.includes(', tx') || loc.includes(', wa'))) {
+                            return false;
+                        }
+                    } else if (locationFilter === 'europe') {
+                        if (!(loc.includes('europe') || loc.includes('germany') || loc.includes('france') ||
+                              loc.includes('uk') || loc.includes('netherlands') || loc.includes('london') ||
+                              loc.includes('berlin') || loc.includes('paris') || loc.includes('amsterdam'))) {
+                            return false;
+                        }
+                    } else if (!loc.includes(locationFilter)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            gridApi.onFilterChanged();
+            setTimeout(() => {
+                let rowCount = 0;
+                gridApi.forEachNode(() => rowCount++);
+                updateStats(allJobs.length, rowCount);
+            }, 100);
+        }
+
+        async function loadJobs() {
+            try {
+                const timeRangeHours = document.getElementById('time-range-filter').value || 72;
+                const url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true`;
+
+                const response = await apiRequest(url);
+                allJobs = Array.isArray(response) ? response : (response.jobs || []);
+                const totalFromResponse = response.total || allJobs.length;
+
+                const roleConfig = currentRole ? ROLE_KEYWORDS[currentRole] : null;
+
+                processedJobs = allJobs.map(job => {
+                    const salary = extractSalary(job);
+                    const relevance = computeRelevance(job, roleConfig);
+                    return {
+                        ...job,
+                        tech_stack: extractTechStack(job.job_description),
+                        relevance_score: relevance.score,
+                        is_relevant: relevance.isRelevant,
+                        salary_display: formatSalary(salary),
+                        salary_min_val: salary?.min || 0,
+                        job_type: detectJobType(job)
+                    };
+                });
+
+                let jobsToDisplay = processedJobs;
+                if (currentRole) {
+                    jobsToDisplay = processedJobs.filter(j => j.is_relevant);
+                    jobsToDisplay.sort((a, b) => b.relevance_score - a.relevance_score);
+                }
+
+                if (gridApi) {
+                    gridApi.setGridOption('rowData', jobsToDisplay);
+                    if (currentRole) {
+                        gridApi.applyColumnState({ state: [{ colId: 'relevance_score', sort: 'desc' }] });
+                    } else {
+                        gridApi.applyColumnState({ state: [{ colId: 'posted_date', sort: 'desc' }] });
+                    }
+                    applyFilters();
+                }
+
+                // Update freshness badge
+                const badge = document.getElementById('freshness-badge');
+                const hours = parseInt(timeRangeHours);
+                if (hours <= 6) badge.textContent = `LAST ${hours} HRS`;
+                else if (hours <= 24) badge.textContent = 'LAST 24 HRS';
+                else if (hours <= 72) badge.textContent = `LAST ${Math.round(hours/24)} DAYS`;
+                else badge.textContent = `LAST ${Math.round(hours/24)} DAYS`;
+
+                buildCompanyChips();
+                setTimeout(() => updateStats(totalFromResponse, jobsToDisplay.length), 150);
+                updateActiveFilters();
+
+            } catch (error) {
+                console.error('Failed to load jobs:', error);
+            }
+        }
+
+        function updateStats(totalFromServer, totalBeforeFilter) {
+            const displayedCount = gridApi ? gridApi.getDisplayedRowCount() : 0;
+
+            document.getElementById('total-jobs').textContent = totalFromServer.toLocaleString();
+
+            const displayedJobs = [];
+            if (gridApi) {
+                gridApi.forEachNodeAfterFilter(node => displayedJobs.push(node.data));
+            }
+            const uniqueCompanies = new Set(displayedJobs.map(j => j.company_name).filter(Boolean)).size;
+            document.getElementById('total-companies').textContent = uniqueCompanies;
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        }
+    </script>
+</body>
+</html>

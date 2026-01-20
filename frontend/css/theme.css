@@ -1,0 +1,766 @@
+/* Cariara - Enterprise Job Portal Design System */
+/* Adobe Font - Source Sans 3 */
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+/* ========================================
+   CSS Custom Properties - Design Tokens
+   ======================================== */
+
+:root, [data-theme="dark"] {
+    /* Background Colors */
+    --bg-primary: #0f1419;
+    --bg-secondary: #1a1f2e;
+    --bg-tertiary: #242b3d;
+    --bg-card: #1e2536;
+    --bg-hover: #2a3347;
+    --bg-elevated: #1e2536;
+
+    /* Accent Colors */
+    --accent-blue: #3b82f6;
+    --accent-blue-hover: #2563eb;
+    --accent-blue-light: #60a5fa;
+    --accent-blue-muted: rgba(59, 130, 246, 0.15);
+    --accent-green: #22c55e;
+    --accent-green-light: #4ade80;
+    --accent-yellow: #eab308;
+    --accent-yellow-light: #facc15;
+    --accent-purple: #a855f7;
+    --accent-red: #ef4444;
+    --accent-orange: #f97316;
+    --accent-cyan: #06b6d4;
+
+    /* Text Colors */
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #71717a;
+    --text-muted: #64748b;
+
+    /* Border Colors */
+    --border-color: #2d3748;
+    --border-light: #374151;
+    --border-default: #2d3748;
+    --border-subtle: #3f3f46;
+
+    /* Legacy Support */
+    --bg-base: var(--bg-primary);
+    --bg-surface: var(--bg-secondary);
+    --accent-primary: var(--accent-blue);
+    --accent-primary-hover: var(--accent-blue-hover);
+    --accent-primary-muted: var(--accent-blue-muted);
+    --success: var(--accent-green);
+    --warning: var(--accent-yellow);
+    --error: var(--accent-red);
+    --info: var(--accent-cyan);
+    --purple: var(--accent-purple);
+}
+
+[data-theme="light"] {
+    /* Background Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-hover: #e2e8f0;
+    --bg-elevated: #f8fafc;
+
+    /* Accent Colors */
+    --accent-blue: #2563eb;
+    --accent-blue-hover: #1d4ed8;
+    --accent-blue-light: #3b82f6;
+    --accent-blue-muted: rgba(37, 99, 235, 0.1);
+    --accent-green: #16a34a;
+    --accent-green-light: #22c55e;
+    --accent-yellow: #ca8a04;
+    --accent-yellow-light: #eab308;
+    --accent-purple: #9333ea;
+    --accent-red: #dc2626;
+    --accent-orange: #ea580c;
+    --accent-cyan: #0891b2;
+
+    /* Text Colors */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
+    --text-muted: #94a3b8;
+
+    /* Border Colors */
+    --border-color: #e2e8f0;
+    --border-light: #cbd5e1;
+    --border-default: #e2e8f0;
+    --border-subtle: #cbd5e1;
+
+    /* Legacy Support */
+    --bg-base: var(--bg-primary);
+    --bg-surface: var(--bg-secondary);
+    --accent-primary: var(--accent-blue);
+    --accent-primary-hover: var(--accent-blue-hover);
+    --accent-primary-muted: var(--accent-blue-muted);
+    --success: var(--accent-green);
+    --warning: var(--accent-yellow);
+    --error: var(--accent-red);
+    --info: var(--accent-cyan);
+    --purple: var(--accent-purple);
+}
+
+/* ========================================
+   Reset & Base Styles
+   ======================================== */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   Typography
+   ======================================== */
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+h1 { font-size: 28px; }
+h2 { font-size: 24px; }
+h3 { font-size: 18px; }
+h4 { font-size: 16px; }
+h5 { font-size: 14px; }
+h6 { font-size: 13px; }
+
+a {
+    color: var(--accent-blue-light);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--accent-blue);
+    text-decoration: underline;
+}
+
+/* ========================================
+   Layout Components
+   ======================================== */
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+}
+
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.sidebar-nav a:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.sidebar-nav a.active {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.sidebar-nav a svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: 240px;
+    padding: 20px 24px;
+    background: var(--bg-primary);
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ========================================
+   Cards
+   ======================================== */
+
+.card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+}
+
+.card h3 {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .number {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.stat-card .label {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+.stat-card.stat-blue .number { color: var(--accent-blue); }
+.stat-card.stat-yellow .number { color: var(--accent-yellow); }
+.stat-card.stat-green .number { color: var(--accent-green); }
+.stat-card.stat-purple .number { color: var(--accent-purple); }
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
+}
+
+.btn-primary:hover {
+    background: var(--accent-blue-hover);
+    border-color: var(--accent-blue-hover);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.btn-success {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.btn-success:hover {
+    background: var(--accent-green);
+    color: white;
+}
+
+.btn-danger {
+    color: var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.btn-danger:hover {
+    background: var(--accent-red);
+    color: white;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+/* ========================================
+   Form Elements
+   ======================================== */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--accent-blue-muted);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* Filter Bar */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-bar select,
+.filter-bar input {
+    padding: 10px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.filter-bar input {
+    min-width: 280px;
+}
+
+.filter-bar input::placeholder {
+    color: var(--text-muted);
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+
+.table-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+td {
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+tr:hover td {
+    background: var(--bg-hover);
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========================================
+   Modal
+   ======================================== */
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 480px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal h3 {
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 24px 0;
+}
+
+/* ========================================
+   Theme Switch
+   ======================================== */
+
+.theme-switch-container {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    z-index: 200;
+}
+
+.theme-switch {
+    display: flex;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 4px;
+    gap: 2px;
+}
+
+.theme-switch button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-switch button:hover {
+    color: var(--text-primary);
+}
+
+.theme-switch button.active {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.theme-switch button svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ========================================
+   Status Badges
+   ======================================== */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-wishlist { background: var(--accent-yellow); background: rgba(234, 179, 8, 0.15); color: var(--accent-yellow); }
+.status-applied { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+.status-interviewing { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+.status-offer { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); }
+.status-rejected { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+.status-withdrawn { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+
+/* ========================================
+   Alerts
+   ======================================== */
+
+.alert {
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--accent-green);
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+}
+
+.alert-info {
+    background: var(--accent-blue-muted);
+    color: var(--accent-blue);
+}
+
+.alert-warning {
+    background: rgba(234, 179, 8, 0.15);
+    color: var(--accent-yellow);
+}
+
+/* ========================================
+   Loading & Empty States
+   ======================================== */
+
+.loading {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        padding: 8px 12px;
+        gap: 4px;
+        overflow-x: auto;
+    }
+
+    .sidebar-nav a {
+        white-space: nowrap;
+        margin-bottom: 0;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+    }
+
+    .filter-bar input {
+        min-width: 100%;
+    }
+}
+
+/* ========================================
+   Hide Default Header
+   ======================================== */
+
+header {
+    display: none !important;
+}

@@ -1,0 +1,534 @@
+"""
+Scraper Management API Routes.
+
+Endpoints for:
+- Listing available scrapers
+- Triggering scraper runs
+- Viewing scraper status and history
+- Enabling/disabling scrapers
+
+Security features:
+- JWT authentication required for all endpoints
+- SSRF protection on URL validation
+- Input validation and length limits
+"""
+
+from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field, field_validator
+import re
+from sqlalchemy.orm import Session
+
+from database import get_db
+from models import ScraperRun, ScraperConfigDB, User
+from scrapers.registry import ScraperRegistry, list_all_scrapers
+from services.scraper_service import get_scraper_stats
+from utils.security import validate_url_ssrf_safe
+from middleware.auth import get_current_user
+
+router = APIRouter(prefix="/api/scrapers", tags=["scrapers"])
+
+
+# ============== Pydantic Models ==============
+
+class ScraperInfo(BaseModel):
+    slug: str
+    company_name: str
+    scraper_type: str
+    careers_url: str
+    category: str
+    rate_limit: int
+
+
+class ScraperStatus(BaseModel):
+    company_slug: str
+    company_name: str
+    is_enabled: bool
+    consecutive_failures: int
+    total_runs: int
+    last_success_at: Optional[str]
+    last_failure_at: Optional[str]
+    active_jobs: int
+    total_jobs: int
+
+
+class ScraperRunInfo(BaseModel):
+    id: int
+    success: bool
+    jobs_found: int
+    jobs_new: int
+    jobs_updated: int
+    duration_seconds: Optional[float]
+    error_message: Optional[str]
+    error_type: Optional[str]
+    run_at: str
+
+
+class TriggerResponse(BaseModel):
+    status: str
+    task_id: Optional[str]
+    message: str
+
+
+class ConfigUpdate(BaseModel):
+    is_enabled: Optional[bool] = None
+    config_overrides: Optional[dict] = None
+
+
+class CustomCompanyRequest(BaseModel):
+    company_name: str = Field(..., min_length=2, max_length=255)
+    careers_url: str = Field(..., min_length=10, max_length=500)
+
+    @field_validator('careers_url')
+    @classmethod
+    def validate_url(cls, v):
+        is_valid, error = validate_url_ssrf_safe(v)
+        if not is_valid:
+            raise ValueError(error)
+        return v
+
+
+class CustomCompanyResponse(BaseModel):
+    status: str
+    slug: str
+    company_name: str
+    board_type: str
+    job_count: int
+    message: str
+    task_id: Optional[str] = None
+
+
+class DetectBoardResponse(BaseModel):
+    board_type: str
+    valid: bool
+    job_count: int
+    api_url: Optional[str]
+    error: Optional[str]
+
+
+# ============== Endpoints ==============
+
+@router.get("/", response_model=list[ScraperInfo])
+def list_scrapers(
+    category: Optional[str] = Query(None, description="Filter by category"),
+    scraper_type: Optional[str] = Query(None, description="Filter by type (http, playwright)"),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    List all available scrapers.
+
+    Returns scrapers with their metadata and configuration.
+    """
+    scrapers = list_all_scrapers()
+
+    if category:
+        scrapers = [s for s in scrapers if s.get("category") == category]
+
+    if scraper_type:
+        scrapers = [s for s in scrapers if s.get("scraper_type") == scraper_type]
+
+    return scrapers
+
+
+@router.get("/categories")
+def list_categories(current_user: User = Depends(get_current_user)):
+    """List all scraper categories."""
+    return {"categories": ScraperRegistry.list_categories()}
+
+
+@router.get("/status", response_model=list[ScraperStatus])
+def get_all_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get status of all scrapers.
+
+    Returns health metrics for each scraper.
+    """
+    slugs = ScraperRegistry.list_slugs()
+    statuses = []
+
+    for slug in slugs:
+        stats = get_scraper_stats(db, slug)
+        statuses.append(ScraperStatus(
+            company_slug=stats["company_slug"],
+            company_name=stats["company_name"],
+            is_enabled=stats["is_enabled"],
+            consecutive_failures=stats["consecutive_failures"],
+            total_runs=stats["total_runs"],
+            last_success_at=stats["last_success_at"],
+            last_failure_at=stats["last_failure_at"],
+            active_jobs=stats["active_jobs"],
+            total_jobs=stats["total_jobs"],
+        ))
+
+    return statuses
+
+
+@router.get("/{company_slug}")
+def get_scraper_detail(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed information about a scraper.
+
+    Includes recent run history and job counts.
+    """
+    scraper_cls = ScraperRegistry.get(company_slug)
+    if not scraper_cls:
+        raise HTTPException(status_code=404, detail="Scraper not found")
+
+    stats = get_scraper_stats(db, company_slug)
+    metadata = ScraperRegistry.get_metadata(company_slug)
+
+    return {
+        **stats,
+        "scraper_type": metadata.get("scraper_type"),
+        "careers_url": metadata.get("careers_url"),
+        "category": metadata.get("category"),
+        "rate_limit": metadata.get("rate_limit"),
+    }
+
+
+@router.get("/{company_slug}/runs", response_model=list[ScraperRunInfo])
+def get_scraper_runs(
+    company_slug: str,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get run history for a scraper.
+    """
+    runs = db.query(ScraperRun).filter(
+        ScraperRun.company_slug == company_slug
+    ).order_by(ScraperRun.run_at.desc()).offset(offset).limit(limit).all()
+
+    return [
+        ScraperRunInfo(
+            id=run.id,
+            success=run.success,
+            jobs_found=run.jobs_found,
+            jobs_new=run.jobs_new or 0,
+            jobs_updated=run.jobs_updated or 0,
+            duration_seconds=run.duration_seconds,
+            error_message=run.error_message,
+            error_type=run.error_type,
+            run_at=run.run_at.isoformat() if run.run_at else "",
+        )
+        for run in runs
+    ]
+
+
+@router.post("/{company_slug}/run", response_model=TriggerResponse)
+def trigger_scraper(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Trigger a scraper run for a company.
+
+    Dispatches a Celery task and returns the task ID.
+    """
+    scraper_cls = ScraperRegistry.get(company_slug)
+    if not scraper_cls:
+        raise HTTPException(status_code=404, detail="Scraper not found")
+
+    # Check if enabled
+    config = db.query(ScraperConfigDB).filter(
+        ScraperConfigDB.company_slug == company_slug
+    ).first()
+
+    if config and not config.is_enabled:
+        raise HTTPException(status_code=400, detail="Scraper is disabled")
+
+    # Import tasks here to avoid circular imports
+    from tasks.scraper_tasks import scrape_company_http, scrape_company_browser
+    from scrapers.base import ScraperType
+
+    # Dispatch appropriate task
+    if scraper_cls.config.scraper_type == ScraperType.HTTP:
+        task = scrape_company_http.delay(company_slug)
+    else:
+        task = scrape_company_browser.delay(company_slug)
+
+    return TriggerResponse(
+        status="dispatched",
+        task_id=task.id,
+        message=f"Scrape task dispatched for {company_slug}",
+    )
+
+
+@router.post("/run-all", response_model=TriggerResponse)
+def trigger_all_scrapers(current_user: User = Depends(get_current_user)):
+    """
+    Trigger scraping for all enabled companies.
+    """
+    from tasks.scraper_tasks import scrape_all_companies
+
+    task = scrape_all_companies.delay()
+
+    return TriggerResponse(
+        status="dispatched",
+        task_id=task.id,
+        message="Dispatched scrape tasks for all companies",
+    )
+
+
+@router.post("/run-category/{category}", response_model=TriggerResponse)
+def trigger_category(
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Trigger scraping for all companies in a category.
+    """
+    if category not in ScraperRegistry.list_categories():
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    from tasks.scraper_tasks import scrape_by_category
+
+    task = scrape_by_category.delay(category)
+
+    return TriggerResponse(
+        status="dispatched",
+        task_id=task.id,
+        message=f"Dispatched scrape tasks for category: {category}",
+    )
+
+
+@router.patch("/{company_slug}/config")
+def update_scraper_config(
+    company_slug: str,
+    update: ConfigUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Update scraper configuration.
+
+    Allows enabling/disabling scrapers and setting config overrides.
+    """
+    scraper_cls = ScraperRegistry.get(company_slug)
+    if not scraper_cls:
+        raise HTTPException(status_code=404, detail="Scraper not found")
+
+    config = db.query(ScraperConfigDB).filter(
+        ScraperConfigDB.company_slug == company_slug
+    ).first()
+
+    if not config:
+        config = ScraperConfigDB(company_slug=company_slug)
+        db.add(config)
+
+    if update.is_enabled is not None:
+        config.is_enabled = update.is_enabled
+
+    if update.config_overrides is not None:
+        config.config_overrides = update.config_overrides
+
+    db.commit()
+
+    return {
+        "company_slug": company_slug,
+        "is_enabled": config.is_enabled,
+        "config_overrides": config.config_overrides,
+    }
+
+
+@router.post("/{company_slug}/enable")
+def enable_scraper(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Enable a scraper."""
+    return update_scraper_config(
+        company_slug,
+        ConfigUpdate(is_enabled=True),
+        current_user,
+        db,
+    )
+
+
+@router.post("/{company_slug}/disable")
+def disable_scraper(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Disable a scraper."""
+    return update_scraper_config(
+        company_slug,
+        ConfigUpdate(is_enabled=False),
+        current_user,
+        db,
+    )
+
+
+@router.get("/health/report")
+def get_health_report(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get a health report for all scrapers.
+
+    Groups scrapers by health status (healthy, warning, critical).
+    """
+    from tasks.maintenance_tasks import generate_scraper_health_report
+
+    # Run synchronously for API response
+    report = generate_scraper_health_report()
+    return report
+
+
+# ============== Custom Company Endpoints ==============
+
+@router.post("/custom/detect", response_model=DetectBoardResponse)
+async def detect_job_board(
+    request: CustomCompanyRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Detect the job board type from a careers URL.
+
+    Probes the URL to determine if it's Workday, Greenhouse, Lever, Ashby, etc.
+    Returns job count if the API is valid.
+    """
+    from services.scraper_generator import scraper_generator
+
+    board_type, api_info = await scraper_generator.detect_and_validate(request.careers_url)
+
+    return DetectBoardResponse(
+        board_type=board_type,
+        valid=api_info.get('valid', False),
+        job_count=api_info.get('job_count', 0),
+        api_url=api_info.get('api_url'),
+        error=api_info.get('error'),
+    )
+
+
+@router.post("/custom/add", response_model=CustomCompanyResponse)
+async def add_custom_company(
+    request: CustomCompanyRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Add a custom company by detecting its job board and generating a scraper.
+
+    1. Detects the job board type (Workday, Greenhouse, Lever, Ashby)
+    2. Validates the API endpoint works
+    3. Generates scraper code
+    4. Registers the scraper
+    5. Triggers initial scrape
+
+    Returns the company slug and initial job count.
+    """
+    from services.scraper_generator import scraper_generator
+    import re
+
+    # Validate company name
+    if not request.company_name or len(request.company_name) < 2:
+        raise HTTPException(status_code=400, detail="Company name must be at least 2 characters")
+
+    # Check if slug already exists
+    slug = re.sub(r'[^a-z0-9]+', '', request.company_name.lower())
+    if ScraperRegistry.get(slug):
+        raise HTTPException(status_code=400, detail=f"Scraper for '{slug}' already exists")
+
+    # Detect and validate
+    board_type, api_info = await scraper_generator.detect_and_validate(request.careers_url)
+
+    if board_type == 'unknown':
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not detect job board type. Supported: Workday, Greenhouse, Lever, Ashby. Error: {api_info.get('error', 'Unknown')}"
+        )
+
+    if not api_info.get('valid'):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not validate API endpoint. Error: {api_info.get('error', 'API returned no jobs')}"
+        )
+
+    # Generate scraper
+    try:
+        slug, file_path = scraper_generator.generate_scraper(
+            company_name=request.company_name,
+            careers_url=request.careers_url,
+            board_type=board_type,
+            api_info=api_info,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate scraper: {str(e)}")
+
+    # Reload scrapers to pick up new one
+    scraper_generator.reload_scrapers()
+
+    # Verify it's registered
+    if not ScraperRegistry.get(slug):
+        raise HTTPException(status_code=500, detail="Scraper generated but failed to register")
+
+    # Trigger initial scrape
+    task_id = None
+    try:
+        from tasks.scraper_tasks import scrape_company_http
+        task = scrape_company_http.delay(slug)
+        task_id = task.id
+    except Exception as e:
+        # Non-fatal - scraper was created, just couldn't trigger initial run
+        pass
+
+    return CustomCompanyResponse(
+        status="success",
+        slug=slug,
+        company_name=request.company_name,
+        board_type=board_type,
+        job_count=api_info.get('job_count', 0),
+        message=f"Scraper created for {request.company_name} ({board_type}). Found {api_info.get('job_count', 0)} jobs.",
+        task_id=task_id,
+    )
+
+
+@router.delete("/custom/{company_slug}")
+def delete_custom_scraper(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a custom scraper.
+
+    Only allows deleting scrapers in the 'custom' category.
+    """
+    import os
+
+    metadata = ScraperRegistry.get_metadata(company_slug)
+    if not metadata:
+        raise HTTPException(status_code=404, detail="Scraper not found")
+
+    if metadata.get('category') != 'custom':
+        raise HTTPException(status_code=400, detail="Can only delete custom scrapers")
+
+    # Delete the scraper file
+    scrapers_dir = os.path.dirname(os.path.dirname(__file__)) + '/scrapers/custom'
+    file_path = os.path.join(scrapers_dir, f"{company_slug}.py")
+
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    # Delete from database
+    db.query(ScraperRun).filter(ScraperRun.company_slug == company_slug).delete()
+    db.query(ScraperConfigDB).filter(ScraperConfigDB.company_slug == company_slug).delete()
+    db.commit()
+
+    return {"status": "deleted", "slug": company_slug}

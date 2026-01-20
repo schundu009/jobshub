@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Contacts</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        :root, [data-theme="dark"] {
+            /* Dark Theme Colors */
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1f2e;
+            --bg-tertiary: #242b3d;
+            --bg-card: #1e2536;
+            --bg-hover: #2a3347;
+
+            /* Accent Colors */
+            --accent-blue: #3b82f6;
+            --accent-blue-light: #60a5fa;
+            --accent-green: #22c55e;
+            --accent-purple: #a855f7;
+            --accent-red: #ef4444;
+
+            /* Text Colors */
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            /* Border Colors */
+            --border-color: #2d3748;
+            --border-light: #374151;
+        }
+
+        [data-theme="light"] {
+            /* Light Theme Colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-hover: #e2e8f0;
+
+            /* Accent Colors */
+            --accent-blue: #2563eb;
+            --accent-blue-light: #3b82f6;
+            --accent-green: #16a34a;
+            --accent-purple: #9333ea;
+            --accent-red: #dc2626;
+
+            /* Text Colors */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+
+            /* Border Colors */
+            --border-color: #e2e8f0;
+            --border-light: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            background: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
+            line-height: 1.5 !important;
+            display: flex !important;
+            min-height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Hide default header from theme.css */
+        header {
+            display: none !important;
+        }
+
+        /* Sidebar Layout */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header .logo {
+            height: 32px;
+            width: auto;
+        }
+
+        .sidebar-header .brand-name {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav a.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar-nav a svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Theme Switch - Top Right */
+        .theme-switch-container {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 200;
+        }
+
+        .theme-switch {
+            display: flex;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .theme-switch button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-switch button:hover {
+            color: var(--text-primary);
+        }
+
+        .theme-switch button.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .theme-switch button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 20px 24px;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Search Box */
+        .filter-bar {
+            margin-bottom: 16px;
+        }
+
+        .filter-bar input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .filter-bar input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .filter-bar input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td a {
+            color: var(--accent-blue-light);
+            text-decoration: none;
+        }
+
+        td a:hover {
+            text-decoration: underline;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-blue-light);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 11px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 480px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal h3 {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 24px 0;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        /* Empty & Loading States */
+        .loading, .empty-state {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-content {
+                margin-left: 0;
+                max-height: none;
+            }
+
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                padding: 8px 12px;
+                gap: 4px;
+                overflow-x: auto;
+            }
+
+            .sidebar-nav a {
+                white-space: nowrap;
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="../images/toritchLogo.png" alt="Cariara" class="logo">
+            <h1 class="brand-name">Cariara</h1>
+        </div>
+        <div class="sidebar-nav">
+            <a href="discover.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Jobs
+            </a>
+            <a href="contacts.html" class="active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Contacts
+            </a>
+            <a href="analytics.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Analytics
+            </a>
+        </div>
+    </aside>
+
+    <!-- Theme Switch - Top Right -->
+    <div class="theme-switch-container">
+        <div class="theme-switch">
+            <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+            <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h2>Contacts</h2>
+            <button class="btn btn-primary" onclick="openModal()">Add New Contact</button>
+        </div>
+
+        <div class="filter-bar">
+            <input type="text" id="search-input" placeholder="Search contacts...">
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Company</th>
+                        <th>Role</th>
+                        <th>Relationship</th>
+                        <th>Contact Info</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="contacts-table-body">
+                    <tr>
+                        <td colspan="6" class="loading">Loading contacts...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="contact-modal">
+        <div class="modal">
+            <h3 id="modal-title">Add Contact</h3>
+            <form id="contact-form">
+                <input type="hidden" id="contact-id">
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="linkedin_url">LinkedIn URL</label>
+                    <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/...">
+                </div>
+                <div class="form-group">
+                    <label for="company_id">Company</label>
+                    <select id="company_id" name="company_id">
+                        <option value="">Select a company</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="role">Role/Title</label>
+                    <input type="text" id="role" name="role" placeholder="e.g., Recruiter, Engineering Manager">
+                </div>
+                <div class="form-group">
+                    <label for="relationship_type">Relationship Type</label>
+                    <select id="relationship_type" name="relationship_type">
+                        <option value="">Select type</option>
+                        <option value="recruiter">Recruiter</option>
+                        <option value="hiring_manager">Hiring Manager</option>
+                        <option value="referral">Referral</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Notes about interactions, how you met, etc."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+        // Theme switch functions
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('jobtrails-theme', theme);
+            updateThemeSwitch(theme);
+        }
+
+        function updateThemeSwitch(theme) {
+            const lightBtn = document.getElementById('theme-light-btn');
+            const darkBtn = document.getElementById('theme-dark-btn');
+            if (theme === 'light') {
+                lightBtn.classList.add('active');
+                darkBtn.classList.remove('active');
+            } else {
+                darkBtn.classList.add('active');
+                lightBtn.classList.remove('active');
+            }
+        }
+
+        // Initialize theme on page load
+        initTheme();
+        const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
+        updateThemeSwitch(currentTheme);
+
+        let allContacts = [];
+
+        async function loadContacts() {
+            try {
+                allContacts = await apiRequest('/contacts');
+                renderContacts(allContacts);
+            } catch (error) {
+                console.error('Failed to load contacts:', error);
+                document.getElementById('contacts-table-body').innerHTML = '<tr><td colspan="6" class="alert alert-error">Failed to load contacts</td></tr>';
+            }
+        }
+
+        function renderContacts(contacts) {
+            const tbody = document.getElementById('contacts-table-body');
+
+            if (contacts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No contacts found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            contacts.forEach(contact => {
+                let contactInfo = [];
+                if (contact.email) contactInfo.push(`<a href="mailto:${contact.email}">${contact.email}</a>`);
+                if (contact.phone) contactInfo.push(contact.phone);
+                if (contact.linkedin_url) contactInfo.push(`<a href="${contact.linkedin_url}" target="_blank">LinkedIn</a>`);
+
+                html += `
+                    <tr>
+                        <td>${contact.name}</td>
+                        <td>${contact.company_name || '-'}</td>
+                        <td>${contact.role || '-'}</td>
+                        <td style="text-transform: capitalize;">${contact.relationship_type ? contact.relationship_type.replace('_', ' ') : '-'}</td>
+                        <td>${contactInfo.length > 0 ? contactInfo.join('<br>') : '-'}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-small" onclick="editContact(${contact.id})">Edit</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteContact(${contact.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function filterContacts() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allContacts.filter(contact =>
+                contact.name.toLowerCase().includes(searchQuery) ||
+                (contact.company_name && contact.company_name.toLowerCase().includes(searchQuery)) ||
+                (contact.role && contact.role.toLowerCase().includes(searchQuery))
+            );
+            renderContacts(filtered);
+        }
+
+        async function openModal() {
+            document.getElementById('modal-title').textContent = 'Add Contact';
+            document.getElementById('contact-form').reset();
+            document.getElementById('contact-id').value = '';
+            await loadCompanyOptions('company_id');
+            document.getElementById('contact-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('contact-modal').classList.remove('active');
+        }
+
+        async function editContact(id) {
+            try {
+                const contact = await apiRequest(`/contacts/${id}`);
+                await loadCompanyOptions('company_id', contact.company_id);
+                document.getElementById('modal-title').textContent = 'Edit Contact';
+                document.getElementById('contact-id').value = contact.id;
+                document.getElementById('name').value = contact.name || '';
+                document.getElementById('email').value = contact.email || '';
+                document.getElementById('phone').value = contact.phone || '';
+                document.getElementById('linkedin_url').value = contact.linkedin_url || '';
+                document.getElementById('role').value = contact.role || '';
+                document.getElementById('relationship_type').value = contact.relationship_type || '';
+                document.getElementById('notes').value = contact.notes || '';
+                document.getElementById('contact-modal').classList.add('active');
+            } catch (error) {
+                showAlert('Failed to load contact: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteContact(id) {
+            if (!confirm('Are you sure you want to delete this contact?')) return;
+
+            try {
+                await apiRequest(`/contacts/${id}`, 'DELETE');
+                showAlert('Contact deleted successfully');
+                loadContacts();
+            } catch (error) {
+                showAlert('Failed to delete contact: ' + error.message, 'error');
+            }
+        }
+
+        document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const contactId = document.getElementById('contact-id').value;
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value || null,
+                phone: document.getElementById('phone').value || null,
+                linkedin_url: document.getElementById('linkedin_url').value || null,
+                company_id: document.getElementById('company_id').value ? parseInt(document.getElementById('company_id').value) : null,
+                role: document.getElementById('role').value || null,
+                relationship_type: document.getElementById('relationship_type').value || null,
+                notes: document.getElementById('notes').value || null
+            };
+
+            try {
+                if (contactId) {
+                    await apiRequest(`/contacts/${contactId}`, 'PUT', formData);
+                    showAlert('Contact updated successfully');
+                } else {
+                    await apiRequest('/contacts', 'POST', formData);
+                    showAlert('Contact created successfully');
+                }
+                closeModal();
+                loadContacts();
+            } catch (error) {
+                showAlert('Failed to save contact: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('search-input').addEventListener('input', filterContacts);
+
+        loadContacts();
+    </script>
+</body>
+</html>

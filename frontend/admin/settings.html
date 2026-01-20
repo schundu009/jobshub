@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Settings</title>
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        .settings-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .settings-section h3 {
+            margin: 0 0 5px 0;
+            color: var(--text-primary);
+        }
+        .settings-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0 0 20px 0;
+        }
+        .api-key-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .api-key-form input {
+            flex: 1;
+            padding: 12px 15px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            color: var(--text-primary);
+        }
+        .api-key-form input:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-primary-muted);
+        }
+        .api-key-form input::placeholder {
+            color: var(--text-muted);
+        }
+        .api-key-status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .api-key-status.configured {
+            background: var(--success-muted);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        .api-key-status.not-configured {
+            background: var(--warning-muted);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+        .api-key-status.error {
+            background: var(--error-muted);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+        .status-icon {
+            margin-right: 8px;
+        }
+        .key-preview {
+            font-family: monospace;
+            background: var(--bg-elevated);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .btn-test {
+            background: var(--info);
+            color: white;
+            border-color: var(--info);
+        }
+        .btn-test:hover {
+            background: var(--info);
+            opacity: 0.9;
+        }
+        .btn-remove {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+        .btn-remove:hover {
+            background: var(--error);
+            opacity: 0.9;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .info-box {
+            background: var(--accent-primary-muted);
+            border-left: 4px solid var(--accent-primary);
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-radius: 0 8px 8px 0;
+        }
+        .info-box h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        .info-box a {
+            color: var(--accent-primary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cariara</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Dashboard</a></li>
+                    <li><a href="jobs.html">Jobs</a></li>
+                    <li><a href="companies.html">Companies</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html" class="active">Settings</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Settings</h2>
+        </div>
+
+        <div class="settings-section">
+            <h3>OpenAI API Key</h3>
+
+            <div id="api-key-status" class="api-key-status not-configured">
+                <span class="status-icon">⏳</span> Checking API key status...
+            </div>
+
+            <div class="api-key-form" id="api-key-form">
+                <input type="password" id="api-key-input" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
+                <button class="btn btn-test" onclick="testApiKey()">Test</button>
+                <button class="btn btn-remove" onclick="removeApiKey()" id="remove-btn" style="display: none;">Remove</button>
+            </div>
+
+        </div>
+
+        <div class="settings-section">
+            <h3>Batch Ingestion</h3>
+
+            <div id="batch-status" class="api-key-status not-configured" style="display: none;">
+                <span class="status-icon">⏳</span> Checking batch status...
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <button class="btn btn-primary" onclick="startBatchIngestion(false)" id="batch-fast-btn">
+                    Start Fast Batch
+                </button>
+                <button class="btn btn-secondary" onclick="startBatchIngestion(true)" id="batch-slow-btn">
+                    Process Slow Companies
+                </button>
+                <button class="btn btn-remove" onclick="stopBatchIngestion()" id="batch-stop-btn" style="display: none;">
+                    Stop Batch
+                </button>
+                <button class="btn btn-secondary" onclick="checkBatchStatus()" id="batch-check-btn">
+                    Check Status
+                </button>
+                <button class="btn btn-secondary" onclick="clearLogs()" id="batch-clear-btn">
+                    Clear Logs
+                </button>
+            </div>
+
+            <div id="batch-progress" style="display: none;">
+                <div style="background: var(--bg-elevated); border-radius: 8px; padding: 15px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span id="batch-progress-text">Processing...</span>
+                        <span id="batch-progress-percent">0%</span>
+                    </div>
+                    <div style="background: var(--border-default); border-radius: 4px; height: 10px; overflow: hidden;">
+                        <div id="batch-progress-bar" style="background: linear-gradient(90deg, var(--accent-primary), #4ade80); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="batch-details" style="margin-top: 10px; font-size: 13px; color: var(--text-secondary); display: flex; gap: 20px; flex-wrap: wrap;">
+                        <span>Sources: <strong id="stat-processed">0</strong>/<strong id="stat-total">0</strong></span>
+                        <span style="color: var(--success);">✓ <strong id="stat-success">0</strong></span>
+                        <span style="color: var(--error);">✗ <strong id="stat-failed">0</strong></span>
+                        <span>Jobs: +<strong id="stat-added">0</strong> ~<strong id="stat-updated">0</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Viewer -->
+            <div id="log-container" style="margin-top: 15px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 14px; color: var(--text-primary);">Live Logs</h4>
+                    <label style="font-size: 12px; color: var(--text-secondary);">
+                        <input type="checkbox" id="auto-scroll" checked> Auto-scroll
+                    </label>
+                </div>
+                <div id="log-viewer" style="
+                    background: #1a1a2e;
+                    border: 1px solid var(--border-default);
+                    border-radius: 8px;
+                    padding: 12px;
+                    height: 300px;
+                    overflow-y: auto;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                    font-size: 12px;
+                    line-height: 1.6;
+                "></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../js/app.js"></script>
+    <script>
+        // Require authentication
+        requireAuth();
+
+        // Check admin role - redirect non-admin users to user portal
+        (async function checkAdminAccess() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role !== 'admin') {
+                    window.location.href = '../jobs/discover.html';
+                    return;
+                }
+            } catch (e) {
+                console.error('Error checking admin access:', e);
+            }
+        })();
+
+        async function checkApiKeyStatus() {
+            const statusDiv = document.getElementById('api-key-status');
+            const removeBtn = document.getElementById('remove-btn');
+            const apiKeyInput = document.getElementById('api-key-input');
+
+            try {
+                const response = await apiRequest('/settings/api-key');
+
+                if (response.is_set) {
+                    statusDiv.className = 'api-key-status configured';
+                    statusDiv.innerHTML = `
+                        <span class="status-icon">✓</span>
+                        API key configured: <span class="key-preview">${response.key_preview}</span>
+                    `;
+                    apiKeyInput.placeholder = 'Enter new key to replace...';
+                    removeBtn.style.display = 'inline-block';
+                } else {
+                    statusDiv.className = 'api-key-status not-configured';
+                    statusDiv.innerHTML = `
+                        <span class="status-icon">⚠</span>
+                        No API key configured
+                    `;
+                    apiKeyInput.placeholder = 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+                    removeBtn.style.display = 'none';
+                }
+            } catch (error) {
+                statusDiv.className = 'api-key-status error';
+                statusDiv.innerHTML = `
+                    <span class="status-icon">✗</span>
+                    Error: ${error.message}
+                `;
+            }
+        }
+
+        async function saveApiKey() {
+            const input = document.getElementById('api-key-input');
+            const apiKey = input.value.trim();
+
+            if (!apiKey) {
+                showAlert('Please enter an API key', 'error');
+                return;
+            }
+
+            try {
+                await apiRequest('/settings/api-key', 'POST', { api_key: apiKey });
+                showAlert('API key saved successfully');
+                input.value = '';
+                checkApiKeyStatus();
+            } catch (error) {
+                showAlert('Failed to save API key: ' + error.message, 'error');
+            }
+        }
+
+        async function testApiKey() {
+            const statusDiv = document.getElementById('api-key-status');
+            const input = document.getElementById('api-key-input');
+            const testKey = input.value.trim();
+
+            statusDiv.innerHTML = `<span class="status-icon">⏳</span> Testing API key...`;
+
+            try {
+                let response;
+                if (testKey) {
+                    // Test the entered key without saving
+                    response = await apiRequest('/settings/test-api-key', 'POST', { api_key: testKey });
+                } else {
+                    // Test the saved key
+                    response = await apiRequest('/settings/test-api-key');
+                }
+
+                if (response.valid) {
+                    statusDiv.className = 'api-key-status configured';
+                    statusDiv.innerHTML = `
+                        <span class="status-icon">✓</span>
+                        API key is valid!
+                    `;
+                    showAlert('API key is valid!');
+                } else {
+                    statusDiv.className = 'api-key-status error';
+                    statusDiv.innerHTML = `
+                        <span class="status-icon">✗</span>
+                        ${response.message}
+                    `;
+                    showAlert(response.message, 'error');
+                }
+            } catch (error) {
+                statusDiv.className = 'api-key-status error';
+                statusDiv.innerHTML = `
+                    <span class="status-icon">✗</span>
+                    Error: ${error.message}
+                `;
+                showAlert('Error testing API key: ' + error.message, 'error');
+            }
+
+            // Refresh status after a moment
+            setTimeout(checkApiKeyStatus, 2000);
+        }
+
+        async function removeApiKey() {
+            if (!confirm('Are you sure you want to remove the API key? AI features will be disabled.')) {
+                return;
+            }
+
+            try {
+                await apiRequest('/settings/api-key', 'DELETE');
+                showAlert('API key removed');
+                checkApiKeyStatus();
+            } catch (error) {
+                showAlert('Failed to remove API key: ' + error.message, 'error');
+            }
+        }
+
+        // Allow Enter key to save
+        document.getElementById('api-key-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveApiKey();
+        });
+
+        checkApiKeyStatus();
+
+        // ============== Batch Ingestion ==============
+        let currentBatchJobId = localStorage.getItem('currentBatchJobId');
+        let eventSource = null;
+
+        function setBatchButtonsState(running) {
+            const fastBtn = document.getElementById('batch-fast-btn');
+            const slowBtn = document.getElementById('batch-slow-btn');
+            const stopBtn = document.getElementById('batch-stop-btn');
+
+            if (running) {
+                fastBtn.disabled = true;
+                slowBtn.disabled = true;
+                stopBtn.style.display = 'inline-block';
+            } else {
+                fastBtn.disabled = false;
+                slowBtn.disabled = false;
+                stopBtn.style.display = 'none';
+            }
+        }
+
+        async function startBatchIngestion(slowOnly = false) {
+            const statusDiv = document.getElementById('batch-status');
+            const progressDiv = document.getElementById('batch-progress');
+            const logContainer = document.getElementById('log-container');
+            const logViewer = document.getElementById('log-viewer');
+
+            setBatchButtonsState(true);
+
+            // Clear previous logs
+            logViewer.innerHTML = '';
+
+            try {
+                let url = '/ingest/sources/refresh/batch/async?batch_size=10&timeout_per_source=120';
+                if (slowOnly) {
+                    url += '&slow_only=true';
+                } else {
+                    url += '&exclude_slow=true';
+                }
+
+                const response = await apiRequest(url, 'POST');
+                currentBatchJobId = response.job_id;
+                localStorage.setItem('currentBatchJobId', currentBatchJobId);
+
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'api-key-status configured';
+                statusDiv.innerHTML = `<span class="status-icon">⏳</span> Batch job started (${response.mode}): <code>${response.job_id}</code>`;
+
+                progressDiv.style.display = 'block';
+                logContainer.style.display = 'block';
+
+                document.getElementById('stat-total').textContent = response.total_sources;
+
+                showAlert(`Batch job started! Processing ${response.total_sources} sources (${response.mode}).`);
+
+                // Start SSE stream for real-time logs
+                startLogStream(currentBatchJobId);
+
+            } catch (error) {
+                statusDiv.style.display = 'block';
+                statusDiv.className = 'api-key-status error';
+                statusDiv.innerHTML = `<span class="status-icon">✗</span> Error: ${error.message}`;
+                showAlert('Failed to start batch: ' + error.message, 'error');
+                setBatchButtonsState(false);
+            }
+        }
+
+        async function stopBatchIngestion() {
+            if (!currentBatchJobId) {
+                showAlert('No batch job to stop', 'error');
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/ingest/sources/refresh/batch/stop/${currentBatchJobId}`, 'POST');
+                showAlert(response.message);
+            } catch (error) {
+                showAlert('Failed to stop batch: ' + error.message, 'error');
+            }
+        }
+
+        function startLogStream(jobId) {
+            stopLogStream();
+
+            const logViewer = document.getElementById('log-viewer');
+            const logContainer = document.getElementById('log-container');
+            logContainer.style.display = 'block';
+
+            // Use SSE for real-time streaming
+            eventSource = new EventSource(`${API_BASE}/ingest/sources/refresh/batch/stream/${jobId}`);
+
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'log') {
+                        appendLog(data.data);
+                    } else if (data.type === 'status') {
+                        updateBatchProgress(data.data);
+                    } else if (data.type === 'done') {
+                        updateBatchProgress(data.data);
+                        stopLogStream();
+                        if (data.data.status === 'completed') {
+                            showAlert('Batch ingestion completed!');
+                        }
+                    }
+                } catch (e) {
+                    console.error('SSE parse error:', e);
+                }
+            };
+
+            eventSource.onerror = (e) => {
+                console.error('SSE error:', e);
+                stopLogStream();
+                // Fall back to polling
+                startLogPolling(jobId);
+            };
+        }
+
+        function stopLogStream() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+
+        let logPollInterval = null;
+        let logSince = 0;
+
+        function startLogPolling(jobId) {
+            stopLogPolling();
+            logPollInterval = setInterval(async () => {
+                try {
+                    const [statusRes, logsRes] = await Promise.all([
+                        apiRequest(`/ingest/sources/refresh/batch/status/${jobId}`),
+                        apiRequest(`/ingest/sources/refresh/batch/logs/${jobId}?since=${logSince}`)
+                    ]);
+
+                    updateBatchProgress(statusRes);
+
+                    logsRes.logs.forEach(log => appendLog(log));
+                    logSince = logsRes.next_since;
+
+                    if (statusRes.status !== 'running') {
+                        stopLogPolling();
+                    }
+                } catch (e) {
+                    console.error('Poll error:', e);
+                }
+            }, 2000);
+        }
+
+        function stopLogPolling() {
+            if (logPollInterval) {
+                clearInterval(logPollInterval);
+                logPollInterval = null;
+            }
+        }
+
+        function appendLog(log) {
+            const logViewer = document.getElementById('log-viewer');
+            const autoScroll = document.getElementById('auto-scroll').checked;
+
+            const colors = {
+                'info': '#60a5fa',
+                'success': '#4ade80',
+                'error': '#f87171',
+                'warning': '#fbbf24'
+            };
+
+            const time = new Date(log.timestamp).toLocaleTimeString();
+            const color = colors[log.level] || '#94a3b8';
+
+            const logLine = document.createElement('div');
+            logLine.style.color = color;
+            logLine.innerHTML = `<span style="color:#64748b">[${time}]</span> ${escapeHtml(log.message)}`;
+
+            logViewer.appendChild(logLine);
+
+            if (autoScroll) {
+                logViewer.scrollTop = logViewer.scrollHeight;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function checkBatchStatus(silent = false) {
+            if (!currentBatchJobId) {
+                if (!silent) showAlert('No batch job running. Start one first.', 'error');
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/ingest/sources/refresh/batch/status/${currentBatchJobId}`);
+                updateBatchProgress(response);
+
+                // Load existing logs
+                const logsRes = await apiRequest(`/ingest/sources/refresh/batch/logs/${currentBatchJobId}`);
+                const logViewer = document.getElementById('log-viewer');
+                const logContainer = document.getElementById('log-container');
+                logContainer.style.display = 'block';
+                logViewer.innerHTML = '';
+                logsRes.logs.forEach(log => appendLog(log));
+                logSince = logsRes.next_since;
+
+                // If still running, start streaming
+                if (response.status === 'running') {
+                    startLogStream(currentBatchJobId);
+                }
+            } catch (error) {
+                // Job not found - clear stored ID silently
+                currentBatchJobId = null;
+                localStorage.removeItem('currentBatchJobId');
+                setBatchButtonsState(false);
+
+                if (!silent) {
+                    if (error.message.includes('404') || error.message.includes('not found')) {
+                        showAlert('Previous batch job no longer exists (server may have restarted).', 'warning');
+                    } else {
+                        showAlert('Error checking status: ' + error.message, 'error');
+                    }
+                }
+            }
+        }
+
+        function updateBatchProgress(status) {
+            const statusDiv = document.getElementById('batch-status');
+            const progressDiv = document.getElementById('batch-progress');
+            const progressBar = document.getElementById('batch-progress-bar');
+            const progressText = document.getElementById('batch-progress-text');
+            const progressPercent = document.getElementById('batch-progress-percent');
+
+            progressDiv.style.display = 'block';
+            statusDiv.style.display = 'block';
+
+            const percent = status.total_sources > 0
+                ? Math.round((status.processed / status.total_sources) * 100)
+                : 0;
+
+            progressBar.style.width = percent + '%';
+            progressPercent.textContent = percent + '%';
+
+            // Update stats
+            document.getElementById('stat-processed').textContent = status.processed;
+            document.getElementById('stat-total').textContent = status.total_sources;
+            document.getElementById('stat-success').textContent = status.sources_refreshed;
+            document.getElementById('stat-failed').textContent = status.sources_failed;
+            document.getElementById('stat-added').textContent = status.jobs_added;
+            document.getElementById('stat-updated').textContent = status.jobs_updated;
+
+            if (status.status === 'running') {
+                setBatchButtonsState(true);
+                statusDiv.className = 'api-key-status configured';
+                const modeInfo = status.mode ? ` (${status.mode})` : '';
+                statusDiv.innerHTML = `<span class="status-icon">⏳</span> Processing${modeInfo}: <strong>${status.current_source || 'N/A'}</strong>`;
+                progressText.textContent = `Processing ${status.processed} of ${status.total_sources} sources`;
+            } else if (status.status === 'completed') {
+                setBatchButtonsState(false);
+                statusDiv.className = 'api-key-status configured';
+                statusDiv.innerHTML = `<span class="status-icon">✓</span> Batch completed!`;
+                progressText.textContent = 'Completed';
+                progressBar.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
+            } else if (status.status === 'stopped') {
+                setBatchButtonsState(false);
+                statusDiv.className = 'api-key-status not-configured';
+                statusDiv.innerHTML = `<span class="status-icon">⚠</span> Batch stopped by user`;
+                progressText.textContent = 'Stopped';
+                progressBar.style.background = '#fbbf24';
+            } else if (status.status === 'failed') {
+                setBatchButtonsState(false);
+                statusDiv.className = 'api-key-status error';
+                statusDiv.innerHTML = `<span class="status-icon">✗</span> Batch failed: ${status.error}`;
+                progressText.textContent = 'Failed';
+                progressBar.style.background = '#ef4444';
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('log-viewer').innerHTML = '';
+            logSince = 0;
+        }
+
+        // Check for existing batch job on page load (silent mode)
+        if (currentBatchJobId) {
+            checkBatchStatus(true);
+        }
+    </script>
+</body>
+</html>

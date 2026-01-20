@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Dashboard</title>
+    <link rel="stylesheet" href="../css/theme.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cariara</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html" class="active">Dashboard</a></li>
+                    <li><a href="jobs.html">Jobs</a></li>
+                    <li><a href="companies.html">Companies</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h2>Dashboard</h2>
+            <a href="jobs.html" class="btn btn-primary">Import Jobs</a>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card stat-blue">
+                <div class="number" id="total-jobs">-</div>
+                <div class="label">Total Jobs</div>
+            </div>
+            <div class="stat-card stat-blue">
+                <div class="number" id="total-applied" style="color: var(--status-applied);">-</div>
+                <div class="label">Applied</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="total-interviewing" style="color: var(--status-interviewing);">-</div>
+                <div class="label">Interviewing</div>
+            </div>
+            <div class="stat-card stat-green">
+                <div class="number" id="upcoming-interviews">-</div>
+                <div class="label">Upcoming Interviews</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Status Overview</h3>
+            <div class="status-overview" id="status-overview">
+                <p class="loading">Loading...</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Recent Activity</h3>
+            <div id="recent-activity">
+                <p class="loading">Loading...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/app.js"></script>
+    <script>
+        // Require authentication
+        requireAuth();
+
+        // Check admin role - redirect non-admin users to user portal
+        (async function checkAdminAccess() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role !== 'admin') {
+                    // Non-admin users should use the job seeker portal
+                    window.location.href = '../jobs/discover.html';
+                    return;
+                }
+            } catch (e) {
+                console.error('Error checking admin access:', e);
+            }
+        })();
+
+        async function loadDashboard() {
+            try {
+                const summary = await apiRequest('/analytics/summary');
+
+                document.getElementById('total-jobs').textContent = summary.total_jobs;
+                document.getElementById('total-applied').textContent = summary.status_counts.applied || 0;
+                document.getElementById('total-interviewing').textContent = summary.status_counts.interviewing || 0;
+                document.getElementById('upcoming-interviews').textContent = summary.upcoming_interviews;
+
+                const statusOverview = document.getElementById('status-overview');
+                const statuses = ['wishlist', 'applied', 'interviewing', 'offer', 'rejected', 'withdrawn'];
+                let statusHtml = '<div style="display: flex; gap: 15px; flex-wrap: wrap;">';
+                statuses.forEach(status => {
+                    const count = summary.status_counts[status] || 0;
+                    statusHtml += `
+                        <div style="text-align: center;">
+                            ${getStatusBadge(status)}
+                            <div style="margin-top: 5px; font-weight: 600;">${count}</div>
+                        </div>
+                    `;
+                });
+                statusHtml += '</div>';
+                statusOverview.innerHTML = statusHtml;
+
+                const recentActivity = document.getElementById('recent-activity');
+                if (summary.recent_activity.length === 0) {
+                    recentActivity.innerHTML = '<div class="empty-state"><p>No jobs tracked yet</p><a href="jobs.html" class="btn btn-primary">Import Jobs</a></div>';
+                } else {
+                    let activityHtml = '<table><thead><tr><th>Job Title</th><th>Company</th><th>Status</th><th>Added</th></tr></thead><tbody>';
+                    summary.recent_activity.forEach(job => {
+                        activityHtml += `
+                            <tr class="clickable" onclick="window.location='job_detail.html?id=${job.id}'">
+                                <td>${job.title}</td>
+                                <td>${job.company_name || '-'}</td>
+                                <td>${getStatusBadge(job.status)}</td>
+                                <td>${formatDate(job.created_at)}</td>
+                            </tr>
+                        `;
+                    });
+                    activityHtml += '</tbody></table>';
+                    recentActivity.innerHTML = activityHtml;
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                document.getElementById('status-overview').innerHTML = '<p class="alert alert-error">Failed to load dashboard data</p>';
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

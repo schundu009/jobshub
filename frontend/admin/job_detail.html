@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Job Details</title>
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        /* Page-specific overrides */
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cariara</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Dashboard</a></li>
+                    <li><a href="jobs.html" class="active">Jobs</a></li>
+                    <li><a href="companies.html">Companies</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="job-content">
+            <p class="loading">Loading job details...</p>
+        </div>
+    </main>
+
+    <!-- Note Modal -->
+    <div class="modal-overlay" id="note-modal">
+        <div class="modal">
+            <h3>Add Note</h3>
+            <form id="note-form">
+                <div class="form-group">
+                    <label for="note_type">Note Type</label>
+                    <select id="note_type" name="note_type">
+                        <option value="general">General</option>
+                        <option value="follow_up">Follow Up</option>
+                        <option value="research">Research</option>
+                        <option value="feedback">Feedback</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="note_content">Note</label>
+                    <textarea id="note_content" name="content" required rows="5"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Note</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeNoteModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Interview Modal -->
+    <div class="modal-overlay" id="interview-modal">
+        <div class="modal">
+            <h3>Add Interview</h3>
+            <form id="interview-form">
+                <div class="form-group">
+                    <label for="interview_date">Date & Time *</label>
+                    <input type="datetime-local" id="interview_date" name="interview_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="interview_type">Interview Type</label>
+                    <select id="interview_type" name="interview_type">
+                        <option value="phone_screen">Phone Screen</option>
+                        <option value="technical">Technical</option>
+                        <option value="behavioral">Behavioral</option>
+                        <option value="onsite">Onsite</option>
+                        <option value="final">Final</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="interviewer_names">Interviewer Names</label>
+                    <input type="text" id="interviewer_names" name="interviewer_names" placeholder="e.g., John Smith, Jane Doe">
+                </div>
+                <div class="form-group">
+                    <label for="interview_location">Location / Meeting Link</label>
+                    <input type="text" id="interview_location" name="location" placeholder="e.g., Zoom link or office address">
+                </div>
+                <div class="form-group">
+                    <label for="interview_notes">Notes</label>
+                    <textarea id="interview_notes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Interview</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeInterviewModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cover Letter Modal -->
+    <div class="modal-overlay" id="cover-letter-modal">
+        <div class="modal ai-modal">
+            <h3>Generate Cover Letter</h3>
+            <div class="form-group">
+                <label for="resume_text_cl">Your Resume / Background</label>
+                <textarea id="resume_text_cl" rows="6" placeholder="Paste your resume text or describe your background..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="generateCoverLetter()" id="btn-cover-letter">Generate Cover Letter</button>
+                <button type="button" class="btn btn-secondary" onclick="closeCoverLetterModal()">Close</button>
+            </div>
+            <div id="cover-letter-result"></div>
+        </div>
+    </div>
+
+    <!-- Interview Questions Modal -->
+    <div class="modal-overlay" id="questions-modal">
+        <div class="modal ai-modal">
+            <h3>Practice Interview Questions</h3>
+            <div class="form-group">
+                <label for="questions_interview_type">Interview Type</label>
+                <select id="questions_interview_type">
+                    <option value="behavioral">Behavioral</option>
+                    <option value="technical">Technical</option>
+                    <option value="phone_screen">Phone Screen</option>
+                    <option value="onsite">Onsite</option>
+                    <option value="final">Final Round</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="generateQuestions()" id="btn-questions">Generate Questions</button>
+                <button type="button" class="btn btn-secondary" onclick="closeQuestionsModal()">Close</button>
+            </div>
+            <div id="questions-result"></div>
+        </div>
+    </div>
+
+    <!-- Resume Match Modal -->
+    <div class="modal-overlay" id="match-modal">
+        <div class="modal ai-modal">
+            <h3>Resume-Job Match Analysis</h3>
+            <div class="form-group">
+                <label for="resume_text_match">Your Resume</label>
+                <textarea id="resume_text_match" rows="6" placeholder="Paste your resume text..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="analyzeMatch()" id="btn-match">Analyze Match</button>
+                <button type="button" class="btn btn-secondary" onclick="closeMatchModal()">Close</button>
+            </div>
+            <div id="match-result"></div>
+        </div>
+    </div>
+
+    <!-- Company Research Modal -->
+    <div class="modal-overlay" id="research-modal">
+        <div class="modal ai-modal">
+            <h3>Company Research</h3>
+            <p style="color: #7f8c8d; margin-bottom: 15px;">Get AI-generated research to help you prepare for interviews.</p>
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="researchCompany()" id="btn-research">Generate Research</button>
+                <button type="button" class="btn btn-secondary" onclick="closeResearchModal()">Close</button>
+            </div>
+            <div id="research-result"></div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+        // Require authentication
+        requireAuth();
+
+        const jobId = getUrlParam('id');
+        let currentJob = null;
+
+        async function loadJobDetail() {
+            if (!jobId) {
+                window.location.href = 'jobs.html';
+                return;
+            }
+
+            try {
+                currentJob = await apiRequest(`/jobs/${jobId}`);
+                renderJobDetail(currentJob);
+            } catch (error) {
+                document.getElementById('job-content').innerHTML = '<p class="alert alert-error">Job not found</p>';
+            }
+        }
+
+        function getSourceBadge(source) {
+            if (!source || source === 'manual') return '';
+            const labels = {
+                'greenhouse': 'Greenhouse',
+                'lever': 'Lever',
+                'ashby': 'Ashby',
+                'smartrecruiters': 'SmartRecruiters',
+                'workable': 'Workable',
+                'recruitee': 'Recruitee',
+                'workday': 'Workday'
+            };
+            return `<span class="source-badge source-${source}">${labels[source] || source}</span>`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderJobDetail(job) {
+            const excitement = '★'.repeat(job.excitement_level) + '☆'.repeat(5 - job.excitement_level);
+            const sourceBadge = getSourceBadge(job.source);
+            const inactiveBadge = job.is_active === false ? '<span class="inactive-badge">Inactive</span>' : '';
+
+            let interviewsHtml = '';
+            if (job.interviews.length === 0) {
+                interviewsHtml = '<p style="color: #7f8c8d;">No interviews scheduled</p>';
+            } else {
+                job.interviews.forEach(interview => {
+                    interviewsHtml += `
+                        <div class="interview-item">
+                            <div class="interview-date">${formatDateTime(interview.interview_date)}</div>
+                            <div class="interview-type">${interview.interview_type || 'Interview'}</div>
+                            <span class="status-badge status-${interview.outcome === 'passed' ? 'offer' : interview.outcome === 'failed' ? 'rejected' : 'applied'}">${interview.outcome}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            let notesHtml = '';
+            if (job.notes.length === 0) {
+                notesHtml = '<p style="color: #7f8c8d;">No notes yet</p>';
+            } else {
+                job.notes.forEach(note => {
+                    notesHtml += `
+                        <div class="note-item">
+                            <div class="note-header">
+                                <span class="note-type">${note.note_type}</span>
+                                <span class="note-date">${formatDateTime(note.created_at)}</span>
+                            </div>
+                            <p>${escapeHtml(note.content)}</p>
+                        </div>
+                    `;
+                });
+            }
+
+            // Format job description - decode HTML entities and render as HTML
+            let description = job.job_description || '';
+            // Decode HTML entities (e.g., &lt; -> <, &gt; -> >, etc.)
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = description;
+            description = textarea.value;
+
+            document.getElementById('job-content').innerHTML = `
+                <div class="detail-header">
+                    <div>
+                        <h2>${escapeHtml(job.title)}${sourceBadge}${inactiveBadge}</h2>
+                        <p class="company">${escapeHtml(job.company_name) || 'No company specified'}</p>
+                    </div>
+                    <div class="detail-actions">
+                        <select id="status-select" onchange="updateStatus(this.value)">
+                            <option value="wishlist" ${job.status === 'wishlist' ? 'selected' : ''}>Wishlist</option>
+                            <option value="applied" ${job.status === 'applied' ? 'selected' : ''}>Applied</option>
+                            <option value="interviewing" ${job.status === 'interviewing' ? 'selected' : ''}>Interviewing</option>
+                            <option value="offer" ${job.status === 'offer' ? 'selected' : ''}>Offer</option>
+                            <option value="rejected" ${job.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            <option value="withdrawn" ${job.status === 'withdrawn' ? 'selected' : ''}>Withdrawn</option>
+                        </select>
+                        <a href="job_form.html?id=${job.id}" class="btn btn-secondary">Edit</a>
+                        <button class="btn btn-danger" onclick="deleteJob()">Delete</button>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-main">
+                        <div class="card">
+                            <h3>Job Information</h3>
+                            <div class="info-row">
+                                <span class="info-label">Location</span>
+                                <span class="info-value">${escapeHtml(job.location) || '-'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Salary Range</span>
+                                <span class="info-value">${formatSalary(job.salary_min, job.salary_max)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Date Found</span>
+                                <span class="info-value">${formatDate(job.date_found)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Date Applied</span>
+                                <span class="info-value">${formatDate(job.date_applied)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Excitement</span>
+                                <span class="info-value">${excitement}</span>
+                            </div>
+                            ${job.source && job.source !== 'manual' ? `
+                            <div class="info-row">
+                                <span class="info-label">Source</span>
+                                <span class="info-value">${job.source.charAt(0).toUpperCase() + job.source.slice(1)}</span>
+                            </div>
+                            ` : ''}
+                            ${job.job_url ? `
+                            <div class="info-row">
+                                <span class="info-label">Job Posting</span>
+                                <span class="info-value"><a href="${escapeHtml(job.job_url)}" target="_blank">View Original Posting</a></span>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="card">
+                            <h3>Job Description</h3>
+                            <div class="job-description">${description || ''}</div>
+                        </div>
+                    </div>
+
+                    <div class="detail-sidebar">
+                        <div class="card">
+                            <h3>AI Tools</h3>
+                            <p style="color: #7f8c8d; font-size: 13px; margin-bottom: 15px;">Powered by OpenAI</p>
+                            <div class="ai-tools-grid">
+                                <button class="ai-btn" onclick="openCoverLetterModal()">Cover Letter</button>
+                                <button class="ai-btn" onclick="openQuestionsModal()">Interview Prep</button>
+                                <button class="ai-btn" onclick="openMatchModal()">Resume Match</button>
+                                <button class="ai-btn" onclick="openResearchModal()" ${!job.company_name ? 'disabled title="Add a company first"' : ''}>Company Research</button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0;">Interviews</h3>
+                                <button class="btn btn-primary btn-small" onclick="openInterviewModal()">Add</button>
+                            </div>
+                            ${interviewsHtml}
+                        </div>
+
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0;">Notes</h3>
+                                <button class="btn btn-primary btn-small" onclick="openNoteModal()">Add</button>
+                            </div>
+                            ${notesHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function updateStatus(status) {
+            try {
+                await apiRequest(`/jobs/${jobId}/status`, 'PATCH', { status });
+                showAlert('Status updated');
+            } catch (error) {
+                showAlert('Failed to update status: ' + error.message, 'error');
+                loadJobDetail();
+            }
+        }
+
+        async function deleteJob() {
+            if (!confirm('Are you sure you want to delete this job?')) return;
+
+            try {
+                await apiRequest(`/jobs/${jobId}`, 'DELETE');
+                window.location.href = 'jobs.html';
+            } catch (error) {
+                showAlert('Failed to delete job: ' + error.message, 'error');
+            }
+        }
+
+        // Note Modal
+        function openNoteModal() {
+            document.getElementById('note-modal').classList.add('active');
+        }
+
+        function closeNoteModal() {
+            document.getElementById('note-modal').classList.remove('active');
+            document.getElementById('note-form').reset();
+        }
+
+        // Interview Modal
+        function openInterviewModal() {
+            document.getElementById('interview-modal').classList.add('active');
+        }
+
+        function closeInterviewModal() {
+            document.getElementById('interview-modal').classList.remove('active');
+            document.getElementById('interview-form').reset();
+        }
+
+        // Cover Letter Modal
+        function openCoverLetterModal() {
+            document.getElementById('cover-letter-modal').classList.add('active');
+            document.getElementById('cover-letter-result').innerHTML = '';
+        }
+
+        function closeCoverLetterModal() {
+            document.getElementById('cover-letter-modal').classList.remove('active');
+        }
+
+        async function generateCoverLetter() {
+            const resumeText = document.getElementById('resume_text_cl').value;
+            if (!resumeText.trim()) {
+                showAlert('Please enter your resume or background', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-cover-letter');
+            const resultDiv = document.getElementById('cover-letter-result');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Generating...';
+            resultDiv.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Generating your cover letter...</p>';
+
+            try {
+                const response = await apiRequest('/ai/cover-letter', 'POST', {
+                    job_id: parseInt(jobId),
+                    resume_text: resumeText
+                });
+                resultDiv.innerHTML = `<div class="ai-result">${response.cover_letter}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="alert alert-error">${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Cover Letter';
+            }
+        }
+
+        // Interview Questions Modal
+        function openQuestionsModal() {
+            document.getElementById('questions-modal').classList.add('active');
+            document.getElementById('questions-result').innerHTML = '';
+        }
+
+        function closeQuestionsModal() {
+            document.getElementById('questions-modal').classList.remove('active');
+        }
+
+        async function generateQuestions() {
+            const interviewType = document.getElementById('questions_interview_type').value;
+
+            const btn = document.getElementById('btn-questions');
+            const resultDiv = document.getElementById('questions-result');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Generating...';
+            resultDiv.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Generating practice questions...</p>';
+
+            try {
+                const response = await apiRequest('/ai/interview-questions', 'POST', {
+                    job_id: parseInt(jobId),
+                    interview_type: interviewType
+                });
+                resultDiv.innerHTML = `<div class="ai-result">${response.questions}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="alert alert-error">${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Questions';
+            }
+        }
+
+        // Resume Match Modal
+        function openMatchModal() {
+            document.getElementById('match-modal').classList.add('active');
+            document.getElementById('match-result').innerHTML = '';
+        }
+
+        function closeMatchModal() {
+            document.getElementById('match-modal').classList.remove('active');
+        }
+
+        async function analyzeMatch() {
+            const resumeText = document.getElementById('resume_text_match').value;
+            if (!resumeText.trim()) {
+                showAlert('Please enter your resume text', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-match');
+            const resultDiv = document.getElementById('match-result');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Analyzing...';
+            resultDiv.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Analyzing your resume match...</p>';
+
+            try {
+                const response = await apiRequest('/ai/job-match', 'POST', {
+                    job_id: parseInt(jobId),
+                    resume_text: resumeText
+                });
+
+                const scoreClass = response.match_score >= 70 ? 'high' : response.match_score >= 50 ? 'medium' : 'low';
+
+                let html = `<div class="match-score ${scoreClass}">${response.match_score}%</div>`;
+
+                if (response.matching_skills && response.matching_skills.length > 0) {
+                    html += '<h4 style="margin-top: 15px;">Matching Skills</h4>';
+                    html += '<div class="skills-list">';
+                    response.matching_skills.forEach(skill => {
+                        html += `<span class="skill-tag match">${skill}</span>`;
+                    });
+                    html += '</div>';
+                }
+
+                if (response.missing_skills && response.missing_skills.length > 0) {
+                    html += '<h4 style="margin-top: 15px;">Missing Skills</h4>';
+                    html += '<div class="skills-list">';
+                    response.missing_skills.forEach(skill => {
+                        html += `<span class="skill-tag missing">${skill}</span>`;
+                    });
+                    html += '</div>';
+                }
+
+                if (response.summary) {
+                    html += `<h4 style="margin-top: 15px;">Summary</h4><p>${response.summary}</p>`;
+                }
+
+                if (response.recommendations && response.recommendations.length > 0) {
+                    html += '<h4 style="margin-top: 15px;">Recommendations</h4><ul>';
+                    response.recommendations.forEach(rec => {
+                        html += `<li>${rec}</li>`;
+                    });
+                    html += '</ul>';
+                }
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="alert alert-error">${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Analyze Match';
+            }
+        }
+
+        // Company Research Modal
+        function openResearchModal() {
+            document.getElementById('research-modal').classList.add('active');
+            document.getElementById('research-result').innerHTML = '';
+        }
+
+        function closeResearchModal() {
+            document.getElementById('research-modal').classList.remove('active');
+        }
+
+        async function researchCompany() {
+            if (!currentJob.company_name) {
+                showAlert('No company associated with this job', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-research');
+            const resultDiv = document.getElementById('research-result');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span>Researching...';
+            resultDiv.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Researching ' + currentJob.company_name + '...</p>';
+
+            try {
+                const response = await apiRequest('/ai/company-research', 'POST', {
+                    company_id: currentJob.company_id
+                });
+                resultDiv.innerHTML = `<div class="ai-result">${response.research}</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="alert alert-error">${error.message}</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate Research';
+            }
+        }
+
+        // Form submissions
+        document.getElementById('note-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await apiRequest('/notes', 'POST', {
+                    job_id: parseInt(jobId),
+                    content: document.getElementById('note_content').value,
+                    note_type: document.getElementById('note_type').value
+                });
+                closeNoteModal();
+                showAlert('Note added');
+                loadJobDetail();
+            } catch (error) {
+                showAlert('Failed to add note: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('interview-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await apiRequest('/interviews', 'POST', {
+                    job_id: parseInt(jobId),
+                    interview_date: document.getElementById('interview_date').value,
+                    interview_type: document.getElementById('interview_type').value,
+                    interviewer_names: document.getElementById('interviewer_names').value || null,
+                    location: document.getElementById('interview_location').value || null,
+                    notes: document.getElementById('interview_notes').value || null
+                });
+                closeInterviewModal();
+                showAlert('Interview added');
+                loadJobDetail();
+            } catch (error) {
+                showAlert('Failed to add interview: ' + error.message, 'error');
+            }
+        });
+
+        loadJobDetail();
+    </script>
+</body>
+</html>

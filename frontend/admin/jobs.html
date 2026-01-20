@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Jobs</title>
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        .hero-section {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+        .hero-section h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .hero-section p {
+            margin: 0 0 25px 0;
+            opacity: 0.9;
+            font-size: 15px;
+        }
+        .import-box {
+            background: var(--bg-subtle);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .import-box label {
+            display: block;
+            text-align: left;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .import-form {
+            display: flex;
+            gap: 10px;
+        }
+        .import-form input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .import-form button {
+            padding: 12px 24px;
+            background: var(--primary-yellow);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .import-form button:hover {
+            background: var(--primary-yellow-light);
+            transform: translateY(-1px);
+        }
+        .import-form button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .import-result {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background: var(--bg-muted);
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: left;
+        }
+        .import-result.error {
+            background: var(--error-muted);
+            color: var(--error);
+        }
+        .import-result.success {
+            background: var(--success-muted);
+            border: 1px solid var(--success);
+        }
+        .import-result.success small {
+            color: var(--text-tertiary);
+        }
+        .example-urls {
+            margin-top: 15px;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        .example-urls span {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin: 3px;
+            cursor: pointer;
+        }
+        .example-urls span:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tracked-companies {
+            background: var(--bg-white);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-light);
+        }
+        .tracked-companies h3 {
+            margin: 0 0 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        .company-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .company-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-subtle);
+            border-radius: 20px;
+            font-size: 13px;
+            text-decoration: none;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .company-chip:hover {
+            background: var(--bg-white);
+            border-color: var(--border-subtle);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .company-chip .name {
+            font-weight: 500;
+        }
+        .company-chip .count {
+            background: var(--bg-muted);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .company-chip .ext-link {
+            color: var(--text-muted);
+            font-size: 10px;
+            margin-left: 2px;
+            text-decoration: none;
+        }
+        .company-chip .ext-link:hover {
+            color: var(--text-primary);
+        }
+        .ats-badge {
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .ats-greenhouse { background: #d4edda; color: #155724; }
+        .ats-lever { background: #fff3cd; color: #856404; }
+        .ats-ashby { background: #f8d7da; color: #721c24; }
+        .ats-smartrecruiters { background: #d1ecf1; color: #0c5460; }
+        .ats-workable { background: #e2d5f1; color: #4a148c; }
+        .ats-recruitee { background: #ffe0b2; color: #e65100; }
+        .ats-workday { background: #c5cae9; color: #1a237e; }
+        .ats-scraper { background: #e8eaf6; color: #3949ab; }
+        .ats-browser { background: #fce4ec; color: #c2185b; }
+        .ats-http { background: #e3f2fd; color: #1565c0; }
+        .ats-playwright { background: #fff3e0; color: #e65100; }
+        .empty-companies {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+        }
+        .refresh-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+        .refresh-btn:hover {
+            background: var(--bg-muted);
+            color: var(--text-primary);
+        }
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+        .refresh-btn.success {
+            color: var(--success);
+        }
+        .refresh-btn.error {
+            color: var(--error);
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .status-error {
+            color: var(--error);
+            font-weight: bold;
+            font-size: 10px;
+            margin-left: 2px;
+        }
+
+        /* Time range filter pills */
+        .time-filter {
+            display: flex;
+            gap: 6px;
+            margin-right: auto;
+        }
+        .time-pill {
+            padding: 6px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            background: var(--bg-white);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .time-pill:hover {
+            border-color: var(--border-subtle);
+            background: var(--bg-subtle);
+        }
+        .time-pill.active {
+            background: var(--text-primary);
+            color: var(--bg-base);
+            border-color: var(--text-primary);
+        }
+
+        /* Job title link styling */
+        .job-title-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .job-title-link:hover {
+            color: var(--primary-yellow);
+            text-decoration: underline;
+        }
+        .external-link {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-left: 6px;
+            text-decoration: none;
+        }
+        .external-link:hover {
+            color: var(--text-secondary);
+        }
+
+        .jobs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .jobs-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+        .jobs-header .secondary-action {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .jobs-header .secondary-action a {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .filter-bar select, .filter-bar input {
+            padding: 10px 14px;
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .filter-bar select:focus, .filter-bar input:focus {
+            border-color: var(--border-subtle);
+            outline: none;
+        }
+
+        .source-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .source-manual { background: #e3f2fd; color: #1565c0; }
+        .source-greenhouse { background: #e8f5e9; color: #2e7d32; }
+        .source-lever { background: #fff8e1; color: #f57f17; }
+        .source-ashby { background: #fce4ec; color: #c2185b; }
+        .source-smartrecruiters { background: #e0f2f1; color: #00695c; }
+        .source-workable { background: #ede7f6; color: #512da8; }
+        .source-recruitee { background: #fff3e0; color: #e65100; }
+        .source-workday { background: #e8eaf6; color: #283593; }
+
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-mini {
+            background: var(--bg-white);
+            padding: 18px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
+        }
+        .stat-mini:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .stat-mini .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .stat-mini:nth-child(2) .number { color: var(--success); }
+        .stat-mini:nth-child(3) .number { color: var(--warning); }
+        .stat-mini:nth-child(4) .number { color: var(--text-secondary); }
+        .stat-mini .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* Import Tabs */
+        .import-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .import-tab {
+            background: var(--bg-muted);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .import-tab:hover {
+            background: var(--border-subtle);
+        }
+        .import-tab.active {
+            background: var(--text-primary);
+            color: var(--bg-base);
+        }
+        .import-tab-content {
+            display: none;
+        }
+        .import-tab-content.active {
+            display: block;
+        }
+        #custom-import-tab input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        /* ATS badge colors for new sources */
+        .ats-intuit { background: #d1fae5; color: #065f46; }
+        .ats-adp { background: #fee2e2; color: #991b1b; }
+        .ats-apple { background: #f3f4f6; color: #374151; }
+        .ats-custom { background: #e0e7ff; color: #3730a3; }
+        .source-intuit { background: #d1fae5; color: #065f46; }
+        .source-adp { background: #fee2e2; color: #991b1b; }
+        .source-apple { background: #f3f4f6; color: #374151; }
+        .source-custom { background: #e0e7ff; color: #3730a3; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cariara</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Dashboard</a></li>
+                    <li><a href="jobs.html" class="active">Jobs</a></li>
+                    <li><a href="companies.html">Companies</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                </ul>
+                <div class="theme-toggle">
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Hero Import Section -->
+        <div class="hero-section">
+            <div class="import-tabs">
+                <button class="import-tab active" onclick="switchImportTab('auto')">Auto Import</button>
+                <button class="import-tab" onclick="switchImportTab('custom')">Custom Company</button>
+            </div>
+
+            <!-- Auto Import Tab -->
+            <div id="auto-import-tab" class="import-tab-content active">
+                <div class="import-box">
+                    <label>Career Page URL</label>
+                    <div class="import-form">
+                        <input type="text" id="career-url" placeholder="Enter career page URL">
+                        <button onclick="ingestJobs()" id="ingest-btn">Import Jobs</button>
+                    </div>
+                    <div id="import-result"></div>
+                </div>
+            </div>
+
+            <!-- Custom Company Tab -->
+            <div id="custom-import-tab" class="import-tab-content">
+                <div class="import-box">
+                    <label>Company Name</label>
+                    <input type="text" id="custom-company-name" placeholder="Company name" style="margin-bottom: 12px;">
+
+                    <label>Career Page URL</label>
+                    <div class="import-form" style="gap: 8px;">
+                        <input type="text" id="custom-career-url" placeholder="Enter career page URL">
+                        <button onclick="detectJobBoard()" id="detect-btn">Detect</button>
+                        <button onclick="addCustomCompany()" id="custom-btn" disabled>Add & Scrape</button>
+                    </div>
+                    <div id="custom-result"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-row">
+            <div class="stat-mini">
+                <div class="number" id="stat-total">-</div>
+                <div class="label">Total Jobs</div>
+            </div>
+            <div class="stat-mini">
+                <div class="number" id="stat-companies">-</div>
+                <div class="label">Companies Tracked</div>
+            </div>
+            <div class="stat-mini">
+                <div class="number" id="stat-wishlist">-</div>
+                <div class="label">In Wishlist</div>
+            </div>
+            <div class="stat-mini">
+                <div class="number" id="stat-applied">-</div>
+                <div class="label">Applied</div>
+            </div>
+        </div>
+
+        <!-- Tracked Companies -->
+        <div class="tracked-companies">
+            <h3>
+                <span>Tracked Companies (<span id="companies-count">0</span>)</span>
+                <button class="btn btn-secondary btn-small" onclick="refreshAllWithStatus()" id="refresh-btn">Refresh All</button>
+            </h3>
+            <div id="companies-grid" class="company-grid">
+                <div class="empty-companies">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Jobs List -->
+        <div class="jobs-header">
+            <h3>All Jobs</h3>
+        </div>
+
+        <div class="filter-bar">
+            <div class="time-filter">
+                <button class="time-pill active" data-days="0" onclick="setTimeFilter(0)">All Time</button>
+                <button class="time-pill" data-days="1" onclick="setTimeFilter(1)">Today</button>
+                <button class="time-pill" data-days="7" onclick="setTimeFilter(7)">Past Week</button>
+                <button class="time-pill" data-days="30" onclick="setTimeFilter(30)">Past Month</button>
+            </div>
+            <select id="status-filter">
+                <option value="">All Statuses</option>
+                <option value="wishlist">Wishlist</option>
+                <option value="applied">Applied</option>
+                <option value="interviewing">Interviewing</option>
+                <option value="offer">Offer</option>
+                <option value="rejected">Rejected</option>
+                <option value="withdrawn">Withdrawn</option>
+            </select>
+            <select id="source-filter">
+                <option value="">All Sources</option>
+                <option value="greenhouse">Greenhouse</option>
+                <option value="ashby">Ashby</option>
+                <option value="workday">Workday</option>
+                <option value="lever">Lever</option>
+                <option value="smartrecruiters">SmartRecruiters</option>
+                <option value="workable">Workable</option>
+                <option value="recruitee">Recruitee</option>
+                <option value="intuit">Intuit</option>
+                <option value="adp">ADP</option>
+                <option value="apple">Apple</option>
+                <option value="custom">Custom</option>
+                <option value="manual">Manual</option>
+            </select>
+            <select id="company-filter">
+                <option value="">All Companies</option>
+            </select>
+            <input type="text" id="search-input" placeholder="Search jobs...">
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Excitement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="jobs-table-body">
+                    <tr>
+                        <td colspan="7" class="loading">Loading jobs...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../js/app.js"></script>
+    <script>
+        // Require authentication
+        requireAuth();
+
+        // Check admin role - redirect non-admin users to user portal
+        (async function checkAdminAccess() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role !== 'admin') {
+                    window.location.href = '../jobs/discover.html';
+                    return;
+                }
+            } catch (e) {
+                console.error('Error checking admin access:', e);
+            }
+        })();
+
+        let allJobs = [];
+        let allSources = [];
+        let timeFilterDays = 0; // 0 = all time
+
+        function setUrl(url) {
+            document.getElementById('career-url').value = url;
+        }
+
+        function switchImportTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.import-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.import-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tab + '-import-tab').classList.add('active');
+        }
+
+        let detectedBoardInfo = null;
+
+        async function detectJobBoard() {
+            const urlInput = document.getElementById('custom-career-url');
+            const detectBtn = document.getElementById('detect-btn');
+            const addBtn = document.getElementById('custom-btn');
+            const resultDiv = document.getElementById('custom-result');
+
+            const url = urlInput.value.trim();
+            if (!url) {
+                resultDiv.innerHTML = '<div class="import-result error">Please enter a career page URL</div>';
+                return;
+            }
+
+            detectBtn.disabled = true;
+            detectBtn.textContent = 'Detecting...';
+            addBtn.disabled = true;
+            resultDiv.innerHTML = '<div class="import-result">Analyzing job board type...</div>';
+
+            try {
+                const response = await apiRequest('/scrapers/custom/detect', 'POST', { careers_url: url });
+                detectedBoardInfo = response;
+
+                if (response.board_type === 'unknown') {
+                    resultDiv.innerHTML = `<div class="import-result error">Could not detect job board type. Supported: Greenhouse, Lever, Workday, Ashby</div>`;
+                    addBtn.disabled = true;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="import-result success">
+                            <strong>${response.board_type.toUpperCase()}</strong> detected
+                            ${response.job_count ? ` - ${response.job_count} jobs available` : ''}
+                            ${response.api_url ? `<br><small>API: ${response.api_url}</small>` : ''}
+                        </div>
+                    `;
+                    addBtn.disabled = false;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="import-result error">Detection failed: ${error.message}</div>`;
+                addBtn.disabled = true;
+            } finally {
+                detectBtn.disabled = false;
+                detectBtn.textContent = 'Detect';
+            }
+        }
+
+        async function addCustomCompany() {
+            const nameInput = document.getElementById('custom-company-name');
+            const urlInput = document.getElementById('custom-career-url');
+            const addBtn = document.getElementById('custom-btn');
+            const resultDiv = document.getElementById('custom-result');
+
+            const name = nameInput.value.trim();
+            const url = urlInput.value.trim();
+
+            if (!name) {
+                resultDiv.innerHTML = '<div class="import-result error">Please enter a company name</div>';
+                return;
+            }
+
+            if (!detectedBoardInfo || detectedBoardInfo.board_type === 'unknown') {
+                resultDiv.innerHTML = '<div class="import-result error">Please detect the job board type first</div>';
+                return;
+            }
+
+            addBtn.disabled = true;
+            addBtn.textContent = 'Creating scraper...';
+            resultDiv.innerHTML = '<div class="import-result">Generating scraper and importing jobs...</div>';
+
+            try {
+                const response = await apiRequest('/scrapers/custom/add', 'POST', {
+                    company_name: name,
+                    careers_url: url
+                });
+
+                resultDiv.innerHTML = `
+                    <div class="import-result success">
+                        <strong>${response.company_name}</strong> scraper created
+                        <br>Board: ${response.board_type} | Jobs: ${response.job_count || 0}
+                        <br><small>Scraper registered and scheduled for automatic updates</small>
+                    </div>
+                `;
+                nameInput.value = '';
+                urlInput.value = '';
+                detectedBoardInfo = null;
+                addBtn.disabled = true;
+                loadSources();
+                loadJobs();
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="import-result error">Error: ${error.message}</div>`;
+            } finally {
+                addBtn.textContent = 'Add & Scrape';
+            }
+        }
+
+        async function loadJobs() {
+            try {
+                // Request all active jobs without limit
+                const response = await apiRequest('/jobs?active_only=true&all=true&limit=50000');
+                // Handle both old (array) and new (object with jobs array) response formats
+                allJobs = Array.isArray(response) ? response : (response.jobs || []);
+                renderJobs(allJobs);
+                updateStats();
+                populateCompanyFilter();
+            } catch (error) {
+                console.error('Failed to load jobs:', error);
+                document.getElementById('jobs-table-body').innerHTML = '<tr><td colspan="7" class="alert alert-error">Failed to load jobs</td></tr>';
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stat-total').textContent = allJobs.length;
+            document.getElementById('stat-wishlist').textContent = allJobs.filter(j => j.status === 'wishlist').length;
+            document.getElementById('stat-applied').textContent = allJobs.filter(j => j.status === 'applied').length;
+        }
+
+        function populateCompanyFilter() {
+            const select = document.getElementById('company-filter');
+            // Support both job.company_name and job.company.name formats
+            const companies = [...new Set(allJobs.map(j => j.company_name || (j.company ? j.company.name : null)).filter(Boolean))].sort();
+            select.innerHTML = '<option value="">All Companies</option>';
+            companies.forEach(company => {
+                select.innerHTML += `<option value="${company}">${company}</option>`;
+            });
+        }
+
+        function getSourceBadge(source) {
+            const labels = {
+                'manual': 'Manual',
+                'greenhouse': 'Greenhouse',
+                'lever': 'Lever',
+                'ashby': 'Ashby',
+                'smartrecruiters': 'SmartRecruiters',
+                'workable': 'Workable',
+                'recruitee': 'Recruitee',
+                'workday': 'Workday',
+                'intuit': 'Intuit',
+                'adp': 'ADP',
+                'apple': 'Apple',
+                'custom': 'Custom'
+            };
+            return `<span class="source-badge source-${source || 'manual'}">${labels[source] || 'Manual'}</span>`;
+        }
+
+        function renderJobs(jobs) {
+            const tbody = document.getElementById('jobs-table-body');
+
+            if (jobs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No jobs found. Import jobs from a company above!</td></tr>';
+                return;
+            }
+
+            let html = '';
+            jobs.forEach(job => {
+                const excitement = '★'.repeat(job.excitement_level || 3) + '☆'.repeat(5 - (job.excitement_level || 3));
+                const jobUrl = job.job_url || job.url;
+                const externalLink = jobUrl ? `<a href="${jobUrl}" target="_blank" class="external-link" title="Open job posting">↗</a>` : '';
+                // Support both job.company_name and job.company.name formats
+                const companyName = job.company_name || (job.company ? job.company.name : null) || '-';
+                html += `
+                    <tr>
+                        <td>
+                            <a href="job_detail.html?id=${job.id}" class="job-title-link">${job.title}</a>
+                            ${externalLink}
+                        </td>
+                        <td>${companyName}</td>
+                        <td>${job.location || '-'}</td>
+                        <td>${getSourceBadge(job.source)}</td>
+                        <td>${getStatusBadge(job.status)}</td>
+                        <td>${excitement}</td>
+                        <td>
+                            <a href="job_detail.html?id=${job.id}" class="btn btn-secondary btn-small">View</a>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function setTimeFilter(days) {
+            timeFilterDays = days;
+            // Update active pill
+            document.querySelectorAll('.time-pill').forEach(pill => {
+                pill.classList.remove('active');
+                if (parseInt(pill.dataset.days) === days) {
+                    pill.classList.add('active');
+                }
+            });
+            filterJobs();
+        }
+
+        function filterByCompany(companyName) {
+            // Set the company filter dropdown
+            const select = document.getElementById('company-filter');
+            // Find matching option (case-insensitive)
+            for (let option of select.options) {
+                if (option.value.toLowerCase() === companyName.toLowerCase()) {
+                    select.value = option.value;
+                    break;
+                }
+            }
+            // If not found in dropdown, add it temporarily
+            if (!select.value || select.value.toLowerCase() !== companyName.toLowerCase()) {
+                const option = document.createElement('option');
+                option.value = companyName;
+                option.textContent = companyName;
+                select.appendChild(option);
+                select.value = companyName;
+            }
+            filterJobs();
+            // Scroll to jobs table
+            document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function filterJobs() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const sourceFilter = document.getElementById('source-filter').value;
+            const companyFilter = document.getElementById('company-filter').value;
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+            const now = new Date();
+            const cutoffDate = timeFilterDays > 0 ? new Date(now - timeFilterDays * 24 * 60 * 60 * 1000) : null;
+
+            const filtered = allJobs.filter(job => {
+                // Support both job.company_name and job.company.name formats
+                const jobCompanyName = job.company_name || (job.company ? job.company.name : null);
+                const matchesStatus = !statusFilter || job.status === statusFilter;
+                const matchesSource = !sourceFilter || job.source === sourceFilter;
+                const matchesCompany = !companyFilter || jobCompanyName === companyFilter;
+                const matchesSearch = !searchQuery ||
+                    job.title.toLowerCase().includes(searchQuery) ||
+                    (jobCompanyName && jobCompanyName.toLowerCase().includes(searchQuery)) ||
+                    (job.location && job.location.toLowerCase().includes(searchQuery));
+
+                // Time filter
+                let matchesTime = true;
+                if (cutoffDate) {
+                    const jobDate = job.posted_date ? new Date(job.posted_date) : (job.created_at ? new Date(job.created_at) : null);
+                    matchesTime = jobDate && jobDate >= cutoffDate;
+                }
+
+                return matchesStatus && matchesSource && matchesCompany && matchesSearch && matchesTime;
+            });
+
+            renderJobs(filtered);
+        }
+
+        async function ingestJobs() {
+            const urlInput = document.getElementById('career-url');
+            const btn = document.getElementById('ingest-btn');
+            const resultDiv = document.getElementById('import-result');
+
+            const url = urlInput.value.trim();
+            if (!url) {
+                resultDiv.innerHTML = '<div class="import-result error">Please enter a career page URL</div>';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Importing...';
+            resultDiv.innerHTML = '<div class="import-result">Fetching jobs...</div>';
+
+            try {
+                const response = await apiRequest('/ingest/company', 'POST', { career_page_url: url });
+
+                let message = '';
+                if (response.jobs_added > 0) {
+                    message = `✓ Added <strong>${response.jobs_added}</strong> new jobs from <strong>${response.company_name}</strong>`;
+                    if (response.jobs_updated > 0) {
+                        message += ` (${response.jobs_updated} updated)`;
+                    }
+                } else if (response.jobs_updated > 0) {
+                    message = `✓ Updated <strong>${response.jobs_updated}</strong> jobs from <strong>${response.company_name}</strong> (no new jobs)`;
+                } else {
+                    message = `✓ <strong>${response.company_name}</strong> is already up to date (${response.total_active_jobs || 0} active jobs)`;
+                }
+                resultDiv.innerHTML = `<div class="import-result">${message}</div>`;
+                urlInput.value = '';
+                loadJobs();
+                loadSources();
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="import-result error">Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Import Jobs';
+            }
+        }
+
+        async function refreshAllSources() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            btn.textContent = 'Refreshing...';
+
+            try {
+                const response = await apiRequest('/ingest/refresh', 'POST');
+                showAlert(`Refreshed ${response.sources_refreshed} companies. Added ${response.total_jobs_added} new jobs.`);
+                loadJobs();
+                loadSources();
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Refresh All';
+            }
+        }
+
+        async function loadSources() {
+            try {
+                // Load ingestion sources (has job counts) and scraper status (has job counts)
+                const [ingestSources, scraperStatus] = await Promise.all([
+                    apiRequest('/ingest/sources'),
+                    apiRequest('/scrapers/status')
+                ]);
+
+                // Merge: prefer source with more jobs
+                const sourceMap = new Map();
+
+                // Add ingestion sources
+                ingestSources.forEach(s => {
+                    const key = s.company_name?.toLowerCase();
+                    sourceMap.set(key, {
+                        company_name: s.company_name,
+                        ats_type: s.ats_type,
+                        job_count: s.job_count || 0,
+                        career_page_url: s.career_page_url,
+                        last_successful_at: s.last_successful_at,
+                        error_message: s.error_message
+                    });
+                });
+
+                // Add/update from scraper status (which has actual job counts)
+                scraperStatus.forEach(s => {
+                    const key = s.company_name?.toLowerCase();
+                    const existing = sourceMap.get(key);
+                    const scraperJobs = s.active_jobs || 0;
+
+                    if (!existing || scraperJobs > (existing.job_count || 0)) {
+                        sourceMap.set(key, {
+                            company_name: s.company_name,
+                            company_slug: s.company_slug,
+                            ats_type: existing?.ats_type || 'scraper',
+                            job_count: scraperJobs,
+                            career_page_url: existing?.career_page_url || '',
+                            is_enabled: s.is_enabled,
+                            last_success_at: s.last_success_at,
+                            consecutive_failures: s.consecutive_failures
+                        });
+                    }
+                });
+
+                allSources = Array.from(sourceMap.values());
+                document.getElementById('stat-companies').textContent = allSources.length;
+                renderSources();
+            } catch (error) {
+                console.error('Failed to load sources:', error);
+            }
+        }
+
+        function renderSources() {
+            const container = document.getElementById('companies-grid');
+            const countSpan = document.getElementById('companies-count');
+
+            if (allSources.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-companies" style="width: 100%;">
+                        No companies tracked yet. Paste a career page URL above to get started!
+                    </div>
+                `;
+                countSpan.textContent = '0';
+                return;
+            }
+
+            // Sort: companies with jobs first, then alphabetically
+            allSources.sort((a, b) => {
+                if ((b.job_count || 0) !== (a.job_count || 0)) {
+                    return (b.job_count || 0) - (a.job_count || 0);
+                }
+                return (a.company_name || '').localeCompare(b.company_name || '');
+            });
+
+            let html = '';
+            allSources.forEach((source, idx) => {
+                const hasJobs = (source.job_count || 0) > 0;
+                const dimStyle = hasJobs ? '' : ' style="opacity: 0.5;"';
+                const companyName = source.company_name || 'Unknown';
+                // Use company_slug from API, or generate a safe ID for the chip
+                const slug = source.company_slug || `src-${idx}`;
+                const extLink = source.career_page_url
+                    ? `<a href="${source.career_page_url}" target="_blank" class="ext-link" title="Open career page" onclick="event.stopPropagation();">↗</a>`
+                    : '';
+                // Store company name for refresh function to use
+                const refreshBtn = source.company_slug
+                    ? `<button class="refresh-btn" data-slug="${slug}" onclick="event.stopPropagation(); refreshCompany('${slug}', this)" title="Refresh jobs">↻</button>`
+                    : `<button class="refresh-btn" data-url="${encodeURIComponent(source.career_page_url || '')}" onclick="event.stopPropagation(); refreshByUrl('${encodeURIComponent(source.career_page_url || '')}', this)" title="Refresh jobs">↻</button>`;
+                const statusIndicator = source.consecutive_failures > 0
+                    ? `<span class="status-error" title="${source.consecutive_failures} failures">!</span>`
+                    : '';
+                html += `
+                    <div class="company-chip"${dimStyle} onclick="filterByCompany('${companyName.replace(/'/g, "\\'")}')" title="Click to filter jobs from ${companyName}" id="chip-${slug}">
+                        <span class="name">${companyName}</span>
+                        <span class="count" id="count-${slug}">${source.job_count || 0}</span>
+                        ${statusIndicator}
+                        ${refreshBtn}
+                        ${extLink}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Update counts
+            const withJobs = allSources.filter(s => (s.job_count || 0) > 0).length;
+            countSpan.textContent = `${withJobs}/${allSources.length}`;
+            document.getElementById('stat-companies').textContent = allSources.length;
+        }
+
+        // Track refresh status for each company
+        const refreshStatus = new Map();
+
+        async function refreshCompany(slug, btn) {
+            if (refreshStatus.get(slug) === 'loading') return;
+
+            btn.classList.remove('success', 'error');
+            btn.classList.add('loading');
+            refreshStatus.set(slug, 'loading');
+
+            try {
+                // Try scraper first, then ingest
+                let response;
+                try {
+                    response = await apiRequest(`/scrapers/${slug}/run`, 'POST');
+                } catch (e) {
+                    // If scraper not found, try ingestion refresh
+                    const source = allSources.find(s =>
+                        (s.company_slug || s.company_name.toLowerCase().replace(/[^a-z0-9]/g, '')) === slug
+                    );
+                    if (source?.career_page_url) {
+                        response = await apiRequest('/ingest/company', 'POST', {
+                            career_page_url: source.career_page_url
+                        });
+                    } else {
+                        throw new Error('No scraper or career URL found');
+                    }
+                }
+
+                btn.classList.remove('loading');
+                btn.classList.add('success');
+                refreshStatus.set(slug, 'success');
+
+                // Update count if available
+                const jobsFound = response.jobs_found || response.jobs_added || 0;
+                const countEl = document.getElementById(`count-${slug}`);
+                if (countEl && jobsFound > 0) {
+                    countEl.textContent = jobsFound;
+                    document.getElementById(`chip-${slug}`)?.style.removeProperty('opacity');
+                }
+
+                // Reload after success
+                setTimeout(() => {
+                    loadJobs();
+                    loadSources();
+                }, 1000);
+
+            } catch (error) {
+                btn.classList.remove('loading');
+                btn.classList.add('error');
+                refreshStatus.set(slug, 'error');
+                console.error(`Failed to refresh ${slug}:`, error);
+            }
+
+            // Reset button state after 3 seconds
+            setTimeout(() => {
+                btn.classList.remove('success', 'error');
+                refreshStatus.delete(slug);
+            }, 3000);
+        }
+
+        async function refreshByUrl(encodedUrl, btn) {
+            const url = decodeURIComponent(encodedUrl);
+            if (!url) {
+                console.error('No URL provided for refresh');
+                return;
+            }
+
+            const key = 'url-' + url;
+            if (refreshStatus.get(key) === 'loading') return;
+
+            btn.classList.remove('success', 'error');
+            btn.classList.add('loading');
+            refreshStatus.set(key, 'loading');
+
+            try {
+                const response = await apiRequest('/ingest/company', 'POST', {
+                    career_page_url: url
+                });
+
+                btn.classList.remove('loading');
+                btn.classList.add('success');
+                refreshStatus.set(key, 'success');
+
+                // Reload after success
+                setTimeout(() => {
+                    loadJobs();
+                    loadSources();
+                }, 1000);
+
+            } catch (error) {
+                btn.classList.remove('loading');
+                btn.classList.add('error');
+                refreshStatus.set(key, 'error');
+                console.error(`Failed to refresh URL ${url}:`, error);
+            }
+
+            // Reset button state after 3 seconds
+            setTimeout(() => {
+                btn.classList.remove('success', 'error');
+                refreshStatus.delete(key);
+            }, 3000);
+        }
+
+        async function refreshAllWithStatus() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            btn.textContent = 'Refreshing...';
+
+            let completed = 0;
+            let failed = 0;
+            const total = allSources.length;
+
+            // Refresh in batches to avoid overwhelming the server
+            const batchSize = 5;
+            for (let i = 0; i < allSources.length; i += batchSize) {
+                const batch = allSources.slice(i, i + batchSize);
+                await Promise.all(batch.map(async (source) => {
+                    const slug = source.company_slug || source.company_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const chipBtn = document.querySelector(`#chip-${slug} .refresh-btn`);
+                    if (chipBtn) {
+                        try {
+                            await refreshCompany(slug, chipBtn);
+                            completed++;
+                        } catch (e) {
+                            failed++;
+                        }
+                    }
+                }));
+                btn.textContent = `Refreshing... ${Math.min(i + batchSize, total)}/${total}`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Refresh All';
+            showAlert(`Refresh complete: ${completed} succeeded, ${failed} failed`);
+        }
+
+        document.getElementById('status-filter').addEventListener('change', filterJobs);
+        document.getElementById('source-filter').addEventListener('change', filterJobs);
+        document.getElementById('company-filter').addEventListener('change', filterJobs);
+        document.getElementById('search-input').addEventListener('input', filterJobs);
+
+        document.getElementById('career-url').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') ingestJobs();
+        });
+
+        loadJobs();
+        loadSources();
+    </script>
+</body>
+</html>
