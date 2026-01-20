@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.3 - Classic table with solid grid lines -->
+<!-- v2.4 - Compact table, softer colors, smaller rows -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -919,81 +919,84 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Classic Table AG Grid Theme - Solid Grid Lines */
+        /* Clean Compact Table - Soft Colors with Grid Lines */
         .ag-theme-alpine {
-            --ag-background-color: #0f172a;
-            --ag-header-background-color: #1e293b;
-            --ag-header-foreground-color: #f8fafc;
-            --ag-foreground-color: #f1f5f9;
-            --ag-row-hover-color: #1e3a5f;
-            --ag-selected-row-background-color: #1e3a5f;
-            --ag-border-color: #475569;
-            --ag-odd-row-background-color: #1e293b;
+            --ag-background-color: #1a1f2e;
+            --ag-header-background-color: #252b3b;
+            --ag-header-foreground-color: #e2e8f0;
+            --ag-foreground-color: #e2e8f0;
+            --ag-row-hover-color: #2a3548;
+            --ag-selected-row-background-color: #2a3548;
+            --ag-border-color: #3d4556;
+            --ag-odd-row-background-color: #1f2537;
             --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
-            --ag-font-size: 13px;
-            --ag-row-border-color: #475569;
-            --ag-cell-horizontal-border: solid #475569;
+            --ag-font-size: 12px;
+            --ag-row-border-color: #3d4556;
+            --ag-cell-horizontal-border: solid #3d4556;
         }
 
         /* Outer Border */
         .ag-theme-alpine .ag-root-wrapper {
-            border: 2px solid #475569;
+            border: 1px solid #3d4556;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        /* Header - Solid Bottom Border */
+        /* Header */
         .ag-theme-alpine .ag-header {
-            background: #1e293b;
-            border-bottom: 2px solid #475569;
+            background: #252b3b;
+            border-bottom: 1px solid #3d4556;
         }
 
         .ag-theme-alpine .ag-header-cell-label {
-            font-weight: 700;
+            font-weight: 600;
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #f8fafc;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
         }
 
         /* Header Cell - Vertical Borders */
         .ag-theme-alpine .ag-header-cell {
-            border-right: 1px solid #475569 !important;
+            border-right: 1px solid #3d4556 !important;
         }
 
-        /* Row Backgrounds */
+        /* Row Backgrounds - Subtle Alternating */
         .ag-theme-alpine .ag-row-even {
-            background: #0f172a;
+            background: #1a1f2e;
         }
 
         .ag-theme-alpine .ag-row-odd {
-            background: #1e293b;
+            background: #1f2537;
         }
 
         /* Row - Horizontal Borders */
         .ag-theme-alpine .ag-row {
-            border-bottom: 1px solid #475569 !important;
+            border-bottom: 1px solid #2d3548 !important;
         }
 
         /* Cell - Vertical Borders */
         .ag-theme-alpine .ag-cell {
-            border-right: 1px solid #475569 !important;
-            color: #f1f5f9;
+            border-right: 1px solid #2d3548 !important;
+            color: #e2e8f0;
         }
 
         /* Hover State */
         .ag-theme-alpine .ag-row:hover {
-            background: #1e3a5f !important;
+            background: #2a3548 !important;
         }
 
         /* Selected Row */
         .ag-theme-alpine .ag-row-selected {
-            background: #1e3a5f !important;
+            background: #2a3548 !important;
         }
 
         /* Pagination Panel */
         .ag-theme-alpine .ag-paging-panel {
-            background: #1e293b;
-            border-top: 2px solid #475569;
+            background: #252b3b;
+            border-top: 1px solid #3d4556;
             color: #94a3b8;
+            font-size: 12px;
         }
 
         .ag-theme-alpine .ag-paging-button {
@@ -1001,7 +1004,7 @@
         }
 
         .ag-theme-alpine .ag-paging-button:hover {
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.15);
             border-radius: 4px;
         }
 
@@ -1908,8 +1911,8 @@
             rowData: [],
             defaultColDef: { resizable: true },
             animateRows: true,
-            rowHeight: 64,
-            headerHeight: 44,
+            rowHeight: 48,
+            headerHeight: 36,
             pagination: true,
             paginationPageSize: 50,
             paginationPageSizeSelector: [25, 50, 100, 200],
