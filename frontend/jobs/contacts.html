@@ -146,6 +146,110 @@
             flex-shrink: 0;
         }
 
+        /* Sidebar User Section */
+        .sidebar-user {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sidebar-user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-email {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-logout-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar-logout-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .sidebar-login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-login-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .sidebar-login-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
         /* Theme Switch - Top Right */
         .theme-switch-container {
             position: fixed;
@@ -493,6 +597,18 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                 Analytics
             </a>
+            <a href="settings.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Settings
+            </a>
+        </div>
+
+        <!-- User Menu at Sidebar Bottom -->
+        <div class="sidebar-user" id="user-menu">
+            <a href="login.html" class="sidebar-login-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                Sign In
+            </a>
         </div>
     </aside>
 
@@ -618,6 +734,48 @@
         initTheme();
         const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
         updateThemeSwitch(currentTheme);
+
+        // Initialize user menu
+        function initUserMenu() {
+            const userMenu = document.getElementById('user-menu');
+            const userJson = localStorage.getItem('user');
+
+            if (userJson) {
+                try {
+                    const user = JSON.parse(userJson);
+                    const displayName = user.name || user.email?.split('@')[0] || 'User';
+                    const email = user.email || '';
+                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
+
+                    userMenu.innerHTML = `
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-avatar">${initials}</div>
+                            <div class="sidebar-user-details">
+                                <div class="sidebar-user-name">${displayName}</div>
+                                <div class="sidebar-user-email">${email}</div>
+                            </div>
+                        </div>
+                        <button class="sidebar-logout-btn" onclick="handleLogout()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            Sign Out
+                        </button>
+                    `;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize user menu on page load
+        initUserMenu();
 
         let allContacts = [];
 

@@ -584,6 +584,52 @@
             display: none;
         }
 
+        /* Theme Switch - Top Right */
+        .theme-switch-container {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 200;
+        }
+
+        .theme-switch {
+            display: flex;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .theme-switch button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-switch button:hover {
+            color: var(--text-primary);
+        }
+
+        .theme-switch button.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .theme-switch button svg {
+            width: 16px;
+            height: 16px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -634,6 +680,18 @@
             </a>
         </div>
     </aside>
+
+    <!-- Theme Switch - Top Right -->
+    <div class="theme-switch-container">
+        <div class="theme-switch">
+            <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </button>
+            <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -965,6 +1023,33 @@
     <script>
         const isProduction = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com';
         const API_BASE = isProduction ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
+
+        // Theme switch functions
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('jobtrails-theme', theme);
+            updateThemeSwitch(theme);
+        }
+
+        function updateThemeSwitch(theme) {
+            const lightBtn = document.getElementById('theme-light-btn');
+            const darkBtn = document.getElementById('theme-dark-btn');
+            if (theme === 'light') {
+                lightBtn.classList.add('active');
+                darkBtn.classList.remove('active');
+            } else {
+                darkBtn.classList.add('active');
+                lightBtn.classList.remove('active');
+            }
+        }
+
+        // Initialize theme on page load
+        function initTheme() {
+            const savedTheme = localStorage.getItem('jobtrails-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeSwitch(savedTheme);
+        }
+        initTheme();
 
         // Check authentication
         function checkAuth() {
