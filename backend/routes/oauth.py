@@ -124,7 +124,7 @@ async def google_login(request: Request):
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Google OAuth not configured"
         )
-    redirect_uri = f"http://localhost:8000/auth/google/callback"
+    redirect_uri = f"{settings.backend_url}/auth/google/callback"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
@@ -166,7 +166,7 @@ async def github_login(request: Request):
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="GitHub OAuth not configured"
         )
-    redirect_uri = f"http://localhost:8000/auth/github/callback"
+    redirect_uri = f"{settings.backend_url}/auth/github/callback"
     return await oauth.github.authorize_redirect(request, redirect_uri)
 
 
@@ -237,7 +237,7 @@ async def linkedin_login(request: Request):
     state = secrets.token_urlsafe(32)
     request.session["linkedin_oauth_state"] = state
 
-    redirect_uri = "http://localhost:8000/auth/linkedin/callback"
+    redirect_uri = f"{settings.backend_url}/auth/linkedin/callback"
     params = {
         "response_type": "code",
         "client_id": settings.linkedin_client_id,
@@ -267,7 +267,7 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
             raise Exception("Invalid state parameter")
 
         # Exchange code for token
-        redirect_uri = "http://localhost:8000/auth/linkedin/callback"
+        redirect_uri = f"{settings.backend_url}/auth/linkedin/callback"
         async with httpx.AsyncClient() as client:
             token_resp = await client.post(
                 LINKEDIN_TOKEN_URL,

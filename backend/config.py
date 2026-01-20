@@ -98,6 +98,9 @@ class Settings(BaseSettings):
     # OAuth redirect base (frontend URL)
     oauth_redirect_base: str = "http://localhost:3000"
 
+    # Backend URL (for OAuth callbacks)
+    backend_url: str = "http://localhost:8000"
+
     # ==========================================================================
     # SCRAPER SETTINGS
     # ==========================================================================
