@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.7 - Wider columns, taller rows -->
+<!-- v2.8 - Tooltips, sizeColumnsToFit, better sizing -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -917,6 +917,14 @@
             width: 100%;
             border-radius: 12px;
             border: 1px solid var(--border-color);
+        }
+
+        .grid-container .ag-root-wrapper {
+            width: 100% !important;
+        }
+
+        .grid-container .ag-body-viewport {
+            width: 100% !important;
         }
 
         /* Professional Dark Table */
@@ -1894,23 +1902,44 @@
             </div>`;
         }
 
-        // Column Definitions - Readable proportional layout
+        // Column Definitions - With tooltips and proper sizing
         const columnDefs = [
-            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, flex: 2, minWidth: 200, filter: true, sortable: true },
-            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, flex: 1.5, minWidth: 140, sortable: false },
-            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 90, sortable: true, sort: 'desc' },
-            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 100, sortable: true },
-            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 110, filter: true, sortable: true },
-            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 140, filter: true, sortable: true },
-            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 85, filter: true, sortable: true },
-            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 95, sortable: false, filter: false }
+            {
+                headerName: 'Role',
+                field: 'title',
+                cellRenderer: roleCellRenderer,
+                flex: 2,
+                minWidth: 250,
+                filter: true,
+                sortable: true,
+                tooltipField: 'title',
+                headerTooltip: 'Job Title'
+            },
+            {
+                headerName: 'Description',
+                field: 'job_description',
+                cellRenderer: descriptionCellRenderer,
+                flex: 1.5,
+                minWidth: 160,
+                sortable: false,
+                tooltipValueGetter: (params) => params.data?.keywords?.join(', ') || ''
+            },
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 95, sortable: true, sort: 'desc' },
+            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 110, sortable: true, tooltipField: 'salary_display' },
+            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 115, filter: true, sortable: true, tooltipField: 'company_name' },
+            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 145, filter: true, sortable: true, tooltipField: 'location' },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 90, filter: true, sortable: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 100, sortable: false, filter: false, suppressSizeToFit: true }
         ];
 
         // Grid Options
         const gridOptions = {
             columnDefs: columnDefs,
             rowData: [],
-            defaultColDef: { resizable: true },
+            defaultColDef: {
+                resizable: true,
+                tooltipShowDelay: 500
+            },
             animateRows: true,
             rowHeight: 56,
             headerHeight: 40,
@@ -1918,9 +1947,18 @@
             paginationPageSize: 50,
             paginationPageSizeSelector: [25, 50, 100, 200],
             suppressCellFocus: true,
+            tooltipShowDelay: 300,
             onGridReady: (params) => {
                 gridApi = params.api;
                 loadJobs();
+                // Auto-size columns to fit container width
+                setTimeout(() => {
+                    params.api.sizeColumnsToFit();
+                }, 100);
+            },
+            onGridSizeChanged: (params) => {
+                // Re-fit columns when grid size changes
+                params.api.sizeColumnsToFit();
             },
             getRowId: (params) => String(params.data.id)
         };
