@@ -15,7 +15,7 @@ import sys
 try:
     from config import settings
 except ImportError:
-    from backend.config import settings
+    from config import settings
 
 
 def get_engine():
@@ -101,7 +101,7 @@ def create_tables():
             ScraperRun, ScraperConfigDB
         )
     except ImportError:
-        from backend.models import (
+        from models import (
             Job, Company, Contact, Interview, Note, Document,
             IngestionSource, RoleProfile, User, JobRelevanceScore,
             ScraperRun, ScraperConfigDB

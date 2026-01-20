@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 try:
     from database import Base
 except ImportError:
-    from backend.database import Base
+    from database import Base
 
 
 # ============== Role-Aware Discovery Models ==============

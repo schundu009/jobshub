@@ -18,7 +18,7 @@ from jose import JWTError, jwt
 try:
     from config import settings
 except ImportError:
-    from backend.config import settings
+    from config import settings
 
 
 # =============================================================================

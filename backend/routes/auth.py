@@ -25,19 +25,19 @@ try:
     from config import settings
     from services.redis_service import redis_service
 except ImportError:
-    from backend.database import get_db
-    from backend.models import User
-    from backend.schemas.auth import (
+    from database import get_db
+    from models import User
+    from schemas.auth import (
         UserRegister, UserLogin, TokenResponse, TokenRefresh,
         UserResponse, UserUpdate, PasswordChange
     )
-    from backend.utils.security import (
+    from utils.security import (
         hash_password, verify_password,
         create_access_token, create_refresh_token, decode_token
     )
-    from backend.middleware.auth import get_current_user
-    from backend.config import settings
-    from backend.services.redis_service import redis_service
+    from middleware.auth import get_current_user
+    from config import settings
+    from services.redis_service import redis_service
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])

@@ -18,10 +18,10 @@ try:
     from utils.security import decode_token
     from services.redis_service import redis_service
 except ImportError:
-    from backend.database import get_db
-    from backend.models import User
-    from backend.utils.security import decode_token
-    from backend.services.redis_service import redis_service
+    from database import get_db
+    from models import User
+    from utils.security import decode_token
+    from services.redis_service import redis_service
 
 logger = logging.getLogger(__name__)
 

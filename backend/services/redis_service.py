@@ -18,7 +18,7 @@ from contextlib import contextmanager
 try:
     from config import settings
 except ImportError:
-    from backend.config import settings
+    from config import settings
 
 
 class RedisService:

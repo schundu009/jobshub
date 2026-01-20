@@ -24,10 +24,10 @@ try:
     from utils.security import create_access_token, create_refresh_token
     from config import settings
 except ImportError:
-    from backend.database import get_db
-    from backend.models import User
-    from backend.utils.security import create_access_token, create_refresh_token
-    from backend.config import settings
+    from database import get_db
+    from models import User
+    from utils.security import create_access_token, create_refresh_token
+    from config import settings
 
 
 router = APIRouter(prefix="/auth", tags=["OAuth"])

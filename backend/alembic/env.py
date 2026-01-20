@@ -16,11 +16,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 # Import our configuration and models
-from backend.config import settings
-from backend.database import Base
+from config import settings
+from database import Base
 
 # Import all models to ensure they're registered with Base.metadata
-from backend.models import (
+from models import (
     Job, Company, Contact, Interview, Note, Document,
     IngestionSource, RoleProfile, User, JobRelevanceScore,
     ScraperRun, ScraperConfigDB
