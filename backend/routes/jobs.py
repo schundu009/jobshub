@@ -207,8 +207,8 @@ async def get_jobs(
     limit: Optional[int] = Query(None, ge=1, description="Maximum results to return (no limit if not specified)"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
 
-    # Auth
-    current_user: User = Depends(get_current_user),
+    # Auth (optional for public job discovery)
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """
@@ -231,9 +231,13 @@ async def get_jobs(
     - GET /api/jobs?min_score=50 → Only highly relevant jobs
     """
     # Build base query - filter by user for multi-tenancy
-    query = db.query(Job).filter(
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    )
+    # If user is logged in, show their jobs + public jobs; otherwise show only public jobs
+    if current_user:
+        query = db.query(Job).filter(
+            or_(Job.user_id == current_user.id, Job.user_id == None)
+        )
+    else:
+        query = db.query(Job).filter(Job.user_id == None)
 
     if status:
         query = query.filter(Job.status == status)
