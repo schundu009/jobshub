@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.2 - High contrast AG Grid theme for better readability -->
+<!-- v2.3 - Classic table with solid grid lines -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -919,7 +919,7 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Clean Dark AG Grid Theme - High Contrast */
+        /* Classic Table AG Grid Theme - Solid Grid Lines */
         .ag-theme-alpine {
             --ag-background-color: #0f172a;
             --ag-header-background-color: #1e293b;
@@ -927,17 +927,23 @@
             --ag-foreground-color: #f1f5f9;
             --ag-row-hover-color: #1e3a5f;
             --ag-selected-row-background-color: #1e3a5f;
-            --ag-border-color: #334155;
-            --ag-odd-row-background-color: #0f172a;
+            --ag-border-color: #475569;
+            --ag-odd-row-background-color: #1e293b;
             --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
             --ag-font-size: 13px;
-            --ag-row-border-color: #334155;
+            --ag-row-border-color: #475569;
+            --ag-cell-horizontal-border: solid #475569;
         }
 
-        /* Header - Clean Dark with Accent */
+        /* Outer Border */
+        .ag-theme-alpine .ag-root-wrapper {
+            border: 2px solid #475569;
+        }
+
+        /* Header - Solid Bottom Border */
         .ag-theme-alpine .ag-header {
             background: #1e293b;
-            border-bottom: 2px solid #3b82f6;
+            border-bottom: 2px solid #475569;
         }
 
         .ag-theme-alpine .ag-header-cell-label {
@@ -948,11 +954,12 @@
             color: #f8fafc;
         }
 
+        /* Header Cell - Vertical Borders */
         .ag-theme-alpine .ag-header-cell {
-            border-right: 1px solid #334155;
+            border-right: 1px solid #475569 !important;
         }
 
-        /* Clean Row Striping - Solid Colors */
+        /* Row Backgrounds */
         .ag-theme-alpine .ag-row-even {
             background: #0f172a;
         }
@@ -961,7 +968,18 @@
             background: #1e293b;
         }
 
-        /* Hover - Subtle Blue Highlight */
+        /* Row - Horizontal Borders */
+        .ag-theme-alpine .ag-row {
+            border-bottom: 1px solid #475569 !important;
+        }
+
+        /* Cell - Vertical Borders */
+        .ag-theme-alpine .ag-cell {
+            border-right: 1px solid #475569 !important;
+            color: #f1f5f9;
+        }
+
+        /* Hover State */
         .ag-theme-alpine .ag-row:hover {
             background: #1e3a5f !important;
         }
@@ -969,23 +987,12 @@
         /* Selected Row */
         .ag-theme-alpine .ag-row-selected {
             background: #1e3a5f !important;
-            border-left: 3px solid #3b82f6;
-        }
-
-        /* Row Left Border on Hover */
-        .ag-theme-alpine .ag-row {
-            border-left: 3px solid transparent;
-            transition: all 0.15s ease;
-        }
-
-        .ag-theme-alpine .ag-row:hover {
-            border-left-color: #3b82f6;
         }
 
         /* Pagination Panel */
         .ag-theme-alpine .ag-paging-panel {
             background: #1e293b;
-            border-top: 1px solid #334155;
+            border-top: 2px solid #475569;
             color: #94a3b8;
         }
 
@@ -996,12 +1003,6 @@
         .ag-theme-alpine .ag-paging-button:hover {
             background: rgba(59, 130, 246, 0.2);
             border-radius: 4px;
-        }
-
-        /* Cell Text - High Contrast */
-        .ag-theme-alpine .ag-cell {
-            border-right: 1px solid #1e293b;
-            color: #f1f5f9;
         }
 
         /* Custom Cell Styles */
