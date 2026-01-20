@@ -152,8 +152,14 @@ def get_role_profile_for_scoring(
     return None
 
 
-def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None) -> dict:
-    """Convert Job model to response dict with optional relevance info."""
+def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None, include_description: bool = False) -> dict:
+    """Convert Job model to response dict with optional relevance info.
+
+    Args:
+        job: The Job model instance
+        relevance: Optional relevance scoring result
+        include_description: If False (default), excludes job_description to reduce response size
+    """
     result = {
         "id": job.id,
         "title": job.title,
@@ -171,9 +177,12 @@ def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None) -> di
         "created_at": job.created_at,
         "posted_date": job.posted_date,
         "department": job.department,
-        "job_description": job.job_description,
         "job_url": job.job_url
     }
+
+    # Only include full description if explicitly requested (reduces response size significantly)
+    if include_description:
+        result["job_description"] = job.job_description
 
     if relevance:
         result["relevance"] = {
