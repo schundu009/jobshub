@@ -160,85 +160,152 @@
             flex-shrink: 0;
         }
 
-        /* Top Right Controls */
-        .top-right-controls {
+        /* Sidebar User Section */
+        .sidebar-user {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        .sidebar-login-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            justify-content: center;
+        }
+
+        .sidebar-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .sidebar-login-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-user-email {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sidebar-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #f87171;
+        }
+
+        .sidebar-logout-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Theme Switch - Fixed Top Right */
+        .theme-switch-fixed {
             position: fixed;
             top: 16px;
             right: 24px;
             z-index: 200;
             display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-menu .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
         }
 
-        .user-menu .user-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: var(--accent-blue);
-            color: white;
+        .theme-switch-fixed button {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .user-menu .user-name {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .user-menu .logout-btn {
-            background: none;
+            padding: 8px 12px;
+            background: transparent;
             border: none;
+            border-radius: 6px;
             color: var(--text-muted);
-            font-size: 12px;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .user-menu .logout-btn:hover {
-            color: var(--accent-red);
-            background: rgba(239, 68, 68, 0.1);
+        .theme-switch-fixed button:hover {
+            color: var(--text-primary);
         }
 
-        .user-menu .login-link {
-            padding: 8px 16px;
-            background: var(--accent-blue);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s;
+        .theme-switch-fixed button.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
-        .user-menu .login-link:hover {
-            background: var(--accent-blue-light);
+        .theme-switch-fixed button svg {
+            width: 16px;
+            height: 16px;
         }
 
         .theme-switch {
@@ -849,31 +916,89 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Dark Theme AG Grid */
+        /* Colorful AG Grid Theme */
         .ag-theme-alpine {
             --ag-background-color: var(--bg-secondary);
-            --ag-header-background-color: var(--bg-tertiary);
-            --ag-header-foreground-color: var(--text-secondary);
+            --ag-header-background-color: transparent;
+            --ag-header-foreground-color: #fff;
             --ag-foreground-color: var(--text-primary);
-            --ag-row-hover-color: var(--bg-hover);
-            --ag-selected-row-background-color: rgba(59, 130, 246, 0.15);
+            --ag-row-hover-color: rgba(59, 130, 246, 0.12);
+            --ag-selected-row-background-color: rgba(139, 92, 246, 0.2);
             --ag-border-color: var(--border-color);
-            --ag-odd-row-background-color: var(--bg-secondary);
+            --ag-odd-row-background-color: rgba(30, 41, 59, 0.5);
             --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
             --ag-font-size: 13px;
+            --ag-row-border-color: rgba(71, 85, 105, 0.3);
+        }
+
+        /* Gradient Header */
+        .ag-theme-alpine .ag-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 50%, #1a3d5c 100%);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.4);
         }
 
         .ag-theme-alpine .ag-header-cell-label {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            color: #e2e8f0;
         }
 
+        .ag-theme-alpine .ag-header-cell {
+            border-right: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        /* Colorful Row Striping */
+        .ag-theme-alpine .ag-row-even {
+            background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+        }
+
+        .ag-theme-alpine .ag-row-odd {
+            background: linear-gradient(90deg, rgba(51, 65, 85, 0.4) 0%, rgba(51, 65, 85, 0.2) 100%);
+        }
+
+        /* Hover Effects - Colorful Glow */
+        .ag-theme-alpine .ag-row:hover {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(6, 182, 212, 0.1) 100%) !important;
+            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Selected Row */
+        .ag-theme-alpine .ag-row-selected {
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
+            border-left: 3px solid var(--accent-purple);
+        }
+
+        /* Colorful Left Border Accent for Rows */
+        .ag-theme-alpine .ag-row {
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .ag-theme-alpine .ag-row:hover {
+            border-left-color: var(--accent-blue);
+        }
+
+        /* Pagination Panel - Gradient */
         .ag-theme-alpine .ag-paging-panel {
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #1e293b 0%, #1e3a5f 100%);
+            border-top: 1px solid rgba(59, 130, 246, 0.3);
             color: var(--text-secondary);
+        }
+
+        .ag-theme-alpine .ag-paging-button {
+            color: var(--accent-blue-light);
+        }
+
+        .ag-theme-alpine .ag-paging-button:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 4px;
+        }
+
+        /* Cell Borders - Subtle Color */
+        .ag-theme-alpine .ag-cell {
+            border-right: 1px solid rgba(71, 85, 105, 0.2);
         }
 
         /* Custom Cell Styles */
@@ -1027,19 +1152,33 @@
             color: var(--text-muted);
         }
 
-        /* Type Badge */
+        /* Type Badge - More Vibrant */
         .type-badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .type-onsite { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
-        .type-hybrid { background: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
-        .type-remote { background: rgba(34, 197, 94, 0.2); color: var(--accent-green-light); }
+        .type-onsite {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(139, 92, 246, 0.4) 100%);
+            color: #c4b5fd;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+        .type-hybrid {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(34, 211, 238, 0.3) 100%);
+            color: #67e8f9;
+            border: 1px solid rgba(6, 182, 212, 0.4);
+        }
+        .type-remote {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(74, 222, 128, 0.3) 100%);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
 
         /* Action Buttons */
         .action-buttons {
@@ -1141,23 +1280,52 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
 
-        /* Source Badge */
+        /* Source Badge - Vibrant Gradients */
         .source-badge {
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-size: 10px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
-        .source-greenhouse { background: rgba(34, 197, 94, 0.2); color: var(--accent-green-light); }
-        .source-lever { background: rgba(234, 179, 8, 0.2); color: var(--accent-yellow-light); }
-        .source-ashby { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue-light); }
-        .source-workday { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
-        .source-apple { background: rgba(148, 163, 184, 0.2); color: var(--text-secondary); }
-        .source-smartrecruiters { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
-        .source-manual { background: var(--bg-tertiary); color: var(--text-muted); }
+        .source-greenhouse {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(74, 222, 128, 0.35) 100%);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .source-lever {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.25) 0%, rgba(250, 204, 21, 0.35) 100%);
+            color: #fde047;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+        .source-ashby {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(96, 165, 250, 0.35) 100%);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .source-workday {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(192, 132, 252, 0.35) 100%);
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+        .source-apple {
+            background: linear-gradient(135deg, rgba(148, 163, 184, 0.2) 0%, rgba(203, 213, 225, 0.25) 100%);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .source-smartrecruiters {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.25) 0%, rgba(251, 146, 60, 0.35) 100%);
+            color: #fdba74;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        .source-manual {
+            background: linear-gradient(135deg, rgba(71, 85, 105, 0.3) 0%, rgba(100, 116, 139, 0.3) 100%);
+            color: #94a3b8;
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -1181,23 +1349,24 @@
                 Analytics
             </a>
         </div>
+
+        <!-- User Menu at Sidebar Bottom -->
+        <div class="sidebar-user" id="user-menu">
+            <a href="login.html" class="sidebar-login-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                Sign In
+            </a>
+        </div>
     </aside>
 
-    <!-- Top Right Controls -->
-    <div class="top-right-controls">
-        <!-- User Menu -->
-        <div class="user-menu" id="user-menu">
-            <a href="login.html" class="login-link" id="login-link">Sign In</a>
-        </div>
-        <!-- Theme Switch -->
-        <div class="theme-switch">
-            <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            </button>
-            <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            </button>
-        </div>
+    <!-- Theme Switch - Top Right -->
+    <div class="theme-switch-fixed">
+        <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </button>
+        <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
     </div>
 
     <!-- Main Content -->
@@ -1364,14 +1533,21 @@
                 try {
                     const user = JSON.parse(userJson);
                     const displayName = user.name || user.email?.split('@')[0] || 'User';
+                    const email = user.email || '';
                     const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
                     userMenu.innerHTML = `
-                        <div class="user-info">
-                            <div class="user-avatar">${initials}</div>
-                            <span class="user-name">${displayName}</span>
-                            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-avatar">${initials}</div>
+                            <div class="sidebar-user-details">
+                                <div class="sidebar-user-name">${displayName}</div>
+                                <div class="sidebar-user-email">${email}</div>
+                            </div>
                         </div>
+                        <button class="sidebar-logout-btn" onclick="handleLogout()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            Sign Out
+                        </button>
                     `;
                 } catch (e) {
                     console.error('Error parsing user data:', e);
@@ -1666,13 +1842,25 @@
 
         function typeCellRenderer(params) {
             const type = params.value || 'hybrid';
-            const colors = {
-                'onsite': '#a78bfa',
-                'hybrid': '#67e8f9',
-                'remote': '#6ee7b7'
+            const styles = {
+                'onsite': {
+                    bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(139, 92, 246, 0.4) 100%)',
+                    color: '#c4b5fd',
+                    border: '1px solid rgba(168, 85, 247, 0.4)'
+                },
+                'hybrid': {
+                    bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(34, 211, 238, 0.3) 100%)',
+                    color: '#67e8f9',
+                    border: '1px solid rgba(6, 182, 212, 0.4)'
+                },
+                'remote': {
+                    bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(74, 222, 128, 0.3) 100%)',
+                    color: '#86efac',
+                    border: '1px solid rgba(34, 197, 94, 0.4)'
+                }
             };
-            const color = colors[type] || colors.hybrid;
-            return `<span style="color:${color};font-size:10px;font-weight:500;text-transform:uppercase;">${type}</span>`;
+            const style = styles[type] || styles.hybrid;
+            return `<span style="display:inline-block;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${style.bg};color:${style.color};border:${style.border};">${type}</span>`;
         }
 
         function actionsCellRenderer(params) {
