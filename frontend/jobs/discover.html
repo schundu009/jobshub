@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.6 - Professional table with proportional columns -->
+<!-- v2.7 - Wider columns, taller rows -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1894,16 +1894,16 @@
             </div>`;
         }
 
-        // Column Definitions - Tight proportional layout
+        // Column Definitions - Readable proportional layout
         const columnDefs = [
-            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, flex: 2, minWidth: 180, filter: true, sortable: true },
-            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, flex: 1.5, minWidth: 120, sortable: false },
-            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 80, sortable: true, sort: 'desc' },
-            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 95, sortable: true },
-            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 100, filter: true, sortable: true },
-            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 130, filter: true, sortable: true },
-            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 70, filter: true, sortable: true },
-            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 90, sortable: false, filter: false }
+            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, flex: 2, minWidth: 200, filter: true, sortable: true },
+            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, flex: 1.5, minWidth: 140, sortable: false },
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 90, sortable: true, sort: 'desc' },
+            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 100, sortable: true },
+            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 110, filter: true, sortable: true },
+            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 140, filter: true, sortable: true },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 85, filter: true, sortable: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 95, sortable: false, filter: false }
         ];
 
         // Grid Options
@@ -1912,8 +1912,8 @@
             rowData: [],
             defaultColDef: { resizable: true },
             animateRows: true,
-            rowHeight: 48,
-            headerHeight: 36,
+            rowHeight: 56,
+            headerHeight: 40,
             pagination: true,
             paginationPageSize: 50,
             paginationPageSizeSelector: [25, 50, 100, 200],
