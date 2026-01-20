@@ -333,11 +333,88 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 # Application Setup
 # =============================================================================
 
+def run_migrations():
+    """Run database migrations to add new columns."""
+    from sqlalchemy import text
+    from database import engine
+
+    # New columns to add to users table
+    new_user_columns = [
+        ("first_name", "VARCHAR(100)"),
+        ("last_name", "VARCHAR(100)"),
+        ("preferred_name", "VARCHAR(100)"),
+        ("phone", "VARCHAR(50)"),
+        ("country", "VARCHAR(50)"),
+        ("address_line1", "VARCHAR(255)"),
+        ("address_line2", "VARCHAR(255)"),
+        ("city", "VARCHAR(100)"),
+        ("state", "VARCHAR(100)"),
+        ("postal_code", "VARCHAR(20)"),
+        ("address_country", "VARCHAR(50)"),
+        ("us_authorized", "VARCHAR(20)"),
+        ("requires_sponsorship", "VARCHAR(20)"),
+        ("willing_to_relocate", "VARCHAR(20)"),
+        ("us_government_employee", "VARCHAR(20)"),
+        ("non_compete", "VARCHAR(20)"),
+        ("work_arrangement", "VARCHAR(20)"),
+        ("linkedin_url", "VARCHAR(500)"),
+        ("github_url", "VARCHAR(500)"),
+        ("portfolio_url", "VARCHAR(500)"),
+        ("twitter_url", "VARCHAR(500)"),
+        ("referral_source", "VARCHAR(50)"),
+        ("bio", "TEXT"),
+        ("skills", "TEXT"),
+    ]
+
+    with engine.connect() as conn:
+        # Check existing columns
+        try:
+            result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"))
+            existing_columns = {row[0] for row in result}
+        except Exception:
+            # SQLite fallback
+            result = conn.execute(text("PRAGMA table_info(users)"))
+            existing_columns = {row[1] for row in result}
+
+        # Add missing columns
+        for col_name, col_type in new_user_columns:
+            if col_name not in existing_columns:
+                try:
+                    conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                    logger.info(f"Added column {col_name} to users table")
+                except Exception as e:
+                    logger.warning(f"Could not add column {col_name}: {e}")
+
+        # Create user_documents table if not exists
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS user_documents (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    document_type VARCHAR(50) NOT NULL,
+                    filename VARCHAR(255) NOT NULL,
+                    file_path VARCHAR(500) NOT NULL,
+                    file_size INTEGER,
+                    mime_type VARCHAR(100),
+                    is_default BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_user_documents_user_id ON user_documents(user_id)"))
+            logger.info("Created user_documents table")
+        except Exception as e:
+            logger.warning(f"Could not create user_documents table: {e}")
+
+        conn.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
     create_tables()
+    run_migrations()
     yield
     # Shutdown (cleanup if needed)
 
