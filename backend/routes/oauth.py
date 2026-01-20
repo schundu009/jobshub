@@ -94,19 +94,29 @@ def get_or_create_oauth_user(
     return user
 
 
-def create_frontend_redirect(user: User) -> RedirectResponse:
+def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
     """Create redirect to frontend with tokens in URL fragment."""
+    import urllib.parse
     access_token, _ = create_access_token(user.id, user.email, user.role)
     refresh_token, _ = create_refresh_token(user.id)
 
+    # Determine redirect path based on portal
+    if portal == "jobs":
+        login_path = "/jobs/login.html"
+    else:
+        login_path = "/admin/login.html"
+
+    # URL encode the user name to handle special characters
+    encoded_name = urllib.parse.quote(user.name or '')
+
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
-        f"{settings.oauth_redirect_base}/admin/login.html"
+        f"{settings.oauth_redirect_base}{login_path}"
         f"#access_token={access_token}"
         f"&refresh_token={refresh_token}"
         f"&user_id={user.id}"
         f"&user_email={user.email}"
-        f"&user_name={user.name or ''}"
+        f"&user_name={encoded_name}"
         f"&user_role={user.role or 'user'}"
     )
     return RedirectResponse(url=redirect_url)
@@ -117,13 +127,15 @@ def create_frontend_redirect(user: User) -> RedirectResponse:
 # =============================================================================
 
 @router.get("/google/login")
-async def google_login(request: Request):
+async def google_login(request: Request, redirect: str = "admin"):
     """Initiate Google OAuth login."""
     if not settings.google_client_id:
         raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Google OAuth not configured"
         )
+    # Store portal redirect in session
+    request.session["oauth_portal"] = redirect
     redirect_uri = f"{settings.backend_url}/auth/google/callback"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
@@ -131,6 +143,7 @@ async def google_login(request: Request):
 @router.get("/google/callback")
 async def google_callback(request: Request, db: Session = Depends(get_db)):
     """Handle Google OAuth callback."""
+    portal = request.session.get("oauth_portal", "admin")
     try:
         token = await oauth.google.authorize_access_token(request)
         user_info = token.get("userinfo")
@@ -146,11 +159,12 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
         google_id = user_info.get("sub")
 
         user = get_or_create_oauth_user(db, email, name, "google", google_id)
-        return create_frontend_redirect(user)
+        return create_frontend_redirect(user, portal)
 
     except Exception as e:
         # Redirect to login with error
-        error_url = f"{settings.oauth_redirect_base}/login.html#error=oauth_failed&message={str(e)}"
+        login_path = "/jobs/login.html" if portal == "jobs" else "/admin/login.html"
+        error_url = f"{settings.oauth_redirect_base}{login_path}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
 
@@ -159,13 +173,15 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
 # =============================================================================
 
 @router.get("/github/login")
-async def github_login(request: Request):
+async def github_login(request: Request, redirect: str = "admin"):
     """Initiate GitHub OAuth login."""
     if not settings.github_client_id:
         raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="GitHub OAuth not configured"
         )
+    # Store portal redirect in session
+    request.session["oauth_portal"] = redirect
     redirect_uri = f"{settings.backend_url}/auth/github/callback"
     return await oauth.github.authorize_redirect(request, redirect_uri)
 
@@ -173,6 +189,7 @@ async def github_login(request: Request):
 @router.get("/github/callback")
 async def github_callback(request: Request, db: Session = Depends(get_db)):
     """Handle GitHub OAuth callback."""
+    portal = request.session.get("oauth_portal", "admin")
     try:
         token = await oauth.github.authorize_access_token(request)
         access_token = token.get("access_token")
@@ -209,10 +226,11 @@ async def github_callback(request: Request, db: Session = Depends(get_db)):
             github_id = str(user_data.get("id"))
 
             user = get_or_create_oauth_user(db, email, name, "github", github_id)
-            return create_frontend_redirect(user)
+            return create_frontend_redirect(user, portal)
 
     except Exception as e:
-        error_url = f"{settings.oauth_redirect_base}/login.html#error=oauth_failed&message={str(e)}"
+        login_path = "/jobs/login.html" if portal == "jobs" else "/admin/login.html"
+        error_url = f"{settings.oauth_redirect_base}{login_path}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
 
@@ -225,7 +243,7 @@ LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 LINKEDIN_USERINFO_URL = "https://api.linkedin.com/v2/userinfo"
 
 @router.get("/linkedin/login")
-async def linkedin_login(request: Request):
+async def linkedin_login(request: Request, redirect: str = "admin"):
     """Initiate LinkedIn OAuth login."""
     if not settings.linkedin_client_id:
         raise HTTPException(
@@ -236,6 +254,8 @@ async def linkedin_login(request: Request):
     # Generate state for CSRF protection
     state = secrets.token_urlsafe(32)
     request.session["linkedin_oauth_state"] = state
+    # Store portal redirect in session
+    request.session["oauth_portal"] = redirect
 
     redirect_uri = f"{settings.backend_url}/auth/linkedin/callback"
     params = {
@@ -253,6 +273,7 @@ async def linkedin_login(request: Request):
 @router.get("/linkedin/callback")
 async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
     """Handle LinkedIn OAuth callback."""
+    portal = request.session.get("oauth_portal", "admin")
     try:
         # Verify state
         code = request.query_params.get("code")
@@ -314,8 +335,9 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
                 name = f"{given_name} {family_name}".strip() or email.split("@")[0]
 
             user = get_or_create_oauth_user(db, email, name, "linkedin", linkedin_id)
-            return create_frontend_redirect(user)
+            return create_frontend_redirect(user, portal)
 
     except Exception as e:
-        error_url = f"{settings.oauth_redirect_base}/login.html#error=oauth_failed&message={str(e)}"
+        login_path = "/jobs/login.html" if portal == "jobs" else "/admin/login.html"
+        error_url = f"{settings.oauth_redirect_base}{login_path}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)

@@ -160,12 +160,85 @@
             flex-shrink: 0;
         }
 
-        /* Theme Switch - Top Right */
-        .theme-switch-container {
+        /* Top Right Controls */
+        .top-right-controls {
             position: fixed;
             top: 16px;
             right: 24px;
             z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-menu .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .user-menu .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .user-menu .user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .user-menu .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .user-menu .logout-btn:hover {
+            color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .user-menu .login-link {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .user-menu .login-link:hover {
+            background: var(--accent-blue-light);
         }
 
         .theme-switch {
@@ -217,7 +290,24 @@
             max-height: 100vh;
         }
 
-        /* Responsive */
+        /* Responsive - Tablet */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 200px;
+            }
+            .main-content {
+                margin-left: 200px;
+            }
+            .controls-bar {
+                flex-wrap: wrap;
+            }
+            .filter-select {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        /* Responsive - Mobile */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -229,10 +319,25 @@
 
             .main-content {
                 margin-left: 0;
+                padding: 16px;
+                max-height: none;
+                overflow-y: visible;
             }
 
             body {
                 flex-direction: column;
+            }
+
+            .sidebar-header {
+                padding: 12px 16px;
+            }
+
+            .sidebar-header .logo {
+                height: 28px;
+            }
+
+            .sidebar-header .brand-name {
+                font-size: 20px;
             }
 
             .sidebar-nav {
@@ -240,11 +345,215 @@
                 padding: 8px 12px;
                 gap: 4px;
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
 
             .sidebar-nav a {
                 white-space: nowrap;
                 margin-bottom: 0;
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .top-right-controls {
+                top: 12px;
+                right: 12px;
+                gap: 8px;
+            }
+
+            .user-menu .user-info {
+                padding: 4px 8px;
+            }
+
+            .user-menu .user-name {
+                display: none;
+            }
+
+            .user-menu .login-link {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .theme-switch button {
+                padding: 6px 10px;
+            }
+
+            .discover-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .discover-header h2 {
+                font-size: 20px;
+            }
+
+            .header-stats {
+                flex-wrap: wrap;
+                gap: 12px;
+                font-size: 12px;
+            }
+
+            .controls-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+
+            .search-box input {
+                font-size: 16px; /* Prevents iOS zoom */
+                padding: 12px 16px 12px 44px;
+            }
+
+            .filter-select {
+                width: 100%;
+                font-size: 16px; /* Prevents iOS zoom */
+                padding: 12px 32px 12px 12px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .checkbox-filters {
+                flex-direction: column;
+                gap: 12px;
+                margin-left: 0;
+            }
+
+            .checkbox-label {
+                font-size: 14px;
+                padding: 8px 0;
+            }
+
+            .checkbox-label input {
+                width: 18px;
+                height: 18px;
+            }
+
+            .role-selector {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 8px;
+                flex-wrap: nowrap;
+            }
+
+            .role-btn {
+                flex-shrink: 0;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .company-chips {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                flex-wrap: nowrap;
+                padding-bottom: 12px;
+            }
+
+            .company-chip {
+                flex-shrink: 0;
+                padding: 8px 0;
+            }
+
+            .active-filters-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .clear-all-filters {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+
+            .grid-container {
+                height: calc(100vh - 480px);
+                min-height: 350px;
+            }
+
+            /* AG Grid mobile adjustments */
+            .ag-theme-alpine {
+                --ag-font-size: 12px;
+            }
+
+            .ag-theme-alpine .ag-header-cell-label {
+                font-size: 10px;
+            }
+
+            .role-title {
+                font-size: 13px !important;
+            }
+
+            .company-cell .company-name {
+                font-size: 11px !important;
+            }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 12px;
+            }
+
+            .discover-header h2 {
+                font-size: 18px;
+            }
+
+            .header-stats {
+                font-size: 11px;
+            }
+
+            .freshness-badge {
+                font-size: 9px;
+            }
+
+            .grid-container {
+                height: calc(100vh - 520px);
+                min-height: 300px;
+            }
+
+            .role-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            /* Hide less important columns on very small screens */
+            .ag-theme-alpine .ag-header-cell[col-id="job_type"],
+            .ag-theme-alpine .ag-cell[col-id="job_type"] {
+                display: none;
+            }
+        }
+
+        /* iOS safe area support */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .main-content {
+                padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn, .role-btn, .filter-select, .company-chip {
+                min-height: 44px; /* Apple's recommended touch target */
+            }
+
+            .checkbox-label {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+
+            .sidebar-nav a {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
             }
         }
 
@@ -874,8 +1183,13 @@
         </div>
     </aside>
 
-    <!-- Theme Switch - Top Right -->
-    <div class="theme-switch-container">
+    <!-- Top Right Controls -->
+    <div class="top-right-controls">
+        <!-- User Menu -->
+        <div class="user-menu" id="user-menu">
+            <a href="login.html" class="login-link" id="login-link">Sign In</a>
+        </div>
+        <!-- Theme Switch -->
         <div class="theme-switch">
             <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -1040,6 +1354,40 @@
         initTheme();
         const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
         updateThemeSwitch(currentTheme);
+
+        // Initialize user menu
+        function initUserMenu() {
+            const userMenu = document.getElementById('user-menu');
+            const userJson = localStorage.getItem('user');
+
+            if (userJson) {
+                try {
+                    const user = JSON.parse(userJson);
+                    const displayName = user.name || user.email?.split('@')[0] || 'User';
+                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+                    userMenu.innerHTML = `
+                        <div class="user-info">
+                            <div class="user-avatar">${initials}</div>
+                            <span class="user-name">${displayName}</span>
+                            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                        </div>
+                    `;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        initUserMenu();
 
         let gridApi = null;
         let allJobs = [];
