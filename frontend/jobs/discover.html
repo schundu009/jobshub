@@ -128,6 +128,7 @@
         .sidebar-nav {
             flex: 1;
             padding: 16px 12px;
+            overflow-y: auto;
         }
 
         .sidebar-nav a {
@@ -164,7 +165,8 @@
         .sidebar-user {
             padding: 16px;
             border-top: 1px solid var(--border-color);
-            margin-top: auto;
+            background: var(--bg-secondary);
+            flex-shrink: 0;
         }
 
         .sidebar-login-btn {
@@ -1527,14 +1529,21 @@
         // Initialize user menu
         function initUserMenu() {
             const userMenu = document.getElementById('user-menu');
+            if (!userMenu) {
+                console.error('User menu element not found');
+                return;
+            }
+
             const userJson = localStorage.getItem('user');
+            console.log('User data from localStorage:', userJson);
 
             if (userJson) {
                 try {
                     const user = JSON.parse(userJson);
+                    console.log('Parsed user:', user);
                     const displayName = user.name || user.email?.split('@')[0] || 'User';
                     const email = user.email || '';
-                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
 
                     userMenu.innerHTML = `
                         <div class="sidebar-user-info">
@@ -1553,6 +1562,7 @@
                     console.error('Error parsing user data:', e);
                 }
             }
+            // If not logged in, the default Sign In button from HTML will show
         }
 
         function handleLogout() {
@@ -1880,14 +1890,14 @@
 
         // Column Definitions
         const columnDefs = [
-            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, flex: 1, minWidth: 200, filter: true, sortable: true },
-            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, width: 280, sortable: false },
-            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 100, sortable: true, sort: 'desc' },
-            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 130, sortable: true },
-            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 160, filter: true, sortable: true },
-            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 180, filter: true, sortable: true },
-            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 90, filter: true, sortable: true },
-            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 140, sortable: false, filter: false }
+            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, width: 320, minWidth: 200, maxWidth: 400, filter: true, sortable: true },
+            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, flex: 1, minWidth: 200, sortable: false },
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 90, sortable: true, sort: 'desc' },
+            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 110, sortable: true },
+            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 140, filter: true, sortable: true },
+            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 160, filter: true, sortable: true },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 85, filter: true, sortable: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 110, sortable: false, filter: false }
         ];
 
         // Grid Options
