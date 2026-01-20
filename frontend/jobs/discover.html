@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.8 - Tooltips, sizeColumnsToFit, better sizing -->
+<!-- v2.9 - Job description tooltip with line breaks -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1017,6 +1017,20 @@
             border-radius: 4px;
         }
 
+        /* Tooltip Styling - Preserve line breaks */
+        .ag-theme-alpine .ag-tooltip {
+            background: #1f2937 !important;
+            color: #f3f4f6 !important;
+            border: 1px solid #374151 !important;
+            border-radius: 6px !important;
+            padding: 10px 12px !important;
+            max-width: 400px !important;
+            white-space: pre-wrap !important;
+            line-height: 1.5 !important;
+            font-size: 12px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+        }
+
         /* Custom Cell Styles */
         .role-cell {
             display: flex;
@@ -1922,7 +1936,14 @@
                 flex: 1.5,
                 minWidth: 160,
                 sortable: false,
-                tooltipValueGetter: (params) => params.data?.keywords?.join(', ') || ''
+                tooltipValueGetter: (params) => {
+                    // Show first 500 chars of job description in tooltip
+                    const desc = params.data?.job_description || '';
+                    if (desc.length > 500) {
+                        return desc.substring(0, 500) + '...';
+                    }
+                    return desc || params.data?.keywords?.join(', ') || '';
+                }
             },
             { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 95, sortable: true, sort: 'desc' },
             { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 110, sortable: true, tooltipField: 'salary_display' },
