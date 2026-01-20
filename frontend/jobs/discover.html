@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.5 - Balanced column widths -->
+<!-- v2.6 - Professional table with proportional columns -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -919,84 +919,85 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Clean Compact Table - Soft Colors with Grid Lines */
+        /* Professional Dark Table */
         .ag-theme-alpine {
-            --ag-background-color: #1a1f2e;
-            --ag-header-background-color: #252b3b;
-            --ag-header-foreground-color: #e2e8f0;
-            --ag-foreground-color: #e2e8f0;
-            --ag-row-hover-color: #2a3548;
-            --ag-selected-row-background-color: #2a3548;
-            --ag-border-color: #3d4556;
-            --ag-odd-row-background-color: #1f2537;
+            --ag-background-color: #111827;
+            --ag-header-background-color: #1f2937;
+            --ag-header-foreground-color: #f9fafb;
+            --ag-foreground-color: #f3f4f6;
+            --ag-row-hover-color: #374151;
+            --ag-selected-row-background-color: #374151;
+            --ag-border-color: #374151;
+            --ag-odd-row-background-color: #1f2937;
             --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
-            --ag-font-size: 12px;
-            --ag-row-border-color: #3d4556;
-            --ag-cell-horizontal-border: solid #3d4556;
+            --ag-font-size: 13px;
+            --ag-row-border-color: #374151;
         }
 
         /* Outer Border */
         .ag-theme-alpine .ag-root-wrapper {
-            border: 1px solid #3d4556;
-            border-radius: 8px;
+            border: 1px solid #374151;
+            border-radius: 6px;
             overflow: hidden;
         }
 
-        /* Header */
+        /* Header - Darker */
         .ag-theme-alpine .ag-header {
-            background: #252b3b;
-            border-bottom: 1px solid #3d4556;
+            background: #1f2937;
+            border-bottom: 2px solid #4b5563;
         }
 
         .ag-theme-alpine .ag-header-cell-label {
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #94a3b8;
+            letter-spacing: 0.3px;
+            color: #9ca3af;
         }
 
         /* Header Cell - Vertical Borders */
         .ag-theme-alpine .ag-header-cell {
-            border-right: 1px solid #3d4556 !important;
+            border-right: 1px solid #374151 !important;
         }
 
-        /* Row Backgrounds - Subtle Alternating */
+        /* Row Backgrounds */
         .ag-theme-alpine .ag-row-even {
-            background: #1a1f2e;
+            background: #111827;
         }
 
         .ag-theme-alpine .ag-row-odd {
-            background: #1f2537;
+            background: #1f2937;
         }
 
         /* Row - Horizontal Borders */
         .ag-theme-alpine .ag-row {
-            border-bottom: 1px solid #2d3548 !important;
+            border-bottom: 1px solid #374151 !important;
         }
 
         /* Cell - Vertical Borders */
         .ag-theme-alpine .ag-cell {
-            border-right: 1px solid #2d3548 !important;
-            color: #e2e8f0;
+            border-right: 1px solid #374151 !important;
+            color: #f3f4f6;
+            padding: 0 12px;
         }
 
         /* Hover State */
         .ag-theme-alpine .ag-row:hover {
-            background: #2a3548 !important;
+            background: #374151 !important;
         }
 
         /* Selected Row */
         .ag-theme-alpine .ag-row-selected {
-            background: #2a3548 !important;
+            background: #374151 !important;
         }
 
         /* Pagination Panel */
         .ag-theme-alpine .ag-paging-panel {
-            background: #252b3b;
-            border-top: 1px solid #3d4556;
-            color: #94a3b8;
+            background: #1f2937;
+            border-top: 1px solid #374151;
+            color: #9ca3af;
             font-size: 12px;
+            height: 40px;
         }
 
         .ag-theme-alpine .ag-paging-button {
@@ -1004,7 +1005,7 @@
         }
 
         .ag-theme-alpine .ag-paging-button:hover {
-            background: rgba(59, 130, 246, 0.15);
+            background: rgba(59, 130, 246, 0.2);
             border-radius: 4px;
         }
 
@@ -1893,16 +1894,16 @@
             </div>`;
         }
 
-        // Column Definitions - Balanced widths
+        // Column Definitions - Tight proportional layout
         const columnDefs = [
-            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, width: 280, minWidth: 200, filter: true, sortable: true },
-            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, width: 220, minWidth: 150, sortable: false },
-            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 85, sortable: true, sort: 'desc' },
-            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 100, sortable: true },
-            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 120, filter: true, sortable: true },
-            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 140, filter: true, sortable: true },
-            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 75, filter: true, sortable: true },
-            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 100, sortable: false, filter: false }
+            { headerName: 'Role', field: 'title', cellRenderer: roleCellRenderer, flex: 2, minWidth: 180, filter: true, sortable: true },
+            { headerName: 'Description', field: 'job_description', cellRenderer: descriptionCellRenderer, flex: 1.5, minWidth: 120, sortable: false },
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 80, sortable: true, sort: 'desc' },
+            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 95, sortable: true },
+            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 100, filter: true, sortable: true },
+            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 130, filter: true, sortable: true },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 70, filter: true, sortable: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 90, sortable: false, filter: false }
         ];
 
         // Grid Options
