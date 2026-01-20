@@ -1,0 +1,8 @@
+backend/
+data/
+venv/
+*.db
+*.pyc
+__pycache__/
+.env
+requirements.txt
