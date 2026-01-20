@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2.1 - Fixed column widths, user login, company chips -->
+<!-- v2.2 - High contrast AG Grid theme for better readability -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -919,25 +919,25 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Colorful AG Grid Theme */
+        /* Clean Dark AG Grid Theme - High Contrast */
         .ag-theme-alpine {
-            --ag-background-color: var(--bg-secondary);
-            --ag-header-background-color: transparent;
-            --ag-header-foreground-color: #fff;
-            --ag-foreground-color: var(--text-primary);
-            --ag-row-hover-color: rgba(59, 130, 246, 0.12);
-            --ag-selected-row-background-color: rgba(139, 92, 246, 0.2);
-            --ag-border-color: var(--border-color);
-            --ag-odd-row-background-color: rgba(30, 41, 59, 0.5);
+            --ag-background-color: #0f172a;
+            --ag-header-background-color: #1e293b;
+            --ag-header-foreground-color: #f8fafc;
+            --ag-foreground-color: #f1f5f9;
+            --ag-row-hover-color: #1e3a5f;
+            --ag-selected-row-background-color: #1e3a5f;
+            --ag-border-color: #334155;
+            --ag-odd-row-background-color: #0f172a;
             --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
             --ag-font-size: 13px;
-            --ag-row-border-color: rgba(71, 85, 105, 0.3);
+            --ag-row-border-color: #334155;
         }
 
-        /* Gradient Header */
+        /* Header - Clean Dark with Accent */
         .ag-theme-alpine .ag-header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 50%, #1a3d5c 100%);
-            border-bottom: 2px solid rgba(139, 92, 246, 0.4);
+            background: #1e293b;
+            border-bottom: 2px solid #3b82f6;
         }
 
         .ag-theme-alpine .ag-header-cell-label {
@@ -945,53 +945,52 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            color: #e2e8f0;
+            color: #f8fafc;
         }
 
         .ag-theme-alpine .ag-header-cell {
-            border-right: 1px solid rgba(139, 92, 246, 0.2);
+            border-right: 1px solid #334155;
         }
 
-        /* Colorful Row Striping */
+        /* Clean Row Striping - Solid Colors */
         .ag-theme-alpine .ag-row-even {
-            background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+            background: #0f172a;
         }
 
         .ag-theme-alpine .ag-row-odd {
-            background: linear-gradient(90deg, rgba(51, 65, 85, 0.4) 0%, rgba(51, 65, 85, 0.2) 100%);
+            background: #1e293b;
         }
 
-        /* Hover Effects - Colorful Glow */
+        /* Hover - Subtle Blue Highlight */
         .ag-theme-alpine .ag-row:hover {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 50%, rgba(6, 182, 212, 0.1) 100%) !important;
-            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1);
+            background: #1e3a5f !important;
         }
 
         /* Selected Row */
         .ag-theme-alpine .ag-row-selected {
-            background: linear-gradient(90deg, rgba(139, 92, 246, 0.25) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
-            border-left: 3px solid var(--accent-purple);
+            background: #1e3a5f !important;
+            border-left: 3px solid #3b82f6;
         }
 
-        /* Colorful Left Border Accent for Rows */
+        /* Row Left Border on Hover */
         .ag-theme-alpine .ag-row {
             border-left: 3px solid transparent;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
         }
 
         .ag-theme-alpine .ag-row:hover {
-            border-left-color: var(--accent-blue);
+            border-left-color: #3b82f6;
         }
 
-        /* Pagination Panel - Gradient */
+        /* Pagination Panel */
         .ag-theme-alpine .ag-paging-panel {
-            background: linear-gradient(135deg, #1e293b 0%, #1e3a5f 100%);
-            border-top: 1px solid rgba(59, 130, 246, 0.3);
-            color: var(--text-secondary);
+            background: #1e293b;
+            border-top: 1px solid #334155;
+            color: #94a3b8;
         }
 
         .ag-theme-alpine .ag-paging-button {
-            color: var(--accent-blue-light);
+            color: #60a5fa;
         }
 
         .ag-theme-alpine .ag-paging-button:hover {
@@ -999,9 +998,10 @@
             border-radius: 4px;
         }
 
-        /* Cell Borders - Subtle Color */
+        /* Cell Text - High Contrast */
         .ag-theme-alpine .ag-cell {
-            border-right: 1px solid rgba(71, 85, 105, 0.2);
+            border-right: 1px solid #1e293b;
+            color: #f1f5f9;
         }
 
         /* Custom Cell Styles */
