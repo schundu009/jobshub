@@ -44,3 +44,4 @@ pytest-cov>=4.1.0
 httpx>=0.28.0
 itsdangerous>=2.1.0
 # Force rebuild Tue Jan 20 03:12:17 PST 2026
+email-validator>=2.0.0
