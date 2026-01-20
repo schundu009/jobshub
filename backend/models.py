@@ -98,6 +98,40 @@ class User(Base):
     # Salary preferences
     min_salary = Column(Integer)
 
+    # Application Profile fields
+    first_name = Column(String(100), nullable=True)
+    last_name = Column(String(100), nullable=True)
+    preferred_name = Column(String(100), nullable=True)
+    phone = Column(String(50), nullable=True)
+    country = Column(String(50), nullable=True)
+
+    # Address fields
+    address_line1 = Column(String(255), nullable=True)
+    address_line2 = Column(String(255), nullable=True)
+    city = Column(String(100), nullable=True)
+    state = Column(String(100), nullable=True)
+    postal_code = Column(String(20), nullable=True)
+    address_country = Column(String(50), nullable=True)
+
+    # Work authorization fields
+    us_authorized = Column(String(20), nullable=True)  # yes, no
+    requires_sponsorship = Column(String(20), nullable=True)  # yes, no
+    willing_to_relocate = Column(String(20), nullable=True)  # yes, no, depends
+    us_government_employee = Column(String(20), nullable=True)  # yes, no
+    non_compete = Column(String(20), nullable=True)  # yes, no
+    work_arrangement = Column(String(20), nullable=True)  # remote, hybrid, onsite, flexible
+
+    # Social profiles
+    linkedin_url = Column(String(500), nullable=True)
+    github_url = Column(String(500), nullable=True)
+    portfolio_url = Column(String(500), nullable=True)
+    twitter_url = Column(String(500), nullable=True)
+
+    # Professional summary
+    referral_source = Column(String(50), nullable=True)
+    bio = Column(Text, nullable=True)
+    skills = Column(Text, nullable=True)
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -109,6 +143,27 @@ class User(Base):
     jobs = relationship("Job", back_populates="owner", cascade="all, delete-orphan")
     companies = relationship("Company", back_populates="owner", cascade="all, delete-orphan")
     contacts = relationship("Contact", back_populates="owner", cascade="all, delete-orphan")
+    documents = relationship("UserDocument", back_populates="owner", cascade="all, delete-orphan")
+
+
+class UserDocument(Base):
+    """
+    User uploaded documents (resumes, cover letters, etc.)
+    """
+    __tablename__ = "user_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    document_type = Column(String(50), nullable=False)  # resume, cover_letter
+    filename = Column(String(255), nullable=False)
+    file_path = Column(String(500), nullable=False)
+    file_size = Column(Integer, nullable=True)
+    mime_type = Column(String(100), nullable=True)
+    is_default = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    owner = relationship("User", back_populates="documents")
 
 
 class JobRelevanceScore(Base):

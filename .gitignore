@@ -32,3 +32,5 @@ logs/
 
 # Uploads
 uploads/
+backend/uploads/
+.vercel

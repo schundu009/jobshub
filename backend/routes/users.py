@@ -20,9 +20,12 @@ from datetime import datetime
 import re
 
 from database import get_db
-from models import User, RoleProfile
+from models import User, RoleProfile, UserDocument
 from services.role_profiles_data import get_all_profiles, get_profile_by_slug
 from middleware.auth import get_current_user, get_current_admin
+from fastapi import UploadFile, File
+import os
+import uuid
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -581,3 +584,266 @@ def delete_role_profile(
     db.commit()
 
     return {"message": f"Role profile '{role_slug}' deleted successfully"}
+
+
+# ============== User Settings Endpoints ==============
+
+class UserSettingsUpdate(BaseModel):
+    """Schema for updating user application settings."""
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    preferred_name: Optional[str] = Field(None, max_length=100)
+    email: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    country: Optional[str] = Field(None, max_length=50)
+
+    # Address
+    address_line1: Optional[str] = Field(None, max_length=255)
+    address_line2: Optional[str] = Field(None, max_length=255)
+    city: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=100)
+    postal_code: Optional[str] = Field(None, max_length=20)
+    address_country: Optional[str] = Field(None, max_length=50)
+
+    # Work authorization
+    us_authorized: Optional[str] = Field(None, max_length=20)
+    requires_sponsorship: Optional[str] = Field(None, max_length=20)
+    willing_to_relocate: Optional[str] = Field(None, max_length=20)
+    us_government_employee: Optional[str] = Field(None, max_length=20)
+    non_compete: Optional[str] = Field(None, max_length=20)
+    work_arrangement: Optional[str] = Field(None, max_length=20)
+
+    # Social profiles
+    linkedin_url: Optional[str] = Field(None, max_length=500)
+    github_url: Optional[str] = Field(None, max_length=500)
+    portfolio_url: Optional[str] = Field(None, max_length=500)
+    twitter_url: Optional[str] = Field(None, max_length=500)
+
+    # Professional summary
+    referral_source: Optional[str] = Field(None, max_length=50)
+    bio: Optional[str] = None
+    skills: Optional[str] = None
+
+
+@router.get("/settings")
+def get_user_settings(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current user's application settings."""
+    return {
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "preferred_name": current_user.preferred_name,
+        "email": current_user.email,
+        "phone": current_user.phone,
+        "country": current_user.country,
+        "address_line1": current_user.address_line1,
+        "address_line2": current_user.address_line2,
+        "city": current_user.city,
+        "state": current_user.state,
+        "postal_code": current_user.postal_code,
+        "address_country": current_user.address_country,
+        "us_authorized": current_user.us_authorized,
+        "requires_sponsorship": current_user.requires_sponsorship,
+        "willing_to_relocate": current_user.willing_to_relocate,
+        "us_government_employee": current_user.us_government_employee,
+        "non_compete": current_user.non_compete,
+        "work_arrangement": current_user.work_arrangement,
+        "linkedin_url": current_user.linkedin_url,
+        "github_url": current_user.github_url,
+        "portfolio_url": current_user.portfolio_url,
+        "twitter_url": current_user.twitter_url,
+        "referral_source": current_user.referral_source,
+        "bio": current_user.bio,
+        "skills": current_user.skills
+    }
+
+
+@router.put("/settings")
+def update_user_settings(
+    settings: UserSettingsUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user's application settings."""
+    # Update only provided fields
+    update_fields = settings.dict(exclude_unset=True)
+
+    for field, value in update_fields.items():
+        if hasattr(current_user, field):
+            setattr(current_user, field, value)
+
+    db.commit()
+
+    return {"message": "Settings updated successfully"}
+
+
+# ============== User Documents Endpoints ==============
+
+# Upload directory for user documents
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads", "user_documents")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+@router.post("/documents")
+async def upload_document(
+    document_type: str = Query(..., description="Type of document: resume or cover_letter"),
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload a resume or cover letter."""
+    # Validate document type
+    if document_type not in ["resume", "cover_letter"]:
+        raise HTTPException(status_code=400, detail="Invalid document type. Must be 'resume' or 'cover_letter'")
+
+    # Validate file type
+    allowed_extensions = {".pdf", ".doc", ".docx", ".txt", ".rtf"}
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: PDF, DOC, DOCX, TXT, RTF")
+
+    # Read file and check size
+    content = await file.read()
+    file_size = len(content)
+    max_size = 5 * 1024 * 1024  # 5MB
+    if file_size > max_size:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB")
+
+    # Generate unique filename
+    unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_ext}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    # Check if this is the first document of this type (make it default)
+    existing_docs = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == document_type
+    ).count()
+    is_default = existing_docs == 0
+
+    # Create database record
+    doc = UserDocument(
+        user_id=current_user.id,
+        document_type=document_type,
+        filename=file.filename,
+        file_path=file_path,
+        file_size=file_size,
+        mime_type=file.content_type,
+        is_default=is_default
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+
+    return {
+        "id": doc.id,
+        "filename": doc.filename,
+        "document_type": doc.document_type,
+        "file_size": doc.file_size,
+        "is_default": doc.is_default,
+        "created_at": doc.created_at,
+        "message": "Document uploaded successfully"
+    }
+
+
+@router.get("/documents")
+def list_documents(
+    type: Optional[str] = Query(None, description="Filter by document type: resume or cover_letter"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """List user's uploaded documents."""
+    query = db.query(UserDocument).filter(UserDocument.user_id == current_user.id)
+
+    if type:
+        query = query.filter(UserDocument.document_type == type)
+
+    documents = query.order_by(UserDocument.is_default.desc(), UserDocument.created_at.desc()).all()
+
+    return [
+        {
+            "id": doc.id,
+            "filename": doc.filename,
+            "document_type": doc.document_type,
+            "file_size": doc.file_size,
+            "is_default": doc.is_default,
+            "created_at": doc.created_at
+        }
+        for doc in documents
+    ]
+
+
+@router.put("/documents/{doc_id}/default")
+def set_default_document(
+    doc_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Set a document as the default for its type."""
+    # Find the document
+    doc = db.query(UserDocument).filter(
+        UserDocument.id == doc_id,
+        UserDocument.user_id == current_user.id
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # Remove default from other documents of same type
+    db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == doc.document_type,
+        UserDocument.id != doc_id
+    ).update({"is_default": False})
+
+    # Set this one as default
+    doc.is_default = True
+    db.commit()
+
+    return {"message": "Default document updated"}
+
+
+@router.delete("/documents/{doc_id}")
+def delete_document(
+    doc_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a user's document."""
+    # Find the document
+    doc = db.query(UserDocument).filter(
+        UserDocument.id == doc_id,
+        UserDocument.user_id == current_user.id
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    # Delete file from disk
+    if os.path.exists(doc.file_path):
+        os.remove(doc.file_path)
+
+    # If this was the default, make another doc default
+    was_default = doc.is_default
+    doc_type = doc.document_type
+
+    # Delete from database
+    db.delete(doc)
+    db.commit()
+
+    # If was default, set another as default
+    if was_default:
+        next_doc = db.query(UserDocument).filter(
+            UserDocument.user_id == current_user.id,
+            UserDocument.document_type == doc_type
+        ).first()
+        if next_doc:
+            next_doc.is_default = True
+            db.commit()
+
+    return {"message": "Document deleted"}

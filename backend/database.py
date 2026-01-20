@@ -98,13 +98,13 @@ def create_tables():
         from models import (
             Job, Company, Contact, Interview, Note, Document,
             IngestionSource, RoleProfile, User, JobRelevanceScore,
-            ScraperRun, ScraperConfigDB
+            ScraperRun, ScraperConfigDB, UserDocument
         )
     except ImportError:
         from models import (
             Job, Company, Contact, Interview, Note, Document,
             IngestionSource, RoleProfile, User, JobRelevanceScore,
-            ScraperRun, ScraperConfigDB
+            ScraperRun, ScraperConfigDB, UserDocument
         )
     Base.metadata.create_all(bind=engine)
 
