@@ -1686,14 +1686,10 @@
         <div class="modal ai-modal">
             <h3>Generate Cover Letter</h3>
             <div class="form-group">
-                <label>Select Resume <span id="resume-status-cl" style="font-weight: normal; font-size: 11px;"></span></label>
-                <select id="resume_select_cl" class="doc-select">
-                    <option value="">Loading...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Resume Content <small style="color: var(--text-muted);">(auto-loaded or paste manually)</small></label>
-                <textarea id="resume_text_cl" rows="5" placeholder="Select a resume above or paste here..."></textarea>
+                <div id="resume-status-cl" style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 12px;">
+                    <span style="color: var(--text-muted);">Loading resume...</span>
+                </div>
+                <input type="hidden" id="resume_text_cl">
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="generateCoverLetter()" id="btn-cover-letter">
@@ -1736,14 +1732,10 @@
         <div class="modal ai-modal">
             <h3>Resume-Job Match Analysis</h3>
             <div class="form-group">
-                <label>Select Resume <span id="resume-status-match" style="font-weight: normal; font-size: 11px;"></span></label>
-                <select id="resume_select_match" class="doc-select">
-                    <option value="">Loading...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Resume Content <small style="color: var(--text-muted);">(auto-loaded or paste manually)</small></label>
-                <textarea id="resume_text_match" rows="5" placeholder="Select a resume above or paste here..."></textarea>
+                <div id="resume-status-match" style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 12px;">
+                    <span style="color: var(--text-muted);">Loading resume...</span>
+                </div>
+                <input type="hidden" id="resume_text_match">
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="analyzeMatch()" id="btn-match">
@@ -1762,14 +1754,10 @@
             <h3>Generate ATS-Optimized Resume</h3>
             <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 12px;">Generates a tailored resume optimized for ATS systems based on this job's requirements.</p>
             <div class="form-group">
-                <label>Select Resume <span id="resume-status-ats" style="font-weight: normal; font-size: 11px;"></span></label>
-                <select id="resume_select_ats" class="doc-select">
-                    <option value="">Loading...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Resume Content <small style="color: var(--text-muted);">(auto-loaded or paste manually)</small></label>
-                <textarea id="resume_text_ats" rows="5" placeholder="Select a resume above or paste here..."></textarea>
+                <div id="resume-status-ats" style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 12px;">
+                    <span style="color: var(--text-muted);">Loading resume...</span>
+                </div>
+                <input type="hidden" id="resume_text_ats">
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="generateATSResume()" id="btn-ats">
@@ -2555,10 +2543,33 @@
             }
         }
 
+        async function autoLoadDefaultResume(hiddenInputId, statusDivId) {
+            const hiddenInput = document.getElementById(hiddenInputId);
+            const statusDiv = document.getElementById(statusDivId);
+
+            statusDiv.innerHTML = '<span style="color: var(--text-muted);">Loading resume...</span>';
+
+            try {
+                const response = await apiRequest('/users/documents/default-resume', 'GET');
+                if (response?.content) {
+                    hiddenInput.value = response.content;
+                    statusDiv.innerHTML = `<span style="color: var(--accent-green);">✓ Using: ${response.filename}</span>`;
+                    return true;
+                } else {
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">No resume content found. <a href="../jobs/documents.html" style="color: var(--accent-blue);">Upload Resume</a></span>';
+                    return false;
+                }
+            } catch (error) {
+                console.error('Failed to load resume:', error);
+                statusDiv.innerHTML = '<span style="color: var(--accent-red);">Failed to load resume. <a href="../jobs/documents.html" style="color: var(--accent-blue);">Upload Resume</a></span>';
+                return false;
+            }
+        }
+
         function openCoverLetterModal() {
             document.getElementById('cover-letter-modal').classList.add('active');
             document.getElementById('cover-letter-result').innerHTML = '';
-            setupResumeSelector('resume_select_cl', 'resume_text_cl', 'resume-status-cl');
+            autoLoadDefaultResume('resume_text_cl', 'resume-status-cl');
         }
         function closeCoverLetterModal() { document.getElementById('cover-letter-modal').classList.remove('active'); }
 
@@ -2568,14 +2579,14 @@
         function openMatchModal() {
             document.getElementById('match-modal').classList.add('active');
             document.getElementById('match-result').innerHTML = '';
-            setupResumeSelector('resume_select_match', 'resume_text_match', 'resume-status-match');
+            autoLoadDefaultResume('resume_text_match', 'resume-status-match');
         }
         function closeMatchModal() { document.getElementById('match-modal').classList.remove('active'); }
 
         function openATSModal() {
             document.getElementById('ats-modal').classList.add('active');
             document.getElementById('ats-result').innerHTML = '';
-            setupResumeSelector('resume_select_ats', 'resume_text_ats', 'resume-status-ats');
+            autoLoadDefaultResume('resume_text_ats', 'resume-status-ats');
         }
         function closeATSModal() { document.getElementById('ats-modal').classList.remove('active'); }
 
@@ -2585,7 +2596,7 @@
         // AI Functions
         async function generateCoverLetter() {
             const resumeText = document.getElementById('resume_text_cl').value;
-            if (!resumeText.trim()) { showAlert('Please enter your resume or background', 'error'); return; }
+            if (!resumeText.trim()) { showAlert('No resume loaded. Please upload a resume in Documents first.', 'error'); return; }
             const btn = document.getElementById('btn-cover-letter');
             const resultDiv = document.getElementById('cover-letter-result');
             btn.disabled = true;
@@ -2622,7 +2633,7 @@
 
         async function analyzeMatch() {
             const resumeText = document.getElementById('resume_text_match').value;
-            if (!resumeText.trim()) { showAlert('Please enter your resume text', 'error'); return; }
+            if (!resumeText.trim()) { showAlert('No resume loaded. Please upload a resume in Documents first.', 'error'); return; }
             const btn = document.getElementById('btn-match');
             const resultDiv = document.getElementById('match-result');
             btn.disabled = true;
@@ -2677,7 +2688,7 @@
 
         async function generateATSResume() {
             const resumeText = document.getElementById('resume_text_ats').value;
-            if (!resumeText.trim()) { showAlert('Please enter your resume text', 'error'); return; }
+            if (!resumeText.trim()) { showAlert('No resume loaded. Please upload a resume in Documents first.', 'error'); return; }
             const btn = document.getElementById('btn-ats');
             const resultDiv = document.getElementById('ats-result');
             btn.disabled = true;
