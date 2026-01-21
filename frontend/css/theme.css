@@ -758,9 +758,114 @@ tr:last-child td {
 }
 
 /* ========================================
-   Hide Default Header
+   Header Navigation (Admin Pages)
    ======================================== */
 
 header {
-    display: none !important;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+}
+
+header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+header nav ul {
+    display: flex;
+    list-style: none;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+}
+
+header nav ul li a {
+    display: block;
+    padding: 8px 14px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+header nav ul li a:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+header nav ul li a.active {
+    background: var(--accent-blue);
+    color: white;
+}
+
+header .theme-toggle {
+    margin-left: 8px;
+}
+
+header .theme-toggle button {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+header .theme-toggle button:hover {
+    background: var(--bg-hover);
+}
+
+/* User Menu in Header */
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid var(--border-color);
+}
+
+.user-menu .user-name {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.user-menu .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.user-menu .btn-small:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
