@@ -24,7 +24,7 @@ from collections import defaultdict
 from typing import Optional
 
 from database import create_tables
-from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth
+from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth
 from config import settings as app_settings
 from services.redis_service import redis_service
 
@@ -414,17 +414,44 @@ def run_migrations():
 
         conn.commit()
 
-        # Set admin role for configured admin emails
-        admin_emails = os.environ.get("ADMIN_EMAILS", "").split(",")
-        admin_emails = [e.strip() for e in admin_emails if e.strip()]
-        if admin_emails:
-            for email in admin_emails:
-                try:
-                    conn.execute(text("UPDATE users SET role = 'admin' WHERE email = :email"), {"email": email})
-                    logger.info(f"Set admin role for {email}")
-                except Exception as e:
-                    logger.warning(f"Could not set admin role for {email}: {e}")
-            conn.commit()
+        # Create admin_users table for internal admin access
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS admin_users (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(100) UNIQUE NOT NULL,
+                    password_hash VARCHAR(255) NOT NULL,
+                    name VARCHAR(255),
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_admin_users_username ON admin_users(username)"))
+            logger.info("Created admin_users table")
+        except Exception as e:
+            logger.warning(f"Could not create admin_users table: {e}")
+
+        # Seed initial admin user from environment variable
+        admin_username = os.environ.get("INTERNAL_ADMIN_USER")
+        admin_password = os.environ.get("INTERNAL_ADMIN_PASS")
+        if admin_username and admin_password:
+            try:
+                # Check if admin exists
+                result = conn.execute(text("SELECT id FROM admin_users WHERE username = :username"), {"username": admin_username})
+                if not result.fetchone():
+                    # Hash password
+                    import hashlib
+                    salt = os.environ.get("ADMIN_SALT", "cariara-internal-salt")
+                    password_hash = hashlib.sha256(f"{salt}{admin_password}".encode()).hexdigest()
+                    conn.execute(text(
+                        "INSERT INTO admin_users (username, password_hash, name, is_active) VALUES (:username, :password_hash, :name, TRUE)"
+                    ), {"username": admin_username, "password_hash": password_hash, "name": "Admin"})
+                    logger.info(f"Created internal admin user: {admin_username}")
+            except Exception as e:
+                logger.warning(f"Could not seed admin user: {e}")
+
+        conn.commit()
 
 
 @asynccontextmanager
@@ -485,6 +512,7 @@ app.include_router(ingest.router)
 app.include_router(settings.router)
 app.include_router(users.router)
 app.include_router(scrapers.router)
+app.include_router(internal_auth.router)
 
 # Static files for frontend
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara Internal Admin</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-box h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #f8fafc;
+        }
+
+        .login-box p {
+            color: #94a3b8;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #f8fafc;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-login:hover { opacity: 0.9; }
+        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-msg.show { display: block; }
+
+        /* Dashboard Styles */
+        .dashboard { display: none; }
+        .dashboard.show { display: block; }
+        .login-container.hide { display: none; }
+
+        .header {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: #f8fafc;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header .username {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        .main-content {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #f8fafc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #334155;
+        }
+
+        table th {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-wishlist { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .status-applied { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .status-interviewing { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+        .status-offer { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .status-rejected { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 16px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover { background: #334155; color: #f8fafc; }
+        .tab-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div class="login-container" id="login-container">
+        <div class="login-box">
+            <h1>Internal Admin</h1>
+            <p>Cariara administration portal. Authorized access only.</p>
+
+            <div class="error-msg" id="error-msg"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-login" id="btn-login">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header class="header">
+            <h1>Cariara Internal Admin</h1>
+            <div class="user-info">
+                <span class="username" id="admin-username"></span>
+                <button class="btn-logout" onclick="logout()">Sign Out</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="number" id="stat-jobs">-</div>
+                    <div class="label">Total Jobs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="stat-companies">-</div>
+                    <div class="label">Companies</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="stat-users">-</div>
+                    <div class="label">Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="stat-sources">-</div>
+                    <div class="label">Sources</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('jobs')">Recent Jobs</button>
+                <button class="tab-btn" onclick="showTab('users')">Users</button>
+                <button class="tab-btn" onclick="showTab('sources')">Sources</button>
+            </div>
+
+            <div class="tab-content active" id="tab-jobs">
+                <div class="card">
+                    <h2>Recent Jobs</h2>
+                    <div id="jobs-table"><div class="loading">Loading...</div></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-users">
+                <div class="card">
+                    <h2>All Users</h2>
+                    <div id="users-table"><div class="loading">Loading...</div></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-sources">
+                <div class="card">
+                    <h2>Ingestion Sources</h2>
+                    <div id="sources-table"><div class="loading">Loading...</div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost'
+            ? 'http://localhost:8000'
+            : 'https://cariara-backend-production.up.railway.app';
+
+        let adminCredentials = null;
+
+        // Check if already logged in
+        const savedCreds = sessionStorage.getItem('adminCreds');
+        if (savedCreds) {
+            adminCredentials = JSON.parse(savedCreds);
+            verifyAndShowDashboard();
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+            const errorMsg = document.getElementById('error-msg');
+
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+            errorMsg.classList.remove('show');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/internal/verify`, {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(username + ':' + password)
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Invalid credentials');
+                }
+
+                const data = await response.json();
+                adminCredentials = { username, password };
+                sessionStorage.setItem('adminCreds', JSON.stringify(adminCredentials));
+
+                showDashboard(data);
+            } catch (error) {
+                errorMsg.textContent = error.message || 'Login failed';
+                errorMsg.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        });
+
+        async function verifyAndShowDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/api/internal/verify`, {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(adminCredentials.username + ':' + adminCredentials.password)
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Session expired');
+                }
+
+                const data = await response.json();
+                showDashboard(data);
+            } catch (error) {
+                sessionStorage.removeItem('adminCreds');
+                adminCredentials = null;
+            }
+        }
+
+        function showDashboard(adminInfo) {
+            document.getElementById('login-container').classList.add('hide');
+            document.getElementById('dashboard').classList.add('show');
+            document.getElementById('admin-username').textContent = adminInfo.name || adminInfo.username;
+            loadDashboardData();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminCreds');
+            adminCredentials = null;
+            document.getElementById('login-container').classList.remove('hide');
+            document.getElementById('dashboard').classList.remove('show');
+        }
+
+        async function apiRequest(endpoint) {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                headers: {
+                    'Authorization': 'Basic ' + btoa(adminCredentials.username + ':' + adminCredentials.password)
+                }
+            });
+            if (!response.ok) throw new Error('Request failed');
+            return response.json();
+        }
+
+        async function loadDashboardData() {
+            try {
+                const stats = await apiRequest('/api/internal/dashboard/stats');
+                document.getElementById('stat-jobs').textContent = stats.total_jobs;
+                document.getElementById('stat-companies').textContent = stats.total_companies;
+                document.getElementById('stat-users').textContent = stats.total_users;
+                document.getElementById('stat-sources').textContent = stats.total_sources;
+
+                // Recent jobs table
+                let jobsHtml = '<table><thead><tr><th>Title</th><th>Company</th><th>Status</th><th>Created</th></tr></thead><tbody>';
+                stats.recent_jobs.forEach(job => {
+                    jobsHtml += `<tr>
+                        <td>${job.title}</td>
+                        <td>${job.company_name || '-'}</td>
+                        <td><span class="status-badge status-${job.status}">${job.status}</span></td>
+                        <td>${job.created_at ? new Date(job.created_at).toLocaleDateString() : '-'}</td>
+                    </tr>`;
+                });
+                jobsHtml += '</tbody></table>';
+                document.getElementById('jobs-table').innerHTML = jobsHtml;
+
+                // Load users
+                const users = await apiRequest('/api/internal/users');
+                let usersHtml = '<table><thead><tr><th>Email</th><th>Name</th><th>Status</th><th>Joined</th></tr></thead><tbody>';
+                users.forEach(user => {
+                    usersHtml += `<tr>
+                        <td>${user.email}</td>
+                        <td>${user.name || '-'}</td>
+                        <td>${user.is_active ? 'Active' : 'Inactive'}</td>
+                        <td>${user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                    </tr>`;
+                });
+                usersHtml += '</tbody></table>';
+                document.getElementById('users-table').innerHTML = usersHtml;
+
+                // Load sources
+                const sources = await apiRequest('/api/internal/sources');
+                let sourcesHtml = '<table><thead><tr><th>Company</th><th>ATS</th><th>Jobs</th><th>Last Fetched</th><th>Status</th></tr></thead><tbody>';
+                sources.forEach(source => {
+                    sourcesHtml += `<tr>
+                        <td>${source.company_name}</td>
+                        <td>${source.ats_type}</td>
+                        <td>${source.job_count || 0}</td>
+                        <td>${source.last_fetched ? new Date(source.last_fetched).toLocaleDateString() : 'Never'}</td>
+                        <td>${source.is_active ? 'Active' : 'Inactive'}</td>
+                    </tr>`;
+                });
+                sourcesHtml += '</tbody></table>';
+                document.getElementById('sources-table').innerHTML = sourcesHtml;
+
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
