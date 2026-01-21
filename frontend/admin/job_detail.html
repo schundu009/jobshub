@@ -461,6 +461,63 @@
             font-size: 13px;
         }
 
+        /* AI Tools Row - Horizontal buttons */
+        .ai-tools-row {
+            display: flex;
+            gap: 10px;
+            padding: 16px 0;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .ai-tools-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .ai-tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .ai-tool-btn svg {
+            width: 18px;
+            height: 18px;
+            color: var(--accent-blue);
+        }
+
+        .ai-tool-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-blue);
+            box-shadow: 0 2px 8px rgba(79, 140, 255, 0.2);
+        }
+
+        .ai-tool-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Secondary Cards Row - Interviews & Notes */
+        .secondary-cards-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
         /* Role Filter Tabs */
         .role-tabs {
             display: flex;
@@ -501,29 +558,6 @@
             border-color: var(--accent-blue);
             color: white;
             box-shadow: 0 2px 8px rgba(79, 140, 255, 0.3);
-        }
-
-        /* Top Cards Row - Horizontal Layout */
-        .top-cards-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .top-cards-row .card {
-            min-height: 180px;
-        }
-
-        .ai-tools-grid-horizontal {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .ai-tools-grid-horizontal .ai-btn {
-            flex: 1 1 calc(50% - 5px);
-            min-width: 120px;
         }
 
         /* Job Details Section */
@@ -1007,12 +1041,9 @@
         .toast svg { width: 20px; height: 20px; }
 
         /* Responsive */
-        @media (max-width: 1200px) {
-            .top-cards-row { grid-template-columns: 1fr 1fr; }
-        }
-
         @media (max-width: 1024px) {
             .content-grid { grid-template-columns: 1fr; }
+            .secondary-cards-row { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
@@ -1021,7 +1052,8 @@
             .job-header { flex-direction: column; }
             .job-header-actions { align-items: stretch; width: 100%; }
             .info-grid { grid-template-columns: 1fr; }
-            .top-cards-row { grid-template-columns: 1fr; }
+            .ai-tools-row { flex-wrap: wrap; }
+            .ai-tool-btn { flex: 1 1 calc(50% - 5px); justify-content: center; }
         }
     </style>
 </head>
@@ -1532,49 +1564,32 @@
                     </div>
                 </div>
 
-                <!-- Role Filter Tabs -->
-                <div class="role-tabs">
-                    <button class="role-tab active" data-role="all">All Jobs</button>
-                    <button class="role-tab" data-role="devops">DevOps</button>
-                    <button class="role-tab" data-role="backend">Backend</button>
-                    <button class="role-tab" data-role="frontend">Frontend</button>
-                    <button class="role-tab" data-role="fullstack">Full Stack</button>
-                    <button class="role-tab" data-role="data">Data</button>
-                    <button class="role-tab" data-role="ml">ML/AI</button>
-                    <button class="role-tab" data-role="mobile">Mobile</button>
-                    <button class="role-tab" data-role="security">Security</button>
+                <!-- AI Tools Row -->
+                <div class="ai-tools-row">
+                    <button class="ai-tool-btn" onclick="openCoverLetterModal()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Cover Letter
+                    </button>
+                    <button class="ai-tool-btn" onclick="openATSModal()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        ATS Resume
+                    </button>
+                    <button class="ai-tool-btn" onclick="openQuestionsModal()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Interview Prep
+                    </button>
+                    <button class="ai-tool-btn" onclick="openMatchModal()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Resume Match
+                    </button>
+                    <button class="ai-tool-btn" onclick="openResearchModal()" ${!job.company_name ? 'disabled title="Add a company first"' : ''}>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        Company Research
+                    </button>
                 </div>
 
-                <!-- Horizontal cards row above job details -->
-                <div class="top-cards-row">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>AI Tools</h3>
-                        </div>
-                        <div class="ai-tools-grid-horizontal">
-                            <button class="ai-btn" onclick="openCoverLetterModal()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                Cover Letter
-                            </button>
-                            <button class="ai-btn" onclick="openATSModal()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                ATS Resume
-                            </button>
-                            <button class="ai-btn" onclick="openQuestionsModal()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Interview Prep
-                            </button>
-                            <button class="ai-btn" onclick="openMatchModal()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                Resume Match
-                            </button>
-                            <button class="ai-btn" onclick="openResearchModal()" ${!job.company_name ? 'disabled title="Add a company first"' : ''}>
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                Company Research
-                            </button>
-                        </div>
-                    </div>
-
+                <!-- Interviews and Notes Row -->
+                <div class="secondary-cards-row">
                     <div class="card">
                         <div class="card-header">
                             <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Interviews</h3>
@@ -1596,6 +1611,19 @@
                         </div>
                         ${notesHtml}
                     </div>
+                </div>
+
+                <!-- Role Filter Tabs -->
+                <div class="role-tabs">
+                    <button class="role-tab active" data-role="all">All Jobs</button>
+                    <button class="role-tab" data-role="devops">DevOps</button>
+                    <button class="role-tab" data-role="backend">Backend</button>
+                    <button class="role-tab" data-role="frontend">Frontend</button>
+                    <button class="role-tab" data-role="fullstack">Full Stack</button>
+                    <button class="role-tab" data-role="data">Data</button>
+                    <button class="role-tab" data-role="ml">ML/AI</button>
+                    <button class="role-tab" data-role="mobile">Mobile</button>
+                    <button class="role-tab" data-role="security">Security</button>
                 </div>
 
                 <!-- Job Details Section -->
