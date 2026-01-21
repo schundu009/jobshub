@@ -295,3 +295,44 @@ Note: Base this on general knowledge. For the most current information, the cand
     )
 
     return response.choices[0].message.content
+
+
+def generate_ats_tailored_resume(resume_text: str, job_title: str, job_description: str, company_name: str = None) -> str:
+    """Generate an ATS-optimized resume tailored to a specific job."""
+    openai_client = get_client()
+
+    company_context = f" at {company_name}" if company_name else ""
+
+    prompt = f"""You are an expert ATS (Applicant Tracking System) resume optimizer. Rewrite the candidate's resume to be highly optimized for the following job posting.
+
+Job Title: {job_title}{company_context}
+
+Job Description:
+{job_description}
+
+Original Resume:
+{resume_text}
+
+Instructions:
+1. KEYWORD OPTIMIZATION: Incorporate exact keywords and phrases from the job description naturally throughout the resume
+2. SKILLS ALIGNMENT: Reorganize and emphasize skills that directly match the job requirements
+3. EXPERIENCE TAILORING: Rewrite bullet points to highlight relevant accomplishments that match the job duties
+4. QUANTIFIABLE ACHIEVEMENTS: Ensure metrics and numbers are included where possible
+5. FORMAT: Use a clean, ATS-friendly format with clear section headers (SUMMARY, EXPERIENCE, SKILLS, EDUCATION)
+6. RELEVANCE: Prioritize and expand on experiences most relevant to this specific role
+7. ACTION VERBS: Use strong action verbs that match the job description language
+
+Output the complete rewritten resume in a clean, professional format. Do not include any commentary - just output the optimized resume text ready to be used.
+"""
+
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a professional resume writer specializing in ATS optimization. You transform resumes to maximize their chances of passing ATS screening and impressing recruiters for specific job postings."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5,
+        max_tokens=3000
+    )
+
+    return response.choices[0].message.content

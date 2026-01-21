@@ -78,6 +78,14 @@ class CompanyResearchRequest(BaseModel):
         return v
 
 
+class ATSResumeRequest(BaseModel):
+    job_id: Optional[int] = Field(None, ge=1)
+    job_title: Optional[str] = Field(None, max_length=MAX_TITLE_LENGTH)
+    company_name: Optional[str] = Field(None, max_length=255)
+    job_description: Optional[str] = Field(None, max_length=MAX_JOB_DESCRIPTION_LENGTH)
+    resume_text: str = Field(..., min_length=100, max_length=MAX_RESUME_LENGTH)
+
+
 @router.post("/cover-letter")
 def generate_cover_letter(
     request: CoverLetterRequest,
@@ -90,9 +98,13 @@ def generate_cover_letter(
     job_description = request.job_description
 
     if request.job_id:
-        job = db.query(Job).filter(Job.id == request.job_id, Job.user_id == current_user.id).first()
+        # Allow both user-owned jobs and public jobs (user_id is null)
+        job = db.query(Job).filter(Job.id == request.job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
+        # Only check ownership if the job belongs to a user
+        if job.user_id is not None and job.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this job")
         job_title = job_title or job.title
         job_description = job_description or job.job_description
         if job.company:
@@ -130,9 +142,12 @@ def generate_interview_questions(
     job_description = request.job_description
 
     if request.job_id:
-        job = db.query(Job).filter(Job.id == request.job_id, Job.user_id == current_user.id).first()
+        # Allow both user-owned jobs and public jobs (user_id is null)
+        job = db.query(Job).filter(Job.id == request.job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
+        if job.user_id is not None and job.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this job")
         job_title = job_title or job.title
         job_description = job_description or job.job_description
 
@@ -168,9 +183,12 @@ def analyze_job_match(
     job_description = request.job_description
 
     if request.job_id:
-        job = db.query(Job).filter(Job.id == request.job_id, Job.user_id == current_user.id).first()
+        # Allow both user-owned jobs and public jobs (user_id is null)
+        job = db.query(Job).filter(Job.id == request.job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
+        if job.user_id is not None and job.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this job")
         job_description = job_description or job.job_description
 
     if not job_description:
@@ -200,9 +218,12 @@ def get_resume_improvements(
     job_description = request.job_description
 
     if request.job_id:
-        job = db.query(Job).filter(Job.id == request.job_id, Job.user_id == current_user.id).first()
+        # Allow both user-owned jobs and public jobs (user_id is null)
+        job = db.query(Job).filter(Job.id == request.job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
+        if job.user_id is not None and job.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this job")
         job_description = job_description or job.job_description
 
     if not request.resume_text:
@@ -232,9 +253,12 @@ def research_company(
     website = request.website
 
     if request.company_id:
-        company = db.query(Company).filter(Company.id == request.company_id, Company.user_id == current_user.id).first()
+        # Allow both user-owned companies and public companies (user_id is null)
+        company = db.query(Company).filter(Company.id == request.company_id).first()
         if not company:
             raise HTTPException(status_code=404, detail="Company not found")
+        if company.user_id is not None and company.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this company")
         company_name = company_name or company.name
         industry = industry or company.industry
         website = website or company.website
@@ -253,3 +277,47 @@ def research_company(
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate research: {str(e)}")
+
+
+@router.post("/ats-resume")
+def generate_ats_resume(
+    request: ATSResumeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate an ATS-optimized resume tailored to a specific job."""
+    job_title = request.job_title
+    company_name = request.company_name
+    job_description = request.job_description
+
+    if request.job_id:
+        # Allow both user-owned jobs and public jobs (user_id is null)
+        job = db.query(Job).filter(Job.id == request.job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        if job.user_id is not None and job.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this job")
+        job_title = job_title or job.title
+        job_description = job_description or job.job_description
+        if job.company:
+            company_name = company_name or job.company.name
+
+    if not job_title:
+        raise HTTPException(status_code=400, detail="Job title is required")
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description is required")
+    if not request.resume_text:
+        raise HTTPException(status_code=400, detail="Resume text is required")
+
+    try:
+        ats_resume = openai_service.generate_ats_tailored_resume(
+            resume_text=request.resume_text,
+            job_title=job_title,
+            job_description=job_description,
+            company_name=company_name
+        )
+        return {"ats_resume": ats_resume, "job_title": job_title, "company_name": company_name}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate ATS resume: {str(e)}")

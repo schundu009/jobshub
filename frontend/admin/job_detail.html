@@ -1081,8 +1081,8 @@
         <div class="modal ai-modal">
             <h3>Generate Cover Letter</h3>
             <div class="form-group">
-                <label>Your Resume / Background</label>
-                <textarea id="resume_text_cl" rows="6" placeholder="Paste your resume text or describe your background..."></textarea>
+                <label>Your Resume / Background <span id="resume-status-cl" style="font-weight: normal; color: var(--accent-green);"></span></label>
+                <textarea id="resume_text_cl" rows="6" placeholder="Loading your resume..."></textarea>
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="generateCoverLetter()" id="btn-cover-letter">
@@ -1125,8 +1125,8 @@
         <div class="modal ai-modal">
             <h3>Resume-Job Match Analysis</h3>
             <div class="form-group">
-                <label>Your Resume</label>
-                <textarea id="resume_text_match" rows="6" placeholder="Paste your resume text..."></textarea>
+                <label>Your Resume <span id="resume-status-match" style="font-weight: normal; color: var(--accent-green);"></span></label>
+                <textarea id="resume_text_match" rows="6" placeholder="Loading your resume..."></textarea>
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="analyzeMatch()" id="btn-match">
@@ -1136,6 +1136,26 @@
                 <button type="button" class="btn btn-secondary" onclick="closeMatchModal()">Close</button>
             </div>
             <div id="match-result"></div>
+        </div>
+    </div>
+
+    <!-- ATS Resume Modal -->
+    <div class="modal-overlay" id="ats-modal">
+        <div class="modal ai-modal">
+            <h3>Generate ATS-Optimized Resume</h3>
+            <p style="color: var(--text-muted); margin-bottom: 16px;">Generate a tailored resume optimized for ATS systems and this specific job posting.</p>
+            <div class="form-group">
+                <label>Your Resume <span id="resume-status-ats" style="font-weight: normal; color: var(--accent-green);"></span></label>
+                <textarea id="resume_text_ats" rows="6" placeholder="Loading your resume..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="generateATSResume()" id="btn-ats">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Generate ATS Resume
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeATSModal()">Close</button>
+            </div>
+            <div id="ats-result"></div>
         </div>
     </div>
 
@@ -1483,6 +1503,10 @@
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                     Cover Letter
                                 </button>
+                                <button class="ai-btn" onclick="openATSModal()">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    ATS Resume
+                                </button>
                                 <button class="ai-btn" onclick="openQuestionsModal()">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     Interview Prep
@@ -1558,12 +1582,75 @@
         function closeNoteModal() { document.getElementById('note-modal').classList.remove('active'); document.getElementById('note-form').reset(); }
         function openInterviewModal() { document.getElementById('interview-modal').classList.add('active'); }
         function closeInterviewModal() { document.getElementById('interview-modal').classList.remove('active'); document.getElementById('interview-form').reset(); }
-        function openCoverLetterModal() { document.getElementById('cover-letter-modal').classList.add('active'); document.getElementById('cover-letter-result').innerHTML = ''; }
+
+        // Cache for default resume to avoid multiple API calls
+        let cachedResumeContent = null;
+        let resumeLoading = false;
+
+        async function loadDefaultResume(textareaId, statusId) {
+            const textarea = document.getElementById(textareaId);
+            const statusSpan = document.getElementById(statusId);
+
+            // If already cached, use it
+            if (cachedResumeContent) {
+                textarea.value = cachedResumeContent;
+                if (statusSpan) statusSpan.textContent = '(auto-loaded from your profile)';
+                return;
+            }
+
+            // If already loading, wait
+            if (resumeLoading) {
+                textarea.placeholder = 'Loading your resume...';
+                return;
+            }
+
+            resumeLoading = true;
+            textarea.placeholder = 'Loading your resume...';
+            textarea.value = '';
+
+            try {
+                const response = await apiRequest('/users/documents/default-resume', 'GET');
+                if (response && response.content) {
+                    cachedResumeContent = response.content;
+                    textarea.value = response.content;
+                    if (statusSpan) statusSpan.textContent = `(auto-loaded: ${response.filename})`;
+                } else {
+                    textarea.placeholder = 'Paste your resume text here...';
+                    if (statusSpan) statusSpan.textContent = '(no default resume found)';
+                }
+            } catch (error) {
+                console.error('Failed to load default resume:', error);
+                textarea.placeholder = 'Paste your resume text here...';
+                if (statusSpan) statusSpan.textContent = '';
+            } finally {
+                resumeLoading = false;
+            }
+        }
+
+        function openCoverLetterModal() {
+            document.getElementById('cover-letter-modal').classList.add('active');
+            document.getElementById('cover-letter-result').innerHTML = '';
+            loadDefaultResume('resume_text_cl', 'resume-status-cl');
+        }
         function closeCoverLetterModal() { document.getElementById('cover-letter-modal').classList.remove('active'); }
+
         function openQuestionsModal() { document.getElementById('questions-modal').classList.add('active'); document.getElementById('questions-result').innerHTML = ''; }
         function closeQuestionsModal() { document.getElementById('questions-modal').classList.remove('active'); }
-        function openMatchModal() { document.getElementById('match-modal').classList.add('active'); document.getElementById('match-result').innerHTML = ''; }
+
+        function openMatchModal() {
+            document.getElementById('match-modal').classList.add('active');
+            document.getElementById('match-result').innerHTML = '';
+            loadDefaultResume('resume_text_match', 'resume-status-match');
+        }
         function closeMatchModal() { document.getElementById('match-modal').classList.remove('active'); }
+
+        function openATSModal() {
+            document.getElementById('ats-modal').classList.add('active');
+            document.getElementById('ats-result').innerHTML = '';
+            loadDefaultResume('resume_text_ats', 'resume-status-ats');
+        }
+        function closeATSModal() { document.getElementById('ats-modal').classList.remove('active'); }
+
         function openResearchModal() { document.getElementById('research-modal').classList.add('active'); document.getElementById('research-result').innerHTML = ''; }
         function closeResearchModal() { document.getElementById('research-modal').classList.remove('active'); }
 
@@ -1650,13 +1737,51 @@
             btn.innerHTML = '<div class="loading-spinner" style="width:18px;height:18px;"></div> Researching...';
             resultDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Researching ' + currentJob.company_name + '...</p>';
             try {
-                const response = await apiRequest('/ai/company-research', 'POST', { company_id: currentJob.company_id });
+                const response = await apiRequest('/ai/company-research', 'POST', { company_name: currentJob.company_name });
                 resultDiv.innerHTML = `<div class="ai-result">${response.research}</div>`;
             } catch (error) {
                 resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate Research';
+            }
+        }
+
+        async function generateATSResume() {
+            const resumeText = document.getElementById('resume_text_ats').value;
+            if (!resumeText.trim()) { showAlert('Please enter your resume text', 'error'); return; }
+            const btn = document.getElementById('btn-ats');
+            const resultDiv = document.getElementById('ats-result');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading-spinner" style="width:18px;height:18px;"></div> Generating...';
+            resultDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Creating your ATS-optimized resume tailored for this job...</p>';
+            try {
+                const response = await apiRequest('/ai/ats-resume', 'POST', { job_id: parseInt(jobId), resume_text: resumeText });
+                resultDiv.innerHTML = `
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                        <button class="btn btn-secondary btn-small" onclick="copyATSResume()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="ai-result" id="ats-resume-content">${response.ats_resume}</div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate ATS Resume';
+            }
+        }
+
+        function copyATSResume() {
+            const content = document.getElementById('ats-resume-content');
+            if (content) {
+                navigator.clipboard.writeText(content.textContent).then(() => {
+                    showAlert('ATS resume copied to clipboard');
+                }).catch(() => {
+                    showAlert('Failed to copy to clipboard', 'error');
+                });
             }
         }
 
