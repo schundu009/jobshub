@@ -284,7 +284,7 @@
     <main class="main-content">
         <div class="page-header">
             <h1>Auto Apply</h1>
-            <p>Automatically submit job applications to Greenhouse and Lever ATS</p>
+            <p>Automatically submit job applications to Greenhouse, Lever, and Workday ATS</p>
         </div>
 
         <div id="toast" class="toast"></div>
@@ -358,14 +358,45 @@
                 </div>
                 <div class="form-group">
                     <label>Supported ATS</label>
-                    <select id="config-ats" multiple size="2">
+                    <select id="config-ats" multiple size="3">
                         <option value="greenhouse" selected>Greenhouse</option>
                         <option value="lever" selected>Lever</option>
+                        <option value="workday" selected>Workday</option>
                     </select>
                 </div>
             </div>
 
             <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        </div>
+
+        <!-- Workday Credentials -->
+        <div class="section">
+            <div class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                Workday Credentials
+            </div>
+            <div class="section-description">
+                Optional credentials for Workday applications. If not provided, the system will attempt to create an account for you.
+                Your password is encrypted and stored securely.
+            </div>
+
+            <div id="workday-status" style="padding: 8px 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 12px; font-size: 12px;">
+                <span id="workday-status-text">Not configured</span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Workday Email</label>
+                    <input type="email" id="workday-email" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Workday Password</label>
+                    <input type="password" id="workday-password" placeholder="Enter password to update">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveWorkdayCredentials()">Save Workday Credentials</button>
+            <button class="btn btn-secondary" onclick="clearWorkdayCredentials()" style="margin-left: 8px;">Clear Credentials</button>
         </div>
 
         <!-- Recent Submissions -->
@@ -474,10 +505,97 @@
                     document.getElementById('stat-today').textContent = data.applications_today;
                     document.getElementById('stat-limit').textContent = data.daily_limit;
 
+                    // Load Workday credentials status
+                    updateWorkdayStatus(data.workday_email, data.workday_configured);
+
                     // Load resumes
                     await loadResumes(data.default_resume_id);
                 }
             } catch (e) { console.error('Failed to load config:', e); }
+        }
+
+        function updateWorkdayStatus(email, configured) {
+            const statusText = document.getElementById('workday-status-text');
+            const statusDiv = document.getElementById('workday-status');
+
+            if (configured) {
+                statusText.innerHTML = `<span style="color: var(--accent-green);">Configured</span> - Using email: <strong>${escapeHtml(email)}</strong>`;
+                statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
+            } else if (email) {
+                statusText.innerHTML = `<span style="color: var(--accent-yellow);">Partial</span> - Email set but missing password`;
+                statusDiv.style.background = 'rgba(250, 204, 21, 0.1)';
+            } else {
+                statusText.textContent = 'Not configured - Will create new accounts when applying';
+                statusDiv.style.background = 'var(--bg-tertiary)';
+            }
+
+            // Set email field value
+            if (email) {
+                document.getElementById('workday-email').value = email;
+            }
+        }
+
+        async function saveWorkdayCredentials() {
+            const email = document.getElementById('workday-email').value.trim();
+            const password = document.getElementById('workday-password').value;
+
+            if (!email) {
+                toast('Please enter an email address', 'error');
+                return;
+            }
+
+            const config = { workday_email: email };
+            if (password) {
+                config.workday_password = password;
+            }
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/config`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                if (!r) return;
+                if (r.ok) {
+                    toast('Workday credentials saved');
+                    document.getElementById('workday-password').value = ''; // Clear password field
+                    // Reload config to get updated status
+                    await loadConfig();
+                } else {
+                    const err = await r.json();
+                    toast('Failed to save: ' + (err.detail || 'Unknown error'), 'error');
+                }
+            } catch (e) {
+                toast('Failed to save: ' + e.message, 'error');
+            }
+        }
+
+        async function clearWorkdayCredentials() {
+            if (!confirm('Are you sure you want to clear your Workday credentials?')) {
+                return;
+            }
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/config`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        workday_email: null,
+                        workday_password: ''
+                    })
+                });
+                if (!r) return;
+                if (r.ok) {
+                    toast('Workday credentials cleared');
+                    document.getElementById('workday-email').value = '';
+                    document.getElementById('workday-password').value = '';
+                    updateWorkdayStatus(null, false);
+                } else {
+                    toast('Failed to clear credentials', 'error');
+                }
+            } catch (e) {
+                toast('Failed to clear: ' + e.message, 'error');
+            }
         }
 
         async function loadResumes(selectedId) {

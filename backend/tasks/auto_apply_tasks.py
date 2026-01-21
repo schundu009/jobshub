@@ -236,6 +236,25 @@ def submit_application(
         # Build applicant profile
         profile = build_applicant_profile(user, db)
 
+        # Get Workday credentials if needed
+        workday_email = None
+        workday_password = None
+        if ats_type == "workday":
+            config = db.query(AutoApplyConfig).filter(
+                AutoApplyConfig.user_id == user_id
+            ).first()
+            if config and config.workday_email:
+                workday_email = config.workday_email
+                # Decrypt password if stored
+                if config.workday_password_encrypted:
+                    try:
+                        from services.encryption import decrypt_password
+                        workday_password = decrypt_password(config.workday_password_encrypted)
+                    except Exception as e:
+                        logger.warning(f"Could not decrypt Workday password: {e}")
+                        # Use email as fallback - will try to create account
+                        workday_password = None
+
         # Run the application submission (async)
         result = asyncio.run(
             _run_application_submission(
@@ -246,6 +265,8 @@ def submit_application(
                 profile=profile,
                 resume_path=resume_path,
                 cover_letter_text=cover_letter_text,
+                workday_email=workday_email,
+                workday_password=workday_password,
             )
         )
 
@@ -302,6 +323,8 @@ async def _run_application_submission(
     profile: ApplicantProfile,
     resume_path: str,
     cover_letter_text: Optional[str],
+    workday_email: Optional[str] = None,
+    workday_password: Optional[str] = None,
 ) -> ApplyResult:
     """
     Run the actual application submission with browser automation.
@@ -322,6 +345,13 @@ async def _run_application_submission(
         elif ats_type == "lever":
             from services.auto_apply.lever import LeverApplicant
             applicant = LeverApplicant(browser_pool=browser_pool)
+        elif ats_type == "workday":
+            from services.auto_apply.workday import WorkdayApplicant
+            applicant = WorkdayApplicant(
+                browser_pool=browser_pool,
+                workday_email=workday_email,
+                workday_password=workday_password,
+            )
         else:
             return ApplyResult(
                 success=False,

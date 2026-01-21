@@ -44,7 +44,7 @@ def get_ats_type_from_url(url: str) -> Optional[str]:
 
 def is_supported_ats(url: str) -> bool:
     """Check if the ATS type is supported for auto-apply."""
-    supported = {"greenhouse", "lever"}
+    supported = {"greenhouse", "lever", "workday"}
     ats_type = get_ats_type_from_url(url)
     return ats_type in supported
 

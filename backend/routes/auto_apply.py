@@ -35,6 +35,9 @@ class AutoApplyConfigUpdate(BaseModel):
     use_ai_cover_letter: Optional[bool] = None
     excluded_companies: Optional[List[str]] = None
     supported_ats: Optional[List[str]] = None
+    # Workday credentials
+    workday_email: Optional[str] = Field(None, max_length=255)
+    workday_password: Optional[str] = Field(None, max_length=255)  # Will be encrypted
 
 
 class ApplicationAnswerCreate(BaseModel):
@@ -93,7 +96,9 @@ def get_auto_apply_config(
             "default_cover_letter_id": None,
             "use_ai_cover_letter": True,
             "excluded_companies": [],
-            "supported_ats": ["greenhouse", "lever"],
+            "supported_ats": ["greenhouse", "lever", "workday"],
+            "workday_email": None,
+            "workday_configured": False,
         }
 
     return {
@@ -105,7 +110,9 @@ def get_auto_apply_config(
         "default_cover_letter_id": config.default_cover_letter_id,
         "use_ai_cover_letter": config.use_ai_cover_letter,
         "excluded_companies": config.excluded_companies or [],
-        "supported_ats": config.supported_ats or ["greenhouse", "lever"],
+        "supported_ats": config.supported_ats or ["greenhouse", "lever", "workday"],
+        "workday_email": config.workday_email,
+        "workday_configured": bool(config.workday_email and config.workday_password_encrypted),
     }
 
 
@@ -126,6 +133,17 @@ def update_auto_apply_config(
 
     # Update fields
     update_data = config_data.model_dump(exclude_unset=True)
+
+    # Handle Workday password encryption
+    if "workday_password" in update_data:
+        workday_password = update_data.pop("workday_password")
+        if workday_password:
+            from services.encryption import encrypt_password
+            config.workday_password_encrypted = encrypt_password(workday_password)
+        else:
+            # Clear password if empty string provided
+            config.workday_password_encrypted = None
+
     for field, value in update_data.items():
         if hasattr(config, field):
             setattr(config, field, value)
@@ -265,7 +283,7 @@ def submit_application(
     if not ats_type or not is_supported_ats(job.job_url):
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported ATS type: {ats_type or 'unknown'}. Only Greenhouse and Lever are supported."
+            detail=f"Unsupported ATS type: {ats_type or 'unknown'}. Supported: Greenhouse, Lever, Workday."
         )
 
     # Check for existing submission

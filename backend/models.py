@@ -468,7 +468,11 @@ class AutoApplyConfig(Base):
     excluded_companies = Column(JSON, default=list)  # Company names/IDs to skip
 
     # ATS preferences
-    supported_ats = Column(JSON, default=lambda: ["greenhouse", "lever"])  # ATS types to auto-apply to
+    supported_ats = Column(JSON, default=lambda: ["greenhouse", "lever", "workday"])  # ATS types to auto-apply to
+
+    # Workday credentials (stored encrypted)
+    workday_email = Column(String(255), nullable=True)
+    workday_password_encrypted = Column(Text, nullable=True)  # Encrypted password
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
