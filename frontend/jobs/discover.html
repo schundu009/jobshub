@@ -2142,9 +2142,22 @@
 
         // Cell Renderers
         function roleCellRenderer(params) {
-            const jobId = params.data.id;
-            return `<div class="role-cell">
-                <div class="role-title"><a href="../admin/job_detail.html?id=${jobId}" style="color:#cbd5e1;font-weight:500;font-size:13px;text-decoration:none;">${params.value || 'Unknown'}</a></div>
+            const job = params.data;
+            const jobId = job.id;
+            const title = params.value || 'Unknown';
+            const company = job.company_name || 'Unknown';
+            const location = job.location || '';
+            const salary = job.salary_display || '';
+
+            // Build the meta line with bullet separators
+            const metaParts = [company];
+            if (location) metaParts.push(location);
+            if (salary) metaParts.push(salary);
+            const metaLine = metaParts.join(' • ');
+
+            return `<div class="role-cell" style="display:flex;flex-direction:column;gap:2px;padding:4px 0;">
+                <div class="role-title"><a href="../admin/job_detail.html?id=${jobId}" style="color:#cbd5e1;font-weight:500;font-size:13px;text-decoration:none;line-height:1.3;">${title}</a></div>
+                <div style="color:#7a8a9a;font-size:11px;line-height:1.3;">${metaLine}</div>
             </div>`;
         }
 
@@ -2260,12 +2273,15 @@
                 headerName: 'Role',
                 field: 'title',
                 cellRenderer: roleCellRenderer,
-                flex: 2,
-                minWidth: 250,
+                flex: 3,
+                minWidth: 350,
                 filter: true,
                 sortable: true,
-                tooltipField: 'title',
-                headerTooltip: 'Job Title'
+                tooltipValueGetter: (params) => {
+                    const job = params.data;
+                    return `${job.title}\n${job.company_name || ''} • ${job.location || ''} • ${job.salary_display || ''}`;
+                },
+                headerTooltip: 'Job Title, Company, Location, Salary'
             },
             {
                 headerName: 'Description',
@@ -2284,9 +2300,6 @@
                 }
             },
             { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 95, sortable: true, sort: 'desc' },
-            { headerName: 'Salary', field: 'salary_display', cellRenderer: salaryCellRenderer, width: 110, sortable: true, tooltipField: 'salary_display' },
-            { headerName: 'Company', field: 'company_name', cellRenderer: companyCellRenderer, width: 115, filter: true, sortable: true, tooltipField: 'company_name' },
-            { headerName: 'Location', field: 'location', cellRenderer: locationCellRenderer, width: 145, filter: true, sortable: true, tooltipField: 'location' },
             { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 90, filter: true, sortable: true },
             { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 100, sortable: false, filter: false, suppressSizeToFit: true }
         ];
@@ -2299,7 +2312,7 @@
                 resizable: true
             },
             animateRows: true,
-            rowHeight: 56,
+            rowHeight: 58,
             headerHeight: 40,
             pagination: true,
             paginationPageSize: 50,
