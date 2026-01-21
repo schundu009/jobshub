@@ -567,6 +567,34 @@ def run_migrations():
 
         conn.commit()
 
+        # Add AI summary fields to jobs table
+        try:
+            # Check existing columns for jobs table
+            try:
+                result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = 'jobs'"))
+                job_columns = {row[0] for row in result}
+            except Exception:
+                result = conn.execute(text("PRAGMA table_info(jobs)"))
+                job_columns = {row[1] for row in result}
+
+            if 'ai_summary' not in job_columns:
+                conn.execute(text("ALTER TABLE jobs ADD COLUMN ai_summary TEXT"))
+                logger.info("Added ai_summary column to jobs table")
+
+            if 'ai_tech_stack' not in job_columns:
+                try:
+                    # Try JSONB first (PostgreSQL)
+                    conn.execute(text("ALTER TABLE jobs ADD COLUMN ai_tech_stack JSONB"))
+                    logger.info("Added ai_tech_stack column to jobs table (JSONB)")
+                except Exception:
+                    # Fall back to TEXT for SQLite
+                    conn.execute(text("ALTER TABLE jobs ADD COLUMN ai_tech_stack TEXT"))
+                    logger.info("Added ai_tech_stack column to jobs table (TEXT)")
+        except Exception as e:
+            logger.warning(f"Could not add AI fields to jobs table: {e}")
+
+        conn.commit()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
