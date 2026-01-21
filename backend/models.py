@@ -251,6 +251,10 @@ class Job(Base):
     posted_date = Column(DateTime)  # When the job was originally posted on the ATS
     department = Column(String(255))  # Department/team from ATS
 
+    # AI-generated summary
+    ai_summary = Column(Text, nullable=True)  # Short AI-generated role description
+    ai_tech_stack = Column(JSON, nullable=True)  # AI-extracted technologies/tools list
+
     owner = relationship("User", back_populates="jobs")
     company = relationship("Company", back_populates="jobs")
     interviews = relationship("Interview", back_populates="job", cascade="all, delete-orphan")

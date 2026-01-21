@@ -320,6 +320,70 @@ Note: Base this on general knowledge. For the most current information, the cand
     return response.choices[0].message.content
 
 
+def summarize_job_description(job_title: str, job_description: str) -> dict:
+    """
+    Generate a high-level summary of a job description including key responsibilities
+    and technology/tools required.
+
+    Returns:
+        dict with 'summary' (brief role description) and 'tech_tools' (list of technologies)
+    """
+    if not job_description or len(job_description.strip()) < 50:
+        return {"summary": "", "tech_tools": []}
+
+    openai_client = get_client()
+
+    prompt = f"""Analyze this job posting and provide a concise summary.
+
+Job Title: {job_title}
+
+Job Description:
+{job_description[:4000]}
+
+Respond in this exact JSON format:
+{{
+    "summary": "A 1-2 sentence high-level description of the role and main responsibilities",
+    "tech_tools": ["tool1", "tool2", "tool3"]
+}}
+
+Rules:
+- summary: Focus on the core role purpose and key responsibilities (max 150 chars)
+- tech_tools: List 3-8 key technologies, tools, frameworks, or languages mentioned (use short names like "Python", "AWS", "React", "SQL")
+- Keep tech_tools concise - single words or short phrases only
+- Only include tools/tech explicitly mentioned or strongly implied
+- Return valid JSON only, no markdown or explanation
+"""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a technical recruiter who summarizes job descriptions. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=300
+        )
+
+        content = response.choices[0].message.content.strip()
+        # Clean up potential markdown code blocks
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+        content = content.strip()
+
+        import json
+        result = json.loads(content)
+        return {
+            "summary": result.get("summary", "")[:200],
+            "tech_tools": result.get("tech_tools", [])[:10]
+        }
+    except Exception as e:
+        print(f"Error summarizing job: {e}")
+        return {"summary": "", "tech_tools": []}
+
+
 def generate_ats_tailored_resume(resume_text: str, job_title: str, job_description: str, company_name: str = None) -> str:
     """Generate an ATS-optimized resume tailored to a specific job."""
     openai_client = get_client()

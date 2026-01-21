@@ -238,7 +238,9 @@ def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None, inclu
         "created_at": job.created_at,
         "posted_date": job.posted_date,
         "department": job.department,
-        "job_url": job.job_url
+        "job_url": job.job_url,
+        "ai_summary": job.ai_summary,
+        "ai_tech_stack": job.ai_tech_stack
     }
 
     # Only include full description if explicitly requested (reduces response size significantly)
@@ -652,6 +654,8 @@ async def get_job(
         "updated_at": job.updated_at,
         "posted_date": job.posted_date,
         "department": job.department,
+        "ai_summary": job.ai_summary,
+        "ai_tech_stack": job.ai_tech_stack,
         "interviews": [
             {
                 "id": i.id,
@@ -801,3 +805,75 @@ async def update_job_status(
 
     db.commit()
     return {"message": "Status updated successfully"}
+
+
+@router.post("/{job_id}/ai-summary")
+async def generate_job_ai_summary(
+    job_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Generate an AI summary of the job description.
+    Returns cached summary if available, otherwise generates and stores it.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Return cached summary if available
+    if job.ai_summary and job.ai_tech_stack:
+        return {
+            "summary": job.ai_summary,
+            "tech_stack": job.ai_tech_stack,
+            "cached": True
+        }
+
+    # Generate new summary
+    if not job.job_description:
+        return {
+            "summary": "",
+            "tech_stack": [],
+            "cached": False,
+            "error": "No job description available"
+        }
+
+    try:
+        from services.openai_service import summarize_job_description
+        result = summarize_job_description(job.title, job.job_description)
+
+        # Cache the result
+        job.ai_summary = result.get("summary", "")
+        job.ai_tech_stack = result.get("tech_tools", [])
+        db.commit()
+
+        return {
+            "summary": job.ai_summary,
+            "tech_stack": job.ai_tech_stack,
+            "cached": False
+        }
+    except Exception as e:
+        return {
+            "summary": "",
+            "tech_stack": [],
+            "cached": False,
+            "error": str(e)
+        }
+
+
+@router.get("/{job_id}/ai-summary")
+async def get_job_ai_summary(
+    job_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Get the AI summary for a job (returns empty if not generated yet).
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return {
+        "summary": job.ai_summary or "",
+        "tech_stack": job.ai_tech_stack or [],
+        "has_summary": bool(job.ai_summary)
+    }
