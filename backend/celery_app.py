@@ -30,6 +30,7 @@ celery_app = Celery(
     include=[
         "tasks.scraper_tasks",
         "tasks.maintenance_tasks",
+        "tasks.auto_apply_tasks",
     ],
 )
 
@@ -56,6 +57,9 @@ celery_app.conf.update(
         "tasks.scraper_tasks.scrape_company_browser": {"queue": "scrapers_browser"},
         "tasks.scraper_tasks.scrape_all_companies": {"queue": "scrapers_orchestrator"},
         "tasks.maintenance_tasks.*": {"queue": "maintenance"},
+        "tasks.auto_apply_tasks.submit_application": {"queue": "scrapers_browser"},
+        "tasks.auto_apply_tasks.process_pending_applications": {"queue": "maintenance"},
+        "tasks.auto_apply_tasks.reset_daily_application_counts": {"queue": "maintenance"},
     },
 
     # Define queues
@@ -104,6 +108,18 @@ celery_app.conf.update(
         "mark-stale-jobs": {
             "task": "tasks.maintenance_tasks.mark_stale_jobs_inactive",
             "schedule": crontab(minute=0, hour=4),
+            "options": {"queue": "maintenance"},
+        },
+        # Process pending auto-apply applications every 15 minutes
+        "process-pending-applications": {
+            "task": "tasks.auto_apply_tasks.process_pending_applications",
+            "schedule": crontab(minute="*/15"),
+            "options": {"queue": "maintenance"},
+        },
+        # Reset daily application counts at midnight
+        "reset-daily-application-counts": {
+            "task": "tasks.auto_apply_tasks.reset_daily_application_counts",
+            "schedule": crontab(minute=0, hour=0),
             "options": {"queue": "maintenance"},
         },
     },

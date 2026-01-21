@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Auto Apply</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            font-size: 13px;
+        }
+        .sidebar {
+            width: 200px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header .logo { height: 24px; width: auto; }
+        .sidebar-header .brand-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 2px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .sidebar-nav a.active { background: var(--accent-blue); color: white; }
+        .sidebar-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .sidebar-submenu { padding: 2px 0 4px 24px; }
+        .sidebar-submenu a { padding: 6px 10px; font-size: 12px; }
+        .sidebar-submenu a.active { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .sidebar-user { padding: 12px; border-top: 1px solid var(--border-color); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .sidebar-user-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 11px;
+        }
+        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 12px; }
+        .sidebar-user-email { font-size: 11px; color: var(--text-muted); }
+        .sidebar-logout-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 6px; background: transparent;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            color: var(--text-secondary); font-size: 11px; cursor: pointer;
+        }
+        .sidebar-logout-btn:hover { background: var(--bg-hover); }
+        .sidebar-login-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 8px;
+            background: var(--accent-blue);
+            border: none; border-radius: 6px; color: white;
+            font-size: 12px; font-weight: 500; text-decoration: none;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 200px;
+            padding: 16px 24px;
+            max-width: 800px;
+        }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 18px; font-weight: 600; }
+        .page-header p { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title svg { width: 18px; height: 18px; color: var(--accent-blue); }
+        .section-description {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-label { font-weight: 500; }
+        .toggle-description { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border-color);
+            border-radius: 22px;
+            transition: 0.2s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        input:checked + .toggle-slider { background: var(--accent-blue); }
+        input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--bg-hover); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-value { font-size: 24px; font-weight: 600; color: var(--accent-blue); }
+        .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        .submission-list { margin-top: 12px; }
+        .submission-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .submission-info { flex: 1; }
+        .submission-title { font-weight: 500; }
+        .submission-company { font-size: 11px; color: var(--text-muted); }
+        .submission-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .submission-status.pending { background: #fef3c7; color: #d97706; }
+        .submission-status.submitting { background: #dbeafe; color: #2563eb; }
+        .submission-status.success { background: #d1fae5; color: #059669; }
+        .submission-status.failed { background: #fee2e2; color: #dc2626; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: #22c55e; color: white; }
+        .toast.error { background: #ef4444; color: white; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 12px; max-width: 100%; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="../images/toritchLogo.png" alt="Cariara" class="logo">
+            <span class="brand-name">Cariara</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="discover.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>Jobs</a>
+            <a href="contacts.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>Contacts</a>
+            <a href="analytics.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>Analytics</a>
+            <a href="#" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+            <div class="sidebar-submenu">
+                <a href="settings.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>Profile</a>
+                <a href="documents.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Documents</a>
+                <a href="auto-apply.html" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>Auto Apply</a>
+            </div>
+        </nav>
+        <div class="sidebar-user" id="user-menu">
+            <a href="login.html" class="sidebar-login-btn">Sign In</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Auto Apply</h1>
+            <p>Automatically submit job applications to Greenhouse and Lever ATS</p>
+        </div>
+
+        <div id="toast" class="toast"></div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-today">0</div>
+                <div class="stat-label">Applied Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-limit">10</div>
+                <div class="stat-label">Daily Limit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-pending">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-success">0</div>
+                <div class="stat-label">Successful</div>
+            </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="section">
+            <div class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Configuration
+            </div>
+
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">Enable Auto Apply</div>
+                    <div class="toggle-description">Allow one-click applications from job listings</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="config-enabled">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <div>
+                    <div class="toggle-label">AI Cover Letters</div>
+                    <div class="toggle-description">Generate personalized cover letters for each application</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="config-ai-cover-letter" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="form-row" style="margin-top: 16px;">
+                <div class="form-group">
+                    <label>Daily Application Limit</label>
+                    <input type="number" id="config-daily-limit" value="10" min="1" max="50">
+                </div>
+                <div class="form-group">
+                    <label>Minimum Relevance Score</label>
+                    <input type="number" id="config-min-score" value="50" min="0" max="100">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Default Resume</label>
+                    <select id="config-resume">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Supported ATS</label>
+                    <select id="config-ats" multiple size="2">
+                        <option value="greenhouse" selected>Greenhouse</option>
+                        <option value="lever" selected>Lever</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        </div>
+
+        <!-- Recent Submissions -->
+        <div class="section">
+            <div class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                Recent Submissions
+            </div>
+            <div class="section-description">Your recent auto-apply submissions</div>
+
+            <div id="submissions-list" class="submission-list">
+                <p style="color: var(--text-muted); text-align: center; padding: 20px;">Loading...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com'
+            ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
+
+        function getToken() { return localStorage.getItem('access_token'); }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        async function refreshToken() {
+            const rt = localStorage.getItem('refresh_token');
+            if (!rt) { logout(); return null; }
+            try {
+                const r = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: rt })
+                });
+                if (r.ok) {
+                    const d = await r.json();
+                    localStorage.setItem('access_token', d.access_token);
+                    localStorage.setItem('refresh_token', d.refresh_token);
+                    return d.access_token;
+                }
+                logout();
+            } catch (e) { logout(); }
+            return null;
+        }
+
+        async function authFetch(url, opts = {}) {
+            let token = getToken();
+            if (!token) { logout(); return null; }
+            opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
+            try {
+                let r = await fetch(url, opts);
+                if (r.status === 401) {
+                    token = await refreshToken();
+                    if (token) {
+                        opts.headers['Authorization'] = `Bearer ${token}`;
+                        r = await fetch(url, opts);
+                        if (r.status === 401) { logout(); return null; }
+                    } else return null;
+                }
+                return r;
+            } catch (e) { return null; }
+        }
+
+        function toast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function initUserMenu() {
+            const um = document.getElementById('user-menu');
+            const uj = localStorage.getItem('user');
+            if (uj) {
+                try {
+                    const u = JSON.parse(uj);
+                    const n = u.name || u.email?.split('@')[0] || 'User';
+                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+                    um.innerHTML = `
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-avatar">${i}</div>
+                            <div>
+                                <div class="sidebar-user-name">${n}</div>
+                                <div class="sidebar-user-email">${u.email || ''}</div>
+                            </div>
+                        </div>
+                        <button class="sidebar-logout-btn" onclick="logout()">Sign Out</button>`;
+                } catch (e) {}
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/config`);
+                if (!r) return;
+                if (r.ok) {
+                    const data = await r.json();
+                    document.getElementById('config-enabled').checked = data.enabled;
+                    document.getElementById('config-ai-cover-letter').checked = data.use_ai_cover_letter;
+                    document.getElementById('config-daily-limit').value = data.daily_limit;
+                    document.getElementById('config-min-score').value = data.min_relevance_score;
+                    document.getElementById('stat-today').textContent = data.applications_today;
+                    document.getElementById('stat-limit').textContent = data.daily_limit;
+
+                    // Load resumes
+                    await loadResumes(data.default_resume_id);
+                }
+            } catch (e) { console.error('Failed to load config:', e); }
+        }
+
+        async function loadResumes(selectedId) {
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/documents?type=resume`);
+                if (!r) return;
+                if (r.ok) {
+                    const docs = await r.json();
+                    const select = document.getElementById('config-resume');
+                    select.innerHTML = '<option value="">Select resume...</option>';
+                    docs.forEach(doc => {
+                        const opt = document.createElement('option');
+                        opt.value = doc.id;
+                        opt.textContent = doc.filename + (doc.is_default ? ' (default)' : '');
+                        if (doc.id === selectedId) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) { console.error('Failed to load resumes:', e); }
+        }
+
+        async function loadSubmissions() {
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/submissions?limit=10`);
+                if (!r) return;
+                if (r.ok) {
+                    const data = await r.json();
+                    const list = document.getElementById('submissions-list');
+
+                    // Update stats
+                    const pending = data.submissions.filter(s => s.status === 'pending').length;
+                    const success = data.submissions.filter(s => s.status === 'success').length;
+                    document.getElementById('stat-pending').textContent = pending;
+                    document.getElementById('stat-success').textContent = success;
+
+                    if (data.submissions.length === 0) {
+                        list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No submissions yet. Apply to jobs from the job listing pages.</p>';
+                        return;
+                    }
+
+                    list.innerHTML = data.submissions.map(s => `
+                        <div class="submission-item">
+                            <div class="submission-info">
+                                <div class="submission-title">${escapeHtml(s.job_title)}</div>
+                                <div class="submission-company">${escapeHtml(s.company_name)} • ${s.ats_type}</div>
+                            </div>
+                            <span class="submission-status ${s.status}">${s.status}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Failed to load submissions:', e);
+                document.getElementById('submissions-list').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Failed to load submissions</p>';
+            }
+        }
+
+        async function saveConfig() {
+            const config = {
+                enabled: document.getElementById('config-enabled').checked,
+                use_ai_cover_letter: document.getElementById('config-ai-cover-letter').checked,
+                daily_limit: parseInt(document.getElementById('config-daily-limit').value) || 10,
+                min_relevance_score: parseFloat(document.getElementById('config-min-score').value) || 50,
+                default_resume_id: document.getElementById('config-resume').value || null,
+            };
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/config`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                if (!r) return;
+                if (r.ok) {
+                    toast('Configuration saved');
+                    document.getElementById('stat-limit').textContent = config.daily_limit;
+                } else {
+                    toast('Failed to save', 'error');
+                }
+            } catch (e) {
+                toast('Failed to save: ' + e.message, 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!getToken()) { window.location.href = 'login.html'; return; }
+            initUserMenu();
+            loadConfig();
+            loadSubmissions();
+        });
+    </script>
+</body>
+</html>

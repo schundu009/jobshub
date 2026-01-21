@@ -619,6 +619,184 @@
             color: var(--text-secondary);
         }
 
+        .ai-tool-btn.btn-auto-apply {
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .ai-tool-btn.btn-auto-apply:hover {
+            background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .ai-tool-btn.btn-auto-apply:disabled {
+            background: var(--bg-tertiary);
+            border-color: var(--border-color);
+            color: var(--text-muted);
+        }
+
+        /* Auto Apply Modal Styles */
+        .preflight-check {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preflight-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .preflight-item:last-child { border-bottom: none; }
+
+        .preflight-item .check-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .preflight-item .check-icon.pass {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+        }
+
+        .preflight-item .check-icon.fail {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+
+        .preflight-item .check-icon.warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-yellow);
+        }
+
+        .preflight-item .check-icon svg { width: 12px; height: 12px; }
+
+        .preflight-item .item-label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .preflight-item .item-status {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .preflight-item .item-status.pass { color: var(--accent-green); }
+        .preflight-item .item-status.fail { color: var(--accent-red); }
+        .preflight-item .item-status.warning { color: var(--accent-yellow); }
+
+        .auto-apply-options {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .auto-apply-options .form-group {
+            margin-bottom: 12px;
+        }
+
+        .auto-apply-options .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .auto-apply-options label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .auto-apply-options select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .checkbox-label input { width: 16px; height: 16px; }
+
+        .submission-status {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .submission-status.submitting {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .submission-status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .submission-status.failed {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .submission-status .status-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+        }
+
+        .submission-status .status-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .submission-status .status-message {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .link-external {
             font-size: 11px;
             color: var(--accent-blue);
@@ -1789,6 +1967,48 @@
         </div>
     </div>
 
+    <!-- Auto Apply Modal -->
+    <div class="modal-overlay" id="auto-apply-modal">
+        <div class="modal ai-modal" style="max-width: 480px;">
+            <h3>Auto Apply to This Job</h3>
+            <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 12px;">
+                Review the preflight check below and submit your application automatically.
+            </p>
+
+            <div id="preflight-loading" style="text-align: center; padding: 20px;">
+                <div class="spinner"></div>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Running preflight check...</p>
+            </div>
+
+            <div id="preflight-content" style="display: none;">
+                <div class="preflight-check" id="preflight-results"></div>
+
+                <div class="auto-apply-options" id="apply-options">
+                    <div class="form-group">
+                        <label>Select Resume</label>
+                        <select id="auto-apply-resume"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="auto-apply-ai-cover" checked>
+                            Generate AI cover letter
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="submitAutoApplication()" id="btn-submit-auto-apply" disabled>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Submit Application
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAutoApplyModal()">Cancel</button>
+                </div>
+            </div>
+
+            <div id="submission-result" style="display: none;"></div>
+        </div>
+    </div>
+
     <script src="../js/app.js"></script>
     <script>
         // Use API_BASE from app.js (already loaded)
@@ -2359,6 +2579,10 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         Research
                     </button>
+                    <button class="ai-tool-btn btn-auto-apply" onclick="openAutoApplyModal()" id="btn-auto-apply" ${!job.job_url ? 'disabled title="Job URL required"' : ''}>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Auto Apply
+                    </button>
                 </div>
 
                 <!-- Job Description -->
@@ -2784,6 +3008,188 @@
                 loadJobDetail();
             } catch (error) { showAlert('Failed to add interview: ' + error.message, 'error'); }
         });
+
+        // Auto Apply Functions
+        let currentPreflightData = null;
+
+        function openAutoApplyModal() {
+            document.getElementById('auto-apply-modal').classList.add('active');
+            document.getElementById('preflight-loading').style.display = 'block';
+            document.getElementById('preflight-content').style.display = 'none';
+            document.getElementById('submission-result').style.display = 'none';
+            runPreflightCheck();
+        }
+
+        function closeAutoApplyModal() {
+            document.getElementById('auto-apply-modal').classList.remove('active');
+            currentPreflightData = null;
+        }
+
+        async function runPreflightCheck() {
+            try {
+                const data = await apiRequest(`/auto-apply/preflight/${jobId}`, 'GET');
+                currentPreflightData = data;
+                displayPreflightResults(data);
+            } catch (error) {
+                console.error('Preflight check failed:', error);
+                document.getElementById('preflight-loading').style.display = 'none';
+                document.getElementById('preflight-content').style.display = 'block';
+                document.getElementById('preflight-results').innerHTML = `
+                    <div class="preflight-item">
+                        <div class="check-icon fail">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </div>
+                        <span class="item-label">Preflight check failed</span>
+                        <span class="item-status fail">${error.message || 'Error'}</span>
+                    </div>
+                `;
+                document.getElementById('apply-options').style.display = 'none';
+            }
+        }
+
+        function displayPreflightResults(data) {
+            const checkIcon = (pass) => pass
+                ? `<div class="check-icon pass"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>`
+                : `<div class="check-icon fail"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
+
+            const warningIcon = `<div class="check-icon warning"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>`;
+
+            let html = '';
+
+            // ATS Support
+            html += `
+                <div class="preflight-item">
+                    ${data.ats_supported ? checkIcon(true) : checkIcon(false)}
+                    <span class="item-label">ATS Support</span>
+                    <span class="item-status ${data.ats_supported ? 'pass' : 'fail'}">
+                        ${data.ats_type ? data.ats_type.charAt(0).toUpperCase() + data.ats_type.slice(1) : 'Not detected'}
+                    </span>
+                </div>
+            `;
+
+            // Profile Complete
+            html += `
+                <div class="preflight-item">
+                    ${checkIcon(data.profile_complete)}
+                    <span class="item-label">Profile Complete</span>
+                    <span class="item-status ${data.profile_complete ? 'pass' : 'fail'}">
+                        ${data.profile_complete ? 'Complete' : 'Incomplete'}
+                    </span>
+                </div>
+            `;
+
+            // Resume Available
+            const hasResumes = data.resumes && data.resumes.length > 0;
+            html += `
+                <div class="preflight-item">
+                    ${checkIcon(hasResumes)}
+                    <span class="item-label">Resume Available</span>
+                    <span class="item-status ${hasResumes ? 'pass' : 'fail'}">
+                        ${hasResumes ? data.resumes.length + ' resume(s)' : 'No resume'}
+                    </span>
+                </div>
+            `;
+
+            // Daily Limit
+            html += `
+                <div class="preflight-item">
+                    ${data.daily_limit_reached ? warningIcon : checkIcon(true)}
+                    <span class="item-label">Daily Limit</span>
+                    <span class="item-status ${data.daily_limit_reached ? 'warning' : 'pass'}">
+                        ${data.applications_today}/${data.daily_limit} today
+                    </span>
+                </div>
+            `;
+
+            document.getElementById('preflight-results').innerHTML = html;
+
+            // Populate resume select
+            const resumeSelect = document.getElementById('auto-apply-resume');
+            resumeSelect.innerHTML = '';
+            if (hasResumes) {
+                data.resumes.forEach(resume => {
+                    const option = document.createElement('option');
+                    option.value = resume.id;
+                    option.textContent = resume.name + (resume.is_default ? ' (Default)' : '');
+                    if (resume.is_default) option.selected = true;
+                    resumeSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No resumes available';
+                resumeSelect.appendChild(option);
+            }
+
+            // Enable/disable submit button
+            const canSubmit = data.can_apply && !data.daily_limit_reached;
+            document.getElementById('btn-submit-auto-apply').disabled = !canSubmit;
+
+            // Show/hide options
+            document.getElementById('apply-options').style.display = canSubmit ? 'block' : 'none';
+
+            // Show preflight content
+            document.getElementById('preflight-loading').style.display = 'none';
+            document.getElementById('preflight-content').style.display = 'block';
+        }
+
+        async function submitAutoApplication() {
+            const btn = document.getElementById('btn-submit-auto-apply');
+            const resumeId = document.getElementById('auto-apply-resume').value;
+            const useAiCover = document.getElementById('auto-apply-ai-cover').checked;
+
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div> Submitting...';
+
+            try {
+                const result = await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
+                    resume_id: resumeId ? parseInt(resumeId) : null,
+                    use_ai_cover_letter: useAiCover
+                });
+
+                // Show success result
+                document.getElementById('preflight-content').style.display = 'none';
+                document.getElementById('submission-result').style.display = 'block';
+                document.getElementById('submission-result').innerHTML = `
+                    <div class="submission-status submitting">
+                        <div class="spinner"></div>
+                        <div class="status-title">Application Queued</div>
+                        <div class="status-message">
+                            Your application has been queued for submission.<br>
+                            Submission ID: ${result.submission_id}<br>
+                            <small style="opacity: 0.7; display: block; margin-top: 8px;">
+                                This may take a few minutes. Check Auto Apply settings for status.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 16px;">
+                        <a href="../jobs/auto-apply.html" class="btn btn-secondary">View All Submissions</a>
+                        <button type="button" class="btn btn-secondary" onclick="closeAutoApplyModal()">Close</button>
+                    </div>
+                `;
+
+                showAlert('Application queued successfully');
+
+            } catch (error) {
+                console.error('Submit application failed:', error);
+                document.getElementById('submission-result').style.display = 'block';
+                document.getElementById('submission-result').innerHTML = `
+                    <div class="submission-status failed">
+                        <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div class="status-title">Submission Failed</div>
+                        <div class="status-message">${error.message || 'An error occurred'}</div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 16px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeAutoApplyModal()">Close</button>
+                    </div>
+                `;
+
+                showAlert('Failed to queue application: ' + error.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Submit Application';
+        }
 
         loadJobDetail();
     </script>

@@ -408,3 +408,113 @@ class ScraperConfigDB(Base):
     # Timestamps
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+# ============== Auto-Apply Models ==============
+
+class ApplicationAnswer(Base):
+    """
+    Stores reusable answers for common ATS application questions.
+
+    Uses regex patterns to match question text and auto-fill answers.
+    """
+    __tablename__ = "application_answers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Question matching
+    question_pattern = Column(String(500), nullable=False)  # Regex pattern or keyword
+    question_category = Column(String(50))  # work_auth, experience, availability, salary, custom
+
+    # Answer
+    answer_text = Column(Text, nullable=False)
+    answer_type = Column(String(20), default="text")  # text, select, radio, checkbox
+
+    # Priority for pattern matching (higher = checked first)
+    priority = Column(Integer, default=0)
+
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+
+
+class AutoApplyConfig(Base):
+    """
+    User's auto-apply preferences and limits.
+    """
+    __tablename__ = "auto_apply_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+
+    # Enable/disable auto-apply
+    enabled = Column(Boolean, default=False)
+
+    # Default documents
+    default_resume_id = Column(Integer, ForeignKey("user_documents.id"), nullable=True)
+    default_cover_letter_id = Column(Integer, ForeignKey("user_documents.id"), nullable=True)
+    use_ai_cover_letter = Column(Boolean, default=True)
+
+    # Limits
+    daily_limit = Column(Integer, default=10)
+    applications_today = Column(Integer, default=0)
+    last_reset_date = Column(Date, nullable=True)
+
+    # Filters
+    min_relevance_score = Column(Float, default=50.0)  # Minimum relevance score to auto-apply
+    excluded_companies = Column(JSON, default=list)  # Company names/IDs to skip
+
+    # ATS preferences
+    supported_ats = Column(JSON, default=lambda: ["greenhouse", "lever"])  # ATS types to auto-apply to
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+    default_resume = relationship("UserDocument", foreign_keys=[default_resume_id])
+    default_cover_letter = relationship("UserDocument", foreign_keys=[default_cover_letter_id])
+
+
+class ApplicationSubmission(Base):
+    """
+    Tracks individual auto-apply submissions and their status.
+    """
+    __tablename__ = "application_submissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Submission status
+    status = Column(String(30), default="pending", index=True)  # pending, submitting, success, failed, cancelled
+
+    # ATS details
+    ats_type = Column(String(50))  # greenhouse, lever
+    application_url = Column(String(500))  # URL used for application
+
+    # Documents used
+    resume_id = Column(Integer, ForeignKey("user_documents.id"), nullable=True)
+    cover_letter_text = Column(Text, nullable=True)  # Generated or selected cover letter
+
+    # Results
+    ats_confirmation_id = Column(String(255), nullable=True)  # Confirmation ID from ATS
+    confirmation_screenshot = Column(String(500), nullable=True)  # Path to screenshot file
+
+    # Error handling
+    error_message = Column(Text, nullable=True)
+    retry_count = Column(Integer, default=0)
+
+    # Timing
+    queued_at = Column(DateTime, server_default=func.now())
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    job = relationship("Job")
+    user = relationship("User")
+    resume = relationship("UserDocument")

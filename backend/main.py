@@ -24,7 +24,7 @@ from collections import defaultdict
 from typing import Optional
 
 from database import create_tables
-from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth
+from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, auto_apply
 from config import settings as app_settings
 from services.redis_service import redis_service
 
@@ -488,6 +488,85 @@ def run_migrations():
         conn.commit()
         logger.info("Ensured job indexes exist")
 
+        # Create auto-apply tables
+        # Application answers table
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS application_answers (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    question_pattern VARCHAR(500) NOT NULL,
+                    question_category VARCHAR(50),
+                    answer_text TEXT NOT NULL,
+                    answer_type VARCHAR(20) DEFAULT 'text',
+                    priority INTEGER DEFAULT 0,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_application_answers_user_id ON application_answers(user_id)"))
+            logger.info("Created application_answers table")
+        except Exception as e:
+            logger.warning(f"Could not create application_answers table: {e}")
+
+        # Auto-apply config table
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS auto_apply_configs (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    enabled BOOLEAN DEFAULT FALSE,
+                    default_resume_id INTEGER REFERENCES user_documents(id),
+                    default_cover_letter_id INTEGER REFERENCES user_documents(id),
+                    use_ai_cover_letter BOOLEAN DEFAULT TRUE,
+                    daily_limit INTEGER DEFAULT 10,
+                    applications_today INTEGER DEFAULT 0,
+                    last_reset_date DATE,
+                    min_relevance_score FLOAT DEFAULT 50.0,
+                    excluded_companies TEXT,
+                    supported_ats TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_auto_apply_configs_user_id ON auto_apply_configs(user_id)"))
+            logger.info("Created auto_apply_configs table")
+        except Exception as e:
+            logger.warning(f"Could not create auto_apply_configs table: {e}")
+
+        # Application submissions table
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS application_submissions (
+                    id SERIAL PRIMARY KEY,
+                    job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    status VARCHAR(30) DEFAULT 'pending',
+                    ats_type VARCHAR(50),
+                    application_url VARCHAR(500),
+                    resume_id INTEGER REFERENCES user_documents(id),
+                    cover_letter_text TEXT,
+                    ats_confirmation_id VARCHAR(255),
+                    confirmation_screenshot VARCHAR(500),
+                    error_message TEXT,
+                    retry_count INTEGER DEFAULT 0,
+                    queued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_application_submissions_user_id ON application_submissions(user_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_application_submissions_job_id ON application_submissions(job_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_application_submissions_status ON application_submissions(status)"))
+            logger.info("Created application_submissions table")
+        except Exception as e:
+            logger.warning(f"Could not create application_submissions table: {e}")
+
+        conn.commit()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -548,6 +627,7 @@ app.include_router(settings.router)
 app.include_router(users.router)
 app.include_router(scrapers.router)
 app.include_router(internal_auth.router)
+app.include_router(auto_apply.router)
 
 # Static files for frontend
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
