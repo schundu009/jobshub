@@ -202,7 +202,7 @@ def preflight_check(
     resume_list = [
         {
             "id": r.id,
-            "name": r.file_name or r.original_filename or f"Resume {r.id}",
+            "name": r.filename or f"Resume {r.id}",
             "is_default": r.is_default or False
         }
         for r in resumes
