@@ -634,6 +634,9 @@
             gap: 10px;
             margin-bottom: 10px;
         }
+        .info-row-2col {
+            grid-template-columns: repeat(2, 1fr);
+        }
 
         /* Mini Cards */
         .mini-card {
@@ -2310,7 +2313,7 @@
                                     <span class="separator">•</span>
                                     <span>${escapeHtml(job.location) || 'Location not specified'}</span>
                                     ${job.salary_min || job.salary_max ? `<span class="separator">•</span><span>${formatSalary(job.salary_min, job.salary_max)}</span>` : ''}
-                                    ${job.job_type ? `<span class="separator">•</span><span>${job.job_type}</span>` : ''}
+                                    ${job.posted_date ? `<span class="separator">•</span><span>Posted: ${formatDate(job.posted_date)}</span>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -2358,8 +2361,17 @@
                     </button>
                 </div>
 
-                <!-- Info Row: 3 columns -->
-                <div class="info-row">
+                <!-- Job Description -->
+                <div class="desc-card">
+                    <div class="desc-card-header">
+                        <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h4>
+                        ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="link-mini">View Original</a>` : ''}
+                    </div>
+                    <div class="desc-card-body">${formatJobDescription(job.job_description)}</div>
+                </div>
+
+                <!-- Interviews & Notes Row -->
+                <div class="info-row info-row-2col">
                     <!-- Interviews -->
                     <div class="mini-card">
                         <div class="mini-card-header">
@@ -2377,32 +2389,6 @@
                         </div>
                         <div class="mini-card-body">${notesHtml}</div>
                     </div>
-
-                    <!-- Job Details -->
-                    <div class="mini-card">
-                        <div class="mini-card-header">
-                            <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Job Details</h4>
-                            ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="link-mini">View</a>` : ''}
-                        </div>
-                        <div class="mini-card-body">
-                            <div class="details-grid">
-                                <div class="detail-item"><span class="dlabel">Location</span><span class="dvalue">${escapeHtml(job.location) || '-'}</span></div>
-                                <div class="detail-item"><span class="dlabel">Salary</span><span class="dvalue">${formatSalary(job.salary_min, job.salary_max)}</span></div>
-                                <div class="detail-item"><span class="dlabel">Applied</span><span class="dvalue">${formatDate(job.date_applied) || 'Not yet'}</span></div>
-                                <div class="detail-item"><span class="dlabel">Found</span><span class="dvalue">${formatDate(job.date_found) || '-'}</span></div>
-                                <div class="detail-item"><span class="dlabel">Type</span><span class="dvalue">${job.job_type || '-'}</span></div>
-                                <div class="detail-item"><span class="dlabel">Level</span><span class="dvalue stars">${starsHtml}</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Job Description -->
-                <div class="desc-card">
-                    <div class="desc-card-header">
-                        <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h4>
-                    </div>
-                    <div class="desc-card-body">${formatJobDescription(job.job_description)}</div>
                 </div>
             `;
 
