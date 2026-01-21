@@ -22,6 +22,7 @@ import re
 from database import get_db
 from models import User, RoleProfile, UserDocument
 from services.role_profiles_data import get_all_profiles, get_profile_by_slug
+from services.document_parser import get_document_content, invalidate_document_cache
 from middleware.auth import get_current_user, get_current_admin
 from fastapi import UploadFile, File
 import os
@@ -380,7 +381,7 @@ def get_default_resume_content(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get the content of the user's default resume."""
+    """Get the content of the user's default resume (cached)."""
     doc = db.query(UserDocument).filter(
         UserDocument.user_id == current_user.id,
         UserDocument.document_type == "resume",
@@ -400,47 +401,15 @@ def get_default_resume_content(
     if not os.path.exists(doc.file_path):
         raise HTTPException(status_code=404, detail="Resume file not found on server")
 
-    # Read the file content based on file type
-    content = ""
-    file_ext = os.path.splitext(doc.filename)[1].lower()
-
+    # Use cached document parser
     try:
-        if file_ext == '.txt':
-            with open(doc.file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        elif file_ext == '.pdf':
-            # Use PyPDF2 or pdfplumber to extract text
-            try:
-                import pdfplumber
-                with pdfplumber.open(doc.file_path) as pdf:
-                    content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
-            except ImportError:
-                try:
-                    import PyPDF2
-                    with open(doc.file_path, 'rb') as f:
-                        reader = PyPDF2.PdfReader(f)
-                        content = '\n'.join(page.extract_text() or '' for page in reader.pages)
-                except ImportError:
-                    raise HTTPException(status_code=500, detail="PDF parsing libraries not available")
-        elif file_ext in ['.doc', '.docx']:
-            try:
-                import docx
-                doc_file = docx.Document(doc.file_path)
-                content = '\n'.join(para.text for para in doc_file.paragraphs)
-            except ImportError:
-                raise HTTPException(status_code=500, detail="DOCX parsing library not available")
-        elif file_ext == '.rtf':
-            # RTF is basically readable as text for our purposes
-            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-        else:
-            # Try to read as text
-            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
+        content = get_document_content(doc.id, doc.file_path, doc.filename)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading resume: {str(e)}")
 
-    if not content.strip():
+    if not content or not content.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from resume. Please upload a text-based resume.")
 
     return {
@@ -453,12 +422,12 @@ def get_default_resume_content(
 
 
 @router.get("/documents/{doc_id}/content")
-def get_document_content(
+def get_doc_content(
     doc_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get the content of a specific document."""
+    """Get the content of a specific document (cached)."""
     doc = db.query(UserDocument).filter(
         UserDocument.id == doc_id,
         UserDocument.user_id == current_user.id
@@ -470,41 +439,15 @@ def get_document_content(
     if not os.path.exists(doc.file_path):
         raise HTTPException(status_code=404, detail="Document file not found on server")
 
-    # Read the file content based on file type
-    content = ""
-    file_ext = os.path.splitext(doc.filename)[1].lower()
-
+    # Use cached document parser
     try:
-        if file_ext == '.txt':
-            with open(doc.file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        elif file_ext == '.pdf':
-            try:
-                import pdfplumber
-                with pdfplumber.open(doc.file_path) as pdf:
-                    content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
-            except ImportError:
-                try:
-                    import PyPDF2
-                    with open(doc.file_path, 'rb') as f:
-                        reader = PyPDF2.PdfReader(f)
-                        content = '\n'.join(page.extract_text() or '' for page in reader.pages)
-                except ImportError:
-                    raise HTTPException(status_code=500, detail="PDF parsing libraries not available")
-        elif file_ext in ['.doc', '.docx']:
-            try:
-                import docx
-                doc_file = docx.Document(doc.file_path)
-                content = '\n'.join(para.text for para in doc_file.paragraphs)
-            except ImportError:
-                raise HTTPException(status_code=500, detail="DOCX parsing library not available")
-        else:
-            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
+        content = get_document_content(doc.id, doc.file_path, doc.filename)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading document: {str(e)}")
 
-    if not content.strip():
+    if not content or not content.strip():
         raise HTTPException(status_code=400, detail="Could not extract text from document")
 
     return {
@@ -551,6 +494,10 @@ def delete_document(
     ).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    # Invalidate cache before deleting
+    invalidate_document_cache(doc_id)
+
     if os.path.exists(doc.file_path):
         os.remove(doc.file_path)
     was_default = doc.is_default

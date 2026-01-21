@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     cache_ttl_default: int = 300
     cache_ttl_analytics: int = 300
     cache_ttl_companies: int = 600
+    cache_ttl_documents: int = 3600  # Document content cache (1 hour)
 
     # ==========================================================================
     # CELERY
