@@ -5,20 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cariara - Redirecting...</title>
     <script>
-        // Root URL redirects to admin portal
-        // Job seekers should access /jobs/discover.html directly
+        // Smart redirect based on auth status and role
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
 
         if (token && user.role === 'admin') {
-            // Logged in admin goes to admin dashboard
             window.location.href = '/admin/index.html';
-        } else if (token && user.role !== 'admin') {
-            // Logged in non-admin goes to job seeker portal
+        } else if (token) {
             window.location.href = '/jobs/discover.html';
         } else {
-            // Not logged in - go to admin login
-            window.location.href = '/admin/login.html';
+            // Not logged in - go to jobs portal (main entry point)
+            window.location.href = '/jobs/discover.html';
         }
     </script>
 </head>
