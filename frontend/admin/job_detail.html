@@ -2697,10 +2697,14 @@
             try {
                 const response = await apiRequest('/ai/ats-resume', 'POST', { job_id: parseInt(jobId), resume_text: resumeText });
                 resultDiv.innerHTML = `
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px;">
+                        <button class="btn btn-primary btn-small" onclick="downloadATSResumeDocx()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Download DOCX
+                        </button>
                         <button class="btn btn-secondary btn-small" onclick="copyATSResume()">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            Copy
+                            Copy Text
                         </button>
                     </div>
                     <div class="ai-result" id="ats-resume-content">${response.ats_resume}</div>
@@ -2710,6 +2714,49 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate ATS Resume';
+            }
+        }
+
+        async function downloadATSResumeDocx() {
+            const resumeText = document.getElementById('resume_text_ats').value;
+            if (!resumeText.trim()) { showAlert('No resume loaded', 'error'); return; }
+
+            try {
+                showAlert('Generating DOCX file...');
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/ai/ats-resume/download`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ job_id: parseInt(jobId), resume_text: resumeText })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to generate DOCX');
+                }
+
+                const blob = await response.blob();
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = 'ATS_Resume.docx';
+                if (contentDisposition) {
+                    const match = contentDisposition.match(/filename=(.+)/);
+                    if (match) filename = match[1];
+                }
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                showAlert('DOCX downloaded successfully');
+            } catch (error) {
+                showAlert(`Error: ${error.message}`, 'error');
             }
         }
 

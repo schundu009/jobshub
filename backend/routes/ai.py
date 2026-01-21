@@ -9,10 +9,12 @@ Security features:
 """
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import re
+import io
 
 from database import get_db
 from models import Job, Company, User
@@ -279,6 +281,61 @@ def research_company(
         raise HTTPException(status_code=500, detail=f"Failed to generate research: {str(e)}")
 
 
+def create_resume_docx(resume_text: str, candidate_name: str = "Resume") -> io.BytesIO:
+    """Convert resume text to a formatted DOCX file."""
+    from docx import Document
+    from docx.shared import Pt, Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    doc = Document()
+
+    # Set narrow margins
+    for section in doc.sections:
+        section.top_margin = Inches(0.5)
+        section.bottom_margin = Inches(0.5)
+        section.left_margin = Inches(0.75)
+        section.right_margin = Inches(0.75)
+
+    lines = resume_text.strip().split('\n')
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            doc.add_paragraph()  # Empty line
+            continue
+
+        # Check if it's a section header (all caps or ends with :)
+        is_header = (line.isupper() and len(line) < 50) or \
+                    (line.endswith(':') and len(line) < 50) or \
+                    line.upper() in ['SUMMARY', 'EXPERIENCE', 'SKILLS', 'EDUCATION',
+                                     'PROFESSIONAL SUMMARY', 'WORK EXPERIENCE',
+                                     'TECHNICAL SKILLS', 'CERTIFICATIONS', 'PROJECTS']
+
+        if is_header:
+            p = doc.add_paragraph()
+            run = p.add_run(line.upper().rstrip(':'))
+            run.bold = True
+            run.font.size = Pt(12)
+            p.space_after = Pt(6)
+        elif line.startswith('•') or line.startswith('-') or line.startswith('*'):
+            # Bullet point
+            p = doc.add_paragraph(line.lstrip('•-* '), style='List Bullet')
+            p.paragraph_format.left_indent = Inches(0.25)
+        else:
+            p = doc.add_paragraph(line)
+            # Check if it looks like name (first line, title case, short)
+            if lines.index(line) == 0 and len(line) < 50:
+                p.runs[0].bold = True
+                p.runs[0].font.size = Pt(14)
+                p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+    # Save to BytesIO
+    file_stream = io.BytesIO()
+    doc.save(file_stream)
+    file_stream.seek(0)
+    return file_stream
+
+
 @router.post("/ats-resume")
 def generate_ats_resume(
     request: ATSResumeRequest,
@@ -317,6 +374,63 @@ def generate_ats_resume(
             company_name=company_name
         )
         return {"ats_resume": ats_resume, "job_title": job_title, "company_name": company_name}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate ATS resume: {str(e)}")
+
+
+@router.post("/ats-resume/download")
+def generate_ats_resume_docx(
+    request: ATSResumeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate an ATS-optimized resume and return as downloadable DOCX file."""
+    job_title = request.job_title
+    company_name = request.company_name
+    job_description = request.job_description
+
+    if request.job_id:
+        job = db.query(Job).filter(Job.id == request.job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        if job.user_id is not None and job.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to access this job")
+        job_title = job_title or job.title
+        job_description = job_description or job.job_description
+        if job.company:
+            company_name = company_name or job.company.name
+
+    if not job_title:
+        raise HTTPException(status_code=400, detail="Job title is required")
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description is required")
+    if not request.resume_text:
+        raise HTTPException(status_code=400, detail="Resume text is required")
+
+    try:
+        # Generate the optimized resume text
+        ats_resume = openai_service.generate_ats_tailored_resume(
+            resume_text=request.resume_text,
+            job_title=job_title,
+            job_description=job_description,
+            company_name=company_name
+        )
+
+        # Convert to DOCX
+        docx_file = create_resume_docx(ats_resume)
+
+        # Create filename
+        safe_company = re.sub(r'[^\w\s-]', '', company_name or 'Company')[:30]
+        safe_title = re.sub(r'[^\w\s-]', '', job_title or 'Resume')[:30]
+        filename = f"Resume_{safe_company}_{safe_title}.docx".replace(' ', '_')
+
+        return StreamingResponse(
+            docx_file,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
     except ValueError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
