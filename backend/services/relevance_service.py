@@ -28,6 +28,7 @@ import re
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import lru_cache
 
 
 @dataclass
@@ -336,16 +337,20 @@ class RelevanceScorer:
 
         return 0
 
+    @staticmethod
+    @lru_cache(maxsize=1000)
+    def _compile_pattern(pattern: str) -> re.Pattern:
+        """Compile and cache regex pattern."""
+        escaped = re.escape(pattern.lower())
+        return re.compile(rf"\b{escaped}\b", re.IGNORECASE)
+
     def _pattern_match(self, text: str, pattern: str) -> bool:
         """
         Check if pattern matches in text.
-        Supports word boundary matching.
+        Supports word boundary matching with cached regex.
         """
-        # Escape special regex characters but allow spaces
-        escaped = re.escape(pattern.lower())
-        # Match as word boundary
-        regex = rf"\b{escaped}\b"
-        return bool(re.search(regex, text, re.IGNORECASE))
+        compiled = self._compile_pattern(pattern)
+        return bool(compiled.search(text))
 
     def _generate_explanation(
         self,
@@ -385,6 +390,10 @@ class RelevanceScorer:
         return " | ".join(parts)
 
 
+# Global scorer instance (reused for performance)
+_scorer = RelevanceScorer()
+
+
 # Convenience functions for use in routes
 
 def compute_job_relevance(
@@ -403,8 +412,6 @@ def compute_job_relevance(
     Returns:
         RelevanceResult
     """
-    scorer = RelevanceScorer()
-
     # Convert model to dict if needed
     if hasattr(role_profile, "__dict__"):
         profile_dict = {
@@ -417,7 +424,7 @@ def compute_job_relevance(
     else:
         profile_dict = role_profile
 
-    return scorer.score(
+    return _scorer.score(
         job_title=job.title or "",
         job_description=job.job_description or "",
         role_profile=profile_dict,

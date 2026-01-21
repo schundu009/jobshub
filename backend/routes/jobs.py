@@ -37,7 +37,7 @@ try:
 except Exception:
     redis_service = None
 
-CACHE_TTL_JOBS = 60  # Cache job lists for 60 seconds
+CACHE_TTL_JOBS = 300  # Cache job lists for 5 minutes (scoring is expensive)
 
 
 def _redis_available() -> bool:
@@ -355,8 +355,12 @@ async def get_jobs(
         _cache_set(cache_key, result)
         return result
 
-    # Get all jobs matching base filters
-    all_jobs = query.all()
+    # Limit to most recent jobs for performance (relevance scoring is CPU-intensive)
+    MAX_JOBS_TO_SCORE = 1000
+    all_jobs = query.order_by(
+        Job.posted_date.desc().nullslast(),
+        Job.created_at.desc()
+    ).limit(MAX_JOBS_TO_SCORE).all()
 
     # Get user preferences for scoring
     user_prefs = None
@@ -366,21 +370,20 @@ async def get_jobs(
             "target_seniority": current_user.target_seniority
         }
 
-    # Score and filter jobs
+    # Score and filter jobs - use list comprehension for speed
+    threshold = role_profile.get("relevance_threshold", 30.0)
     scored_jobs = []
     for job in all_jobs:
         result = compute_job_relevance(job, role_profile, user_prefs)
-        scored_jobs.append((job, result))
+        # Filter during scoring to avoid second pass
+        if min_score is not None:
+            if result.relevance_score >= min_score:
+                scored_jobs.append((job, result))
+        elif result.is_relevant:
+            scored_jobs.append((job, result))
 
     # Sort by relevance score descending
     scored_jobs.sort(key=lambda x: x[1].relevance_score, reverse=True)
-
-    # Apply min_score filter if specified
-    if min_score is not None:
-        scored_jobs = [(j, r) for j, r in scored_jobs if r.relevance_score >= min_score]
-    else:
-        # Default: filter to relevant only
-        scored_jobs = [(j, r) for j, r in scored_jobs if r.is_relevant]
 
     # Apply pagination
     total_relevant = len(scored_jobs)
@@ -397,7 +400,7 @@ async def get_jobs(
         "total": total_relevant,
         "relevance_filtering": True,
         "role": role_name,
-        "threshold": role_profile.get("relevance_threshold", 30.0)
+        "threshold": threshold
     }
     _cache_set(cache_key, response)
     return response
