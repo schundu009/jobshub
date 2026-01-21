@@ -340,6 +340,7 @@ def run_migrations():
 
     # New columns to add to users table
     new_user_columns = [
+        ("role", "VARCHAR(20) DEFAULT 'user'"),
         ("first_name", "VARCHAR(100)"),
         ("last_name", "VARCHAR(100)"),
         ("preferred_name", "VARCHAR(100)"),
@@ -412,6 +413,18 @@ def run_migrations():
             logger.warning(f"Could not create user_documents table: {e}")
 
         conn.commit()
+
+        # Set admin role for configured admin emails
+        admin_emails = os.environ.get("ADMIN_EMAILS", "").split(",")
+        admin_emails = [e.strip() for e in admin_emails if e.strip()]
+        if admin_emails:
+            for email in admin_emails:
+                try:
+                    conn.execute(text("UPDATE users SET role = 'admin' WHERE email = :email"), {"email": email})
+                    logger.info(f"Set admin role for {email}")
+                except Exception as e:
+                    logger.warning(f"Could not set admin role for {email}: {e}")
+            conn.commit()
 
 
 @asynccontextmanager
