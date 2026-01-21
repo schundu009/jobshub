@@ -193,6 +193,25 @@ def preflight_check(
         ApplicationSubmission.user_id == current_user.id
     ).first()
 
+    # Get resumes for selection
+    resumes = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == "resume"
+    ).all()
+
+    resume_list = [
+        {
+            "id": r.id,
+            "name": r.file_name or r.original_filename or f"Resume {r.id}",
+            "is_default": r.is_default or False
+        }
+        for r in resumes
+    ]
+
+    # Get daily limit info
+    daily_limit = config.daily_limit if config else 10
+    applications_today = config.applications_today if config else 0
+
     return {
         "can_apply": (
             ats_supported and
@@ -206,12 +225,14 @@ def preflight_check(
             "title": job.title,
             "job_url": job.job_url,
         },
-        "ats": {
-            "type": ats_type,
-            "supported": ats_supported,
-        },
-        "profile": profile_check,
-        "has_resume": has_resume,
+        # Flat fields for frontend compatibility
+        "ats_type": ats_type,
+        "ats_supported": ats_supported,
+        "profile_complete": profile_check["all_required_complete"],
+        "profile_missing": profile_check.get("missing_fields", []),
+        "resumes": resume_list,
+        "daily_limit": daily_limit,
+        "applications_today": applications_today,
         "daily_limit_reached": daily_limit_reached,
         "already_submitted": existing_submission is not None,
         "existing_submission_status": existing_submission.status if existing_submission else None,

@@ -210,7 +210,7 @@ def identify_question_type(question_text: str) -> Optional[str]:
     return None
 
 
-def validate_profile_completeness(profile: Dict) -> Dict[str, bool]:
+def validate_profile_completeness(profile: Dict) -> Dict:
     """
     Check if the profile has all required fields for auto-apply.
 
@@ -218,7 +218,7 @@ def validate_profile_completeness(profile: Dict) -> Dict[str, bool]:
         profile: User profile dictionary
 
     Returns:
-        Dict of field -> is_complete
+        Dict with completeness info and missing fields
     """
     required_fields = {
         "first_name": bool(profile.get("first_name")),
@@ -231,14 +231,18 @@ def validate_profile_completeness(profile: Dict) -> Dict[str, bool]:
         "city": bool(profile.get("city")),
         "state": bool(profile.get("state")),
         "linkedin_url": bool(profile.get("linkedin_url")),
-        "us_authorized": bool(profile.get("us_authorized")),
-        "requires_sponsorship": bool(profile.get("requires_sponsorship")),
+        "us_authorized": profile.get("us_authorized") is not None,
+        "requires_sponsorship": profile.get("requires_sponsorship") is not None,
     }
+
+    # Get list of missing required fields
+    missing_fields = [field for field, complete in required_fields.items() if not complete]
 
     return {
         "required": required_fields,
         "recommended": recommended_fields,
         "all_required_complete": all(required_fields.values()),
+        "missing_fields": missing_fields,
         "completeness_score": (
             sum(required_fields.values()) + sum(recommended_fields.values())
         ) / (len(required_fields) + len(recommended_fields)) * 100,
