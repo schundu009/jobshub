@@ -227,6 +227,11 @@ class UserSettingsUpdate(BaseModel):
     referral_source: Optional[str] = Field(None, max_length=50)
     bio: Optional[str] = None
     skills: Optional[str] = None
+    # Demographics / EEO fields
+    gender: Optional[str] = Field(None, max_length=20)
+    ethnicity: Optional[str] = Field(None, max_length=50)
+    veteran_status: Optional[str] = Field(None, max_length=30)
+    disability_status: Optional[str] = Field(None, max_length=20)
 
 
 @router.get("/settings")
@@ -260,7 +265,11 @@ def get_user_settings(
         "twitter_url": current_user.twitter_url,
         "referral_source": current_user.referral_source,
         "bio": current_user.bio,
-        "skills": current_user.skills
+        "skills": current_user.skills,
+        "gender": current_user.gender,
+        "ethnicity": current_user.ethnicity,
+        "veteran_status": current_user.veteran_status,
+        "disability_status": current_user.disability_status
     }
 
 
@@ -271,11 +280,20 @@ def update_user_settings(
     db: Session = Depends(get_db)
 ):
     """Update current user's application settings."""
-    update_fields = settings.dict(exclude_unset=True)
+    # Pydantic v2 uses model_dump instead of dict
+    update_fields = settings.model_dump(exclude_unset=True)
+
+    # Get fresh user from DB to ensure we're updating the right record
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     for field, value in update_fields.items():
-        if hasattr(current_user, field):
-            setattr(current_user, field, value)
+        if hasattr(user, field):
+            setattr(user, field, value)
+
     db.commit()
+    db.refresh(user)
     return {"message": "Settings updated successfully"}
 
 

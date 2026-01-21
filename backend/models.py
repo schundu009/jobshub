@@ -132,6 +132,12 @@ class User(Base):
     bio = Column(Text, nullable=True)
     skills = Column(Text, nullable=True)
 
+    # Demographics / EEO fields
+    gender = Column(String(20), nullable=True)  # male, female, non_binary, other, decline
+    ethnicity = Column(String(50), nullable=True)  # american_indian, asian, black, hispanic, pacific_islander, white, two_or_more, decline
+    veteran_status = Column(String(30), nullable=True)  # not_veteran, veteran, protected_veteran, decline
+    disability_status = Column(String(20), nullable=True)  # no, yes, decline
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

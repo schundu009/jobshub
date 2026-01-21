@@ -285,6 +285,9 @@ document.addEventListener('DOMContentLoaded', initTheme);
 // =============================================================================
 
 function renderUserMenu() {
+    // Skip if page has its own #user-menu element (handled by page-specific initUserMenu)
+    if (document.getElementById('user-menu')) return;
+
     const user = getCurrentUser();
     const navContainer = document.querySelector('nav');
 

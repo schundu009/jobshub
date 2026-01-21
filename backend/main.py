@@ -82,8 +82,8 @@ PUBLIC_ENDPOINTS = {
 RATE_LIMITS = {
     "auth": {"limit": 10, "window": 60},       # 10 requests/minute for auth
     "auth_login": {"limit": 5, "window": 60},  # 5 login attempts/minute
-    "api_read": {"limit": 200, "window": 60},  # 200 reads/minute
-    "api_write": {"limit": 50, "window": 60},  # 50 writes/minute
+    "api_read": {"limit": 300, "window": 60},  # 300 reads/minute
+    "api_write": {"limit": 150, "window": 60}, # 150 writes/minute (for auto-save)
     "scraper": {"limit": 5, "window": 3600},   # 5 scraper triggers/hour
     "default": {"limit": RATE_LIMIT_REQUESTS, "window": RATE_LIMIT_WINDOW},
 }
@@ -364,6 +364,11 @@ def run_migrations():
         ("referral_source", "VARCHAR(50)"),
         ("bio", "TEXT"),
         ("skills", "TEXT"),
+        # Demographics / EEO fields
+        ("gender", "VARCHAR(20)"),
+        ("ethnicity", "VARCHAR(50)"),
+        ("veteran_status", "VARCHAR(30)"),
+        ("disability_status", "VARCHAR(20)"),
     ]
 
     with engine.connect() as conn:

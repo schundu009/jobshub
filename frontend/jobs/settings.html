@@ -3,27 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - User Settings</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <title>Cariara - Profile</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="../css/theme.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
+            font-size: 13px;
         }
-
-        /* Sidebar */
         .sidebar {
-            width: 240px;
+            width: 200px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -34,1090 +28,480 @@
             top: 0;
             z-index: 100;
         }
-
         .sidebar-header {
-            padding: 16px 20px;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
-
-        .sidebar-header .logo {
-            height: 32px;
-            width: auto;
-        }
-
+        .sidebar-header .logo { height: 24px; width: auto; }
         .sidebar-header .brand-name {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
-            letter-spacing: -0.02em;
-            margin: 0;
         }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px 12px;
-            overflow-y: auto;
-        }
-
+        .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
         .sidebar-nav a {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--text-secondary);
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 4px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .sidebar-nav a:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-
-        .sidebar-nav a.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        .sidebar-nav a svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        /* Sidebar Submenu */
-        .sidebar-nav a.has-submenu {
-            margin-bottom: 0;
-        }
-
-        .sidebar-submenu {
-            padding: 4px 0 8px 32px;
-        }
-
-        .sidebar-submenu a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
+            gap: 8px;
+            padding: 8px 12px;
             color: var(--text-secondary);
             text-decoration: none;
             border-radius: 6px;
             margin-bottom: 2px;
             font-size: 13px;
             font-weight: 500;
-            transition: all 0.2s ease;
         }
-
-        .sidebar-submenu a:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-
-        .sidebar-submenu a.active {
-            background: rgba(59, 130, 246, 0.15);
-            color: var(--accent-blue);
-        }
-
-        .sidebar-submenu a svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Sidebar User Section */
-        .sidebar-user {
-            padding: 16px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            flex-shrink: 0;
-        }
-
-        .sidebar-user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
+        .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .sidebar-nav a.active { background: var(--accent-blue); color: white; }
+        .sidebar-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .sidebar-submenu { padding: 2px 0 4px 24px; }
+        .sidebar-submenu a { padding: 6px 10px; font-size: 12px; }
+        .sidebar-submenu a.active { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .sidebar-submenu a svg { width: 14px; height: 14px; }
+        .sidebar-user { padding: 12px; border-top: 1px solid var(--border-color); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
         .sidebar-user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 28px; height: 28px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 11px;
         }
-
-        .sidebar-user-details {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .sidebar-user-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sidebar-user-email {
-            font-size: 12px;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
+        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 12px; }
+        .sidebar-user-email { font-size: 11px; color: var(--text-muted); }
         .sidebar-logout-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 10px;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 6px; background: transparent;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            color: var(--text-secondary); font-size: 11px; cursor: pointer;
         }
-
-        .sidebar-logout-btn:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-
-        .sidebar-logout-btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
+        .sidebar-logout-btn:hover { background: var(--bg-hover); }
+        .sidebar-logout-btn svg { width: 12px; height: 12px; }
         .sidebar-login-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 8px;
+            background: var(--accent-blue);
+            border: none; border-radius: 6px; color: white;
+            font-size: 12px; font-weight: 500; text-decoration: none;
         }
 
-        .sidebar-login-btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .sidebar-login-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 240px;
-            padding: 32px;
-            min-height: 100vh;
+            margin-left: 200px;
+            padding: 16px 24px;
+            max-width: 680px;
         }
-
         .page-header {
-            margin-bottom: 32px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
         }
-
-        .page-header-text h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .page-header-text p {
+        .page-header h1 { font-size: 18px; font-weight: 600; }
+        .save-indicator {
+            font-size: 11px;
             color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        /* Auto-save Status Indicator */
-        .save-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
+            gap: 4px;
         }
+        .save-indicator.saving { color: var(--accent-blue); }
+        .save-indicator.saved { color: #22c55e; }
+        .save-indicator.error { color: #ef4444; }
+        .save-indicator svg { width: 12px; height: 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .save-indicator.saving svg { animation: spin 1s linear infinite; }
 
-        .save-status.idle {
-            color: var(--text-muted);
-        }
-
-        .save-status.saving {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-            color: var(--accent-blue);
-        }
-
-        .save-status.saved {
-            background: rgba(34, 197, 94, 0.1);
-            border-color: rgba(34, 197, 94, 0.3);
-            color: #22c55e;
-        }
-
-        .save-status.error {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-        }
-
-        .save-status svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .save-status .spin {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Settings Card */
-        .settings-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 32px;
-            margin-bottom: 24px;
-        }
-
-        .settings-card h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .settings-card h2 svg {
-            width: 20px;
-            height: 20px;
-            color: var(--accent-blue);
-        }
-
-        /* Form Styles */
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .section {
             margin-bottom: 20px;
         }
-
-        .form-row.single {
-            grid-template-columns: 1fr;
-        }
-
-        .form-group {
-            margin-bottom: 0;
-        }
-
-        .form-group label {
-            display: block;
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
             margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .form-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+        .form-grid.four-col { grid-template-columns: repeat(4, 1fr); }
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+
+        .field label {
+            display: block;
+            margin-bottom: 3px;
             font-weight: 500;
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 11px;
         }
-
-        .form-group label .required {
-            color: var(--accent-red);
-            margin-left: 2px;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .field input, .field select, .field textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: 6px 10px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 4px;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 12px;
             font-family: inherit;
-            transition: all 0.2s ease;
         }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .field input:focus, .field select:focus, .field textarea:focus {
             outline: none;
             border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: var(--text-muted);
+        .field input.saved, .field select.saved, .field textarea.saved {
+            border-color: #22c55e;
         }
+        .field textarea { min-height: 60px; resize: vertical; }
+        .field input::placeholder { color: var(--text-muted); font-size: 11px; }
 
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-group small {
-            display: block;
-            margin-top: 6px;
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-
-        /* Changed indicator for inputs */
-        .form-group input.changed,
-        .form-group select.changed,
-        .form-group textarea.changed {
-            border-color: var(--accent-blue);
-        }
-
-        /* Toast Notification - Fixed position */
         .toast {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            padding: 14px 28px;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            transform: translateX(-50%) translateY(80px);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
             z-index: 9999;
             opacity: 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
         }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: #22c55e; color: white; }
+        .toast.error { background: #ef4444; color: white; }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            background: #22c55e;
-            color: white;
-        }
-
-        .toast.error {
-            background: #ef4444;
-            color: white;
-        }
-
-        .toast svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* Theme Switch - Top Right */
-        .theme-switch-container {
-            position: fixed;
-            top: 16px;
-            right: 24px;
-            z-index: 200;
-        }
-
+        .theme-switch-container { position: fixed; top: 12px; right: 16px; z-index: 200; }
         .theme-switch {
             display: flex;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 4px;
-            gap: 2px;
-        }
-
-        .theme-switch button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 12px;
-            background: transparent;
-            border: none;
             border-radius: 6px;
-            color: var(--text-muted);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            padding: 2px;
         }
-
-        .theme-switch button:hover {
-            color: var(--text-primary);
+        .theme-switch button {
+            display: flex; align-items: center; justify-content: center;
+            padding: 4px 8px; background: transparent; border: none;
+            border-radius: 4px; color: var(--text-muted); cursor: pointer;
         }
+        .theme-switch button.active { background: var(--bg-primary); color: var(--text-primary); }
+        .theme-switch button svg { width: 14px; height: 14px; }
 
-        .theme-switch button.active {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        .theme-switch button svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .page-header {
-                flex-direction: column;
-                gap: 16px;
-            }
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 12px; max-width: 100%; }
+            .form-grid, .form-grid.two-col, .form-grid.four-col { grid-template-columns: 1fr 1fr; }
+            .span-2, .span-3 { grid-column: span 1; }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <img src="../images/toritchLogo.png" alt="Cariara" class="logo">
-            <h1 class="brand-name">Cariara</h1>
+            <span class="brand-name">Cariara</span>
         </div>
-
         <nav class="sidebar-nav">
-            <a href="discover.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                Jobs
-            </a>
-            <a href="contacts.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Contacts
-            </a>
-            <a href="analytics.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Analytics
-            </a>
-            <a href="#" class="has-submenu active">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Settings
-            </a>
+            <a href="discover.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>Jobs</a>
+            <a href="contacts.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>Contacts</a>
+            <a href="analytics.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>Analytics</a>
+            <a href="#" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
             <div class="sidebar-submenu">
-                <a href="settings.html" class="active">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    Profile
-                </a>
-                <a href="documents.html">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Documents
-                </a>
+                <a href="settings.html" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>Profile</a>
+                <a href="documents.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Documents</a>
             </div>
         </nav>
-
-        <!-- User Menu at Sidebar Bottom -->
         <div class="sidebar-user" id="user-menu">
-            <a href="login.html" class="sidebar-login-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                Sign In
-            </a>
+            <a href="login.html" class="sidebar-login-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>Sign In</a>
         </div>
     </aside>
 
-    <!-- Theme Switch - Top Right -->
     <div class="theme-switch-container">
         <div class="theme-switch">
-            <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            </button>
-            <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-            </button>
+            <button id="theme-light-btn" onclick="setTheme('light')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></button>
+            <button id="theme-dark-btn" onclick="setTheme('dark')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
         </div>
     </div>
 
-    <!-- Main Content -->
     <main class="main-content">
         <div class="page-header">
-            <div class="page-header-text">
-                <h1>Profile</h1>
-                <p>Manage your personal information for job applications. Changes are automatically saved.</p>
-            </div>
-            <div class="save-status idle" id="save-status">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" id="save-icon"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                <span id="save-text">All changes saved</span>
+            <h1>Profile</h1>
+            <div class="save-indicator" id="save-indicator">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span>Saved</span>
             </div>
         </div>
 
-        <!-- Toast Notification -->
-        <div id="toast" class="toast">
-            <svg id="toast-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
-            <span id="toast-message"></span>
-        </div>
+        <div id="toast" class="toast"></div>
 
-        <!-- Personal Information -->
-        <div class="settings-card">
-            <h2>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                Personal Information
-            </h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>First Name <span class="required">*</span></label>
-                    <input type="text" id="first_name" name="first_name" placeholder="John" data-field="first_name">
-                </div>
-                <div class="form-group">
-                    <label>Last Name <span class="required">*</span></label>
-                    <input type="text" id="last_name" name="last_name" placeholder="Doe" data-field="last_name">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Preferred First Name</label>
-                    <input type="text" id="preferred_name" name="preferred_name" placeholder="Johnny" data-field="preferred_name">
-                    <small>How you'd like to be addressed</small>
-                </div>
-                <div class="form-group">
-                    <label>Email <span class="required">*</span></label>
-                    <input type="email" id="email" name="email" placeholder="john@example.com" data-field="email">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Phone</label>
-                    <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567" data-field="phone">
-                </div>
-                <div class="form-group">
-                    <label>Country</label>
-                    <select id="country" name="country" data-field="country">
-                        <option value="">Select Country</option>
+        <div class="section">
+            <div class="section-title">Personal</div>
+            <div class="form-grid">
+                <div class="field"><label>First Name</label><input type="text" name="first_name" placeholder="John"></div>
+                <div class="field"><label>Last Name</label><input type="text" name="last_name" placeholder="Doe"></div>
+                <div class="field"><label>Preferred</label><input type="text" name="preferred_name" placeholder="Johnny"></div>
+                <div class="field"><label>Email</label><input type="email" name="email" placeholder="john@example.com"></div>
+                <div class="field"><label>Phone</label><input type="tel" name="phone" placeholder="+1 555-123-4567"></div>
+                <div class="field"><label>Country</label>
+                    <select name="country">
+                        <option value="">-</option>
                         <option value="US">United States</option>
                         <option value="CA">Canada</option>
                         <option value="UK">United Kingdom</option>
                         <option value="DE">Germany</option>
-                        <option value="FR">France</option>
-                        <option value="AU">Australia</option>
                         <option value="IN">India</option>
-                        <option value="SG">Singapore</option>
-                        <option value="JP">Japan</option>
                         <option value="OTHER">Other</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- Address Section -->
-        <div class="settings-card">
-            <h2>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Address Information
-            </h2>
-            <div class="form-row single">
-                <div class="form-group">
-                    <label>Address Line 1</label>
-                    <input type="text" id="address_line1" name="address_line1" placeholder="123 Main Street" data-field="address_line1">
-                </div>
+        <div class="section">
+            <div class="section-title">Address</div>
+            <div class="form-grid">
+                <div class="field span-2"><label>Street</label><input type="text" name="address_line1" placeholder="123 Main St"></div>
+                <div class="field"><label>Apt/Suite</label><input type="text" name="address_line2" placeholder="4B"></div>
+                <div class="field"><label>City</label><input type="text" name="city" placeholder="San Francisco"></div>
+                <div class="field"><label>State</label><input type="text" name="state" placeholder="CA"></div>
+                <div class="field"><label>ZIP</label><input type="text" name="postal_code" placeholder="94102"></div>
             </div>
-            <div class="form-row single">
-                <div class="form-group">
-                    <label>Address Line 2</label>
-                    <input type="text" id="address_line2" name="address_line2" placeholder="Apt 4B" data-field="address_line2">
+        </div>
+
+        <div class="section">
+            <div class="section-title">Work Authorization</div>
+            <div class="form-grid two-col">
+                <div class="field"><label>US Authorized</label>
+                    <select name="us_authorized"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>City</label>
-                    <input type="text" id="city" name="city" placeholder="San Francisco" data-field="city">
+                <div class="field"><label>Sponsorship Required</label>
+                    <select name="requires_sponsorship"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
                 </div>
-                <div class="form-group">
-                    <label>State / Province</label>
-                    <input type="text" id="state" name="state" placeholder="California" data-field="state">
+                <div class="field"><label>Relocate</label>
+                    <select name="willing_to_relocate"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option><option value="depends">Depends</option></select>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Postal / ZIP Code</label>
-                    <input type="text" id="postal_code" name="postal_code" placeholder="94102" data-field="postal_code">
+                <div class="field"><label>Work Arrangement</label>
+                    <select name="work_arrangement"><option value="">-</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">On-site</option><option value="flexible">Flexible</option></select>
                 </div>
-                <div class="form-group">
-                    <label>Country</label>
-                    <select id="address_country" name="address_country" data-field="address_country">
-                        <option value="">Select Country</option>
-                        <option value="US">United States</option>
-                        <option value="CA">Canada</option>
-                        <option value="UK">United Kingdom</option>
-                        <option value="DE">Germany</option>
-                        <option value="FR">France</option>
-                        <option value="AU">Australia</option>
-                        <option value="IN">India</option>
-                        <option value="SG">Singapore</option>
-                        <option value="JP">Japan</option>
-                        <option value="OTHER">Other</option>
-                    </select>
+                <div class="field"><label>Gov Employee</label>
+                    <select name="us_government_employee"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
+                </div>
+                <div class="field"><label>Non-compete</label>
+                    <select name="non_compete"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
                 </div>
             </div>
         </div>
 
-        <!-- Work Authorization Section -->
-        <div class="settings-card">
-            <h2>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                Work Authorization
-            </h2>
-            <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 14px;">
-                Common questions asked on job applications regarding work eligibility.
-            </p>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Are you authorized to work in the US?</label>
-                    <select id="us_authorized" name="us_authorized" data-field="us_authorized">
-                        <option value="">Select One</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Do you require visa sponsorship?</label>
-                    <select id="requires_sponsorship" name="requires_sponsorship" data-field="requires_sponsorship">
-                        <option value="">Select One</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Would you consider relocating?</label>
-                    <select id="willing_to_relocate" name="willing_to_relocate" data-field="willing_to_relocate">
-                        <option value="">Select One</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                        <option value="depends">Depends on location/opportunity</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Current/former US government employee?</label>
-                    <select id="us_government_employee" name="us_government_employee" data-field="us_government_employee">
-                        <option value="">Select One</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Subject to non-compete restrictions?</label>
-                    <select id="non_compete" name="non_compete" data-field="non_compete">
-                        <option value="">Select One</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Preferred work arrangement</label>
-                    <select id="work_arrangement" name="work_arrangement" data-field="work_arrangement">
-                        <option value="">Select One</option>
-                        <option value="remote">Remote</option>
-                        <option value="hybrid">Hybrid</option>
-                        <option value="onsite">On-site</option>
-                        <option value="flexible">Flexible / No preference</option>
-                    </select>
-                </div>
+        <div class="section">
+            <div class="section-title">Links</div>
+            <div class="form-grid two-col">
+                <div class="field"><label>LinkedIn</label><input type="url" name="linkedin_url" placeholder="linkedin.com/in/..."></div>
+                <div class="field"><label>GitHub</label><input type="url" name="github_url" placeholder="github.com/..."></div>
+                <div class="field"><label>Portfolio</label><input type="url" name="portfolio_url" placeholder="yoursite.com"></div>
+                <div class="field"><label>Twitter</label><input type="url" name="twitter_url" placeholder="twitter.com/..."></div>
             </div>
         </div>
 
-        <!-- Social Profiles Section -->
-        <div class="settings-card">
-            <h2>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                Social Profiles & Websites
-            </h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>LinkedIn</label>
-                    <input type="url" id="linkedin_url" name="linkedin_url" placeholder="https://linkedin.com/in/yourprofile" data-field="linkedin_url">
+        <div class="section">
+            <div class="section-title">Professional</div>
+            <div class="form-grid">
+                <div class="field"><label>Referral Source</label>
+                    <select name="referral_source"><option value="">-</option><option value="linkedin">LinkedIn</option><option value="indeed">Indeed</option><option value="glassdoor">Glassdoor</option><option value="friend">Referral</option><option value="recruiter">Recruiter</option><option value="other">Other</option></select>
                 </div>
-                <div class="form-group">
-                    <label>GitHub</label>
-                    <input type="url" id="github_url" name="github_url" placeholder="https://github.com/yourusername" data-field="github_url">
-                </div>
+                <div class="field span-2"><label>Skills</label><input type="text" name="skills" placeholder="Python, JavaScript, React..."></div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Portfolio / Personal Website</label>
-                    <input type="url" id="portfolio_url" name="portfolio_url" placeholder="https://yourportfolio.com" data-field="portfolio_url">
-                </div>
-                <div class="form-group">
-                    <label>Twitter / X</label>
-                    <input type="url" id="twitter_url" name="twitter_url" placeholder="https://twitter.com/yourusername" data-field="twitter_url">
-                </div>
+            <div class="form-grid" style="margin-top: 10px;">
+                <div class="field span-3"><label>Bio</label><textarea name="bio" rows="2" placeholder="Brief professional summary..."></textarea></div>
             </div>
         </div>
 
-        <!-- Professional Summary Section -->
-        <div class="settings-card">
-            <h2>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                Professional Summary
-            </h2>
-            <div class="form-row single">
-                <div class="form-group">
-                    <label>How did you hear about us?</label>
-                    <select id="referral_source" name="referral_source" data-field="referral_source">
-                        <option value="">Select an option</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="indeed">Indeed</option>
-                        <option value="glassdoor">Glassdoor</option>
-                        <option value="friend">Friend/Referral</option>
-                        <option value="search">Google Search</option>
-                        <option value="social">Social Media</option>
-                        <option value="company_website">Company Career Page</option>
-                        <option value="recruiter">Recruiter</option>
-                        <option value="job_fair">Job Fair</option>
-                        <option value="other">Other</option>
-                    </select>
-                    <small>Default answer for job applications</small>
+        <div class="section">
+            <div class="section-title">Demographics (Optional)</div>
+            <div class="form-grid four-col">
+                <div class="field"><label>Gender</label>
+                    <select name="gender"><option value="">-</option><option value="male">Male</option><option value="female">Female</option><option value="non_binary">Non-binary</option><option value="other">Other</option><option value="decline">Decline</option></select>
                 </div>
-            </div>
-
-            <div class="form-row single">
-                <div class="form-group">
-                    <label>Professional Summary / Bio</label>
-                    <textarea id="bio" name="bio" rows="4" placeholder="Brief summary of your professional background, key skills, and career goals..." data-field="bio"></textarea>
-                    <small>This can be used as a default intro for cover letters and applications</small>
+                <div class="field"><label>Ethnicity</label>
+                    <select name="ethnicity"><option value="">-</option><option value="american_indian">American Indian</option><option value="asian">Asian</option><option value="black">Black</option><option value="hispanic">Hispanic</option><option value="pacific_islander">Pacific Islander</option><option value="white">White</option><option value="two_or_more">Two+</option><option value="decline">Decline</option></select>
                 </div>
-            </div>
-
-            <div class="form-row single">
-                <div class="form-group">
-                    <label>Skills</label>
-                    <textarea id="skills" name="skills" rows="3" placeholder="Python, JavaScript, React, AWS, Machine Learning, Data Analysis, Project Management..." data-field="skills"></textarea>
-                    <small>Comma-separated list of your key skills</small>
+                <div class="field"><label>Veteran</label>
+                    <select name="veteran_status"><option value="">-</option><option value="not_veteran">No</option><option value="veteran">Yes</option><option value="protected_veteran">Protected</option><option value="decline">Decline</option></select>
+                </div>
+                <div class="field"><label>Disability</label>
+                    <select name="disability_status"><option value="">-</option><option value="no">No</option><option value="yes">Yes</option><option value="decline">Decline</option></select>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        const isProduction = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com';
-        const API_BASE = isProduction ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
+        const API_BASE = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com'
+            ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
 
-        // ============== Auto-Save System ==============
-        let saveTimeout = null;
-        let pendingChanges = {};
         let originalValues = {};
-        let isSaving = false;
-        let lastSaveError = null;
 
-        const SAVE_DELAY = 1500; // 1.5 seconds debounce
+        function setTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('jobtrails-theme', t);
+            document.getElementById('theme-light-btn').classList.toggle('active', t === 'light');
+            document.getElementById('theme-dark-btn').classList.toggle('active', t === 'dark');
+        }
+        setTheme(localStorage.getItem('jobtrails-theme') || 'dark');
 
-        function updateSaveStatus(status, message) {
-            const statusEl = document.getElementById('save-status');
-            const iconEl = document.getElementById('save-icon');
-            const textEl = document.getElementById('save-text');
+        function getToken() { return localStorage.getItem('access_token'); }
 
-            statusEl.className = 'save-status ' + status;
-
-            switch (status) {
-                case 'saving':
-                    iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>';
-                    iconEl.classList.add('spin');
-                    textEl.textContent = message || 'Saving...';
-                    break;
-                case 'saved':
-                    iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
-                    iconEl.classList.remove('spin');
-                    textEl.textContent = message || 'All changes saved';
-                    break;
-                case 'error':
-                    iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
-                    iconEl.classList.remove('spin');
-                    textEl.textContent = message || 'Failed to save';
-                    break;
-                case 'idle':
-                    iconEl.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
-                    iconEl.classList.remove('spin');
-                    textEl.textContent = message || 'All changes saved';
-                    break;
-            }
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
         }
 
-        function scheduleAutoSave() {
-            if (saveTimeout) {
-                clearTimeout(saveTimeout);
-            }
-
-            if (Object.keys(pendingChanges).length > 0) {
-                updateSaveStatus('saving', 'Saving...');
-                saveTimeout = setTimeout(performAutoSave, SAVE_DELAY);
-            }
-        }
-
-        async function performAutoSave() {
-            if (isSaving || Object.keys(pendingChanges).length === 0) return;
-
-            const token = localStorage.getItem('access_token');
-            if (!token) return;
-
-            isSaving = true;
-            const changesToSave = { ...pendingChanges };
-            pendingChanges = {};
-
+        async function refreshToken() {
+            const rt = localStorage.getItem('refresh_token');
+            if (!rt) { logout(); return null; }
             try {
-                const response = await fetch(`${API_BASE}/api/users/settings`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(changesToSave)
+                const r = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: rt })
                 });
-
-                if (response.ok) {
-                    // Update original values
-                    Object.assign(originalValues, changesToSave);
-                    // Remove changed class from saved fields
-                    Object.keys(changesToSave).forEach(field => {
-                        const el = document.querySelector(`[data-field="${field}"]`);
-                        if (el) el.classList.remove('changed');
-                    });
-                    updateSaveStatus('saved', 'All changes saved');
-                    lastSaveError = null;
-                } else {
-                    const error = await response.json();
-                    // Put changes back for retry
-                    Object.assign(pendingChanges, changesToSave);
-                    updateSaveStatus('error', error.detail || 'Save failed - retrying...');
-                    lastSaveError = error.detail;
-                    // Retry after delay
-                    setTimeout(performAutoSave, 3000);
+                if (r.ok) {
+                    const d = await r.json();
+                    localStorage.setItem('access_token', d.access_token);
+                    localStorage.setItem('refresh_token', d.refresh_token);
+                    if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
+                    return d.access_token;
                 }
-            } catch (error) {
-                // Put changes back for retry
-                Object.assign(pendingChanges, changesToSave);
-                updateSaveStatus('error', 'Connection error - retrying...');
-                lastSaveError = error.message;
-                // Retry after delay
-                setTimeout(performAutoSave, 3000);
-            } finally {
-                isSaving = false;
-            }
-        }
-
-        function handleFieldChange(e) {
-            const field = e.target.dataset.field;
-            if (!field) return;
-
-            const value = e.target.value;
-            const original = originalValues[field] || '';
-
-            if (value !== original) {
-                pendingChanges[field] = value;
-                e.target.classList.add('changed');
-            } else {
-                delete pendingChanges[field];
-                e.target.classList.remove('changed');
-            }
-
-            scheduleAutoSave();
-        }
-
-        // ============== Theme Functions ==============
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('jobtrails-theme', theme);
-            updateThemeSwitch(theme);
-        }
-
-        function updateThemeSwitch(theme) {
-            const lightBtn = document.getElementById('theme-light-btn');
-            const darkBtn = document.getElementById('theme-dark-btn');
-            if (theme === 'light') {
-                lightBtn.classList.add('active');
-                darkBtn.classList.remove('active');
-            } else {
-                darkBtn.classList.add('active');
-                lightBtn.classList.remove('active');
-            }
-        }
-
-        function initTheme() {
-            const savedTheme = localStorage.getItem('jobtrails-theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeSwitch(savedTheme);
-        }
-        initTheme();
-
-        // ============== Auth Functions ==============
-        function checkAuth() {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                window.location.href = 'login.html';
+                logout();
+                return null;
+            } catch (e) {
+                logout();
                 return null;
             }
-            return token;
         }
 
+        async function authFetch(url, opts = {}) {
+            let token = getToken();
+            if (!token) { logout(); return null; }
+            opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
+            try {
+                let r = await fetch(url, opts);
+                if (r.status === 401) {
+                    token = await refreshToken();
+                    if (token) {
+                        opts.headers['Authorization'] = `Bearer ${token}`;
+                        r = await fetch(url, opts);
+                        if (r.status === 401) { logout(); return null; }
+                    } else return null;
+                }
+                return r;
+            } catch (e) { return null; }
+        }
+
+        function handleLogout() { logout(); }
+
         function initUserMenu() {
-            const userMenu = document.getElementById('user-menu');
-            const userJson = localStorage.getItem('user');
-
-            if (userJson) {
+            const um = document.getElementById('user-menu');
+            const uj = localStorage.getItem('user');
+            if (uj) {
                 try {
-                    const user = JSON.parse(userJson);
-                    const displayName = user.name || user.email?.split('@')[0] || 'User';
-                    const email = user.email || '';
-                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
-
-                    userMenu.innerHTML = `
+                    const u = JSON.parse(uj);
+                    const n = u.name || u.email?.split('@')[0] || 'User';
+                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+                    um.innerHTML = `
                         <div class="sidebar-user-info">
-                            <div class="sidebar-user-avatar">${initials}</div>
-                            <div class="sidebar-user-details">
-                                <div class="sidebar-user-name">${displayName}</div>
-                                <div class="sidebar-user-email">${email}</div>
+                            <div class="sidebar-user-avatar">${i}</div>
+                            <div>
+                                <div class="sidebar-user-name">${n}</div>
+                                <div class="sidebar-user-email">${u.email || ''}</div>
                             </div>
                         </div>
                         <button class="sidebar-logout-btn" onclick="handleLogout()">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                             Sign Out
-                        </button>
-                    `;
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                }
+                        </button>`;
+                } catch (e) {}
             }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
+        function toast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        // ============== Toast Functions ==============
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            const msg = document.getElementById('toast-message');
-
-            if (type === 'success') {
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
-                toast.className = 'toast success';
-            } else {
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
-                toast.className = 'toast error';
-            }
-
-            msg.textContent = message;
-            toast.classList.add('show');
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+        function setSaveStatus(status) {
+            const ind = document.getElementById('save-indicator');
+            ind.className = 'save-indicator ' + status;
+            const icons = {
+                saving: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="30" stroke-dashoffset="10"></circle></svg>',
+                saved: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+                error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'
+            };
+            const texts = { saving: 'Saving...', saved: 'Saved', error: 'Error' };
+            ind.innerHTML = `${icons[status] || icons.saved}<span>${texts[status] || 'Saved'}</span>`;
         }
 
-        function showSuccess(message) {
-            showToast(message, 'success');
-        }
-
-        function showError(message) {
-            showToast(message, 'error');
-        }
-
-        // ============== Load Settings ==============
         async function loadSettings() {
-            const token = checkAuth();
-            if (!token) return;
-
+            if (!getToken()) { window.location.href = 'login.html'; return; }
             try {
-                const response = await fetch(`${API_BASE}/api/users/settings`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
+                const r = await authFetch(`${API_BASE}/api/users/settings`);
+                if (!r) return;
+                if (r.ok) {
+                    const data = await r.json();
                     originalValues = { ...data };
-
-                    // Populate all fields
-                    Object.keys(data).forEach(field => {
-                        const el = document.querySelector(`[data-field="${field}"]`);
-                        if (el && data[field]) {
-                            el.value = data[field];
+                    document.querySelectorAll('[name]').forEach(el => {
+                        if (data[el.name] !== undefined && data[el.name] !== null) {
+                            el.value = data[el.name];
                         }
                     });
-
-                    updateSaveStatus('saved', 'All changes saved');
                 }
-            } catch (error) {
-                console.error('Error loading settings:', error);
-                updateSaveStatus('error', 'Failed to load settings');
-            }
+            } catch (e) { toast('Failed to load', 'error'); }
         }
 
-        // ============== Initialize ==============
+        async function saveField(fieldName, value) {
+            if (originalValues[fieldName] === value) return;
+            setSaveStatus('saving');
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [fieldName]: value || null })
+                });
+                if (!r) return;
+                if (r.ok) {
+                    originalValues[fieldName] = value;
+                    const el = document.querySelector(`[name="${fieldName}"]`);
+                    if (el) {
+                        el.classList.add('saved');
+                        setTimeout(() => el.classList.remove('saved'), 1000);
+                    }
+                    setSaveStatus('saved');
+                } else {
+                    setSaveStatus('error');
+                }
+            } catch (e) { setSaveStatus('error'); }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             initUserMenu();
             loadSettings();
-
-            // Set up auto-save listeners on all fields
-            document.querySelectorAll('[data-field]').forEach(el => {
-                el.addEventListener('input', handleFieldChange);
-                el.addEventListener('change', handleFieldChange);
+            document.querySelectorAll('[name]').forEach(el => {
+                el.addEventListener('blur', () => saveField(el.name, el.value));
+                if (el.tagName === 'SELECT') {
+                    el.addEventListener('change', () => saveField(el.name, el.value));
+                }
             });
-        });
-
-        // Save any pending changes before leaving
-        window.addEventListener('beforeunload', (e) => {
-            if (Object.keys(pendingChanges).length > 0) {
-                performAutoSave();
-                e.returnValue = 'You have unsaved changes.';
-            }
         });
     </script>
 </body>
