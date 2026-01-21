@@ -470,6 +470,24 @@ def run_migrations():
 
         conn.commit()
 
+        # Add performance indexes for jobs table
+        job_indexes = [
+            ("ix_jobs_status", "jobs(status)"),
+            ("ix_jobs_source", "jobs(source)"),
+            ("ix_jobs_is_active", "jobs(is_active)"),
+            ("ix_jobs_posted_date", "jobs(posted_date)"),
+            ("ix_jobs_company_id", "jobs(company_id)"),
+            ("ix_jobs_active_posted", "jobs(is_active, posted_date DESC)"),
+        ]
+        for idx_name, idx_cols in job_indexes:
+            try:
+                conn.execute(text(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {idx_cols}"))
+            except Exception as e:
+                # Ignore if index already exists
+                pass
+        conn.commit()
+        logger.info("Ensured job indexes exist")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

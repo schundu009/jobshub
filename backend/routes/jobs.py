@@ -13,11 +13,12 @@ Overrides:
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 from typing import Optional, List
 import re
+import hashlib
 from datetime import date, datetime, timedelta
 
 from database import get_db
@@ -29,6 +30,16 @@ from services.relevance_service import (
 )
 from services.role_profiles_data import get_profile_by_slug, get_all_profiles
 from middleware.auth import get_current_user, get_current_user_optional
+
+# Redis caching
+try:
+    from services.redis_service import redis_service
+    REDIS_AVAILABLE = redis_service.ping()
+except Exception:
+    REDIS_AVAILABLE = False
+    redis_service = None
+
+CACHE_TTL_JOBS = 60  # Cache job lists for 60 seconds
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -112,6 +123,31 @@ class RelevanceInfo(BaseModel):
 
 
 # ============== Helper Functions ==============
+
+def _get_cache_key(prefix: str, **params) -> str:
+    """Generate a cache key from parameters."""
+    param_str = "&".join(f"{k}={v}" for k, v in sorted(params.items()) if v is not None)
+    return f"{prefix}:{hashlib.md5(param_str.encode()).hexdigest()[:16]}"
+
+
+def _cache_get(key: str):
+    """Get from cache if Redis available."""
+    if REDIS_AVAILABLE and redis_service:
+        try:
+            return redis_service.cache_get(key)
+        except Exception:
+            pass
+    return None
+
+
+def _cache_set(key: str, value, ttl: int = CACHE_TTL_JOBS):
+    """Set cache if Redis available."""
+    if REDIS_AVAILABLE and redis_service:
+        try:
+            redis_service.cache_set(key, value, ttl)
+        except Exception:
+            pass
+
 
 def get_role_profile_for_scoring(
     db: Session,
@@ -239,9 +275,22 @@ async def get_jobs(
     - GET /api/jobs?all=true → All jobs without filtering
     - GET /api/jobs?min_score=50 → Only highly relevant jobs
     """
-    # Build base query
-    # For public job discovery, show all jobs regardless of user_id
-    query = db.query(Job)
+    # Generate cache key for this query
+    user_role = role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
+    cache_key = _get_cache_key(
+        "jobs",
+        status=status, source=source, active_only=active_only, company_id=company_id,
+        posted_within_hours=posted_within_hours, role=user_role, all_jobs=all,
+        min_score=min_score, limit=limit, offset=offset
+    )
+
+    # Try cache first
+    cached = _cache_get(cache_key)
+    if cached:
+        return cached
+
+    # Build base query with eager loading for company (avoids N+1)
+    query = db.query(Job).options(joinedload(Job.company))
 
     if status:
         query = query.filter(Job.status == status)
@@ -269,12 +318,14 @@ async def get_jobs(
         if limit:
             q = q.limit(limit)
         jobs = q.all()
-        return {
+        result = {
             "jobs": [job_to_response(job) for job in jobs],
             "total": total,
             "relevance_filtering": False,
             "role": None
         }
+        _cache_set(cache_key, result)
+        return result
 
     # Get role profile for relevance scoring
     role_profile = get_role_profile_for_scoring(db, role, current_user)
@@ -286,20 +337,22 @@ async def get_jobs(
         if limit:
             q = q.limit(limit)
         jobs = q.all()
-        return {
+        result = {
             "jobs": [job_to_response(job) for job in jobs],
             "total": total,
             "relevance_filtering": False,
             "role": None,
             "message": "No role profile set. Showing all jobs. Set a role with ?role=devops or configure your user profile."
         }
+        _cache_set(cache_key, result)
+        return result
 
     # Get all jobs matching base filters
     all_jobs = query.all()
 
     # Get user preferences for scoring
     user_prefs = None
-    if current_user.custom_preferences:
+    if current_user and current_user.custom_preferences:
         user_prefs = {
             **current_user.custom_preferences,
             "target_seniority": current_user.target_seniority
@@ -329,15 +382,17 @@ async def get_jobs(
         scored_jobs = scored_jobs[offset:]
 
     # Build response
-    role_name = role or (current_user.role_profile.slug if current_user.role_profile else None)
+    role_name = role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
 
-    return {
+    response = {
         "jobs": [job_to_response(job, rel) for job, rel in scored_jobs],
         "total": total_relevant,
         "relevance_filtering": True,
         "role": role_name,
         "threshold": role_profile.get("relevance_threshold", 30.0)
     }
+    _cache_set(cache_key, response)
+    return response
 
 
 @router.get("/discover")
