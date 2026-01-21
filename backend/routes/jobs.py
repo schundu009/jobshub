@@ -373,7 +373,7 @@ async def get_jobs(
         return result
 
     # Limit to most recent jobs for performance (relevance scoring is CPU-intensive)
-    MAX_JOBS_TO_SCORE = 1000
+    MAX_JOBS_TO_SCORE = 200  # Reduced from 1000 for faster response
     try:
         all_jobs = query.order_by(
             Job.posted_date.desc().nullslast(),
@@ -427,38 +427,6 @@ async def get_jobs(
     }
     _cache_set(cache_key, response)
     return response
-
-
-@router.get("/debug-scoring")
-async def debug_scoring(
-    role: str = Query("devops", description="Role profile slug"),
-    db: Session = Depends(get_db)
-):
-    """Debug endpoint to test relevance scoring."""
-    try:
-        # Get profile
-        profile = get_role_profile_for_scoring(db, role, None)
-        if not profile:
-            return {"error": "Profile not found", "role": role}
-
-        # Get one job
-        job = db.query(Job).options(joinedload(Job.company)).first()
-        if not job:
-            return {"error": "No jobs found"}
-
-        # Score it
-        result = compute_job_relevance(job, profile, None)
-
-        return {
-            "status": "ok",
-            "job_title": job.title,
-            "score": result.relevance_score,
-            "is_relevant": result.is_relevant,
-            "profile_keys": list(profile.keys()) if profile else None
-        }
-    except Exception as e:
-        import traceback
-        return {"error": str(e), "traceback": traceback.format_exc()}
 
 
 @router.get("/discover")
