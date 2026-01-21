@@ -518,48 +518,6 @@
             margin-bottom: 24px;
         }
 
-        /* Role Filter Tabs */
-        .role-tabs {
-            display: flex;
-            gap: 8px;
-            padding: 16px 0;
-            margin-bottom: 24px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .role-tabs::-webkit-scrollbar {
-            display: none;
-        }
-
-        .role-tab {
-            padding: 10px 20px;
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            font-family: inherit;
-        }
-
-        .role-tab:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-            border-color: var(--border-light);
-        }
-
-        .role-tab.active {
-            background: var(--accent-blue);
-            border-color: var(--accent-blue);
-            color: white;
-            box-shadow: 0 2px 8px rgba(79, 140, 255, 0.3);
-        }
-
         /* Job Details Section */
         .job-details-section {
             display: flex;
@@ -1611,19 +1569,6 @@
                         </div>
                         ${notesHtml}
                     </div>
-                </div>
-
-                <!-- Role Filter Tabs -->
-                <div class="role-tabs">
-                    <button class="role-tab active" data-role="all">All Jobs</button>
-                    <button class="role-tab" data-role="devops">DevOps</button>
-                    <button class="role-tab" data-role="backend">Backend</button>
-                    <button class="role-tab" data-role="frontend">Frontend</button>
-                    <button class="role-tab" data-role="fullstack">Full Stack</button>
-                    <button class="role-tab" data-role="data">Data</button>
-                    <button class="role-tab" data-role="ml">ML/AI</button>
-                    <button class="role-tab" data-role="mobile">Mobile</button>
-                    <button class="role-tab" data-role="security">Security</button>
                 </div>
 
                 <!-- Job Details Section -->
