@@ -36,7 +36,9 @@ function requireAuth() {
         if (currentPage !== 'login.html' && currentPage !== 'register.html') {
             localStorage.setItem('redirect_after_login', currentPage);
         }
-        window.location.href = 'login.html';
+        // Use correct path for pages in different folders
+        const basePath = window.location.pathname.includes('/admin/') ? '../jobs/' : '';
+        window.location.href = basePath + 'login.html';
         return false;
     }
     return true;
@@ -46,7 +48,9 @@ function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-    window.location.href = 'login.html';
+    // Use absolute path to handle pages in different folders (e.g., /admin/)
+    const basePath = window.location.pathname.includes('/admin/') ? '../jobs/' : '';
+    window.location.href = basePath + 'login.html';
 }
 
 async function refreshAccessToken() {
