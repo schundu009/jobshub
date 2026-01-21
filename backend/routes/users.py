@@ -302,11 +302,41 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads",
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-def extract_text_from_file(file_content: bytes, filename: str) -> str:
-    """Extract text content from uploaded file."""
+@router.get("/documents/check-libraries")
+def check_document_libraries():
+    """Check if document parsing libraries are available."""
+    results = {}
+
+    # Check python-docx
+    try:
+        import docx
+        results["python-docx"] = {"available": True, "version": getattr(docx, "__version__", "unknown")}
+    except ImportError as e:
+        results["python-docx"] = {"available": False, "error": str(e)}
+
+    # Check pdfplumber
+    try:
+        import pdfplumber
+        results["pdfplumber"] = {"available": True, "version": getattr(pdfplumber, "__version__", "unknown")}
+    except ImportError as e:
+        results["pdfplumber"] = {"available": False, "error": str(e)}
+
+    # Check PyPDF2
+    try:
+        import PyPDF2
+        results["PyPDF2"] = {"available": True, "version": getattr(PyPDF2, "__version__", "unknown")}
+    except ImportError as e:
+        results["PyPDF2"] = {"available": False, "error": str(e)}
+
+    return results
+
+
+def extract_text_from_file(file_content: bytes, filename: str) -> tuple[str, str]:
+    """Extract text content from uploaded file. Returns (content, error_message)."""
     import io
     file_ext = os.path.splitext(filename)[1].lower()
     content = ""
+    error_msg = ""
 
     try:
         if file_ext == '.txt':
@@ -322,8 +352,8 @@ def extract_text_from_file(file_content: bytes, filename: str) -> str:
                     reader = PyPDF2.PdfReader(io.BytesIO(file_content))
                     content = '\n'.join(page.extract_text() or '' for page in reader.pages)
                 except ImportError:
-                    print("PDF extraction failed: no PDF library available")
-                    content = ""
+                    error_msg = "PDF libraries not available"
+                    print(f"PDF extraction failed: {error_msg}")
         elif file_ext in ['.doc', '.docx']:
             try:
                 import docx
@@ -342,20 +372,20 @@ def extract_text_from_file(file_content: bytes, filename: str) -> str:
                 content = '\n'.join(all_text)
                 print(f"DOCX extraction: {len(paragraphs)} paragraphs, {len(table_text)} table rows, {len(content)} chars")
             except ImportError as e:
-                print(f"DOCX extraction failed: python-docx not installed - {e}")
-                content = ""
+                error_msg = f"python-docx not installed: {e}"
+                print(f"DOCX extraction failed: {error_msg}")
             except Exception as e:
-                print(f"DOCX extraction error: {e}")
-                content = ""
+                error_msg = f"DOCX parsing error: {e}"
+                print(f"DOCX extraction error: {error_msg}")
         elif file_ext == '.rtf':
             content = file_content.decode('utf-8', errors='ignore')
         else:
             content = file_content.decode('utf-8', errors='ignore')
     except Exception as e:
+        error_msg = f"General extraction error: {e}"
         print(f"Error extracting text from {filename}: {e}")
-        content = ""
 
-    return content.strip()
+    return content.strip(), error_msg
 
 
 @router.post("/documents")
@@ -378,9 +408,10 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB")
 
     # Extract text content from the file
-    extracted_text = extract_text_from_file(content, file.filename)
+    extracted_text, error_msg = extract_text_from_file(content, file.filename)
     if not extracted_text:
-        raise HTTPException(status_code=400, detail="Could not extract text from file. Please upload a text-based document.")
+        detail = f"Could not extract text from file. {error_msg}" if error_msg else "Could not extract text from file. Please upload a text-based document."
+        raise HTTPException(status_code=400, detail=detail)
 
     # Save file locally (for local development)
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_ext}"
