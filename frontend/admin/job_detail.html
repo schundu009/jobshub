@@ -461,7 +461,37 @@
             font-size: 13px;
         }
 
-        /* Content Grid */
+        /* Top Cards Row - Horizontal Layout */
+        .top-cards-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .top-cards-row .card {
+            min-height: 180px;
+        }
+
+        .ai-tools-grid-horizontal {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .ai-tools-grid-horizontal .ai-btn {
+            flex: 1 1 calc(50% - 5px);
+            min-width: 120px;
+        }
+
+        /* Job Details Section */
+        .job-details-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Content Grid - Legacy */
         .content-grid {
             display: grid;
             grid-template-columns: 1fr 380px;
@@ -935,6 +965,10 @@
         .toast svg { width: 20px; height: 20px; }
 
         /* Responsive */
+        @media (max-width: 1200px) {
+            .top-cards-row { grid-template-columns: 1fr 1fr; }
+        }
+
         @media (max-width: 1024px) {
             .content-grid { grid-template-columns: 1fr; }
         }
@@ -945,6 +979,7 @@
             .job-header { flex-direction: column; }
             .job-header-actions { align-items: stretch; width: 100%; }
             .info-grid { grid-template-columns: 1fr; }
+            .top-cards-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -1455,94 +1490,94 @@
                     </div>
                 </div>
 
-                <div class="content-grid">
-                    <div class="main-column">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Job Details</h3>
-                            </div>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <div class="label">Location</div>
-                                    <div class="value">${escapeHtml(job.location) || 'Not specified'}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Salary Range</div>
-                                    <div class="value">${formatSalary(job.salary_min, job.salary_max)}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Date Applied</div>
-                                    <div class="value">${formatDate(job.date_applied) || 'Not applied yet'}</div>
-                                </div>
-                                <div class="info-item">
-                                    <div class="label">Excitement Level</div>
-                                    <div class="value"><span class="excitement-stars">${starsHtml}</span></div>
-                                </div>
-                                ${job.job_url ? `<div class="info-item" style="grid-column: span 2;">
-                                    <div class="label">Job Posting</div>
-                                    <div class="value"><a href="${escapeHtml(job.job_url)}" target="_blank">View Original Posting →</a></div>
-                                </div>` : ''}
-                            </div>
+                <!-- Horizontal cards row above job details -->
+                <div class="top-cards-row">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>AI Tools</h3>
                         </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h3>
-                            </div>
-                            <div class="job-description">${description || '<span style="color: var(--text-muted);">No description available</span>'}</div>
+                        <div class="ai-tools-grid-horizontal">
+                            <button class="ai-btn" onclick="openCoverLetterModal()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Cover Letter
+                            </button>
+                            <button class="ai-btn" onclick="openATSModal()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                ATS Resume
+                            </button>
+                            <button class="ai-btn" onclick="openQuestionsModal()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Interview Prep
+                            </button>
+                            <button class="ai-btn" onclick="openMatchModal()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                Resume Match
+                            </button>
+                            <button class="ai-btn" onclick="openResearchModal()" ${!job.company_name ? 'disabled title="Add a company first"' : ''}>
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                Company Research
+                            </button>
                         </div>
                     </div>
 
-                    <div class="sidebar-column">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>AI Tools</h3>
-                            </div>
-                            <div class="ai-tools-grid">
-                                <button class="ai-btn" onclick="openCoverLetterModal()">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    Cover Letter
-                                </button>
-                                <button class="ai-btn" onclick="openATSModal()">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    ATS Resume
-                                </button>
-                                <button class="ai-btn" onclick="openQuestionsModal()">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Interview Prep
-                                </button>
-                                <button class="ai-btn" onclick="openMatchModal()">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                    Resume Match
-                                </button>
-                                <button class="ai-btn" onclick="openResearchModal()" ${!job.company_name ? 'disabled title="Add a company first"' : ''}>
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                    Company Research
-                                </button>
-                            </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Interviews</h3>
+                            <button class="btn btn-primary btn-small" onclick="openInterviewModal()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add
+                            </button>
                         </div>
+                        ${interviewsHtml}
+                    </div>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Interviews</h3>
-                                <button class="btn btn-primary btn-small" onclick="openInterviewModal()">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Add
-                                </button>
-                            </div>
-                            ${interviewsHtml}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>Notes</h3>
+                            <button class="btn btn-primary btn-small" onclick="openNoteModal()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add
+                            </button>
                         </div>
+                        ${notesHtml}
+                    </div>
+                </div>
 
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>Notes</h3>
-                                <button class="btn btn-primary btn-small" onclick="openNoteModal()">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Add
-                                </button>
-                            </div>
-                            ${notesHtml}
+                <!-- Job Details Section -->
+                <div class="job-details-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Job Details</h3>
                         </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="label">Location</div>
+                                <div class="value">${escapeHtml(job.location) || 'Not specified'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Salary Range</div>
+                                <div class="value">${formatSalary(job.salary_min, job.salary_max)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Date Applied</div>
+                                <div class="value">${formatDate(job.date_applied) || 'Not applied yet'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="label">Excitement Level</div>
+                                <div class="value"><span class="excitement-stars">${starsHtml}</span></div>
+                            </div>
+                            ${job.job_url ? `<div class="info-item" style="grid-column: span 2;">
+                                <div class="label">Job Posting</div>
+                                <div class="value"><a href="${escapeHtml(job.job_url)}" target="_blank">View Original Posting →</a></div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h3>
+                        </div>
+                        <div class="job-description">${description || '<span style="color: var(--text-muted);">No description available</span>'}</div>
                     </div>
                 </div>
             `;
