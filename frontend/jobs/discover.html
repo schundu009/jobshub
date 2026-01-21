@@ -2165,41 +2165,21 @@
             const job = params.data;
             const score = job.relevance_score || 0;
 
-            // Use AI tech stack if available, otherwise fall back to client-extracted
-            const techs = job.ai_tech_stack || job.tech_stack || [];
-            const aiSummary = job.ai_summary || '';
-            const hasAISummary = Boolean(aiSummary);
+            // Strip HTML and get plain text description
+            const rawDesc = job.job_description || '';
+            const plainDesc = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            const truncatedDesc = plainDesc.length > 200 ? plainDesc.substring(0, 200) + '...' : plainDesc;
 
             let matchColor = '#6b7280';
             if (score >= 80) matchColor = '#6ee7b7';
             else if (score >= 50) matchColor = '#d4a84a';
 
             const showMatch = currentRole && score > 0;
-            const matchHtml = showMatch ? `<span style="color:${matchColor};font-size:11px;font-weight:500;">Match: ${Math.round(score)}%</span>` : '';
+            const matchHtml = showMatch ? `<div style="color:${matchColor};font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
 
-            // Show AI summary if available
-            const summaryHtml = hasAISummary
-                ? `<div style="color:#c9d1d9;font-size:11px;line-height:1.4;margin-bottom:4px;">${aiSummary.substring(0, 120)}${aiSummary.length > 120 ? '...' : ''}</div>`
-                : '';
-
-            const techHtml = techs.slice(0, 6).map(t => {
-                const isHighlight = currentRole && ROLE_KEYWORDS[currentRole]?.keywords.some(k => t.toLowerCase().includes(k));
-                const color = isHighlight ? '#7aa2d6' : '#6b7280';
-                return `<span style="color:${color};font-size:9px;font-weight:500;text-transform:uppercase;margin-right:6px;">${t}</span>`;
-            }).join('');
-
-            // Add generate button if no AI summary
-            const generateBtn = !hasAISummary
-                ? `<button onclick="generateAISummary(${job.id}, event)" style="background:#1f2937;border:1px solid #374151;color:#9ca3af;font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer;" title="Generate AI summary">AI</button>`
-                : '';
-
-            // Show dash only if no tech and no summary
-            const noContent = !hasAISummary && techs.length === 0;
-
-            return `<div style="display:flex;flex-direction:column;gap:2px;padding:4px 0;">
-                ${summaryHtml}
-                <div style="display:flex;align-items:center;gap:6px;">${matchHtml}${generateBtn}</div>
-                <div style="display:flex;flex-wrap:wrap;gap:2px;">${techHtml || (noContent ? '<span style="color:#4b5563;font-size:10px;">-</span>' : '')}</div>
+            return `<div style="display:flex;flex-direction:column;padding:4px 0;">
+                ${matchHtml}
+                <div style="color:#9ca3af;font-size:11px;line-height:1.4;overflow:hidden;">${truncatedDesc || '-'}</div>
             </div>`;
         }
 
