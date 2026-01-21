@@ -279,6 +279,9 @@ async def get_jobs(
     limit: Optional[int] = Query(None, ge=1, description="Maximum results to return (no limit if not specified)"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
 
+    # Cache control
+    no_cache: bool = Query(False, description="Bypass cache and get fresh data"),
+
     # Auth (optional for public job discovery)
     current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
@@ -295,6 +298,7 @@ async def get_jobs(
     - role: Override role profile for relevance scoring (e.g., "devops", "backend")
     - all: Set to true to return ALL jobs without relevance filtering
     - min_score: Filter to jobs with at least this relevance score
+    - no_cache: Bypass Redis cache
 
     EXAMPLE QUERIES:
     - GET /api/jobs → Top 50 relevant jobs for user's role
@@ -311,10 +315,11 @@ async def get_jobs(
         min_score=min_score, limit=limit, offset=offset
     )
 
-    # Try cache first
-    cached = _cache_get(cache_key)
-    if cached:
-        return cached
+    # Try cache first (unless no_cache is set)
+    if not no_cache:
+        cached = _cache_get(cache_key)
+        if cached:
+            return cached
 
     # Build base query with eager loading for company (avoids N+1)
     query = db.query(Job).options(joinedload(Job.company))
