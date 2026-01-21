@@ -354,7 +354,8 @@ async def get_jobs(
             "jobs": [job_to_response(job, include_description=True) for job in jobs],
             "total": total,
             "relevance_filtering": False,
-            "role": None
+            "role": None,
+            "_api_version": "v2.1_with_descriptions"
         }
         _cache_set(cache_key, result)
         return result
