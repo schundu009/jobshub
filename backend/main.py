@@ -399,9 +399,10 @@ def run_migrations():
                     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     document_type VARCHAR(50) NOT NULL,
                     filename VARCHAR(255) NOT NULL,
-                    file_path VARCHAR(500) NOT NULL,
+                    file_path VARCHAR(500),
                     file_size INTEGER,
                     mime_type VARCHAR(100),
+                    content_text TEXT,
                     is_default BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -411,6 +412,22 @@ def run_migrations():
             logger.info("Created user_documents table")
         except Exception as e:
             logger.warning(f"Could not create user_documents table: {e}")
+
+        # Add content_text column to user_documents if not exists
+        try:
+            # Check if column exists
+            try:
+                result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = 'user_documents'"))
+                doc_columns = {row[0] for row in result}
+            except Exception:
+                result = conn.execute(text("PRAGMA table_info(user_documents)"))
+                doc_columns = {row[1] for row in result}
+
+            if 'content_text' not in doc_columns:
+                conn.execute(text("ALTER TABLE user_documents ADD COLUMN content_text TEXT"))
+                logger.info("Added content_text column to user_documents table")
+        except Exception as e:
+            logger.warning(f"Could not add content_text column: {e}")
 
         conn.commit()
 

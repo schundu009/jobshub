@@ -162,9 +162,10 @@ class UserDocument(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     document_type = Column(String(50), nullable=False)  # resume, cover_letter
     filename = Column(String(255), nullable=False)
-    file_path = Column(String(500), nullable=False)
+    file_path = Column(String(500), nullable=True)  # Optional - may not exist on cloud
     file_size = Column(Integer, nullable=True)
     mime_type = Column(String(100), nullable=True)
+    content_text = Column(Text, nullable=True)  # Extracted text content stored in DB
     is_default = Column(Boolean, default=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

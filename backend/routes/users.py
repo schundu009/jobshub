@@ -302,6 +302,45 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads",
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+def extract_text_from_file(file_content: bytes, filename: str) -> str:
+    """Extract text content from uploaded file."""
+    import io
+    file_ext = os.path.splitext(filename)[1].lower()
+    content = ""
+
+    try:
+        if file_ext == '.txt':
+            content = file_content.decode('utf-8', errors='ignore')
+        elif file_ext == '.pdf':
+            try:
+                import pdfplumber
+                with pdfplumber.open(io.BytesIO(file_content)) as pdf:
+                    content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
+            except ImportError:
+                try:
+                    import PyPDF2
+                    reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+                    content = '\n'.join(page.extract_text() or '' for page in reader.pages)
+                except ImportError:
+                    content = ""
+        elif file_ext in ['.doc', '.docx']:
+            try:
+                import docx
+                doc_file = docx.Document(io.BytesIO(file_content))
+                content = '\n'.join(para.text for para in doc_file.paragraphs)
+            except ImportError:
+                content = ""
+        elif file_ext == '.rtf':
+            content = file_content.decode('utf-8', errors='ignore')
+        else:
+            content = file_content.decode('utf-8', errors='ignore')
+    except Exception as e:
+        print(f"Error extracting text: {e}")
+        content = ""
+
+    return content.strip()
+
+
 @router.post("/documents")
 async def upload_document(
     document_type: str = Query(..., description="Type of document: resume or cover_letter"),
@@ -320,10 +359,21 @@ async def upload_document(
     file_size = len(content)
     if file_size > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB")
+
+    # Extract text content from the file
+    extracted_text = extract_text_from_file(content, file.filename)
+    if not extracted_text:
+        raise HTTPException(status_code=400, detail="Could not extract text from file. Please upload a text-based document.")
+
+    # Save file locally (for local development)
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
-    with open(file_path, "wb") as f:
-        f.write(content)
+    try:
+        with open(file_path, "wb") as f:
+            f.write(content)
+    except Exception:
+        file_path = None  # File storage failed, but we have content_text
+
     existing_docs = db.query(UserDocument).filter(
         UserDocument.user_id == current_user.id,
         UserDocument.document_type == document_type
@@ -335,6 +385,7 @@ async def upload_document(
         file_path=file_path,
         file_size=file_size,
         mime_type=file.content_type,
+        content_text=extracted_text,  # Store extracted text in DB
         is_default=(existing_docs == 0)
     )
     db.add(doc)
@@ -397,51 +448,47 @@ def get_default_resume_content(
     if not doc:
         raise HTTPException(status_code=404, detail="No resume found. Please upload a resume first.")
 
-    if not os.path.exists(doc.file_path):
-        raise HTTPException(status_code=404, detail="Resume file not found on server")
+    # Use stored content_text from database (works on cloud deployments)
+    content = doc.content_text
 
-    # Read the file content based on file type
-    content = ""
-    file_ext = os.path.splitext(doc.filename)[1].lower()
-
-    try:
-        if file_ext == '.txt':
-            with open(doc.file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        elif file_ext == '.pdf':
-            # Use PyPDF2 or pdfplumber to extract text
-            try:
-                import pdfplumber
-                with pdfplumber.open(doc.file_path) as pdf:
-                    content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
-            except ImportError:
+    # If no stored content, try to read from file (local development fallback)
+    if not content and doc.file_path and os.path.exists(doc.file_path):
+        file_ext = os.path.splitext(doc.filename)[1].lower()
+        try:
+            if file_ext == '.txt':
+                with open(doc.file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            elif file_ext == '.pdf':
                 try:
-                    import PyPDF2
-                    with open(doc.file_path, 'rb') as f:
-                        reader = PyPDF2.PdfReader(f)
-                        content = '\n'.join(page.extract_text() or '' for page in reader.pages)
+                    import pdfplumber
+                    with pdfplumber.open(doc.file_path) as pdf:
+                        content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
                 except ImportError:
-                    raise HTTPException(status_code=500, detail="PDF parsing libraries not available")
-        elif file_ext in ['.doc', '.docx']:
-            try:
-                import docx
-                doc_file = docx.Document(doc.file_path)
-                content = '\n'.join(para.text for para in doc_file.paragraphs)
-            except ImportError:
-                raise HTTPException(status_code=500, detail="DOCX parsing library not available")
-        elif file_ext == '.rtf':
-            # RTF is basically readable as text for our purposes
-            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-        else:
-            # Try to read as text
-            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading resume: {str(e)}")
+                    try:
+                        import PyPDF2
+                        with open(doc.file_path, 'rb') as f:
+                            reader = PyPDF2.PdfReader(f)
+                            content = '\n'.join(page.extract_text() or '' for page in reader.pages)
+                    except ImportError:
+                        pass
+            elif file_ext in ['.doc', '.docx']:
+                try:
+                    import docx
+                    doc_file = docx.Document(doc.file_path)
+                    content = '\n'.join(para.text for para in doc_file.paragraphs)
+                except ImportError:
+                    pass
+            else:
+                with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+        except Exception:
+            pass
 
-    if not content.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text from resume. Please upload a text-based resume.")
+    if not content or not content.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Resume content not available. Please re-upload your resume to enable text extraction."
+        )
 
     return {
         "id": doc.id,
@@ -467,45 +514,47 @@ def get_document_content(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
 
-    if not os.path.exists(doc.file_path):
-        raise HTTPException(status_code=404, detail="Document file not found on server")
+    # Use stored content_text from database (works on cloud deployments)
+    content = doc.content_text
 
-    # Read the file content based on file type
-    content = ""
-    file_ext = os.path.splitext(doc.filename)[1].lower()
-
-    try:
-        if file_ext == '.txt':
-            with open(doc.file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        elif file_ext == '.pdf':
-            try:
-                import pdfplumber
-                with pdfplumber.open(doc.file_path) as pdf:
-                    content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
-            except ImportError:
+    # If no stored content, try to read from file (local development fallback)
+    if not content and doc.file_path and os.path.exists(doc.file_path):
+        file_ext = os.path.splitext(doc.filename)[1].lower()
+        try:
+            if file_ext == '.txt':
+                with open(doc.file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            elif file_ext == '.pdf':
                 try:
-                    import PyPDF2
-                    with open(doc.file_path, 'rb') as f:
-                        reader = PyPDF2.PdfReader(f)
-                        content = '\n'.join(page.extract_text() or '' for page in reader.pages)
+                    import pdfplumber
+                    with pdfplumber.open(doc.file_path) as pdf:
+                        content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
                 except ImportError:
-                    raise HTTPException(status_code=500, detail="PDF parsing libraries not available")
-        elif file_ext in ['.doc', '.docx']:
-            try:
-                import docx
-                doc_file = docx.Document(doc.file_path)
-                content = '\n'.join(para.text for para in doc_file.paragraphs)
-            except ImportError:
-                raise HTTPException(status_code=500, detail="DOCX parsing library not available")
-        else:
-            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading document: {str(e)}")
+                    try:
+                        import PyPDF2
+                        with open(doc.file_path, 'rb') as f:
+                            reader = PyPDF2.PdfReader(f)
+                            content = '\n'.join(page.extract_text() or '' for page in reader.pages)
+                    except ImportError:
+                        pass
+            elif file_ext in ['.doc', '.docx']:
+                try:
+                    import docx
+                    doc_file = docx.Document(doc.file_path)
+                    content = '\n'.join(para.text for para in doc_file.paragraphs)
+                except ImportError:
+                    pass
+            else:
+                with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+        except Exception:
+            pass
 
-    if not content.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text from document")
+    if not content or not content.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Document content not available. Please re-upload the document to enable text extraction."
+        )
 
     return {
         "id": doc.id,
