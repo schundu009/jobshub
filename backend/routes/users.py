@@ -322,20 +322,37 @@ def extract_text_from_file(file_content: bytes, filename: str) -> str:
                     reader = PyPDF2.PdfReader(io.BytesIO(file_content))
                     content = '\n'.join(page.extract_text() or '' for page in reader.pages)
                 except ImportError:
+                    print("PDF extraction failed: no PDF library available")
                     content = ""
         elif file_ext in ['.doc', '.docx']:
             try:
                 import docx
                 doc_file = docx.Document(io.BytesIO(file_content))
-                content = '\n'.join(para.text for para in doc_file.paragraphs)
-            except ImportError:
+                # Extract text from paragraphs
+                paragraphs = [para.text for para in doc_file.paragraphs if para.text.strip()]
+                # Extract text from tables
+                table_text = []
+                for table in doc_file.tables:
+                    for row in table.rows:
+                        row_text = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                        if row_text:
+                            table_text.append(' | '.join(row_text))
+                # Combine paragraphs and tables
+                all_text = paragraphs + table_text
+                content = '\n'.join(all_text)
+                print(f"DOCX extraction: {len(paragraphs)} paragraphs, {len(table_text)} table rows, {len(content)} chars")
+            except ImportError as e:
+                print(f"DOCX extraction failed: python-docx not installed - {e}")
+                content = ""
+            except Exception as e:
+                print(f"DOCX extraction error: {e}")
                 content = ""
         elif file_ext == '.rtf':
             content = file_content.decode('utf-8', errors='ignore')
         else:
             content = file_content.decode('utf-8', errors='ignore')
     except Exception as e:
-        print(f"Error extracting text: {e}")
+        print(f"Error extracting text from {filename}: {e}")
         content = ""
 
     return content.strip()
