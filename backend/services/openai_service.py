@@ -16,12 +16,16 @@ def get_client():
 
 def generate_cover_letter(job_title: str, company_name: str, job_description: str, resume_text: str) -> str:
     """Generate a tailored cover letter for a specific job."""
+    from datetime import datetime
     openai_client = get_client()
+
+    today_date = datetime.now().strftime("%B %d, %Y")
 
     prompt = f"""Write a professional cover letter for the following job application.
 
 Job Title: {job_title}
 Company: {company_name}
+Today's Date: {today_date}
 
 Job Description:
 {job_description}
@@ -29,13 +33,32 @@ Job Description:
 Candidate's Resume/Background:
 {resume_text}
 
-Instructions:
-- Write a compelling, personalized cover letter
-- Highlight relevant skills and experiences from the resume that match the job requirements
-- Show enthusiasm for the company and role
-- Keep it concise (3-4 paragraphs)
-- Use a professional but engaging tone
-- Do not include placeholder text like [Your Name] - write it as a complete letter ready to personalize
+CRITICAL INSTRUCTIONS:
+1. Extract the candidate's ACTUAL name, email, phone number, and location from their resume above
+2. Use the ACTUAL extracted information in the letter header - DO NOT use placeholders like [Your Name]
+3. Use today's date: {today_date}
+4. For the company address, just use "{company_name}" as the recipient (no street address needed)
+5. Write a compelling cover letter highlighting relevant skills from the resume
+6. Keep it concise (3-4 paragraphs)
+7. Sign with the candidate's ACTUAL name from the resume
+
+Format the letter header as:
+[Candidate's actual name from resume]
+[Their actual location from resume]
+[Their actual email from resume]
+[Their actual phone from resume]
+
+{today_date}
+
+Hiring Manager
+{company_name}
+
+Dear Hiring Manager,
+
+[Letter body...]
+
+Sincerely,
+[Candidate's actual name]
 """
 
     response = openai_client.chat.completions.create(
