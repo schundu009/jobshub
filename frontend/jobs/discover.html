@@ -2309,12 +2309,19 @@
                 minWidth: 160,
                 sortable: false,
                 tooltipValueGetter: (params) => {
-                    // Show first 500 chars of job description in tooltip
-                    const desc = params.data?.job_description || '';
-                    if (desc.length > 500) {
-                        return desc.substring(0, 500) + '...';
+                    const job = params.data;
+                    // Show AI summary if available, otherwise show cleaned job description
+                    if (job?.ai_summary) {
+                        const techList = job.ai_tech_stack?.length ? `\n\nTech: ${job.ai_tech_stack.join(', ')}` : '';
+                        return job.ai_summary + techList;
                     }
-                    return desc || params.data?.keywords?.join(', ') || '';
+                    // Strip HTML tags and show plain text
+                    const desc = job?.job_description || '';
+                    const plainText = desc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    if (plainText.length > 400) {
+                        return plainText.substring(0, 400) + '...';
+                    }
+                    return plainText || job?.keywords?.join(', ') || '';
                 }
             },
             { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 95, sortable: true, sort: 'desc' },
