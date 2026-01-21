@@ -452,6 +452,69 @@ def get_default_resume_content(
     }
 
 
+@router.get("/documents/{doc_id}/content")
+def get_document_content(
+    doc_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the content of a specific document."""
+    doc = db.query(UserDocument).filter(
+        UserDocument.id == doc_id,
+        UserDocument.user_id == current_user.id
+    ).first()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if not os.path.exists(doc.file_path):
+        raise HTTPException(status_code=404, detail="Document file not found on server")
+
+    # Read the file content based on file type
+    content = ""
+    file_ext = os.path.splitext(doc.filename)[1].lower()
+
+    try:
+        if file_ext == '.txt':
+            with open(doc.file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        elif file_ext == '.pdf':
+            try:
+                import pdfplumber
+                with pdfplumber.open(doc.file_path) as pdf:
+                    content = '\n'.join(page.extract_text() or '' for page in pdf.pages)
+            except ImportError:
+                try:
+                    import PyPDF2
+                    with open(doc.file_path, 'rb') as f:
+                        reader = PyPDF2.PdfReader(f)
+                        content = '\n'.join(page.extract_text() or '' for page in reader.pages)
+                except ImportError:
+                    raise HTTPException(status_code=500, detail="PDF parsing libraries not available")
+        elif file_ext in ['.doc', '.docx']:
+            try:
+                import docx
+                doc_file = docx.Document(doc.file_path)
+                content = '\n'.join(para.text for para in doc_file.paragraphs)
+            except ImportError:
+                raise HTTPException(status_code=500, detail="DOCX parsing library not available")
+        else:
+            with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading document: {str(e)}")
+
+    if not content.strip():
+        raise HTTPException(status_code=400, detail="Could not extract text from document")
+
+    return {
+        "id": doc.id,
+        "filename": doc.filename,
+        "content": content,
+        "document_type": doc.document_type
+    }
+
+
 @router.put("/documents/{doc_id}/default")
 def set_default_document(
     doc_id: int,

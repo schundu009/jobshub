@@ -273,26 +273,26 @@
         .main-content {
             flex: 1;
             margin-left: 260px;
-            padding: 32px 40px;
+            padding: 24px 32px;
             min-height: 100vh;
             background: var(--bg-primary);
         }
 
-        /* Back Button */
+        /* Back Button - Compact */
         .back-link {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             transition: color 0.2s;
         }
 
         .back-link:hover { color: var(--text-primary); }
-        .back-link svg { width: 18px; height: 18px; }
+        .back-link svg { width: 14px; height: 14px; }
 
         /* Job Header */
         .job-header {
@@ -379,24 +379,24 @@
             align-items: flex-end;
         }
 
-        /* Status Badge */
+        /* Status Badge - Compact */
         .status-select-wrapper {
             position: relative;
         }
 
         .status-select {
             appearance: none;
-            padding: 12px 40px 12px 16px;
-            font-size: 14px;
+            padding: 8px 32px 8px 12px;
+            font-size: 12px;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
-            min-width: 160px;
+            min-width: 120px;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
+            background-position: right 8px center;
+            background-size: 14px;
         }
 
         .status-select.status-wishlist { background-color: #f59e0b; color: white; }
@@ -461,68 +461,529 @@
             font-size: 13px;
         }
 
-        /* AI Tools Row - Horizontal buttons */
-        .ai-tools-row {
+        /* Compact Header - Minimal */
+        .compact-header {
             display: flex;
-            gap: 10px;
-            padding: 16px 0;
-            margin-bottom: 16px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .ai-tools-row::-webkit-scrollbar {
-            display: none;
+        .header-left { flex: 1; min-width: 0; }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .company-logo-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .title-info { flex: 1; min-width: 0; }
+
+        .job-title-compact {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .company-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .company-meta .company-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .company-meta .separator {
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .btn-icon svg { width: 14px; height: 14px; }
+
+        .btn-icon:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-icon-danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Compact AI Tools Bar */
+        .ai-tools-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .ai-tools-bar .label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 8px;
+            padding-right: 12px;
+            border-right: 1px solid var(--border-color);
         }
 
         .ai-tool-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: var(--bg-secondary);
+            gap: 5px;
+            padding: 6px 10px;
+            background: transparent;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 14px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             white-space: nowrap;
             font-family: inherit;
         }
 
         .ai-tool-btn svg {
-            width: 18px;
-            height: 18px;
-            color: var(--accent-blue);
+            width: 13px;
+            height: 13px;
         }
 
         .ai-tool-btn:hover {
-            background: var(--bg-hover);
-            border-color: var(--accent-blue);
-            box-shadow: 0 2px 8px rgba(79, 140, 255, 0.2);
+            background: var(--accent-purple);
+            border-color: var(--accent-purple);
+            color: white;
         }
 
         .ai-tool-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
-        /* Secondary Cards Row - Interviews & Notes */
-        .secondary-cards-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
+        .ai-tool-btn:disabled:hover {
+            background: transparent;
+            border-color: var(--border-color);
+            color: var(--text-secondary);
         }
 
-        /* Job Details Section */
-        .job-details-section {
+        .link-external {
+            font-size: 11px;
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .link-external:hover { text-decoration: underline; }
+
+        /* Info Row - 3 Column Grid */
+        .info-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Mini Cards */
+        .mini-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .mini-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mini-card-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin: 0;
+        }
+
+        .mini-card-header h4 svg {
+            width: 11px;
+            height: 11px;
+            opacity: 0.6;
+        }
+
+        .mini-card-body {
+            padding: 8px 10px;
+            min-height: 60px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .btn-add-mini {
+            padding: 2px 6px;
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 3px;
+            color: white;
+            font-size: 9px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-add-mini:hover { opacity: 0.85; }
+
+        .link-mini {
+            font-size: 9px;
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .link-mini:hover { text-decoration: underline; }
+
+        /* Details Grid */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px 8px;
+        }
+
+        .detail-item {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+        }
+
+        .detail-item .dlabel {
+            font-size: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        .detail-item .dvalue {
+            font-size: 10px;
+            color: var(--text-primary);
+        }
+
+        .detail-item .dvalue.stars {
+            font-size: 10px;
+        }
+
+        /* Description Card */
+        .desc-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .desc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .desc-card-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin: 0;
+        }
+
+        .desc-card-header h4 svg {
+            width: 11px;
+            height: 11px;
+            opacity: 0.6;
+        }
+
+        .desc-card-body {
+            padding: 10px 12px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        /* Legacy Compact Cards for modals */
+        .compact-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .compact-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+        }
+
+        .compact-card-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin: 0;
+        }
+
+        .compact-card-header h4 svg {
+            width: 12px;
+            height: 12px;
+            opacity: 0.6;
+        }
+
+        .compact-card-body {
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .info-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+        }
+
+        .info-grid-compact .info-item .label {
+            font-size: 8px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 1px;
+        }
+
+        .info-grid-compact .info-item .value {
+            font-size: 11px;
+            color: var(--text-primary);
+        }
+
+        .compact-card-body .empty {
+            text-align: center;
+            padding: 16px 0;
+            font-size: 12px;
+        }
+
+        /* Info Grid - Compact */
+        .info-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .info-grid-compact .info-item {
+            padding: 0;
+        }
+
+        .info-grid-compact .label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .info-grid-compact .value {
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        /* Job Description - Formatted */
+        .job-description-compact {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            max-height: none;
+            overflow-y: visible;
+        }
+
+        .desc-formatted {
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .desc-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .desc-empty svg {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+
+        .desc-section {
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .desc-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .desc-section-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .desc-icon {
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .desc-para {
+            margin: 0 0 6px 0;
+            color: var(--text-secondary);
+        }
+
+        .desc-para:last-child {
+            margin-bottom: 0;
+        }
+
+        .desc-list {
+            margin: 0 0 8px 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .desc-list:last-child {
+            margin-bottom: 0;
+        }
+
+        .desc-list li {
+            position: relative;
+            padding: 3px 0 3px 14px;
+            margin: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .desc-list li:last-child {
+            border-bottom: none;
+        }
+
+        .desc-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+        }
+
+        .desc-highlight {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .desc-tech {
+            display: inline-block;
+            padding: 1px 6px;
+            margin: 0 1px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--accent-blue-light);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Light theme adjustments */
+        [data-theme="light"] .desc-list li {
+            border-bottom-color: rgba(0,0,0,0.04);
+        }
+
+        [data-theme="light"] .desc-tech {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent-blue);
         }
 
         /* Content Grid - Legacy */
@@ -602,11 +1063,11 @@
 
         .info-item .value a:hover { text-decoration: underline; }
 
-        /* Excitement Stars */
+        /* Excitement Stars - Compact */
         .excitement-stars {
             color: var(--accent-yellow);
-            font-size: 18px;
-            letter-spacing: 2px;
+            font-size: 14px;
+            letter-spacing: 1px;
         }
 
         .excitement-stars .empty { color: var(--text-muted); opacity: 0.4; }
@@ -715,81 +1176,83 @@
             transform: none;
         }
 
-        /* Interview Item */
+        /* Interview Item - Mini */
         .interview-item {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px;
+            gap: 6px;
+            padding: 5px 6px;
             background: var(--bg-tertiary);
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--accent-purple);
+            border-radius: 4px;
+            margin-bottom: 4px;
+            border-left: 2px solid var(--accent-purple);
         }
 
         .interview-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
             background: rgba(139, 92, 246, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .interview-icon svg {
-            width: 22px;
-            height: 22px;
+            width: 10px;
+            height: 10px;
             color: var(--accent-purple);
         }
 
-        .interview-details { flex: 1; }
+        .interview-details { flex: 1; min-width: 0; }
 
         .interview-type {
             font-weight: 600;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 10px;
             text-transform: capitalize;
+            line-height: 1.2;
         }
 
         .interview-date {
-            font-size: 13px;
+            font-size: 9px;
             color: var(--text-muted);
-            margin-top: 2px;
         }
 
         .interview-outcome {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
+            padding: 2px 5px;
+            border-radius: 6px;
+            font-size: 8px;
             font-weight: 600;
             text-transform: uppercase;
+            flex-shrink: 0;
         }
 
         .interview-outcome.pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
         .interview-outcome.passed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
         .interview-outcome.failed { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
 
-        /* Note Item */
+        /* Note Item - Mini */
         .note-item {
-            padding: 16px;
+            padding: 5px 6px;
             background: var(--bg-tertiary);
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--accent-cyan);
+            border-radius: 4px;
+            margin-bottom: 4px;
+            border-left: 2px solid var(--accent-cyan);
         }
 
         .note-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
         }
 
         .note-type {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 8px;
             font-weight: 600;
             text-transform: uppercase;
             background: rgba(6, 182, 212, 0.15);
@@ -797,30 +1260,38 @@
         }
 
         .note-date {
-            font-size: 12px;
+            font-size: 8px;
             color: var(--text-muted);
         }
 
         .note-item p {
             color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 10px;
+            line-height: 1.3;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
-        /* Empty State */
+        /* Empty State - Ultra Compact */
         .empty-state {
             text-align: center;
-            padding: 24px;
+            padding: 8px 6px;
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 10px;
         }
 
         .empty-state svg {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 12px;
-            opacity: 0.5;
+            width: 18px;
+            height: 18px;
+            margin-bottom: 4px;
+            opacity: 0.4;
         }
+
+        .empty-state p { margin: 0; font-size: 9px; }
 
         /* Loading */
         .loading {
@@ -1000,18 +1471,25 @@
 
         /* Responsive */
         @media (max-width: 1024px) {
-            .content-grid { grid-template-columns: 1fr; }
-            .secondary-cards-row { grid-template-columns: 1fr; }
+            .info-row { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
             .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 20px; }
-            .job-header { flex-direction: column; }
-            .job-header-actions { align-items: stretch; width: 100%; }
-            .info-grid { grid-template-columns: 1fr; }
-            .ai-tools-row { flex-wrap: wrap; }
-            .ai-tool-btn { flex: 1 1 calc(50% - 5px); justify-content: center; }
+            .main-content { margin-left: 0; padding: 12px; }
+            .compact-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: flex-start; }
+            .ai-tools-bar { flex-wrap: wrap; }
+            .ai-tool-btn { flex: 1 1 calc(33% - 4px); justify-content: center; }
+            .info-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .main-content { padding: 10px; }
+            .ai-tools-bar { padding: 4px 6px; }
+            .ai-tools-bar .label { display: none; }
+            .ai-tool-btn { flex: 1 1 calc(50% - 2px); padding: 4px 6px; font-size: 10px; }
+            .ai-tool-btn svg { width: 10px; height: 10px; }
         }
     </style>
 </head>
@@ -1148,13 +1626,19 @@
         <div class="modal ai-modal">
             <h3>Generate Cover Letter</h3>
             <div class="form-group">
-                <label>Your Resume / Background <span id="resume-status-cl" style="font-weight: normal; color: var(--accent-green);"></span></label>
-                <textarea id="resume_text_cl" rows="6" placeholder="Loading your resume..."></textarea>
+                <label>Select Resume <span id="resume-status-cl" style="font-weight: normal; font-size: 11px;"></span></label>
+                <select id="resume_select_cl" class="doc-select">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Resume Content <small style="color: var(--text-muted);">(auto-loaded or paste manually)</small></label>
+                <textarea id="resume_text_cl" rows="5" placeholder="Select a resume above or paste here..."></textarea>
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="generateCoverLetter()" id="btn-cover-letter">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Generate
+                    Generate Cover Letter
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="closeCoverLetterModal()">Close</button>
             </div>
@@ -1192,13 +1676,19 @@
         <div class="modal ai-modal">
             <h3>Resume-Job Match Analysis</h3>
             <div class="form-group">
-                <label>Your Resume <span id="resume-status-match" style="font-weight: normal; color: var(--accent-green);"></span></label>
-                <textarea id="resume_text_match" rows="6" placeholder="Loading your resume..."></textarea>
+                <label>Select Resume <span id="resume-status-match" style="font-weight: normal; font-size: 11px;"></span></label>
+                <select id="resume_select_match" class="doc-select">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Resume Content <small style="color: var(--text-muted);">(auto-loaded or paste manually)</small></label>
+                <textarea id="resume_text_match" rows="5" placeholder="Select a resume above or paste here..."></textarea>
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="analyzeMatch()" id="btn-match">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Analyze
+                    Analyze Match
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="closeMatchModal()">Close</button>
             </div>
@@ -1210,10 +1700,16 @@
     <div class="modal-overlay" id="ats-modal">
         <div class="modal ai-modal">
             <h3>Generate ATS-Optimized Resume</h3>
-            <p style="color: var(--text-muted); margin-bottom: 16px;">Generate a tailored resume optimized for ATS systems and this specific job posting.</p>
+            <p style="color: var(--text-muted); margin-bottom: 12px; font-size: 12px;">Generates a tailored resume optimized for ATS systems based on this job's requirements.</p>
             <div class="form-group">
-                <label>Your Resume <span id="resume-status-ats" style="font-weight: normal; color: var(--accent-green);"></span></label>
-                <textarea id="resume_text_ats" rows="6" placeholder="Loading your resume..."></textarea>
+                <label>Select Resume <span id="resume-status-ats" style="font-weight: normal; font-size: 11px;"></span></label>
+                <select id="resume_select_ats" class="doc-select">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Resume Content <small style="color: var(--text-muted);">(auto-loaded or paste manually)</small></label>
+                <textarea id="resume_text_ats" rows="5" placeholder="Select a resume above or paste here..."></textarea>
             </div>
             <div class="form-actions">
                 <button class="btn btn-primary" onclick="generateATSResume()" id="btn-ats">
@@ -1421,6 +1917,191 @@
             return div.innerHTML;
         }
 
+        /**
+         * Formats job description into beautiful, structured HTML
+         * Detects sections, bullet points, and applies enterprise-grade styling
+         */
+        function formatJobDescription(text) {
+            if (!text || !text.trim()) {
+                return '<div class="desc-empty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><span>No description available</span></div>';
+            }
+
+            // Decode HTML entities
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            let content = textarea.value;
+
+            // Common section header patterns
+            const sectionPatterns = [
+                /^(about\s*(the\s*)?(company|team|role|us|position)|meet\s*the\s*team|company\s*overview|who\s*we\s*are)/i,
+                /^(what\s*you('ll|'ll|\s*will)\s*(do|be\s*doing)|responsibilities|key\s*responsibilities|your\s*role|the\s*role|job\s*duties)/i,
+                /^(what\s*we('re|'re|\s*are)\s*looking\s*for|requirements|qualifications|minimum\s*qualifications|basic\s*qualifications|required\s*qualifications)/i,
+                /^(preferred\s*qualifications|nice\s*to\s*have|bonus\s*points|preferred\s*skills|desired\s*qualifications)/i,
+                /^(technical\s*skills|skills|required\s*skills|core\s*skills|key\s*skills)/i,
+                /^(benefits|perks|what\s*we\s*offer|why\s*join\s*us|compensation|salary)/i,
+                /^(education|experience|years\s*of\s*experience)/i,
+                /^(location|work\s*location|where\s*you('ll|'ll|\s*will)\s*work)/i,
+                /^(how\s*to\s*apply|application\s*process|next\s*steps)/i,
+                /^(equal\s*opportunity|eeo|diversity)/i
+            ];
+
+            const sectionIcons = {
+                'about': '🏢', 'company': '🏢', 'team': '👥', 'meet': '👥', 'who': '🏢',
+                'what you': '💼', 'responsibilities': '💼', 'role': '💼', 'duties': '💼',
+                'looking for': '🎯', 'requirements': '🎯', 'qualifications': '🎯', 'minimum': '🎯', 'basic': '🎯',
+                'preferred': '⭐', 'nice to': '⭐', 'bonus': '⭐', 'desired': '⭐',
+                'skills': '🛠️', 'technical': '🛠️',
+                'benefits': '🎁', 'perks': '🎁', 'offer': '🎁', 'compensation': '💰', 'salary': '💰',
+                'education': '🎓', 'experience': '📅',
+                'location': '📍', 'where': '📍',
+                'apply': '📝', 'application': '📝',
+                'equal': '🤝', 'eeo': '🤝', 'diversity': '🌈'
+            };
+
+            function getIconForSection(title) {
+                const lower = title.toLowerCase();
+                for (const [key, icon] of Object.entries(sectionIcons)) {
+                    if (lower.includes(key)) return icon;
+                }
+                return '📋';
+            }
+
+            function isSectionHeader(line) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.length > 80) return false;
+
+                // Check against known patterns
+                for (const pattern of sectionPatterns) {
+                    if (pattern.test(trimmed)) return true;
+                }
+
+                // Check for colon-ending headers (e.g., "Technical Skills:")
+                if (/^[A-Z][^.!?]*:$/.test(trimmed) && trimmed.length < 50) return true;
+
+                // Check for ALL CAPS headers
+                if (/^[A-Z\s&/]+$/.test(trimmed) && trimmed.length > 3 && trimmed.length < 40) return true;
+
+                // Check for Title Case short lines that look like headers
+                const words = trimmed.split(/\s+/);
+                if (words.length <= 5 && words.length >= 2) {
+                    const titleCase = words.every(w => /^[A-Z]/.test(w) || ['and', 'the', 'of', 'to', 'for', 'a', 'an', '&', '/'].includes(w.toLowerCase()));
+                    if (titleCase && !/[.!?]$/.test(trimmed)) return true;
+                }
+
+                return false;
+            }
+
+            function isBulletPoint(line) {
+                return /^\s*[•\-\*\u2022\u2023\u25E6\u2043\u2219►▸‣]\s+/.test(line) || /^\s*\d+[\.\)]\s+/.test(line);
+            }
+
+            function cleanBulletText(line) {
+                return line.replace(/^\s*[•\-\*\u2022\u2023\u25E6\u2043\u2219►▸‣]\s+/, '')
+                           .replace(/^\s*\d+[\.\)]\s+/, '')
+                           .trim();
+            }
+
+            function highlightKeyTerms(text) {
+                // Highlight years of experience
+                text = text.replace(/(\d+\+?\s*(?:years?|yrs?))/gi, '<span class="desc-highlight">$1</span>');
+
+                // Highlight key tech terms (be selective to avoid over-highlighting)
+                const techTerms = ['Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
+                    'Kubernetes', 'Docker', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API',
+                    'CI/CD', 'DevOps', 'Machine Learning', 'AI', 'ML', 'Data Science', 'Agile', 'Scrum'];
+
+                techTerms.forEach(term => {
+                    const regex = new RegExp(`\\b(${term})\\b`, 'gi');
+                    text = text.replace(regex, '<span class="desc-tech">$1</span>');
+                });
+
+                return text;
+            }
+
+            // Split into lines and process
+            const lines = content.split(/\n/);
+            let html = '';
+            let currentSection = null;
+            let bulletBuffer = [];
+            let paragraphBuffer = [];
+
+            function flushBullets() {
+                if (bulletBuffer.length > 0) {
+                    html += '<ul class="desc-list">';
+                    bulletBuffer.forEach(item => {
+                        html += `<li>${highlightKeyTerms(escapeHtml(item))}</li>`;
+                    });
+                    html += '</ul>';
+                    bulletBuffer = [];
+                }
+            }
+
+            function flushParagraph() {
+                if (paragraphBuffer.length > 0) {
+                    const text = paragraphBuffer.join(' ').trim();
+                    if (text) {
+                        html += `<p class="desc-para">${highlightKeyTerms(escapeHtml(text))}</p>`;
+                    }
+                    paragraphBuffer = [];
+                }
+            }
+
+            function closeSection() {
+                flushBullets();
+                flushParagraph();
+                if (currentSection) {
+                    html += '</div>';
+                    currentSection = null;
+                }
+            }
+
+            lines.forEach((line, index) => {
+                const trimmed = line.trim();
+
+                // Skip empty lines but flush buffers
+                if (!trimmed) {
+                    flushBullets();
+                    flushParagraph();
+                    return;
+                }
+
+                // Check for section header
+                if (isSectionHeader(trimmed)) {
+                    closeSection();
+                    const icon = getIconForSection(trimmed);
+                    const cleanTitle = trimmed.replace(/:$/, '');
+                    html += `<div class="desc-section">`;
+                    html += `<h3 class="desc-section-title"><span class="desc-icon">${icon}</span>${escapeHtml(cleanTitle)}</h3>`;
+                    currentSection = cleanTitle;
+                    return;
+                }
+
+                // Check for bullet point
+                if (isBulletPoint(trimmed)) {
+                    flushParagraph();
+                    bulletBuffer.push(cleanBulletText(trimmed));
+                    return;
+                }
+
+                // Regular paragraph text
+                flushBullets();
+                paragraphBuffer.push(trimmed);
+            });
+
+            // Close any remaining content
+            closeSection();
+            flushBullets();
+            flushParagraph();
+
+            // If no sections were detected, wrap everything nicely
+            if (!html.includes('desc-section')) {
+                // Re-process as simple formatted text
+                html = '<div class="desc-section"><div class="desc-content">' + html + '</div></div>';
+            }
+
+            return `<div class="desc-formatted">${html}</div>`;
+        }
+
         function renderJobDetail(job) {
             const sourceBadge = getSourceBadge(job.source);
             const inactiveBadge = job.is_active === false ? '<span class="inactive-badge">Inactive</span>' : '';
@@ -1470,66 +2151,56 @@
                 });
             }
 
-            // Description
-            let description = job.job_description || '';
-            const textarea = document.createElement('textarea');
-            textarea.innerHTML = description;
-            description = textarea.value;
-
             document.getElementById('job-content').innerHTML = `
                 <a href="../jobs/discover.html" class="back-link">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     Back to Jobs
                 </a>
 
-                <div class="job-header">
-                    <div class="job-header-main">
-                        <h1 class="job-title">${escapeHtml(job.title)}${sourceBadge}${inactiveBadge}</h1>
-                        <div class="job-company">
-                            <div class="company-logo">${companyInitial}</div>
-                            <div class="company-info">
-                                <h3>${escapeHtml(job.company_name) || 'Company'}</h3>
-                                <span>${escapeHtml(job.location) || 'Location not specified'}</span>
+                <!-- Compact Header -->
+                <div class="compact-header">
+                    <div class="header-left">
+                        <div class="title-row">
+                            <div class="company-logo-sm">${companyInitial}</div>
+                            <div class="title-info">
+                                <h1 class="job-title-compact">${escapeHtml(job.title)}${sourceBadge}${inactiveBadge}</h1>
+                                <div class="company-meta">
+                                    <span class="company-name">${escapeHtml(job.company_name) || 'Company'}</span>
+                                    <span class="separator">•</span>
+                                    <span>${escapeHtml(job.location) || 'Location not specified'}</span>
+                                    ${job.salary_min || job.salary_max ? `<span class="separator">•</span><span>${formatSalary(job.salary_min, job.salary_max)}</span>` : ''}
+                                    ${job.job_type ? `<span class="separator">•</span><span>${job.job_type}</span>` : ''}
+                                </div>
                             </div>
                         </div>
-                        <div class="job-meta">
-                            ${job.salary_min || job.salary_max ? `<div class="meta-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${formatSalary(job.salary_min, job.salary_max)}</div>` : ''}
-                            ${job.job_type ? `<div class="meta-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>${job.job_type}</div>` : ''}
-                            ${job.date_found ? `<div class="meta-item"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Found ${formatDate(job.date_found)}</div>` : ''}
-                        </div>
                     </div>
-                    <div class="job-header-actions">
-                        <div class="status-select-wrapper">
-                            <select id="status-select" class="status-select status-${job.status}" onchange="updateStatus(this.value)">
-                                <option value="wishlist" ${job.status === 'wishlist' ? 'selected' : ''}>Wishlist</option>
-                                <option value="applied" ${job.status === 'applied' ? 'selected' : ''}>Applied</option>
-                                <option value="interviewing" ${job.status === 'interviewing' ? 'selected' : ''}>Interviewing</option>
-                                <option value="offer" ${job.status === 'offer' ? 'selected' : ''}>Offer</option>
-                                <option value="rejected" ${job.status === 'rejected' ? 'selected' : ''}>Rejected</option>
-                                <option value="withdrawn" ${job.status === 'withdrawn' ? 'selected' : ''}>Withdrawn</option>
-                            </select>
-                        </div>
-                        <div class="action-buttons">
-                            <a href="job_form.html?id=${job.id}" class="btn btn-secondary">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                Edit
-                            </a>
-                            <button class="btn btn-danger" onclick="deleteJob()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                Delete
-                            </button>
-                        </div>
+                    <div class="header-actions">
+                        <select id="status-select" class="status-select status-${job.status}" onchange="updateStatus(this.value)">
+                            <option value="wishlist" ${job.status === 'wishlist' ? 'selected' : ''}>Wishlist</option>
+                            <option value="applied" ${job.status === 'applied' ? 'selected' : ''}>Applied</option>
+                            <option value="interviewing" ${job.status === 'interviewing' ? 'selected' : ''}>Interviewing</option>
+                            <option value="offer" ${job.status === 'offer' ? 'selected' : ''}>Offer</option>
+                            <option value="rejected" ${job.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                            <option value="withdrawn" ${job.status === 'withdrawn' ? 'selected' : ''}>Withdrawn</option>
+                        </select>
+                        <a href="job_form.html?id=${job.id}" class="btn-icon" title="Edit">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </a>
+                        <button class="btn-icon btn-icon-danger" onclick="deleteJob()" title="Delete">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </div>
                 </div>
 
-                <!-- AI Tools Row -->
-                <div class="ai-tools-row">
+                <!-- AI Tools Bar -->
+                <div class="ai-tools-bar">
+                    <span class="label">AI Tools</span>
                     <button class="ai-tool-btn" onclick="openCoverLetterModal()">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Cover Letter
                     </button>
                     <button class="ai-tool-btn" onclick="openATSModal()">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                         ATS Resume
                     </button>
                     <button class="ai-tool-btn" onclick="openQuestionsModal()">
@@ -1538,75 +2209,59 @@
                     </button>
                     <button class="ai-tool-btn" onclick="openMatchModal()">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                        Resume Match
+                        Match
                     </button>
                     <button class="ai-tool-btn" onclick="openResearchModal()" ${!job.company_name ? 'disabled title="Add a company first"' : ''}>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        Company Research
+                        Research
                     </button>
                 </div>
 
-                <!-- Interviews and Notes Row -->
-                <div class="secondary-cards-row">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Interviews</h3>
-                            <button class="btn btn-primary btn-small" onclick="openInterviewModal()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                Add
-                            </button>
+                <!-- Info Row: 3 columns -->
+                <div class="info-row">
+                    <!-- Interviews -->
+                    <div class="mini-card">
+                        <div class="mini-card-header">
+                            <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Interviews</h4>
+                            <button class="btn-add-mini" onclick="openInterviewModal()">+ Add</button>
                         </div>
-                        ${interviewsHtml}
+                        <div class="mini-card-body">${interviewsHtml}</div>
                     </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>Notes</h3>
-                            <button class="btn btn-primary btn-small" onclick="openNoteModal()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                Add
-                            </button>
+                    <!-- Notes -->
+                    <div class="mini-card">
+                        <div class="mini-card-header">
+                            <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>Notes</h4>
+                            <button class="btn-add-mini" onclick="openNoteModal()">+ Add</button>
                         </div>
-                        ${notesHtml}
+                        <div class="mini-card-body">${notesHtml}</div>
+                    </div>
+
+                    <!-- Job Details -->
+                    <div class="mini-card">
+                        <div class="mini-card-header">
+                            <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Job Details</h4>
+                            ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="link-mini">View</a>` : ''}
+                        </div>
+                        <div class="mini-card-body">
+                            <div class="details-grid">
+                                <div class="detail-item"><span class="dlabel">Location</span><span class="dvalue">${escapeHtml(job.location) || '-'}</span></div>
+                                <div class="detail-item"><span class="dlabel">Salary</span><span class="dvalue">${formatSalary(job.salary_min, job.salary_max)}</span></div>
+                                <div class="detail-item"><span class="dlabel">Applied</span><span class="dvalue">${formatDate(job.date_applied) || 'Not yet'}</span></div>
+                                <div class="detail-item"><span class="dlabel">Found</span><span class="dvalue">${formatDate(job.date_found) || '-'}</span></div>
+                                <div class="detail-item"><span class="dlabel">Type</span><span class="dvalue">${job.job_type || '-'}</span></div>
+                                <div class="detail-item"><span class="dlabel">Level</span><span class="dvalue stars">${starsHtml}</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Job Details Section -->
-                <div class="job-details-section">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Job Details</h3>
-                        </div>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <div class="label">Location</div>
-                                <div class="value">${escapeHtml(job.location) || 'Not specified'}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="label">Salary Range</div>
-                                <div class="value">${formatSalary(job.salary_min, job.salary_max)}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="label">Date Applied</div>
-                                <div class="value">${formatDate(job.date_applied) || 'Not applied yet'}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="label">Excitement Level</div>
-                                <div class="value"><span class="excitement-stars">${starsHtml}</span></div>
-                            </div>
-                            ${job.job_url ? `<div class="info-item" style="grid-column: span 2;">
-                                <div class="label">Job Posting</div>
-                                <div class="value"><a href="${escapeHtml(job.job_url)}" target="_blank">View Original Posting →</a></div>
-                            </div>` : ''}
-                        </div>
+                <!-- Job Description -->
+                <div class="desc-card">
+                    <div class="desc-card-header">
+                        <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h4>
                     </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h3>
-                        </div>
-                        <div class="job-description">${description || '<span style="color: var(--text-muted);">No description available</span>'}</div>
-                    </div>
+                    <div class="desc-card-body">${formatJobDescription(job.job_description)}</div>
                 </div>
             `;
 
@@ -1646,54 +2301,111 @@
         function openInterviewModal() { document.getElementById('interview-modal').classList.add('active'); }
         function closeInterviewModal() { document.getElementById('interview-modal').classList.remove('active'); document.getElementById('interview-form').reset(); }
 
-        // Cache for default resume to avoid multiple API calls
-        let cachedResumeContent = null;
-        let resumeLoading = false;
+        // Cache for documents
+        let userDocuments = null;
+        let documentsLoading = false;
 
-        async function loadDefaultResume(textareaId, statusId) {
+        async function loadUserDocuments() {
+            if (userDocuments !== null) return userDocuments;
+            if (documentsLoading) return [];
+
+            documentsLoading = true;
+            try {
+                const docs = await apiRequest('/users/documents?type=resume', 'GET');
+                userDocuments = docs || [];
+                return userDocuments;
+            } catch (error) {
+                console.error('Failed to load documents:', error);
+                userDocuments = [];
+                return [];
+            } finally {
+                documentsLoading = false;
+            }
+        }
+
+        async function loadDocumentContent(docId) {
+            try {
+                const response = await apiRequest(`/users/documents/${docId}/content`, 'GET');
+                return response?.content || null;
+            } catch (error) {
+                console.error('Failed to load document content:', error);
+                return null;
+            }
+        }
+
+        async function setupResumeSelector(selectId, textareaId, statusId) {
+            const selectEl = document.getElementById(selectId);
             const textarea = document.getElementById(textareaId);
             const statusSpan = document.getElementById(statusId);
 
-            // If already cached, use it
-            if (cachedResumeContent) {
-                textarea.value = cachedResumeContent;
-                if (statusSpan) statusSpan.textContent = '(auto-loaded from your profile)';
+            if (!selectEl || !textarea) return;
+
+            // Show loading state
+            selectEl.innerHTML = '<option value="">Loading documents...</option>';
+            selectEl.disabled = true;
+            textarea.placeholder = 'Loading...';
+
+            // Load documents
+            const docs = await loadUserDocuments();
+
+            if (docs.length === 0) {
+                selectEl.innerHTML = '<option value="">No resumes found</option>';
+                selectEl.disabled = true;
+                textarea.placeholder = 'No resume uploaded. Go to Documents to upload one, or paste your resume here...';
+                if (statusSpan) statusSpan.innerHTML = '<a href="../jobs/documents.html" style="color: var(--accent-blue);">Upload Resume</a>';
                 return;
             }
 
-            // If already loading, wait
-            if (resumeLoading) {
-                textarea.placeholder = 'Loading your resume...';
-                return;
-            }
+            // Populate select
+            let options = '<option value="">Select a resume...</option>';
+            let defaultDocId = null;
+            docs.forEach(doc => {
+                const isDefault = doc.is_default ? ' (Default)' : '';
+                options += `<option value="${doc.id}" ${doc.is_default ? 'selected' : ''}>${doc.filename}${isDefault}</option>`;
+                if (doc.is_default) defaultDocId = doc.id;
+            });
+            selectEl.innerHTML = options;
+            selectEl.disabled = false;
 
-            resumeLoading = true;
-            textarea.placeholder = 'Loading your resume...';
-            textarea.value = '';
-
-            try {
-                const response = await apiRequest('/users/documents/default-resume', 'GET');
-                if (response && response.content) {
-                    cachedResumeContent = response.content;
-                    textarea.value = response.content;
-                    if (statusSpan) statusSpan.textContent = `(auto-loaded: ${response.filename})`;
-                } else {
-                    textarea.placeholder = 'Paste your resume text here...';
-                    if (statusSpan) statusSpan.textContent = '(no default resume found)';
+            // Handle selection change
+            selectEl.onchange = async function() {
+                const docId = this.value;
+                if (!docId) {
+                    textarea.value = '';
+                    textarea.placeholder = 'Select a resume above or paste here...';
+                    return;
                 }
-            } catch (error) {
-                console.error('Failed to load default resume:', error);
-                textarea.placeholder = 'Paste your resume text here...';
-                if (statusSpan) statusSpan.textContent = '';
-            } finally {
-                resumeLoading = false;
+
+                textarea.placeholder = 'Loading resume content...';
+                textarea.value = '';
+
+                const content = await loadDocumentContent(docId);
+                if (content) {
+                    textarea.value = content;
+                    if (statusSpan) statusSpan.textContent = 'Resume loaded';
+                } else {
+                    textarea.placeholder = 'Failed to load resume. Try pasting manually...';
+                    if (statusSpan) statusSpan.textContent = 'Error loading';
+                }
+            };
+
+            // Auto-load default document
+            if (defaultDocId) {
+                selectEl.value = defaultDocId;
+                selectEl.onchange();
+            } else if (docs.length === 1) {
+                // If only one document, auto-select it
+                selectEl.value = docs[0].id;
+                selectEl.onchange();
+            } else {
+                textarea.placeholder = 'Select a resume above or paste here...';
             }
         }
 
         function openCoverLetterModal() {
             document.getElementById('cover-letter-modal').classList.add('active');
             document.getElementById('cover-letter-result').innerHTML = '';
-            loadDefaultResume('resume_text_cl', 'resume-status-cl');
+            setupResumeSelector('resume_select_cl', 'resume_text_cl', 'resume-status-cl');
         }
         function closeCoverLetterModal() { document.getElementById('cover-letter-modal').classList.remove('active'); }
 
@@ -1703,14 +2415,14 @@
         function openMatchModal() {
             document.getElementById('match-modal').classList.add('active');
             document.getElementById('match-result').innerHTML = '';
-            loadDefaultResume('resume_text_match', 'resume-status-match');
+            setupResumeSelector('resume_select_match', 'resume_text_match', 'resume-status-match');
         }
         function closeMatchModal() { document.getElementById('match-modal').classList.remove('active'); }
 
         function openATSModal() {
             document.getElementById('ats-modal').classList.add('active');
             document.getElementById('ats-result').innerHTML = '';
-            loadDefaultResume('resume_text_ats', 'resume-status-ats');
+            setupResumeSelector('resume_select_ats', 'resume_text_ats', 'resume-status-ats');
         }
         function closeATSModal() { document.getElementById('ats-modal').classList.remove('active'); }
 
