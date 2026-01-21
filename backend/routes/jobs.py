@@ -148,11 +148,28 @@ def _cache_get(key: str):
     return None
 
 
+def _serialize_for_cache(obj):
+    """Convert datetime objects for JSON serialization."""
+    import json
+    from datetime import datetime, date
+
+    def default_serializer(o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+        elif isinstance(o, date):
+            return o.isoformat()
+        raise TypeError(f"Object of type {type(o)} is not JSON serializable")
+
+    return json.loads(json.dumps(obj, default=default_serializer))
+
+
 def _cache_set(key: str, value, ttl: int = CACHE_TTL_JOBS):
     """Set cache if Redis available."""
     if _redis_available():
         try:
-            redis_service.cache_set(key, value, ttl)
+            # Serialize datetime objects before caching
+            serializable = _serialize_for_cache(value)
+            redis_service.cache_set(key, serializable, ttl)
         except Exception:
             pass
 
@@ -357,10 +374,13 @@ async def get_jobs(
 
     # Limit to most recent jobs for performance (relevance scoring is CPU-intensive)
     MAX_JOBS_TO_SCORE = 1000
-    all_jobs = query.order_by(
-        Job.posted_date.desc().nullslast(),
-        Job.created_at.desc()
-    ).limit(MAX_JOBS_TO_SCORE).all()
+    try:
+        all_jobs = query.order_by(
+            Job.posted_date.desc().nullslast(),
+            Job.created_at.desc()
+        ).limit(MAX_JOBS_TO_SCORE).all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
 
     # Get user preferences for scoring
     user_prefs = None
@@ -370,17 +390,20 @@ async def get_jobs(
             "target_seniority": current_user.target_seniority
         }
 
-    # Score and filter jobs - use list comprehension for speed
+    # Score and filter jobs
     threshold = role_profile.get("relevance_threshold", 30.0)
     scored_jobs = []
-    for job in all_jobs:
-        result = compute_job_relevance(job, role_profile, user_prefs)
-        # Filter during scoring to avoid second pass
-        if min_score is not None:
-            if result.relevance_score >= min_score:
+    try:
+        for job in all_jobs:
+            result = compute_job_relevance(job, role_profile, user_prefs)
+            # Filter during scoring to avoid second pass
+            if min_score is not None:
+                if result.relevance_score >= min_score:
+                    scored_jobs.append((job, result))
+            elif result.is_relevant:
                 scored_jobs.append((job, result))
-        elif result.is_relevant:
-            scored_jobs.append((job, result))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Relevance scoring failed: {str(e)}")
 
     # Sort by relevance score descending
     scored_jobs.sort(key=lambda x: x[1].relevance_score, reverse=True)
