@@ -2693,14 +2693,8 @@
             btn.disabled = true;
 
             try {
-                const response = await fetch(`${API_BASE}/api/jobs/${jobId}/ai-summary`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                if (!response.ok) throw new Error('Failed to generate summary');
-
-                const data = await response.json();
+                // Use apiRequest which handles the base URL correctly
+                const data = await apiRequest(`/jobs/${jobId}/ai-summary`, 'POST');
 
                 // Update the job in processedJobs
                 const jobIndex = processedJobs.findIndex(j => j.id === jobId);

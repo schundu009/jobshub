@@ -346,7 +346,7 @@ async def get_jobs(
             q = q.limit(limit)
         jobs = q.all()
         result = {
-            "jobs": [job_to_response(job) for job in jobs],
+            "jobs": [job_to_response(job, include_description=True) for job in jobs],
             "total": total,
             "relevance_filtering": False,
             "role": None
@@ -365,7 +365,7 @@ async def get_jobs(
             q = q.limit(limit)
         jobs = q.all()
         result = {
-            "jobs": [job_to_response(job) for job in jobs],
+            "jobs": [job_to_response(job, include_description=True) for job in jobs],
             "total": total,
             "relevance_filtering": False,
             "role": None,
@@ -421,7 +421,7 @@ async def get_jobs(
     role_name = role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
 
     response = {
-        "jobs": [job_to_response(job, rel) for job, rel in scored_jobs],
+        "jobs": [job_to_response(job, rel, include_description=True) for job, rel in scored_jobs],
         "total": total_relevant,
         "relevance_filtering": True,
         "role": role_name,
