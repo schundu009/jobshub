@@ -873,6 +873,66 @@
             color: var(--text-secondary);
         }
 
+        /* HTML content from ATS systems */
+        .desc-html-content {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .desc-html-content h1, .desc-html-content h2, .desc-html-content h3,
+        .desc-html-content h4, .desc-html-content h5, .desc-html-content h6 {
+            color: var(--text-primary);
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+        }
+
+        .desc-html-content h1 { font-size: 18px; }
+        .desc-html-content h2 { font-size: 16px; }
+        .desc-html-content h3 { font-size: 14px; }
+        .desc-html-content h4, .desc-html-content h5, .desc-html-content h6 { font-size: 13px; }
+
+        .desc-html-content p {
+            margin: 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .desc-html-content ul, .desc-html-content ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .desc-html-content li {
+            margin: 4px 0;
+            color: var(--text-secondary);
+            position: relative;
+        }
+
+        .desc-html-content ul li::marker {
+            color: var(--accent-color);
+        }
+
+        .desc-html-content a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .desc-html-content a:hover {
+            text-decoration: underline;
+        }
+
+        .desc-html-content strong, .desc-html-content b {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .desc-html-content em, .desc-html-content i {
+            font-style: italic;
+        }
+
+        .desc-html-content > div {
+            margin: 8px 0;
+        }
+
         .desc-empty {
             display: flex;
             flex-direction: column;
@@ -1918,15 +1978,108 @@
         }
 
         /**
+         * Formats HTML job descriptions from ATS systems (Greenhouse, Lever, etc.)
+         * Sanitizes and styles the HTML content
+         */
+        function formatHtmlDescription(html) {
+            // Create a temporary container to parse HTML
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Remove script tags and event handlers for security
+            temp.querySelectorAll('script, style, iframe, object, embed').forEach(el => el.remove());
+            temp.querySelectorAll('*').forEach(el => {
+                // Remove event handlers
+                Array.from(el.attributes).forEach(attr => {
+                    if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+                });
+                // Remove dangerous attributes
+                el.removeAttribute('style'); // We'll apply our own styles
+            });
+
+            // Style headers (h1-h6, strong in divs that look like headers)
+            temp.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => {
+                h.classList.add('desc-section-title');
+            });
+
+            // Style lists
+            temp.querySelectorAll('ul, ol').forEach(list => {
+                list.classList.add('desc-list');
+            });
+
+            // Style paragraphs
+            temp.querySelectorAll('p').forEach(p => {
+                if (p.textContent.trim()) {
+                    p.classList.add('desc-para');
+                }
+            });
+
+            // Highlight tech terms and experience
+            const techTerms = ['Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
+                'Kubernetes', 'Docker', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API',
+                'CI/CD', 'DevOps', 'Machine Learning', 'AI', 'ML', 'Linux', 'Go', 'Rust', 'Java', 'C++',
+                'Terraform', 'Ansible', 'Jenkins', 'Git', 'Prometheus', 'Grafana', 'Kafka'];
+
+            function highlightText(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    let text = node.textContent;
+                    let hasMatch = false;
+
+                    // Check for years of experience
+                    if (/\d+\+?\s*(?:years?|yrs?)/i.test(text)) hasMatch = true;
+                    // Check for tech terms
+                    techTerms.forEach(term => {
+                        if (new RegExp(`\\b${term}\\b`, 'i').test(text)) hasMatch = true;
+                    });
+
+                    if (hasMatch) {
+                        const span = document.createElement('span');
+                        let html = text;
+                        // Highlight years
+                        html = html.replace(/(\d+\+?\s*(?:years?|yrs?))/gi, '<span class="desc-highlight">$1</span>');
+                        // Highlight tech terms
+                        techTerms.forEach(term => {
+                            const regex = new RegExp(`\\b(${term})\\b`, 'gi');
+                            html = html.replace(regex, '<span class="desc-tech">$1</span>');
+                        });
+                        span.innerHTML = html;
+                        node.parentNode.replaceChild(span, node);
+                    }
+                } else if (node.nodeType === Node.ELEMENT_NODE && !['SCRIPT', 'STYLE'].includes(node.tagName)) {
+                    Array.from(node.childNodes).forEach(highlightText);
+                }
+            }
+            highlightText(temp);
+
+            // Clean up empty divs and spans
+            temp.querySelectorAll('div, span').forEach(el => {
+                if (!el.textContent.trim() && !el.querySelector('img, svg')) {
+                    el.remove();
+                }
+            });
+
+            // Wrap in our container
+            return `<div class="desc-formatted desc-html-content">${temp.innerHTML}</div>`;
+        }
+
+        /**
          * Formats job description into beautiful, structured HTML
-         * Detects sections, bullet points, and applies enterprise-grade styling
+         * Handles both HTML content (from ATS) and plain text
          */
         function formatJobDescription(text) {
             if (!text || !text.trim()) {
                 return '<div class="desc-empty"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><span>No description available</span></div>';
             }
 
-            // Decode HTML entities
+            // Check if content contains HTML tags
+            const hasHtml = /<[a-z][\s\S]*>/i.test(text);
+
+            if (hasHtml) {
+                // Handle HTML content from ATS systems
+                return formatHtmlDescription(text);
+            }
+
+            // Decode HTML entities for plain text
             const textarea = document.createElement('textarea');
             textarea.innerHTML = text;
             let content = textarea.value;
