@@ -34,12 +34,20 @@ from middleware.auth import get_current_user, get_current_user_optional
 # Redis caching
 try:
     from services.redis_service import redis_service
-    REDIS_AVAILABLE = redis_service.ping()
 except Exception:
-    REDIS_AVAILABLE = False
     redis_service = None
 
 CACHE_TTL_JOBS = 60  # Cache job lists for 60 seconds
+
+
+def _redis_available() -> bool:
+    """Check if Redis is available (called dynamically, not at import time)."""
+    if redis_service is None:
+        return False
+    try:
+        return redis_service.ping()
+    except Exception:
+        return False
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -132,7 +140,7 @@ def _get_cache_key(prefix: str, **params) -> str:
 
 def _cache_get(key: str):
     """Get from cache if Redis available."""
-    if REDIS_AVAILABLE and redis_service:
+    if _redis_available():
         try:
             return redis_service.cache_get(key)
         except Exception:
@@ -142,7 +150,7 @@ def _cache_get(key: str):
 
 def _cache_set(key: str, value, ttl: int = CACHE_TTL_JOBS):
     """Set cache if Redis available."""
-    if REDIS_AVAILABLE and redis_service:
+    if _redis_available():
         try:
             redis_service.cache_set(key, value, ttl)
         except Exception:
