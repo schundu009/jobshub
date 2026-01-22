@@ -612,6 +612,46 @@ def run_migrations():
 
         conn.commit()
 
+        # Add new ingestion sources
+        try:
+            new_sources = [
+                ('workday', 'orionadvisor:wd1:Orion_Careers', 'Orion Advisor'),
+            ]
+            for ats_type, slug, name in new_sources:
+                # Check if source already exists
+                try:
+                    # PostgreSQL syntax
+                    result = conn.execute(text(f"SELECT id FROM ingestion_sources WHERE ats_company_slug = '{slug}'"))
+                except Exception:
+                    # SQLite syntax
+                    result = conn.execute(text(f"SELECT id FROM ingestion_sources WHERE ats_company_slug = '{slug}'"))
+
+                if not result.fetchone():
+                    conn.execute(text(f"""
+                        INSERT INTO ingestion_sources (ats_type, ats_company_slug, company_name, is_active, job_count, created_at)
+                        VALUES ('{ats_type}', '{slug}', '{name}', true, 0, CURRENT_TIMESTAMP)
+                    """))
+                    logger.info(f"Added ingestion source: {name}")
+        except Exception as e:
+            logger.warning(f"Could not add new ingestion sources: {e}")
+
+        conn.commit()
+
+        # Ensure first user is admin if no admin exists
+        try:
+            result = conn.execute(text("SELECT COUNT(*) FROM users WHERE role = 'admin'"))
+            admin_count = result.fetchone()[0]
+            if admin_count == 0:
+                # Promote the first user to admin
+                result = conn.execute(text("SELECT id, email FROM users ORDER BY id LIMIT 1"))
+                first_user = result.fetchone()
+                if first_user:
+                    conn.execute(text(f"UPDATE users SET role = 'admin' WHERE id = {first_user[0]}"))
+                    conn.commit()
+                    logger.info(f"Promoted first user {first_user[1]} to admin")
+        except Exception as e:
+            logger.warning(f"Could not check/promote admin user: {e}")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
