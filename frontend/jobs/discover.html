@@ -2151,11 +2151,10 @@
 
             const showMatch = currentRole && score > 0;
             const matchHtml = showMatch ? `<div style="color:var(--text-secondary);font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
-            const hasAiSummary = job.ai_summary ? `<span style="color:var(--text-muted);font-size:9px;margin-left:4px;">[AI]</span>` : '';
 
             return `<div style="display:flex;flex-direction:column;padding:4px 0;">
                 ${matchHtml}
-                <div style="color:var(--text-secondary);font-size:11px;line-height:1.4;overflow:hidden;">${displayText || '-'}${hasAiSummary}</div>
+                <div style="color:var(--text-secondary);font-size:11px;line-height:1.4;overflow:hidden;">${displayText || '-'}</div>
             </div>`;
         }
 
