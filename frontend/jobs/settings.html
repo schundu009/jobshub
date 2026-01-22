@@ -447,10 +447,8 @@
         }
 
         async function loadSettings() {
-            if (!getToken()) { window.location.href = 'login.html'; return; }
             try {
-                const r = await authFetch(`${API_BASE}/api/users/settings`);
-                if (!r) return;
+                const r = await fetch(`${API_BASE}/api/users/settings`);
                 if (r.ok) {
                     const data = await r.json();
                     originalValues = { ...data };
@@ -460,19 +458,18 @@
                         }
                     });
                 }
-            } catch (e) { toast('Failed to load', 'error'); }
+            } catch (e) { console.log('Settings not loaded:', e); }
         }
 
         async function saveField(fieldName, value) {
             if (originalValues[fieldName] === value) return;
             setSaveStatus('saving');
             try {
-                const r = await authFetch(`${API_BASE}/api/users/settings`, {
+                const r = await fetch(`${API_BASE}/api/users/settings`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ [fieldName]: value || null })
                 });
-                if (!r) return;
                 if (r.ok) {
                     originalValues[fieldName] = value;
                     const el = document.querySelector(`[name="${fieldName}"]`);
