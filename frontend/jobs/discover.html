@@ -1045,34 +1045,34 @@
             width: 100% !important;
         }
 
-        /* Premium Dark Table - Matching Design */
+        /* Minimal Table - Monochrome */
         .ag-theme-alpine {
             --ag-background-color: var(--bg-secondary);
             --ag-header-background-color: var(--bg-tertiary);
-            --ag-header-foreground-color: var(--text-primary);
+            --ag-header-foreground-color: var(--text-secondary);
             --ag-foreground-color: var(--text-primary);
             --ag-row-hover-color: var(--bg-hover);
             --ag-selected-row-background-color: var(--bg-hover);
             --ag-border-color: var(--border-color);
-            --ag-odd-row-background-color: rgba(26, 35, 50, 0.5);
-            --ag-font-family: 'Source Sans 3', -apple-system, sans-serif;
+            --ag-odd-row-background-color: var(--bg-secondary);
+            --ag-font-family: 'Inter', -apple-system, sans-serif;
             --ag-font-size: 13px;
             --ag-row-border-color: var(--border-color);
             --ag-header-column-separator-color: var(--border-color);
         }
 
-        /* Root wrapper - seamless border */
+        /* Root wrapper */
         .ag-theme-alpine .ag-root-wrapper {
-            border: none !important;
-            border-radius: 16px;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px;
             overflow: hidden;
             background: var(--bg-secondary);
         }
 
-        /* Header - Sleek Design */
+        /* Header - Simple */
         .ag-theme-alpine .ag-header {
-            background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .ag-theme-alpine .ag-header-cell-label {
@@ -1093,13 +1093,13 @@
             border-right: none !important;
         }
 
-        /* Row Backgrounds - Subtle alternation */
+        /* Row Backgrounds - No alternation */
         .ag-theme-alpine .ag-row-even {
             background: var(--bg-secondary);
         }
 
         .ag-theme-alpine .ag-row-odd {
-            background: rgba(26, 35, 50, 0.3);
+            background: var(--bg-secondary);
         }
 
         /* Row - Clean borders */
@@ -1121,50 +1121,47 @@
             border-right: none !important;
         }
 
-        /* Hover State - Smooth transition */
+        /* Hover State */
         .ag-theme-alpine .ag-row:hover {
             background: var(--bg-hover) !important;
-            box-shadow: inset 0 0 0 1px rgba(79, 140, 255, 0.1);
         }
 
         /* Selected Row */
         .ag-theme-alpine .ag-row-selected {
-            background: rgba(79, 140, 255, 0.1) !important;
+            background: var(--bg-hover) !important;
         }
 
-        /* Pagination Panel - Modern */
+        /* Pagination Panel */
         .ag-theme-alpine .ag-paging-panel {
-            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            background: var(--bg-tertiary);
             border-top: 1px solid var(--border-color);
             color: var(--text-secondary);
             font-size: 12px;
-            height: 48px;
-            padding: 0 16px;
+            height: 44px;
+            padding: 0 12px;
         }
 
         .ag-theme-alpine .ag-paging-button {
-            color: var(--accent-blue);
-            border-radius: 6px;
-            transition: all 0.2s;
+            color: var(--text-secondary);
+            border-radius: 3px;
         }
 
         .ag-theme-alpine .ag-paging-button:hover {
-            background: var(--accent-blue-muted);
-            color: var(--accent-blue-light);
+            background: var(--bg-hover);
+            color: var(--text-primary);
         }
 
-        /* Tooltip - Premium */
+        /* Tooltip */
         .ag-theme-alpine .ag-tooltip {
             background: var(--bg-elevated) !important;
             color: var(--text-primary) !important;
-            border: 1px solid var(--border-light) !important;
-            border-radius: 10px !important;
-            padding: 12px 16px !important;
-            max-width: 420px !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px !important;
+            padding: 10px 12px !important;
+            max-width: 400px !important;
             white-space: pre-wrap !important;
-            line-height: 1.6 !important;
-            font-size: 13px !important;
-            box-shadow: var(--shadow-lg) !important;
+            line-height: 1.5 !important;
+            font-size: 12px !important;
         }
 
         /* Scrollbar in grid */
@@ -1208,7 +1205,7 @@
         }
 
         .role-title a:hover {
-            color: var(--accent-blue-light) !important;
+            color: var(--text-secondary) !important;
         }
 
         .ag-theme-alpine .ag-cell {
@@ -1220,12 +1217,12 @@
         }
 
         .ag-theme-alpine .ag-cell a {
-            color: var(--accent-blue-light) !important;
-            transition: color 0.2s;
+            color: var(--text-primary) !important;
+            text-decoration: underline;
         }
 
         .ag-theme-alpine .ag-cell a:hover {
-            color: var(--accent-blue) !important;
+            color: var(--text-secondary) !important;
         }
 
         /* Description Cell with Match + Tech Stack */
