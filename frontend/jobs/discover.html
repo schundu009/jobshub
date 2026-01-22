@@ -13,99 +13,99 @@
     <link rel="stylesheet" href="../css/theme.css">
     <style>
         :root, [data-theme="dark"] {
-            /* Modern Dark Theme - Refined Palette */
-            --bg-primary: #0a0e14;
-            --bg-secondary: #131a24;
-            --bg-tertiary: #1a2332;
-            --bg-card: #161e2a;
-            --bg-hover: #1f2a3c;
-            --bg-elevated: #1e2836;
+            /* Minimal Dark Theme - Monochrome */
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #222222;
+            --bg-card: #1a1a1a;
+            --bg-hover: #2a2a2a;
+            --bg-elevated: #1e1e1e;
 
-            /* Refined Accent Colors */
-            --accent-blue: #4f8cff;
-            --accent-blue-hover: #3a7cf5;
-            --accent-blue-light: #6ba3ff;
-            --accent-blue-muted: rgba(79, 140, 255, 0.15);
-            --accent-green: #10b981;
-            --accent-green-light: #34d399;
-            --accent-yellow: #f59e0b;
-            --accent-yellow-light: #fbbf24;
-            --accent-purple: #8b5cf6;
-            --accent-purple-light: #a78bfa;
-            --accent-red: #ef4444;
-            --accent-orange: #f97316;
-            --accent-cyan: #22d3ee;
-            --accent-pink: #ec4899;
+            /* No accent colors - use greys */
+            --accent-blue: #888888;
+            --accent-blue-hover: #999999;
+            --accent-blue-light: #aaaaaa;
+            --accent-blue-muted: rgba(136, 136, 136, 0.15);
+            --accent-green: #888888;
+            --accent-green-light: #aaaaaa;
+            --accent-yellow: #888888;
+            --accent-yellow-light: #aaaaaa;
+            --accent-purple: #888888;
+            --accent-purple-light: #aaaaaa;
+            --accent-red: #888888;
+            --accent-orange: #888888;
+            --accent-cyan: #888888;
+            --accent-pink: #888888;
 
-            /* Gradient Colors */
-            --gradient-primary: linear-gradient(135deg, #4f8cff 0%, #8b5cf6 100%);
-            --gradient-success: linear-gradient(135deg, #10b981 0%, #22d3ee 100%);
-            --gradient-sidebar: linear-gradient(180deg, #131a24 0%, #0d1117 100%);
+            /* No gradients - solid colors */
+            --gradient-primary: #333333;
+            --gradient-success: #333333;
+            --gradient-sidebar: #1a1a1a;
 
-            /* Text Colors */
-            --text-primary: #e8edf5;
-            --text-secondary: #8b9ab5;
-            --text-muted: #5a6a82;
+            /* Text Colors - White to grey */
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
             --text-bright: #ffffff;
 
             /* Border Colors */
-            --border-color: rgba(139, 154, 181, 0.12);
-            --border-light: rgba(139, 154, 181, 0.18);
-            --border-focus: rgba(79, 140, 255, 0.5);
+            --border-color: #333333;
+            --border-light: #444444;
+            --border-focus: #555555;
 
-            /* Shadows */
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-            --shadow-glow: 0 0 20px rgba(79, 140, 255, 0.15);
+            /* Shadows - subtle */
+            --shadow-sm: none;
+            --shadow-md: none;
+            --shadow-lg: none;
+            --shadow-glow: none;
         }
 
         [data-theme="light"] {
-            /* Light Theme Colors */
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
+            /* Minimal Light Theme - Monochrome */
+            --bg-primary: #ffffff;
+            --bg-secondary: #fafafa;
+            --bg-tertiary: #f5f5f5;
             --bg-card: #ffffff;
-            --bg-hover: #e2e8f0;
-            --bg-elevated: #ffffff;
+            --bg-hover: #f0f0f0;
+            --bg-elevated: #fafafa;
 
-            /* Accent Colors */
-            --accent-blue: #3b82f6;
-            --accent-blue-hover: #2563eb;
-            --accent-blue-light: #60a5fa;
-            --accent-blue-muted: rgba(59, 130, 246, 0.1);
-            --accent-green: #10b981;
-            --accent-green-light: #34d399;
-            --accent-yellow: #f59e0b;
-            --accent-yellow-light: #fbbf24;
-            --accent-purple: #8b5cf6;
-            --accent-purple-light: #a78bfa;
-            --accent-red: #ef4444;
-            --accent-orange: #f97316;
-            --accent-cyan: #06b6d4;
-            --accent-pink: #ec4899;
+            /* No accent colors - use greys */
+            --accent-blue: #555555;
+            --accent-blue-hover: #333333;
+            --accent-blue-light: #666666;
+            --accent-blue-muted: rgba(85, 85, 85, 0.1);
+            --accent-green: #555555;
+            --accent-green-light: #666666;
+            --accent-yellow: #555555;
+            --accent-yellow-light: #666666;
+            --accent-purple: #555555;
+            --accent-purple-light: #666666;
+            --accent-red: #555555;
+            --accent-orange: #555555;
+            --accent-cyan: #555555;
+            --accent-pink: #555555;
 
-            /* Gradient Colors */
-            --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            --gradient-success: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-            --gradient-sidebar: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            /* No gradients - solid colors */
+            --gradient-primary: #e0e0e0;
+            --gradient-success: #e0e0e0;
+            --gradient-sidebar: #fafafa;
 
-            /* Text Colors */
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
+            /* Text Colors - Black to grey */
+            --text-primary: #111111;
+            --text-secondary: #555555;
+            --text-muted: #999999;
             --text-bright: #000000;
 
             /* Border Colors */
-            --border-color: #e2e8f0;
-            --border-light: #cbd5e1;
-            --border-focus: rgba(59, 130, 246, 0.5);
+            --border-color: #e0e0e0;
+            --border-light: #d0d0d0;
+            --border-focus: #bbbbbb;
 
-            /* Shadows */
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-            --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.1);
+            /* Shadows - none */
+            --shadow-sm: none;
+            --shadow-md: none;
+            --shadow-lg: none;
+            --shadow-glow: none;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -126,10 +126,10 @@
             display: none !important;
         }
 
-        /* Premium Sidebar Layout */
+        /* Minimal Sidebar */
         .sidebar {
-            width: 260px;
-            background: var(--gradient-sidebar);
+            width: 200px;
+            background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -138,18 +138,10 @@
             left: 0;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(20px);
         }
 
         .sidebar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 200px;
-            background: linear-gradient(180deg, rgba(79, 140, 255, 0.05) 0%, transparent 100%);
-            pointer-events: none;
+            display: none;
         }
 
         .sidebar-header {
@@ -167,13 +159,10 @@
         }
 
         .sidebar-header .brand-name {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 26px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 18px;
             font-weight: 600;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue-light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text-primary);
             letter-spacing: -0.02em;
             margin: 0;
         }
@@ -203,25 +192,15 @@
         .sidebar-nav a:hover {
             background: var(--bg-hover);
             color: var(--text-primary);
-            transform: translateX(4px);
         }
 
         .sidebar-nav a.active {
-            background: var(--gradient-primary);
-            color: white;
-            box-shadow: var(--shadow-md), var(--shadow-glow);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
 
         .sidebar-nav a.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: white;
-            border-radius: 0 4px 4px 0;
-            opacity: 0.5;
+            display: none;
         }
 
         .sidebar-nav a svg {
@@ -235,33 +214,30 @@
             transform: scale(1.1);
         }
 
-        /* Sidebar User Section - Premium */
+        /* Sidebar User Section */
         .sidebar-user {
-            padding: 20px;
+            padding: 16px;
             border-top: 1px solid var(--border-color);
-            background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
             flex-shrink: 0;
         }
 
         .sidebar-login-btn {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            background: var(--gradient-primary);
-            color: white;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             text-decoration: none;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
             justify-content: center;
-            box-shadow: var(--shadow-md), var(--shadow-glow);
         }
 
         .sidebar-login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg), 0 0 30px rgba(79, 140, 255, 0.3);
+            background: var(--bg-hover);
         }
 
         .sidebar-login-btn svg {
@@ -281,18 +257,18 @@
         }
 
         .sidebar-user-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--gradient-primary);
-            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 600;
             flex-shrink: 0;
-            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
 
         .sidebar-user-details {
@@ -335,9 +311,8 @@
         }
 
         .sidebar-logout-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.4);
-            color: var(--accent-red);
+            background: var(--bg-hover);
+            color: var(--text-primary);
         }
 
         .sidebar-logout-btn svg {
@@ -425,11 +400,11 @@
             height: 16px;
         }
 
-        /* Main Content - Premium */
+        /* Main Content - Minimal */
         .main-content {
             flex: 1;
-            margin-left: 260px;
-            padding: 28px 32px;
+            margin-left: 200px;
+            padding: 24px;
             background: var(--bg-primary);
             min-height: 100vh;
             overflow-y: auto;
@@ -438,24 +413,17 @@
         }
 
         .main-content::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 50%;
-            background: radial-gradient(ellipse at top right, rgba(79, 140, 255, 0.03) 0%, transparent 60%);
-            pointer-events: none;
+            display: none;
         }
 
         /* Responsive - Tablet */
         @media (max-width: 1024px) {
             .sidebar {
-                width: 220px;
+                width: 180px;
             }
             .main-content {
-                margin-left: 220px;
-                padding: 20px;
+                margin-left: 180px;
+                padding: 16px;
             }
             .controls-bar {
                 flex-wrap: wrap;
@@ -737,31 +705,29 @@
         .freshness-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(34, 211, 238, 0.1) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 20px;
-            color: var(--accent-green-light);
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-secondary);
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .freshness-badge::before {
             content: '';
-            width: 8px;
-            height: 8px;
-            background: var(--accent-green);
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
             border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.9); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .freshness-text {
@@ -787,11 +753,8 @@
         }
 
         .discover-header h2 span {
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         .header-stats {
@@ -806,7 +769,7 @@
         }
 
         .header-stats strong {
-            color: var(--accent-blue-light);
+            color: var(--text-primary);
             font-weight: 600;
         }
 
@@ -814,18 +777,17 @@
             color: var(--border-light);
         }
 
-        /* Controls Bar - Premium */
+        /* Controls Bar - Minimal */
         .controls-bar {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
             align-items: center;
-            padding: 16px 20px;
+            padding: 12px 16px;
             background: var(--bg-secondary);
-            border-radius: 14px;
+            border-radius: 4px;
             border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
         }
 
         .search-box {
@@ -2156,8 +2118,8 @@
             const metaLine = metaParts.join(' • ');
 
             return `<div class="role-cell" style="display:flex;flex-direction:column;gap:2px;padding:4px 0;">
-                <div class="role-title"><a href="../admin/job_detail.html?id=${jobId}" style="color:#cbd5e1;font-weight:500;font-size:13px;text-decoration:none;line-height:1.3;">${title}</a></div>
-                <div style="color:#7a8a9a;font-size:11px;line-height:1.3;">${metaLine}</div>
+                <div class="role-title"><a href="../admin/job_detail.html?id=${jobId}" style="color:var(--text-primary);font-weight:500;font-size:13px;text-decoration:none;line-height:1.3;">${title}</a></div>
+                <div style="color:var(--text-muted);font-size:11px;line-height:1.3;">${metaLine}</div>
             </div>`;
         }
 
@@ -2165,46 +2127,53 @@
             const job = params.data;
             const score = job.relevance_score || 0;
 
-            // Strip HTML and get plain text description
-            const rawDesc = job.job_description || '';
-            const plainDesc = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-            const truncatedDesc = plainDesc.length > 200 ? plainDesc.substring(0, 200) + '...' : plainDesc;
-
-            let matchColor = '#6b7280';
-            if (score >= 80) matchColor = '#6ee7b7';
-            else if (score >= 50) matchColor = '#d4a84a';
+            // Show AI summary if available, otherwise show job description
+            let displayText = '';
+            if (job.ai_summary) {
+                // Extract first section (Role Overview) from AI summary
+                let summary = job.ai_summary;
+                // Extract the Role Overview content
+                const overviewMatch = summary.match(/\*\*Role Overview\*\*\s*\n([^\n*]+)/);
+                if (overviewMatch) {
+                    displayText = overviewMatch[1].trim();
+                } else {
+                    // Fallback: strip markdown and get first part
+                    displayText = summary.replace(/\*\*[^*]+\*\*/g, '').replace(/•/g, '').replace(/\s+/g, ' ').trim();
+                }
+                displayText = displayText.length > 150 ? displayText.substring(0, 150) + '...' : displayText;
+            } else {
+                // Strip HTML and get plain text description
+                const rawDesc = job.job_description || '';
+                const plainDesc = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                displayText = plainDesc.length > 150 ? plainDesc.substring(0, 150) + '...' : plainDesc;
+            }
 
             const showMatch = currentRole && score > 0;
-            const matchHtml = showMatch ? `<div style="color:${matchColor};font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
+            const matchHtml = showMatch ? `<div style="color:var(--text-secondary);font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
+            const hasAiSummary = job.ai_summary ? `<span style="color:var(--text-muted);font-size:9px;margin-left:4px;">[AI]</span>` : '';
 
             return `<div style="display:flex;flex-direction:column;padding:4px 0;">
                 ${matchHtml}
-                <div style="color:#9ca3af;font-size:11px;line-height:1.4;overflow:hidden;">${truncatedDesc || '-'}</div>
+                <div style="color:var(--text-secondary);font-size:11px;line-height:1.4;overflow:hidden;">${displayText || '-'}${hasAiSummary}</div>
             </div>`;
         }
 
         function postedCellRenderer(params) {
             const posted = getPostedText(params.value);
-            const colors = {
-                'posted-today': '#86efac',
-                'posted-recent': '#d4d4aa',
-                'posted-old': '#6b7280'
-            };
-            const color = colors[posted.class] || '#6b7280';
-            return `<span style="color:${color};font-size:12px;font-weight:400;">${posted.text}</span>`;
+            return `<span style="color:var(--text-secondary);font-size:12px;font-weight:400;">${posted.text}</span>`;
         }
 
         function salaryCellRenderer(params) {
             const salary = params.value;
-            if (!salary) return `<span style="color:#4b5563;font-size:12px;">--</span>`;
-            return `<span style="color:#86efac;font-weight:500;font-size:12px;">${salary}</span>`;
+            if (!salary) return `<span style="color:var(--text-muted);font-size:12px;">--</span>`;
+            return `<span style="color:var(--text-primary);font-weight:500;font-size:12px;">${salary}</span>`;
         }
 
         function companyCellRenderer(params) {
             const initial = (params.value || 'J')[0].toUpperCase();
             return `<div class="company-cell">
-                <div class="company-logo" style="background:rgba(71,85,105,0.5);color:#9ca3af;font-size:11px;">${initial}</div>
-                <span class="company-name" style="color:#b0bec5;font-weight:400;font-size:12px;">${params.value || 'Unknown'}</span>
+                <div class="company-logo" style="background:var(--bg-tertiary);color:var(--text-secondary);font-size:11px;border:1px solid var(--border-color);">${initial}</div>
+                <span class="company-name" style="color:var(--text-secondary);font-weight:400;font-size:12px;">${params.value || 'Unknown'}</span>
             </div>`;
         }
 
@@ -2214,40 +2183,22 @@
             if (loc.length > 25) {
                 display = loc.substring(0, 23) + '...';
             }
-            return `<span title="${loc}" style="color:#7a8a9a;font-size:11px;">📍${display}</span>`;
+            return `<span title="${loc}" style="color:var(--text-muted);font-size:11px;">${display}</span>`;
         }
 
         function typeCellRenderer(params) {
             const type = params.value || 'hybrid';
-            const styles = {
-                'onsite': {
-                    bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(139, 92, 246, 0.4) 100%)',
-                    color: '#c4b5fd',
-                    border: '1px solid rgba(168, 85, 247, 0.4)'
-                },
-                'hybrid': {
-                    bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(34, 211, 238, 0.3) 100%)',
-                    color: '#67e8f9',
-                    border: '1px solid rgba(6, 182, 212, 0.4)'
-                },
-                'remote': {
-                    bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(74, 222, 128, 0.3) 100%)',
-                    color: '#86efac',
-                    border: '1px solid rgba(34, 197, 94, 0.4)'
-                }
-            };
-            const style = styles[type] || styles.hybrid;
-            return `<span style="display:inline-block;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${style.bg};color:${style.color};border:${style.border};">${type}</span>`;
+            return `<span style="display:inline-block;padding:3px 8px;border-radius:3px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border-color);">${type}</span>`;
         }
 
         function actionsCellRenderer(params) {
             const jobUrl = params.data.job_url;
             const jobId = params.data.id;
-            const linkStyle = 'color:#7aa2d6;font-size:11px;text-decoration:none;';
+            const linkStyle = 'color:var(--text-secondary);font-size:11px;text-decoration:underline;';
             if (jobUrl) {
                 return `<div style="display:flex;gap:12px;">
                     <a href="${jobUrl}" target="_blank" style="${linkStyle}">Apply</a>
-                    <a href="../admin/job_detail.html?id=${jobId}" style="color:#6b7280;font-size:11px;text-decoration:none;">Details</a>
+                    <a href="../admin/job_detail.html?id=${jobId}" style="${linkStyle}">Details</a>
                 </div>`;
             }
             return `<div>
@@ -2292,8 +2243,13 @@
                     const job = params.data;
                     // Show AI summary if available, otherwise show cleaned job description
                     if (job?.ai_summary) {
-                        const techList = job.ai_tech_stack?.length ? `\n\nTech: ${job.ai_tech_stack.join(', ')}` : '';
-                        return job.ai_summary + techList;
+                        // Clean up markdown for tooltip display:
+                        // - Convert **Header** to HEADER
+                        // - Keep bullet points
+                        let summary = job.ai_summary
+                            .replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove ** formatting
+                            .replace(/^\s*•\s*/gm, '• ');  // Normalize bullet points
+                        return summary;
                     }
                     // Strip HTML tags and show plain text
                     const desc = job?.job_description || '';
@@ -2685,7 +2641,8 @@
 
             try {
                 // Use apiRequest which handles the base URL correctly
-                const data = await apiRequest(`/jobs/${jobId}/ai-summary`, 'POST');
+                // Always force regenerate to get fresh summaries with updated format
+                const data = await apiRequest(`/jobs/${jobId}/ai-summary?force=true`, 'POST');
 
                 // Update the job in processedJobs and allJobs
                 const jobIndex = processedJobs.findIndex(j => j.id === jobId);

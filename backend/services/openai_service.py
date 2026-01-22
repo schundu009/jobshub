@@ -322,62 +322,88 @@ Note: Base this on general knowledge. For the most current information, the cand
 
 def summarize_job_description(job_title: str, job_description: str) -> dict:
     """
-    Generate a high-level summary of a job description including key responsibilities
-    and technology/tools required.
+    Generate a comprehensive summary of a job description including role overview,
+    responsibilities, qualifications, and compensation.
 
     Returns:
-        dict with 'summary' (brief role description) and 'tech_tools' (list of technologies)
+        dict with 'summary' (comprehensive job summary) and 'tech_tools' (list of technologies)
     """
     if not job_description or len(job_description.strip()) < 50:
         return {"summary": "", "tech_tools": []}
 
     openai_client = get_client()
 
-    prompt = f"""Analyze this job posting and provide a concise summary.
+    prompt = f"""Analyze this job posting and create a powerful, concise summary for job seekers.
 
 Job Title: {job_title}
 
 Job Description:
-{job_description[:4000]}
+{job_description[:6000]}
 
-Respond in this exact JSON format:
-{{
-    "summary": "A 1-2 sentence high-level description of the role and main responsibilities",
-    "tech_tools": ["tool1", "tool2", "tool3"]
-}}
+Create a structured summary with the following sections. Be concise but informative - this helps candidates quickly understand if the role is right for them.
+
+Format your response EXACTLY like this (use these exact headers):
+
+**Role Overview**
+[1-2 sentences describing the core purpose of the role and team]
+
+**Key Responsibilities**
+• [responsibility 1]
+• [responsibility 2]
+• [responsibility 3]
+(3-5 most important duties)
+
+**Required Qualifications**
+• [qualification 1]
+• [qualification 2]
+• [qualification 3]
+(3-5 must-have requirements)
+
+**Preferred Qualifications**
+• [nice-to-have 1]
+• [nice-to-have 2]
+(2-4 bonus qualifications, or "Not specified" if none mentioned)
+
+**Compensation & Benefits**
+[Salary range if mentioned, key benefits like remote work, equity, PTO, etc. Write "Not specified in posting" if not mentioned]
+
+**Tech Stack**
+[Comma-separated list of technologies, tools, and frameworks mentioned]
 
 Rules:
-- summary: Focus on the core role purpose and key responsibilities (max 150 chars)
-- tech_tools: List 3-8 key technologies, tools, frameworks, or languages mentioned (use short names like "Python", "AWS", "React", "SQL")
-- Keep tech_tools concise - single words or short phrases only
-- Only include tools/tech explicitly mentioned or strongly implied
-- Return valid JSON only, no markdown or explanation
+- Extract information ONLY from the job description - do not make things up
+- Be specific and use exact requirements from the posting
+- Keep bullet points concise (under 15 words each)
+- For compensation, only include what's explicitly stated
+- Tech Stack should be a simple comma-separated list
 """
 
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a technical recruiter who summarizes job descriptions. Always respond with valid JSON only."},
+                {"role": "system", "content": "You are an expert job analyst who creates clear, accurate summaries of job postings. Focus on extracting the most important information that helps candidates evaluate fit."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
-            max_tokens=300
+            max_tokens=800
         )
 
         content = response.choices[0].message.content.strip()
-        # Clean up potential markdown code blocks
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        content = content.strip()
 
-        import json
-        result = json.loads(content)
+        # Extract tech stack from the response for the separate field
+        tech_tools = []
+        if "**Tech Stack**" in content:
+            tech_section = content.split("**Tech Stack**")[1].strip()
+            # Get just the first line/paragraph after the header
+            tech_line = tech_section.split("\n")[0].strip()
+            if tech_line and tech_line != "Not specified":
+                # Split by comma and clean up
+                tech_tools = [t.strip() for t in tech_line.split(",") if t.strip()][:10]
+
         return {
-            "summary": result.get("summary", "")[:200],
-            "tech_tools": result.get("tech_tools", [])[:10]
+            "summary": content,
+            "tech_tools": tech_tools
         }
     except Exception as e:
         print(f"Error summarizing job: {e}")

@@ -816,18 +816,20 @@ async def update_job_status(
 @router.post("/{job_id}/ai-summary")
 async def generate_job_ai_summary(
     job_id: int,
+    force: bool = False,
     db: Session = Depends(get_db)
 ):
     """
     Generate an AI summary of the job description.
     Returns cached summary if available, otherwise generates and stores it.
+    Use force=true to regenerate even if cached.
     """
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # Return cached summary if available
-    if job.ai_summary and job.ai_tech_stack:
+    # Return cached summary if available and not forcing regeneration
+    if not force and job.ai_summary and job.ai_tech_stack:
         return {
             "summary": job.ai_summary,
             "tech_stack": job.ai_tech_stack,
