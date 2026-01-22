@@ -701,3 +701,31 @@ async def run_all_scrapers_sync(
         "total_jobs_new": total_jobs_new,
         "results": results
     }
+
+
+# ============== Webhook Trigger (No Auth) ==============
+
+@router.post("/webhook/trigger")
+async def webhook_trigger_scrapers(
+    secret: str = Query(..., description="Webhook secret key"),
+):
+    """
+    Trigger scrapers via webhook. Requires secret key.
+    Use this for external triggers (e.g., cron jobs, CI/CD).
+    """
+    import os
+    expected_secret = os.environ.get("SCRAPER_WEBHOOK_SECRET", "cariara-scrape-2024")
+
+    if secret != expected_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+    try:
+        from tasks.scraper_tasks import scrape_all_companies
+        task = scrape_all_companies.delay()
+        return {
+            "status": "dispatched",
+            "task_id": task.id,
+            "message": "Scraper tasks dispatched via webhook"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to dispatch: {str(e)}")
