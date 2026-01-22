@@ -526,6 +526,8 @@ def run_migrations():
                     min_relevance_score FLOAT DEFAULT 50.0,
                     excluded_companies TEXT,
                     supported_ats TEXT,
+                    workday_email VARCHAR(255),
+                    workday_password_encrypted TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -534,6 +536,21 @@ def run_migrations():
             logger.info("Created auto_apply_configs table")
         except Exception as e:
             logger.warning(f"Could not create auto_apply_configs table: {e}")
+
+        # Add workday columns if missing (for existing tables)
+        try:
+            result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = 'auto_apply_configs'"))
+            auto_apply_columns = {row[0] for row in result}
+
+            if 'workday_email' not in auto_apply_columns:
+                conn.execute(text("ALTER TABLE auto_apply_configs ADD COLUMN workday_email VARCHAR(255)"))
+                logger.info("Added workday_email column to auto_apply_configs")
+
+            if 'workday_password_encrypted' not in auto_apply_columns:
+                conn.execute(text("ALTER TABLE auto_apply_configs ADD COLUMN workday_password_encrypted TEXT"))
+                logger.info("Added workday_password_encrypted column to auto_apply_configs")
+        except Exception as e:
+            logger.warning(f"Could not add workday columns: {e}")
 
         # Application submissions table
         try:
