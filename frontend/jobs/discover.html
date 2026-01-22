@@ -2153,7 +2153,9 @@
             } else {
                 // Strip HTML and get plain text description
                 const rawDesc = job.job_description || '';
-                const plainDesc = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                // First decode HTML entities, then strip tags
+                const decoded = rawDesc.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                const plainDesc = decoded.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                 displayText = plainDesc.length > 150 ? plainDesc.substring(0, 150) + '...' : plainDesc;
             }
 
