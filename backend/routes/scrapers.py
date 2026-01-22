@@ -532,3 +532,172 @@ def delete_custom_scraper(
     db.commit()
 
     return {"status": "deleted", "slug": company_slug}
+
+
+# ============== Synchronous Scraper Endpoints (No Celery) ==============
+
+class SyncScrapeResponse(BaseModel):
+    status: str
+    company_slug: str
+    jobs_found: int
+    jobs_new: int
+    jobs_updated: int
+    duration_seconds: float
+    error: Optional[str] = None
+
+
+@router.post("/{company_slug}/run-sync", response_model=SyncScrapeResponse)
+async def run_scraper_sync(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Run a scraper synchronously without Celery.
+
+    Use this when Celery workers are not available.
+    Only HTTP scrapers are supported (browser scrapers require Celery).
+    """
+    import asyncio
+    from datetime import datetime
+    from scrapers.base import ScraperType
+    from scrapers.rate_limiter import get_rate_limiter
+    from services.scraper_service import save_scraped_jobs
+
+    scraper_cls = ScraperRegistry.get(company_slug)
+    if not scraper_cls:
+        raise HTTPException(status_code=404, detail="Scraper not found")
+
+    # Check scraper type
+    scraper_config = scraper_cls.get_default_config()
+    if scraper_config.scraper_type == ScraperType.BROWSER:
+        raise HTTPException(
+            status_code=400,
+            detail="Browser scrapers require Celery. Use /run endpoint instead."
+        )
+
+    start_time = datetime.utcnow()
+
+    try:
+        # Create and run scraper
+        rate_limiter = get_rate_limiter()
+        scraper = scraper_cls(rate_limiter=rate_limiter)
+        result = await scraper.run()
+
+        jobs_new = 0
+        jobs_updated = 0
+
+        # Save jobs if successful
+        if result.success and result.jobs:
+            jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+
+        duration = (datetime.utcnow() - start_time).total_seconds()
+
+        # Record the run
+        from tasks.scraper_tasks import record_scraper_run
+        result.jobs_new = jobs_new
+        result.jobs_updated = jobs_updated
+        record_scraper_run(db, company_slug, result)
+
+        return SyncScrapeResponse(
+            status="success" if result.success else "failed",
+            company_slug=company_slug,
+            jobs_found=result.jobs_found,
+            jobs_new=jobs_new,
+            jobs_updated=jobs_updated,
+            duration_seconds=duration,
+            error=result.error_message
+        )
+
+    except Exception as e:
+        duration = (datetime.utcnow() - start_time).total_seconds()
+        return SyncScrapeResponse(
+            status="error",
+            company_slug=company_slug,
+            jobs_found=0,
+            jobs_new=0,
+            jobs_updated=0,
+            duration_seconds=duration,
+            error=str(e)
+        )
+
+
+@router.post("/run-all-sync")
+async def run_all_scrapers_sync(
+    limit: int = Query(default=50, ge=1, le=200, description="Max scrapers to run"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Run all HTTP scrapers synchronously without Celery.
+
+    Processes scrapers sequentially. Limited to HTTP scrapers only.
+    Use limit parameter to control how many scrapers to run.
+    """
+    from datetime import datetime
+    from scrapers.base import ScraperType
+    from scrapers.rate_limiter import get_rate_limiter
+    from services.scraper_service import save_scraped_jobs
+    from tasks.scraper_tasks import record_scraper_run
+
+    all_scrapers = list_all_scrapers()
+    http_scrapers = [
+        s for s in all_scrapers
+        if s.get('scraper_type') == 'http'
+    ][:limit]
+
+    results = []
+    total_jobs_found = 0
+    total_jobs_new = 0
+
+    rate_limiter = get_rate_limiter()
+
+    for scraper_info in http_scrapers:
+        company_slug = scraper_info['slug']
+        start_time = datetime.utcnow()
+
+        try:
+            scraper_cls = ScraperRegistry.get(company_slug)
+            if not scraper_cls:
+                continue
+
+            scraper = scraper_cls(rate_limiter=rate_limiter)
+            result = await scraper.run()
+
+            jobs_new = 0
+            jobs_updated = 0
+
+            if result.success and result.jobs:
+                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                result.jobs_new = jobs_new
+                result.jobs_updated = jobs_updated
+
+            record_scraper_run(db, company_slug, result)
+
+            duration = (datetime.utcnow() - start_time).total_seconds()
+
+            results.append({
+                "company_slug": company_slug,
+                "status": "success" if result.success else "failed",
+                "jobs_found": result.jobs_found,
+                "jobs_new": jobs_new,
+                "duration_seconds": round(duration, 2),
+            })
+
+            total_jobs_found += result.jobs_found
+            total_jobs_new += jobs_new
+
+        except Exception as e:
+            results.append({
+                "company_slug": company_slug,
+                "status": "error",
+                "error": str(e)[:100],
+            })
+
+    return {
+        "status": "completed",
+        "scrapers_run": len(results),
+        "total_jobs_found": total_jobs_found,
+        "total_jobs_new": total_jobs_new,
+        "results": results
+    }
