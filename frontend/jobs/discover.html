@@ -2127,11 +2127,15 @@
             // Show AI summary if available, otherwise show job description
             let displayText = '';
             if (job.ai_summary) {
-                // Extract first section (Role Overview) from AI summary
+                // Extract first section (Summary) from AI summary
                 let summary = job.ai_summary;
-                // Extract the Role Overview content
+                // Extract the Summary content (new format)
+                const summaryMatch = summary.match(/\*\*Summary\*\*\s*\n([^\n*]+)/);
+                // Fallback to old Role Overview format
                 const overviewMatch = summary.match(/\*\*Role Overview\*\*\s*\n([^\n*]+)/);
-                if (overviewMatch) {
+                if (summaryMatch) {
+                    displayText = summaryMatch[1].trim();
+                } else if (overviewMatch) {
                     displayText = overviewMatch[1].trim();
                 } else {
                     // Fallback: strip markdown and get first part
@@ -2724,9 +2728,68 @@
                 setTimeout(() => updateStats(totalFromResponse, jobsToDisplay.length), 150);
                 updateActiveFilters();
 
+                // Auto-generate AI summaries for jobs that don't have them
+                autoGenerateAISummaries();
+
             } catch (error) {
                 console.error('Failed to load jobs:', error);
             }
+        }
+
+        // Auto-generate AI summaries in background
+        async function autoGenerateAISummaries() {
+            // Find jobs without AI summaries
+            const jobsWithoutSummary = allJobs.filter(job => !job.ai_summary && job.job_description);
+
+            if (jobsWithoutSummary.length === 0) return;
+
+            console.log(`Auto-generating AI summaries for ${jobsWithoutSummary.length} jobs...`);
+
+            // Process in batches of 3 to avoid overwhelming the API
+            const batchSize = 3;
+            for (let i = 0; i < jobsWithoutSummary.length; i += batchSize) {
+                const batch = jobsWithoutSummary.slice(i, i + batchSize);
+
+                // Process batch in parallel
+                await Promise.all(batch.map(async (job) => {
+                    try {
+                        const data = await apiRequest(`/jobs/${job.id}/ai-summary?force=true`, 'POST');
+
+                        if (data.summary) {
+                            // Update in allJobs
+                            const allJobsIndex = allJobs.findIndex(j => j.id === job.id);
+                            if (allJobsIndex !== -1) {
+                                allJobs[allJobsIndex].ai_summary = data.summary;
+                                allJobs[allJobsIndex].ai_tech_stack = data.tech_stack;
+                            }
+
+                            // Update in processedJobs
+                            const processedIndex = processedJobs.findIndex(j => j.id === job.id);
+                            if (processedIndex !== -1) {
+                                processedJobs[processedIndex].ai_summary = data.summary;
+                                processedJobs[processedIndex].ai_tech_stack = data.tech_stack;
+                            }
+
+                            // Refresh grid row
+                            if (gridApi) {
+                                const rowNode = gridApi.getRowNode(job.id.toString());
+                                if (rowNode) {
+                                    rowNode.setData(processedJobs.find(j => j.id === job.id));
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn(`Failed to generate AI summary for job ${job.id}:`, err.message);
+                    }
+                }));
+
+                // Small delay between batches
+                if (i + batchSize < jobsWithoutSummary.length) {
+                    await new Promise(r => setTimeout(r, 500));
+                }
+            }
+
+            console.log('AI summary generation complete');
         }
 
         function updateStats(totalFromServer, totalBeforeFilter) {
