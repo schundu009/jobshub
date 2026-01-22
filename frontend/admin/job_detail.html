@@ -7,57 +7,59 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
     <style>
         :root, [data-theme="dark"] {
-            --bg-primary: #111111;
-            --bg-secondary: #1a1a1a;
-            --bg-tertiary: #222222;
-            --bg-card: #1a1a1a;
-            --bg-hover: #2a2a2a;
-            --bg-elevated: #1e1e1e;
-            --accent-blue: #888888;
-            --accent-blue-light: #aaaaaa;
-            --accent-green: #888888;
-            --accent-green-light: #aaaaaa;
-            --accent-purple: #888888;
-            --accent-purple-light: #aaaaaa;
-            --accent-red: #888888;
-            --accent-yellow: #888888;
-            --accent-cyan: #888888;
+            /* Purple Theme - Dark */
+            --bg-primary: #0a0612;
+            --bg-secondary: #110d1a;
+            --bg-tertiary: #1a1425;
+            --bg-card: #110d1a;
+            --bg-hover: #1f1730;
+            --bg-elevated: #150f20;
+            --accent-blue: #a78bfa;
+            --accent-blue-light: #c4b5fd;
+            --accent-green: #a78bfa;
+            --accent-green-light: #c4b5fd;
+            --accent-purple: #a78bfa;
+            --accent-purple-light: #c4b5fd;
+            --accent-red: #a78bfa;
+            --accent-yellow: #a78bfa;
+            --accent-cyan: #a78bfa;
             --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-muted: #666666;
-            --border-color: #333333;
-            --border-light: #444444;
-            --gradient-primary: #333333;
-            --gradient-success: #333333;
-            --shadow-sm: none;
-            --shadow-md: none;
-            --shadow-lg: none;
+            --text-secondary: #b8b0c8;
+            --text-muted: #6b6080;
+            --border-color: #2d2540;
+            --border-light: #3d3355;
+            --gradient-primary: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 50%, #7c3aed 100%);
+            --gradient-success: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+            --shadow-sm: 0 1px 2px rgba(124, 58, 237, 0.1);
+            --shadow-md: 0 4px 6px rgba(124, 58, 237, 0.15);
+            --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.2);
         }
 
         [data-theme="light"] {
-            --bg-primary: #ffffff;
-            --bg-secondary: #fafafa;
-            --bg-tertiary: #f5f5f5;
+            /* Purple Theme - Light */
+            --bg-primary: #faf9fc;
+            --bg-secondary: #f5f3f8;
+            --bg-tertiary: #ede9f4;
             --bg-card: #ffffff;
-            --bg-hover: #f0f0f0;
-            --bg-elevated: #fafafa;
-            --accent-blue: #555555;
-            --accent-blue-light: #666666;
-            --accent-green: #555555;
-            --accent-green-light: #666666;
-            --accent-purple: #555555;
-            --accent-purple-light: #666666;
-            --accent-red: #555555;
-            --accent-yellow: #555555;
-            --accent-cyan: #555555;
-            --text-primary: #111111;
-            --text-secondary: #555555;
-            --text-muted: #999999;
-            --border-color: #e0e0e0;
-            --border-light: #d0d0d0;
-            --shadow-sm: none;
-            --shadow-md: none;
-            --shadow-lg: none;
+            --bg-hover: #ebe7f2;
+            --bg-elevated: #f8f6fb;
+            --accent-blue: #7c3aed;
+            --accent-blue-light: #a78bfa;
+            --accent-green: #7c3aed;
+            --accent-green-light: #a78bfa;
+            --accent-purple: #7c3aed;
+            --accent-purple-light: #a78bfa;
+            --accent-red: #7c3aed;
+            --accent-yellow: #7c3aed;
+            --accent-cyan: #7c3aed;
+            --text-primary: #1a1025;
+            --text-secondary: #4a3d5c;
+            --text-muted: #8a7aa0;
+            --border-color: #ddd6e8;
+            --border-light: #ccc2dc;
+            --shadow-sm: 0 1px 2px rgba(124, 58, 237, 0.05);
+            --shadow-md: 0 4px 6px rgba(124, 58, 237, 0.08);
+            --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1738,8 +1740,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="../images/toritchLogo.png" alt="Cariara" class="logo">
-            <span class="brand-name">Cariara</span>
+            <img src="../images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
         </div>
 
         <nav class="sidebar-nav">

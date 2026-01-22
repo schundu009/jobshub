@@ -1,62 +1,70 @@
-/* JobTrails - Minimal Monochrome Design System */
-/* Clean, professional, distraction-free */
+/* Cariara - Purple Gradient Design System */
+/* Elegant, professional, modern */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 /* ========================================
-   CSS Custom Properties - Monochrome Only
+   CSS Custom Properties - Purple Theme
    ======================================== */
 
 :root, [data-theme="dark"] {
-    /* Background Colors - Dark greys */
-    --bg-primary: #111111;
-    --bg-secondary: #1a1a1a;
-    --bg-tertiary: #222222;
-    --bg-card: #1a1a1a;
-    --bg-hover: #2a2a2a;
-    --bg-elevated: #1e1e1e;
+    /* Background Colors - Dark purple/navy */
+    --bg-primary: #0a0612;
+    --bg-secondary: #110d1a;
+    --bg-tertiary: #1a1425;
+    --bg-card: #110d1a;
+    --bg-hover: #1f1730;
+    --bg-elevated: #150f20;
 
-    /* Text Colors - White to grey */
+    /* Text Colors - White to purple-grey */
     --text-primary: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-tertiary: #777777;
-    --text-muted: #666666;
+    --text-secondary: #b8b0c8;
+    --text-tertiary: #8a8098;
+    --text-muted: #6b6080;
 
-    /* Border Colors */
-    --border-color: #333333;
-    --border-light: #444444;
-    --border-default: #333333;
-    --border-subtle: #2a2a2a;
+    /* Border Colors - Purple tinted */
+    --border-color: #2d2540;
+    --border-light: #3d3355;
+    --border-default: #2d2540;
+    --border-subtle: #1f1730;
 
-    /* Single accent - subtle grey */
-    --accent-primary: #888888;
-    --accent-hover: #999999;
+    /* Purple accent colors */
+    --accent-primary: #a78bfa;
+    --accent-hover: #c4b5fd;
+    --accent-gradient: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 50%, #7c3aed 100%);
+    --purple-light: #c4b5fd;
+    --purple-medium: #a78bfa;
+    --purple-deep: #7c3aed;
 }
 
 [data-theme="light"] {
-    /* Background Colors - White to light grey */
-    --bg-primary: #ffffff;
-    --bg-secondary: #fafafa;
-    --bg-tertiary: #f5f5f5;
+    /* Background Colors - Light with purple tint */
+    --bg-primary: #faf9fc;
+    --bg-secondary: #f5f3f8;
+    --bg-tertiary: #ede9f4;
     --bg-card: #ffffff;
-    --bg-hover: #f0f0f0;
-    --bg-elevated: #fafafa;
+    --bg-hover: #ebe7f2;
+    --bg-elevated: #f8f6fb;
 
-    /* Text Colors - Black to grey */
-    --text-primary: #111111;
-    --text-secondary: #555555;
-    --text-tertiary: #777777;
-    --text-muted: #999999;
+    /* Text Colors - Dark purple tones */
+    --text-primary: #1a1025;
+    --text-secondary: #4a3d5c;
+    --text-tertiary: #6b5c80;
+    --text-muted: #8a7aa0;
 
-    /* Border Colors */
-    --border-color: #e0e0e0;
-    --border-light: #d0d0d0;
-    --border-default: #e0e0e0;
-    --border-subtle: #eaeaea;
+    /* Border Colors - Light purple */
+    --border-color: #ddd6e8;
+    --border-light: #ccc2dc;
+    --border-default: #ddd6e8;
+    --border-subtle: #ebe5f2;
 
-    /* Single accent */
-    --accent-primary: #555555;
-    --accent-hover: #333333;
+    /* Purple accent colors */
+    --accent-primary: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-gradient: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #6d28d9 100%);
+    --purple-light: #a78bfa;
+    --purple-medium: #7c3aed;
+    --purple-deep: #6d28d9;
 }
 
 /* ========================================
@@ -281,15 +289,15 @@ a:hover {
 }
 
 .btn-primary {
-    background: var(--text-primary);
-    color: var(--bg-primary);
-    border-color: var(--text-primary);
+    background: var(--accent-gradient);
+    color: white;
+    border-color: var(--purple-medium);
 }
 
 .btn-primary:hover {
-    background: var(--text-secondary);
-    border-color: var(--text-secondary);
-    color: var(--bg-primary);
+    background: var(--purple-deep);
+    border-color: var(--purple-deep);
+    color: white;
 }
 
 .btn-secondary {
