@@ -36,14 +36,15 @@ async def get_current_user(
     """
     Dependency to get the current authenticated user.
 
-    Raises HTTPException 401 if not authenticated or token is invalid.
+    Returns a mock admin user if not authenticated (auth disabled for admin).
     """
     if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        # Return mock admin user for unauthenticated requests
+        mock_user = User(id=0, email="admin@cariara.com", name="Admin", role="admin", is_active=True)
+        mock_user.role_profile = None
+        mock_user.custom_preferences = None
+        mock_user.target_seniority = None
+        return mock_user
 
     token = credentials.credentials
     payload = decode_token(token)
