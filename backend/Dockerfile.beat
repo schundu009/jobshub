@@ -9,5 +9,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend application code
 COPY backend/ .
 
-# Run Celery beat scheduler
-CMD ["celery", "-A", "celery_app", "beat", "--loglevel=info"]
+# Create a writable directory for the schedule file
+RUN mkdir -p /app/data && chmod 777 /app/data
+
+# Run Celery beat scheduler with schedule file in writable location
+CMD ["celery", "-A", "celery_app", "beat", "--loglevel=info", "-s", "/app/data/celerybeat-schedule"]
