@@ -3,56 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Companies</title>
+    <title>Cariara Admin - Companies</title>
     <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Cariara</h1>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Dashboard</a></li>
-                    <li><a href="jobs.html">Jobs</a></li>
-                    <li><a href="companies.html" class="active">Companies</a></li>
-                    <li><a href="analytics.html">Analytics</a></li>
-                    <li><a href="settings.html">Settings</a></li>
-                </ul>
-                <div class="theme-toggle">
-                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
-                </div>
-            </nav>
-        </div>
-    </header>
-
     <main class="container">
-        <div class="page-header">
-            <h2>Companies</h2>
-            <button class="btn btn-primary" onclick="openModal()">Add New Company</button>
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">Companies</h1>
+                <p class="admin-page-subtitle">Manage tracked companies and their settings</p>
+            </div>
+            <div class="admin-page-actions">
+                <button class="btn btn-primary" onclick="openModal()">Add New Company</button>
+            </div>
         </div>
 
-        <div class="filter-bar">
-            <input type="text" id="search-input" placeholder="Search companies...">
-        </div>
+        <div class="admin-card">
+            <div class="filter-bar" style="margin-bottom: 20px;">
+                <input type="text" id="search-input" placeholder="Search companies..." style="padding: 10px 14px; border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-primary); border-radius: 8px; min-width: 300px;">
+            </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Company Name</th>
-                        <th>Industry</th>
-                        <th>Size</th>
-                        <th>Location</th>
-                        <th>Jobs</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="companies-table-body">
-                    <tr>
-                        <td colspan="6" class="loading">Loading companies...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Company Name</th>
+                            <th>Industry</th>
+                            <th>Size</th>
+                            <th>Location</th>
+                            <th>Jobs</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-table-body">
+                        <tr>
+                            <td colspan="6" class="loading">Loading companies...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -101,7 +91,13 @@
     </div>
 
     <script src="../js/app.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
     <script>
+        // Initialize admin layout
+        document.addEventListener('DOMContentLoaded', function() {
+            initAdminLayout('companies', 'Companies');
+        });
+
         let allCompanies = [];
 
         async function loadCompanies() {
@@ -128,7 +124,7 @@
                     <tr>
                         <td>
                             ${company.name}
-                            ${company.website ? `<br><small><a href="${company.website}" target="_blank">${company.website}</a></small>` : ''}
+                            ${company.website ? `<br><small><a href="${company.website}" target="_blank" style="color: var(--accent-primary);">${company.website}</a></small>` : ''}
                         </td>
                         <td>${company.industry || '-'}</td>
                         <td style="text-transform: capitalize;">${company.size || '-'}</td>

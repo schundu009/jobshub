@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Analytics</title>
+    <title>Cariara Admin - Analytics</title>
     <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
     <style>
         .analytics-grid {
             display: grid;
@@ -14,11 +15,10 @@
         }
 
         .chart-card {
-            background: var(--bg-white);
+            background: var(--bg-elevated);
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             padding: 24px;
-            border: 1px solid var(--border-light);
+            border: 1px solid var(--border-default);
         }
 
         .chart-card h3 {
@@ -44,6 +44,7 @@
             width: 100px;
             font-size: 13px;
             text-transform: capitalize;
+            color: var(--text-primary);
         }
 
         .bar-container {
@@ -66,13 +67,14 @@
             text-align: right;
             font-size: 13px;
             font-weight: 600;
+            color: var(--text-primary);
         }
 
         .metric-row {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-default);
         }
 
         .metric-row:last-child {
@@ -89,11 +91,11 @@
         }
 
         .metric-value.positive {
-            color: var(--primary-green);
+            color: var(--success);
         }
 
         .metric-value.negative {
-            color: var(--status-rejected);
+            color: var(--error);
         }
 
         .big-metric {
@@ -104,7 +106,7 @@
         .big-metric .value {
             font-size: 48px;
             font-weight: 700;
-            color: var(--primary-blue);
+            color: var(--accent-primary);
         }
 
         .big-metric .label {
@@ -121,7 +123,8 @@
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid var(--border-light);
+            border-bottom: 1px solid var(--border-default);
+            color: var(--text-primary);
         }
 
         .upcoming-interview {
@@ -129,7 +132,7 @@
             background: var(--bg-subtle);
             border-radius: 8px;
             margin-bottom: 10px;
-            border-left: 3px solid var(--primary-green);
+            border-left: 3px solid var(--success);
         }
 
         .upcoming-interview .title {
@@ -144,68 +147,37 @@
 
         .upcoming-interview .date {
             font-size: 13px;
-            color: var(--primary-blue);
+            color: var(--accent-primary);
             margin-top: 5px;
             font-weight: 500;
-        }
-
-        .excitement-stars {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-            margin-top: 10px;
-        }
-
-        .star-group {
-            text-align: center;
-        }
-
-        .star-group .count {
-            font-size: 12px;
-            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Cariara</h1>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Dashboard</a></li>
-                    <li><a href="jobs.html">Jobs</a></li>
-                    <li><a href="companies.html">Companies</a></li>
-                    <li><a href="analytics.html">Analytics</a></li>
-                    <li><a href="settings.html">Settings</a></li>
-                </ul>
-                <div class="theme-toggle">
-                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
-                </div>
-            </nav>
-        </div>
-    </header>
-
     <main class="container">
-        <div class="page-header">
-            <h2>Analytics</h2>
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">Analytics</h1>
+                <p class="admin-page-subtitle">Track your job application progress and insights</p>
+            </div>
         </div>
 
-        <div class="stats-grid">
-            <div class="stat-card stat-blue">
-                <div class="number" id="total-jobs">-</div>
-                <div class="label">Total Jobs Tracked</div>
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <div class="admin-stat-label">Total Jobs Tracked</div>
+                <div class="admin-stat-value" id="total-jobs">-</div>
             </div>
-            <div class="stat-card">
-                <div class="number" id="interview-rate" style="color: var(--status-interviewing);">-</div>
-                <div class="label">Interview Rate</div>
+            <div class="admin-stat-card info">
+                <div class="admin-stat-label">Interview Rate</div>
+                <div class="admin-stat-value" id="interview-rate">-</div>
             </div>
-            <div class="stat-card stat-green">
-                <div class="number" id="offer-rate">-</div>
-                <div class="label">Offer Rate</div>
+            <div class="admin-stat-card success">
+                <div class="admin-stat-label">Offer Rate</div>
+                <div class="admin-stat-value" id="offer-rate">-</div>
             </div>
-            <div class="stat-card stat-yellow">
-                <div class="number" id="avg-excitement">-</div>
-                <div class="label">Avg Excitement</div>
+            <div class="admin-stat-card warning">
+                <div class="admin-stat-label">Avg Excitement</div>
+                <div class="admin-stat-value" id="avg-excitement">-</div>
             </div>
         </div>
 
@@ -269,13 +241,18 @@
     </main>
 
     <script src="../js/app.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
     <script>
-        // Using CSS variable colors for consistency
+        // Initialize admin layout
+        document.addEventListener('DOMContentLoaded', function() {
+            initAdminLayout('analytics', 'Analytics');
+        });
+
         const statusColors = {
-            wishlist: '#eab308',    // primary-yellow
-            applied: '#2563eb',     // primary-blue
+            wishlist: '#eab308',
+            applied: '#2563eb',
             interviewing: '#8b5cf6',
-            offer: '#22c55e',       // primary-green
+            offer: '#22c55e',
             rejected: '#ef4444',
             withdrawn: '#94a3b8'
         };
@@ -293,34 +270,18 @@
                     apiRequest('/analytics/interview-stats')
                 ]);
 
-                // Summary stats
                 document.getElementById('total-jobs').textContent = summary.total_jobs;
                 document.getElementById('interview-rate').textContent = responseRate.interview_rate + '%';
                 document.getElementById('offer-rate').textContent = responseRate.offer_rate + '%';
                 document.getElementById('avg-excitement').textContent = excitement.average + ' ★';
 
-                // Status chart
                 renderStatusChart(statusBreakdown);
-
-                // Response rates
                 renderResponseRates(responseRate);
-
-                // Interview stats
                 renderInterviewStats(interviewStats);
-
-                // Upcoming interviews
                 renderUpcomingInterviews(interviewStats.upcoming);
-
-                // Locations
                 renderLocations(locations.locations);
-
-                // Excitement
                 renderExcitement(excitement);
-
-                // Companies
                 renderCompanies(companies.companies);
-
-                // Timeline
                 renderTimeline(timeline.timeline);
 
             } catch (error) {
@@ -403,7 +364,7 @@
         function renderUpcomingInterviews(interviews) {
             const container = document.getElementById('upcoming-interviews');
             if (!interviews || interviews.length === 0) {
-                container.innerHTML = '<p style="color: #7f8c8d; text-align: center;">No upcoming interviews</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No upcoming interviews</p>';
                 return;
             }
 
@@ -423,7 +384,7 @@
         function renderLocations(locations) {
             const container = document.getElementById('location-chart');
             if (!locations || locations.length === 0) {
-                container.innerHTML = '<p style="color: #7f8c8d; text-align: center;">No location data</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No location data</p>';
                 return;
             }
 
@@ -466,7 +427,7 @@
         function renderCompanies(companies) {
             const container = document.getElementById('company-chart');
             if (!companies || companies.length === 0) {
-                container.innerHTML = '<p style="color: #7f8c8d; text-align: center;">No company data</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No company data</p>';
                 return;
             }
 
@@ -479,7 +440,7 @@
                     <div class="bar-row">
                         <span class="bar-label" style="width: 120px;">${company.company_name.substring(0, 15)}</span>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: ${width}%; background-color: #3498db"></div>
+                            <div class="bar-fill" style="width: ${width}%; background-color: var(--accent-primary)"></div>
                         </div>
                         <span class="bar-value">${company.job_count}</span>
                     </div>
@@ -492,14 +453,11 @@
         function renderTimeline(timeline) {
             const container = document.getElementById('timeline-chart');
             if (!timeline || timeline.length === 0) {
-                container.innerHTML = '<p style="color: #7f8c8d; text-align: center;">No timeline data</p>';
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No timeline data</p>';
                 return;
             }
 
-            const maxCount = Math.max(...timeline.map(t => t.count), 1);
             const total = timeline.reduce((sum, t) => sum + t.count, 0);
-
-            // Simple text-based timeline summary
             const recentWeek = timeline.slice(-7);
             const weekTotal = recentWeek.reduce((sum, t) => sum + t.count, 0);
 
@@ -518,8 +476,7 @@
                 </div>
             `;
 
-            // Mini bar chart for last 14 days
-            html += '<div style="margin-top: 15px;"><small style="color: #7f8c8d;">Last 14 days:</small></div>';
+            html += '<div style="margin-top: 15px;"><small style="color: var(--text-muted);">Last 14 days:</small></div>';
             html += '<div style="display: flex; gap: 3px; align-items: end; height: 60px; margin-top: 10px;">';
 
             const last14 = timeline.slice(-14);
@@ -527,7 +484,7 @@
 
             last14.forEach(day => {
                 const height = day.count > 0 ? Math.max((day.count / max14 * 50), 4) : 2;
-                const color = day.count > 0 ? '#3498db' : '#ecf0f1';
+                const color = day.count > 0 ? 'var(--accent-primary)' : 'var(--border-default)';
                 html += `<div style="flex: 1; height: ${height}px; background: ${color}; border-radius: 2px;" title="${day.date}: ${day.count}"></div>`;
             });
 
