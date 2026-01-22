@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # Format: comma-separated list of origins, e.g., "http://localhost:8000,https://myapp.com"
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:8000,http://localhost:8001,http://127.0.0.1:3000,http://127.0.0.1:8000,http://127.0.0.1:8001,https://cariara.com,https://www.cariara.com,https://jobportal-ten-blush.vercel.app"
+    "http://localhost:3000,http://localhost:8000,http://localhost:8001,http://127.0.0.1:3000,http://127.0.0.1:8000,http://127.0.0.1:8001,https://cariara.com,https://www.cariara.com,https://jobportal-ten-blush.vercel.app,https://jobportal-schundu007.vercel.app,https://jobportal-ihvmibgpi-schundu007.vercel.app"
 ).split(",")
 
 # API Key for authentication (optional - if set, requires X-API-Key header)
@@ -634,8 +634,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "X-API-Key"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["*"],
     expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"],
 )
 
