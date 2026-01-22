@@ -333,49 +333,53 @@ def summarize_job_description(job_title: str, job_description: str) -> dict:
 
     openai_client = get_client()
 
-    prompt = f"""Analyze this job posting and create a powerful, concise summary for job seekers.
+    prompt = f"""Extract the key information from this job posting for a job seeker.
 
 Job Title: {job_title}
 
-Job Description:
+Job Posting Text:
 {job_description[:6000]}
 
-Create a structured summary with the following sections. Be concise but informative - this helps candidates quickly understand if the role is right for them.
+CRITICAL: You must ONLY describe what THIS SPECIFIC JOB ROLE involves.
+DO NOT describe the company, its mission, its values, or what the company does.
+ONLY extract information about the actual job duties and requirements.
 
-Format your response EXACTLY like this (use these exact headers):
+Format your response EXACTLY like this:
 
-**Role Overview**
-[1-2 sentences describing the core purpose of the role and team]
+**Summary**
+[2-3 sentences describing what this job role does day-to-day. Focus ONLY on the employee's work, NOT the company.]
 
-**Key Responsibilities**
-• [responsibility 1]
-• [responsibility 2]
-• [responsibility 3]
-(3-5 most important duties)
+**Responsibilities**
+• [duty 1]
+• [duty 2]
+• [duty 3]
+• [duty 4]
+• [duty 5]
+[List 4-6 main job duties extracted from the posting]
 
-**Required Qualifications**
-• [qualification 1]
-• [qualification 2]
-• [qualification 3]
-(3-5 must-have requirements)
+**Minimum Qualifications**
+• [required qualification 1]
+• [required qualification 2]
+• [required qualification 3]
+[List the REQUIRED qualifications - years of experience, degrees, must-have skills]
 
 **Preferred Qualifications**
 • [nice-to-have 1]
 • [nice-to-have 2]
-(2-4 bonus qualifications, or "Not specified" if none mentioned)
+[List bonus qualifications. Write "None specified" if not mentioned]
 
-**Compensation & Benefits**
-[Salary range if mentioned, key benefits like remote work, equity, PTO, etc. Write "Not specified in posting" if not mentioned]
+**Pay & Benefits**
+[Salary range, bonus, equity, benefits like PTO, health insurance, remote work. Write "Not specified" if not mentioned]
 
-**Tech Stack**
-[Comma-separated list of technologies, tools, and frameworks mentioned]
+**Technologies**
+[Comma-separated list of tools, languages, frameworks, platforms mentioned]
 
-Rules:
-- Extract information ONLY from the job description - do not make things up
-- Be specific and use exact requirements from the posting
-- Keep bullet points concise (under 15 words each)
-- For compensation, only include what's explicitly stated
-- Tech Stack should be a simple comma-separated list
+RULES:
+1. NEVER mention the company name or describe what the company does
+2. NEVER include company mission, values, or culture statements
+3. ONLY describe the job responsibilities and requirements
+4. Extract exact requirements from the posting - do not make things up
+5. Keep bullet points short (under 12 words each)
 """
 
     try:
@@ -393,11 +397,11 @@ Rules:
 
         # Extract tech stack from the response for the separate field
         tech_tools = []
-        if "**Tech Stack**" in content:
-            tech_section = content.split("**Tech Stack**")[1].strip()
+        if "**Technologies**" in content:
+            tech_section = content.split("**Technologies**")[1].strip()
             # Get just the first line/paragraph after the header
             tech_line = tech_section.split("\n")[0].strip()
-            if tech_line and tech_line != "Not specified":
+            if tech_line and tech_line.lower() not in ["not specified", "none specified", "none"]:
                 # Split by comma and clean up
                 tech_tools = [t.strip() for t in tech_line.split(",") if t.strip()][:10]
 
