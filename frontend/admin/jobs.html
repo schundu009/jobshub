@@ -562,22 +562,6 @@
 
     <script src="../js/app.js"></script>
     <script>
-        // Require authentication
-        requireAuth();
-
-        // Check admin role - redirect non-admin users to user portal
-        (async function checkAdminAccess() {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.role !== 'admin') {
-                    window.location.href = '../jobs/discover.html';
-                    return;
-                }
-            } catch (e) {
-                console.error('Error checking admin access:', e);
-            }
-        })();
-
         let allJobs = [];
         let allSources = [];
         let timeFilterDays = 0; // 0 = all time

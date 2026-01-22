@@ -270,22 +270,6 @@
 
     <script src="../js/app.js"></script>
     <script>
-        // Require authentication
-        requireAuth();
-
-        // Check admin role - redirect non-admin users to user portal
-        (async function checkAdminAccess() {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.role !== 'admin') {
-                    window.location.href = '../jobs/analytics.html';
-                    return;
-                }
-            } catch (e) {
-                console.error('Error checking admin access:', e);
-            }
-        })();
-
         // Using CSS variable colors for consistency
         const statusColors = {
             wishlist: '#eab308',    // primary-yellow

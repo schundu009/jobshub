@@ -233,22 +233,6 @@
 
     <script src="../js/app.js"></script>
     <script>
-        // Require authentication
-        requireAuth();
-
-        // Check admin role - redirect non-admin users to user portal
-        (async function checkAdminAccess() {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.role !== 'admin') {
-                    window.location.href = '../jobs/discover.html';
-                    return;
-                }
-            } catch (e) {
-                console.error('Error checking admin access:', e);
-            }
-        })();
-
         async function checkApiKeyStatus() {
             const statusDiv = document.getElementById('api-key-status');
             const removeBtn = document.getElementById('remove-btn');
