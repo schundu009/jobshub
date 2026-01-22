@@ -25,8 +25,8 @@ from config import settings
 # Create Celery app
 celery_app = Celery(
     "jobportal",
-    broker=settings.CELERY_BROKER_URL,
-    backend=settings.CELERY_RESULT_BACKEND,
+    broker=settings.celery_broker_url,
+    backend=settings.celery_result_backend,
     include=[
         "tasks.scraper_tasks",
         "tasks.maintenance_tasks",
@@ -95,7 +95,7 @@ celery_app.conf.update(
         # Run all scrapers every 6 hours
         "scrape-all-companies": {
             "task": "tasks.scraper_tasks.scrape_all_companies",
-            "schedule": crontab(minute=0, hour=f"*/{settings.SCRAPER_SCHEDULE_HOURS}"),
+            "schedule": crontab(minute=0, hour=f"*/{settings.scraper_schedule_hours}"),
             "options": {"queue": "scrapers_orchestrator"},
         },
         # Clean up old scraper runs daily at 3 AM
@@ -127,12 +127,12 @@ celery_app.conf.update(
 
 
 # Optional: Configure Sentry for error tracking
-if settings.SENTRY_DSN:
+if settings.sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
 
     sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
+        dsn=settings.sentry_dsn,
         integrations=[CeleryIntegration()],
         traces_sample_rate=0.1,
     )
