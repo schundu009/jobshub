@@ -1637,25 +1637,17 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 Jobs
             </a>
-            <a href="contacts.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                Contacts
-            </a>
-            <a href="analytics.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Analytics
-            </a>
             <a href="settings.html">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 Settings
             </a>
         </div>
 
-        <!-- User Menu at Sidebar Bottom -->
+        <!-- Admin Portal Link -->
         <div class="sidebar-user" id="user-menu">
-            <a href="login.html" class="sidebar-login-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                Sign In
+            <a href="../admin/index.html" class="sidebar-login-btn" style="background: var(--bg-hover); border-color: var(--border-light);">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                Admin Portal
             </a>
         </div>
     </aside>
@@ -1816,6 +1808,81 @@
 
         <!-- AG Grid -->
         <div id="jobsGrid" class="ag-theme-alpine grid-container"></div>
+
+        <!-- Analytics Section -->
+        <div class="section-divider" style="margin: 32px 0 24px; border-top: 1px solid var(--border-color);"></div>
+        <div class="analytics-section" style="margin-bottom: 32px;">
+            <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Analytics
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--text-primary);" id="analytics-total">0</div>
+                    <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Total Jobs</div>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #22c55e;" id="analytics-applied">0</div>
+                    <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Applied</div>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="analytics-interviewing">0</div>
+                    <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Interviewing</div>
+                </div>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--accent-blue);" id="analytics-companies">0</div>
+                    <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Companies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts Section -->
+        <div class="contacts-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Contacts
+                </h3>
+                <button class="btn btn-secondary" onclick="openContactModal()" style="padding: 8px 16px; font-size: 13px;">+ Add Contact</button>
+            </div>
+            <div id="contacts-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+                <div style="color: var(--text-muted); text-align: center; padding: 24px;">Loading contacts...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div class="modal-overlay" id="contact-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 90%; max-width: 450px;">
+            <h3 id="contact-modal-title" style="margin: 0 0 20px; color: var(--text-primary);">Add Contact</h3>
+            <form id="contact-form">
+                <input type="hidden" id="contact-id">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">Name *</label>
+                    <input type="text" id="contact-name" required style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">Email</label>
+                    <input type="email" id="contact-email" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">Company</label>
+                    <input type="text" id="contact-company" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">Role</label>
+                    <input type="text" id="contact-role" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary);">LinkedIn URL</label>
+                    <input type="url" id="contact-linkedin" style="width: 100%; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 14px;">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" onclick="closeContactModal()" class="btn btn-secondary" style="padding: 10px 20px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Save</button>
+                </div>
+            </form>
+        </div>
     </div>
     </main>
 
