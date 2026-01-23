@@ -260,7 +260,7 @@ def ingest_from_source_with_timeout(source: IngestionSource, db: Session, timeou
     return result
 
 
-def ingest_from_source(source: IngestionSource, db: Session) -> dict:
+def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = False) -> dict:
     """
     Ingest jobs from a single source.
     Only ingests jobs posted within the last 30 days.
@@ -415,16 +415,18 @@ def ingest_from_source(source: IngestionSource, db: Session) -> dict:
         db.rollback()
         error_msg = str(e)
 
-        # Check for sequence/primary key errors and try to fix
-        if "duplicate key" in error_msg.lower() or "unique" in error_msg.lower():
+        # Check for sequence/primary key errors and try to fix (only once)
+        if not _is_retry and ("duplicate key" in error_msg.lower() or "unique" in error_msg.lower()):
             try:
-                # Try to fix sequence and retry
+                # Fix sequence
                 from sqlalchemy import text
                 max_id_result = db.execute(text("SELECT MAX(id) FROM jobs"))
                 max_id = max_id_result.scalar() or 0
                 db.execute(text("SELECT setval('jobs_id_seq', :val, true)"), {"val": max_id})
                 db.commit()
-                result["error"] = f"Sequence conflict detected and fixed. Please retry. Original error: {error_msg[:200]}"
+
+                # Retry the ingestion with fixed sequence
+                return ingest_from_source(source, db, _is_retry=True)
             except Exception as fix_error:
                 result["error"] = f"Database error (sequence fix failed): {error_msg[:200]}"
         else:
