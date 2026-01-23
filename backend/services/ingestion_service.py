@@ -328,7 +328,7 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
             return ('adp', cid_match.group(1))
         return ('adp', None)
 
-    # Eightfold AI - https://{company}.eightfold.ai/careers?domain={domain}
+    # Eightfold AI - Standard pattern: https://{company}.eightfold.ai/careers?domain={domain}
     # URL format: paypal.eightfold.ai/careers?domain=paypal.com
     eightfold_pattern = r'([a-z0-9_-]+)\.eightfold\.ai'
     match = re.search(eightfold_pattern, url)
@@ -342,6 +342,28 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
                 domain = domain_match.group(1)
                 return ('eightfold', f"{company}:{domain}")
             return ('eightfold', company)
+
+    # Eightfold AI - Custom domains (Microsoft, etc.)
+    # Known custom Eightfold domains
+    custom_eightfold_domains = {
+        'apply.careers.microsoft.com': ('apply.careers.microsoft.com', 'microsoft.com'),
+        'jobs.careers.microsoft.com': ('jobs.careers.microsoft.com', 'microsoft.com'),
+    }
+
+    from urllib.parse import urlparse
+    parsed = urlparse(url if url.startswith('http') else f'https://{url}')
+    hostname = parsed.netloc.lower()
+
+    if hostname in custom_eightfold_domains:
+        base_domain, company_domain = custom_eightfold_domains[hostname]
+        return ('eightfold', f"{base_domain}:{company_domain}")
+
+    # Check for domain parameter with /careers path (potential Eightfold custom domain)
+    if '/careers' in url:
+        domain_match = re.search(r'[?&]domain=([a-z0-9_.-]+)', url)
+        if domain_match:
+            # Could be Eightfold - use hostname as base
+            return ('eightfold', f"{hostname}:{domain_match.group(1)}")
 
     return (None, None)
 
@@ -1146,13 +1168,21 @@ def fetch_eightfold_jobs(company_slug: str) -> list:
 
     # Parse company slug (format: subdomain:domain or just subdomain)
     if ':' in company_slug:
-        subdomain, domain = company_slug.split(':', 1)
+        base_host, domain = company_slug.split(':', 1)
     else:
-        subdomain = company_slug
+        base_host = company_slug
         domain = f"{company_slug}.com"
 
+    # Determine the base URL - could be standard Eightfold or custom domain
+    if '.' in base_host and not base_host.endswith('.eightfold.ai'):
+        # Custom domain like apply.careers.microsoft.com
+        base_url = f"https://{base_host}"
+    else:
+        # Standard Eightfold subdomain
+        base_url = f"https://{base_host}.eightfold.ai"
+
     # Fetch the sitemap
-    sitemap_url = f"https://{subdomain}.eightfold.ai/careers/sitemap.xml?domain={domain}"
+    sitemap_url = f"{base_url}/careers/sitemap.xml?domain={domain}"
 
     try:
         request = urllib.request.Request(

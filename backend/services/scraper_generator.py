@@ -39,6 +39,8 @@ class JobBoardDetector:
         ],
         'eightfold': [
             r'\.eightfold\.ai',
+            r'apply\.careers\.microsoft\.com',
+            r'jobs\.careers\.microsoft\.com',
         ],
         'icims': [
             r'careers-.*\.icims\.com',
@@ -95,14 +97,23 @@ class JobBoardDetector:
 
         elif board_type == 'eightfold':
             # URL format: {company}.eightfold.ai/careers?domain={domain}
+            # Or custom domain: apply.careers.microsoft.com/careers?domain={domain}
+            from urllib.parse import parse_qs
+            query_params = parse_qs(parsed.query)
+
+            # Check for standard Eightfold subdomain
             match = re.match(r'([^.]+)\.eightfold\.ai', parsed.netloc)
             if match:
                 metadata['eightfold_subdomain'] = match.group(1)
+            else:
+                # Custom domain - use full hostname
+                metadata['eightfold_subdomain'] = parsed.netloc
+
             # Extract domain from query string
-            from urllib.parse import parse_qs
-            query_params = parse_qs(parsed.query)
             if 'domain' in query_params:
                 metadata['eightfold_domain'] = query_params['domain'][0]
+            elif 'microsoft' in parsed.netloc:
+                metadata['eightfold_domain'] = 'microsoft.com'
 
         return metadata
 
@@ -246,8 +257,14 @@ class ScraperGenerator:
                 elif board_type == 'eightfold':
                     subdomain = metadata.get('eightfold_subdomain', '')
                     domain = metadata.get('eightfold_domain', f'{subdomain}.com')
+                    # Determine base URL - standard Eightfold or custom domain
+                    if '.' in subdomain and 'eightfold' not in subdomain:
+                        # Custom domain like apply.careers.microsoft.com
+                        base_url = f"https://{subdomain}"
+                    else:
+                        base_url = f"https://{subdomain}.eightfold.ai"
                     # Eightfold uses a public sitemap - count jobs from there
-                    api_url = f"https://{subdomain}.eightfold.ai/careers/sitemap.xml?domain={domain}"
+                    api_url = f"{base_url}/careers/sitemap.xml?domain={domain}"
                     async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
                         if resp.status == 200:
                             text = await resp.text()
