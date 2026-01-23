@@ -45,6 +45,66 @@ def get_engine():
 # Create engine
 engine = get_engine()
 
+
+def _run_early_migrations():
+    """Run critical migrations before models are loaded."""
+    from sqlalchemy import text
+
+    new_columns = [
+        ("full_name", "VARCHAR(255)"),
+        ("job_title", "VARCHAR(255)"),
+        ("date_of_birth", "DATE"),
+        ("resume_email", "VARCHAR(255)"),
+        ("language", "VARCHAR(10) DEFAULT 'en'"),
+        ("base_resume_id", "INTEGER"),
+        ("ai_model", "VARCHAR(50) DEFAULT 'gpt-4'"),
+        ("employment_status", "VARCHAR(50)"),
+        ("job_titles", "JSON"),
+        ("experience_level", "VARCHAR(50)"),
+        ("industry", "VARCHAR(100)"),
+        ("work_type", "VARCHAR(50)"),
+        ("available_date", "DATE"),
+        ("preferred_cities", "JSON"),
+        ("remote_ok", "BOOLEAN DEFAULT FALSE"),
+        ("hybrid_ok", "BOOLEAN DEFAULT FALSE"),
+        ("drivers_license", "VARCHAR(10)"),
+        ("security_clearance", "VARCHAR(10)"),
+        ("apply_mode", "VARCHAR(20) DEFAULT 'hybrid'"),
+        ("excluded_companies", "JSON"),
+    ]
+
+    try:
+        with engine.connect() as conn:
+            # Check if users table exists
+            result = conn.execute(text(
+                "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users')"
+            ))
+            if not result.scalar():
+                return  # Users table doesn't exist yet
+
+            # Get existing columns
+            result = conn.execute(text(
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"
+            ))
+            existing = {row[0] for row in result}
+
+            # Add missing columns
+            for col_name, col_type in new_columns:
+                if col_name not in existing:
+                    try:
+                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                        print(f"Added column: {col_name}")
+                    except Exception as e:
+                        print(f"Could not add {col_name}: {e}")
+
+            conn.commit()
+    except Exception as e:
+        print(f"Early migration error: {e}")
+
+
+# Run migrations before models load
+_run_early_migrations()
+
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
