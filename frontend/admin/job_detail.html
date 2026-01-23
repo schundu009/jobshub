@@ -2229,8 +2229,13 @@
             // Highlight tech terms and experience
             const techTerms = ['Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
                 'Kubernetes', 'Docker', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API',
-                'CI/CD', 'DevOps', 'Machine Learning', 'AI', 'ML', 'Linux', 'Go', 'Rust', 'Java', 'C++',
+                'CI/CD', 'DevOps', 'Machine Learning', 'AI', 'ML', 'Linux', 'Go', 'Rust', 'Java',
                 'Terraform', 'Ansible', 'Jenkins', 'Git', 'Prometheus', 'Grafana', 'Kafka'];
+
+            // Escape special regex characters
+            function escapeRegex(str) {
+                return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
 
             function highlightText(node) {
                 if (node.nodeType === Node.TEXT_NODE) {
@@ -2241,7 +2246,9 @@
                     if (/\d+\+?\s*(?:years?|yrs?)/i.test(text)) hasMatch = true;
                     // Check for tech terms
                     techTerms.forEach(term => {
-                        if (new RegExp(`\\b${term}\\b`, 'i').test(text)) hasMatch = true;
+                        try {
+                            if (new RegExp(`\\b${escapeRegex(term)}\\b`, 'i').test(text)) hasMatch = true;
+                        } catch(e) {}
                     });
 
                     if (hasMatch) {
@@ -2251,8 +2258,10 @@
                         html = html.replace(/(\d+\+?\s*(?:years?|yrs?))/gi, '<span class="desc-highlight">$1</span>');
                         // Highlight tech terms
                         techTerms.forEach(term => {
-                            const regex = new RegExp(`\\b(${term})\\b`, 'gi');
-                            html = html.replace(regex, '<span class="desc-tech">$1</span>');
+                            try {
+                                const regex = new RegExp(`\\b(${escapeRegex(term)})\\b`, 'gi');
+                                html = html.replace(regex, '<span class="desc-tech">$1</span>');
+                            } catch(e) {}
                         });
                         span.innerHTML = html;
                         node.parentNode.replaceChild(span, node);
