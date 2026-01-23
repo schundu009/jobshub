@@ -9,19 +9,10 @@
 </head>
 <body>
     <main class="container">
-        <div class="admin-page-header">
-            <div>
-                <h1 class="admin-page-title">Companies</h1>
-                <p class="admin-page-subtitle">Manage tracked companies and their settings</p>
-            </div>
-            <div class="admin-page-actions">
-                <button class="btn btn-primary" onclick="openModal()">Add New Company</button>
-            </div>
-        </div>
-
         <div class="admin-card">
-            <div class="filter-bar" style="margin-bottom: 20px;">
-                <input type="text" id="search-input" placeholder="Search companies..." style="padding: 10px 14px; border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-primary); border-radius: 8px; min-width: 300px;">
+            <div class="filter-bar" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px;">
+                <input type="text" id="search-input" placeholder="Search companies..." style="padding: 10px 14px; border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-primary); border-radius: 8px; min-width: 300px; flex: 1;">
+                <button class="btn btn-primary" onclick="openModal()">+ Add Company</button>
             </div>
 
             <div class="table-container">
