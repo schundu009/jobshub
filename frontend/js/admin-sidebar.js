@@ -7,21 +7,21 @@ const ADMIN_NAV_ITEMS = [
     {
         section: 'Main',
         items: [
-            { id: 'dashboard', label: 'Dashboard', href: 'index.html', icon: 'dashboard' },
-            { id: 'jobs', label: 'Jobs', href: 'jobs.html', icon: 'briefcase' },
-            { id: 'companies', label: 'Companies', href: 'companies.html', icon: 'building' },
+            { id: 'dashboard', label: 'Dashboard', href: '/admin/index.html', icon: 'dashboard' },
+            { id: 'jobs', label: 'Jobs', href: '/admin/jobs.html', icon: 'briefcase' },
+            { id: 'companies', label: 'Companies', href: '/admin/companies.html', icon: 'building' },
         ]
     },
     {
         section: 'Analytics',
         items: [
-            { id: 'analytics', label: 'Analytics', href: 'analytics.html', icon: 'chart' },
+            { id: 'analytics', label: 'Analytics', href: '/admin/analytics.html', icon: 'chart' },
         ]
     },
     {
         section: 'System',
         items: [
-            { id: 'settings', label: 'Settings', href: 'settings.html', icon: 'settings' },
+            { id: 'settings', label: 'Settings', href: '/admin/settings.html', icon: 'settings' },
         ]
     }
 ];
@@ -61,7 +61,7 @@ function renderAdminSidebar(activePageId) {
     return `
         <aside class="admin-sidebar" id="admin-sidebar">
             <div class="admin-sidebar-header">
-                <a href="index.html" class="admin-logo">
+                <a href="/admin/index.html" class="admin-logo">
                     <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="sidebarLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
