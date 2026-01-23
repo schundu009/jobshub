@@ -175,7 +175,7 @@ class User(Base):
     jobs = relationship("Job", back_populates="owner", cascade="all, delete-orphan")
     companies = relationship("Company", back_populates="owner", cascade="all, delete-orphan")
     contacts = relationship("Contact", back_populates="owner", cascade="all, delete-orphan")
-    documents = relationship("UserDocument", back_populates="owner", cascade="all, delete-orphan")
+    documents = relationship("UserDocument", back_populates="owner", cascade="all, delete-orphan", foreign_keys="[UserDocument.user_id]")
 
 
 class UserDocument(Base):
@@ -196,7 +196,7 @@ class UserDocument(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    owner = relationship("User", back_populates="documents")
+    owner = relationship("User", back_populates="documents", foreign_keys=[user_id])
 
 
 class JobRelevanceScore(Base):
