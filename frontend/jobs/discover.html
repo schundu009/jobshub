@@ -1088,7 +1088,201 @@
             color: var(--accent-blue-light);
         }
 
-        /* Role Selector - Premium Pills */
+        /* Sidebar Filters Section */
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 8px 16px;
+        }
+
+        .sidebar-filters {
+            flex: 1;
+            padding: 8px 12px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .sidebar-filter-section {
+            margin-bottom: 16px;
+        }
+
+        .sidebar-filter-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sidebar-filter-title svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        .sidebar-filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-filter-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar-filter-item.active {
+            background: var(--accent-blue-muted);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-filter-item svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+
+        .sidebar-filter-item:hover svg,
+        .sidebar-filter-item.active svg {
+            opacity: 1;
+        }
+
+        .sidebar-filter-item .filter-label {
+            flex: 1;
+        }
+
+        .sidebar-filter-item .filter-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-filter-item:hover .filter-count,
+        .sidebar-filter-item.active .filter-count {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+        }
+
+        /* Sidebar Company Items */
+        .sidebar-company-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-company-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .sidebar-company-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .sidebar-company-item.active {
+            background: var(--accent-blue-muted);
+            color: var(--accent-blue);
+        }
+
+        .sidebar-company-item .company-initial {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            flex-shrink: 0;
+        }
+
+        .sidebar-company-item:hover .company-initial,
+        .sidebar-company-item.active .company-initial {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar-company-item .company-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar-company-item .company-count {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            padding: 2px 5px;
+            border-radius: 8px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-company-item:hover .company-count,
+        .sidebar-company-item.active .company-count {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+        }
+
+        .sidebar-loading,
+        .sidebar-empty {
+            padding: 12px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Adjust sidebar nav to not take all space */
+        .sidebar-nav {
+            flex: none;
+            overflow: visible;
+        }
+
+        /* Role Selector - Premium Pills (hidden when sidebar filters active) */
         .role-selector {
             display: flex;
             gap: 10px;
@@ -1754,6 +1948,79 @@
                 Settings
             </a>
         </div>
+
+        <!-- Divider -->
+        <div class="sidebar-divider"></div>
+
+        <!-- Sidebar Filters -->
+        <div class="sidebar-filters">
+            <!-- Job Type Filters -->
+            <div class="sidebar-filter-section">
+                <div class="sidebar-filter-title">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    Job Types
+                </div>
+                <div class="sidebar-filter-list" id="sidebar-role-filters">
+                    <button class="sidebar-filter-item active" data-role="">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <span class="filter-label">All Jobs</span>
+                        <span class="filter-count" id="sidebar-count-all">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="devops">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+                        <span class="filter-label">DevOps</span>
+                        <span class="filter-count" id="sidebar-count-devops">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="backend">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        <span class="filter-label">Backend</span>
+                        <span class="filter-count" id="sidebar-count-backend">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="frontend">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                        <span class="filter-label">Frontend</span>
+                        <span class="filter-count" id="sidebar-count-frontend">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="fullstack">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <span class="filter-label">Full Stack</span>
+                        <span class="filter-count" id="sidebar-count-fullstack">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="data">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                        <span class="filter-label">Data</span>
+                        <span class="filter-count" id="sidebar-count-data">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="ml">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                        <span class="filter-label">ML/AI</span>
+                        <span class="filter-count" id="sidebar-count-ml">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="mobile">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <span class="filter-label">Mobile</span>
+                        <span class="filter-count" id="sidebar-count-mobile">-</span>
+                    </button>
+                    <button class="sidebar-filter-item" data-role="security">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span class="filter-label">Security</span>
+                        <span class="filter-count" id="sidebar-count-security">-</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Companies -->
+            <div class="sidebar-filter-section">
+                <div class="sidebar-filter-title">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                    Top Companies
+                </div>
+                <div class="sidebar-company-list" id="sidebar-companies">
+                    <div class="sidebar-loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+
         <div class="sidebar-user" id="user-menu"></div>
     </aside>
 
@@ -1901,8 +2168,8 @@
             </div>
         </div>
 
-        <!-- Role Selector -->
-        <div class="role-selector" id="role-selector">
+        <!-- Role Selector (moved to sidebar) -->
+        <div class="role-selector" id="role-selector" style="display: none;">
             <button class="role-btn active" data-role="">All Jobs</button>
             <button class="role-btn" data-role="devops">DevOps</button>
             <button class="role-btn" data-role="backend">Backend</button>
@@ -1914,8 +2181,8 @@
             <button class="role-btn" data-role="security">Security</button>
         </div>
 
-        <!-- Company Chips -->
-        <div id="company-chips" class="company-chips"></div>
+        <!-- Company Chips (moved to sidebar) -->
+        <div id="company-chips" class="company-chips" style="display: none;"></div>
 
         <!-- AG Grid -->
         <div id="jobsGrid" class="ag-theme-alpine grid-container"></div>
@@ -2546,12 +2813,25 @@
         });
 
         function setupEventListeners() {
-            // Role buttons
+            // Role buttons (legacy - hidden)
             document.querySelectorAll('.role-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     currentRole = btn.dataset.role;
+                    syncSidebarRoleFilters();
+                    applyRoleFilter();
+                    updateActiveFilters();
+                });
+            });
+
+            // Sidebar role filters
+            document.querySelectorAll('.sidebar-filter-item[data-role]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.sidebar-filter-item[data-role]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentRole = btn.dataset.role;
+                    syncLegacyRoleButtons();
                     applyRoleFilter();
                     updateActiveFilters();
                 });
@@ -2678,6 +2958,20 @@
             }
         }
 
+        // Sync sidebar role filters with legacy buttons
+        function syncSidebarRoleFilters() {
+            document.querySelectorAll('.sidebar-filter-item[data-role]').forEach(b => b.classList.remove('active'));
+            const sidebarBtn = document.querySelector(`.sidebar-filter-item[data-role="${currentRole}"]`);
+            if (sidebarBtn) sidebarBtn.classList.add('active');
+        }
+
+        // Sync legacy role buttons with sidebar
+        function syncLegacyRoleButtons() {
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            const legacyBtn = document.querySelector(`.role-btn[data-role="${currentRole}"]`);
+            if (legacyBtn) legacyBtn.classList.add('active');
+        }
+
         function clearAllFilters() {
             // Reset all filters to defaults
             document.getElementById('location-filter').value = '';
@@ -2689,10 +2983,13 @@
             document.getElementById('exclude-no-desc').checked = false;
             selectedCompanies.clear();
             document.querySelectorAll('.company-chip').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.sidebar-company-item').forEach(c => c.classList.remove('active'));
 
-            // Reset role
+            // Reset role (both legacy and sidebar)
             document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector('.role-btn[data-role=""]').classList.add('active');
+            document.querySelector('.role-btn[data-role=""]')?.classList.add('active');
+            document.querySelectorAll('.sidebar-filter-item[data-role]').forEach(b => b.classList.remove('active'));
+            document.querySelector('.sidebar-filter-item[data-role=""]')?.classList.add('active');
             currentRole = '';
 
             // Clear search
@@ -2706,10 +3003,7 @@
 
         function buildCompanyChips() {
             const container = document.getElementById('company-chips');
-            if (!container) {
-                console.warn('Company chips container not found');
-                return;
-            }
+            const sidebarContainer = document.getElementById('sidebar-companies');
 
             // Count jobs per company
             const companyCounts = {};
@@ -2718,32 +3012,95 @@
                 companyCounts[name] = (companyCounts[name] || 0) + 1;
             });
 
-            // Sort by count descending, take top 15
+            // Sort by count descending, take top 15 for legacy, top 10 for sidebar
             const sorted = Object.entries(companyCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 15);
 
-            container.innerHTML = sorted.map(([name, count]) => {
-                const isActive = selectedCompanies.has(name);
-                return `<button class="company-chip ${isActive ? 'active' : ''}" data-company="${name}">
-                    ${name}
-                    <span class="count">${count}</span>
-                </button>`;
-            }).join('');
+            // Build legacy chips (hidden but kept for compatibility)
+            if (container) {
+                container.innerHTML = sorted.map(([name, count]) => {
+                    const isActive = selectedCompanies.has(name);
+                    return `<button class="company-chip ${isActive ? 'active' : ''}" data-company="${name}">
+                        ${name}
+                        <span class="count">${count}</span>
+                    </button>`;
+                }).join('');
 
-            // Add click handlers
-            container.querySelectorAll('.company-chip').forEach(chip => {
-                chip.addEventListener('click', () => {
-                    const company = chip.dataset.company;
-                    if (selectedCompanies.has(company)) {
-                        selectedCompanies.delete(company);
-                        chip.classList.remove('active');
-                    } else {
-                        selectedCompanies.add(company);
-                        chip.classList.add('active');
-                    }
-                    applyFilters();
+                // Add click handlers for legacy chips
+                container.querySelectorAll('.company-chip').forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        const company = chip.dataset.company;
+                        toggleCompanyFilter(company);
+                    });
                 });
+            }
+
+            // Build sidebar companies
+            if (sidebarContainer) {
+                const topCompanies = sorted.slice(0, 10);
+                if (topCompanies.length === 0) {
+                    sidebarContainer.innerHTML = '<div class="sidebar-empty">No companies yet</div>';
+                } else {
+                    sidebarContainer.innerHTML = topCompanies.map(([name, count]) => {
+                        const isActive = selectedCompanies.has(name);
+                        const initial = (name || 'U')[0].toUpperCase();
+                        return `<button class="sidebar-company-item ${isActive ? 'active' : ''}" data-company="${name}">
+                            <span class="company-initial">${initial}</span>
+                            <span class="company-name">${name}</span>
+                            <span class="company-count">${count}</span>
+                        </button>`;
+                    }).join('');
+
+                    // Add click handlers for sidebar companies
+                    sidebarContainer.querySelectorAll('.sidebar-company-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const company = item.dataset.company;
+                            toggleCompanyFilter(company);
+                        });
+                    });
+                }
+            }
+
+            // Update sidebar role filter counts
+            updateSidebarFilterCounts();
+        }
+
+        function toggleCompanyFilter(company) {
+            if (selectedCompanies.has(company)) {
+                selectedCompanies.delete(company);
+            } else {
+                selectedCompanies.add(company);
+            }
+            // Sync both UI elements
+            document.querySelectorAll(`.company-chip[data-company="${company}"]`).forEach(el => {
+                el.classList.toggle('active', selectedCompanies.has(company));
+            });
+            document.querySelectorAll(`.sidebar-company-item[data-company="${company}"]`).forEach(el => {
+                el.classList.toggle('active', selectedCompanies.has(company));
+            });
+            applyFilters();
+            updateActiveFilters();
+        }
+
+        function updateSidebarFilterCounts() {
+            // Count jobs by role type
+            const roleCounts = { all: processedJobs.length };
+            Object.keys(ROLE_KEYWORDS).forEach(role => {
+                const config = ROLE_KEYWORDS[role];
+                roleCounts[role] = processedJobs.filter(job => {
+                    const title = (job.title || '').toLowerCase();
+                    const desc = (job.job_description || '').toLowerCase();
+                    const combined = title + ' ' + desc;
+                    return config.primary.some(k => combined.includes(k.toLowerCase())) ||
+                           config.secondary.some(k => combined.includes(k.toLowerCase()));
+                }).length;
+            });
+
+            // Update sidebar counts
+            Object.keys(roleCounts).forEach(role => {
+                const el = document.getElementById(`sidebar-count-${role}`);
+                if (el) el.textContent = roleCounts[role];
             });
         }
 
