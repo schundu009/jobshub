@@ -653,12 +653,32 @@ def run_migrations():
             logger.warning(f"Could not check/promote admin user: {e}")
 
 
+def set_admin_role_once():
+    """One-time migration: Set chundubabu@gmail.com as administrator."""
+    from database import SessionLocal
+    from models import User
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.email == "chundubabu@gmail.com").first()
+        if user and user.role != "administrator":
+            old_role = user.role
+            user.role = "administrator"
+            db.commit()
+            logger.info(f"Set admin role: {user.email} changed from '{old_role}' to 'administrator'")
+    except Exception as e:
+        logger.error(f"Error setting admin role: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
     create_tables()
     run_migrations()
+    set_admin_role_once()  # One-time admin setup
     yield
     # Shutdown (cleanup if needed)
 
