@@ -228,8 +228,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Scraper endpoints - only limit actual scraper triggers, not management
         if method == "POST":
             # These are the actual scraper/ingestion triggers that should be limited
-            if "/refresh" in path and "/stop" not in path and "/status" not in path:
-                if path.startswith("/api/scrapers") or path.startswith("/api/ingest"):
+            # Exclude batch management endpoints (async, stop, status)
+            if "/refresh" in path:
+                # Don't limit batch/async, stop, status, or logs endpoints
+                if "/batch/" in path or "/stop" in path or "/status" in path or "/logs" in path:
+                    pass  # Let these go through normal API rate limiting
+                elif path.startswith("/api/scrapers") or path.startswith("/api/ingest"):
                     return "scraper"
             # Webhook triggers
             if "/webhook/trigger" in path:
