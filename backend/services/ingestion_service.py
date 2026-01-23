@@ -48,6 +48,7 @@ SUPPORTED_ATS = {
     'apple': 'Apple',
     'intuit': 'Intuit',
     'adp': 'ADP',
+    'eightfold': 'Eightfold',
 }
 
 
@@ -326,6 +327,21 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
         if cid_match:
             return ('adp', cid_match.group(1))
         return ('adp', None)
+
+    # Eightfold AI - https://{company}.eightfold.ai/careers?domain={domain}
+    # URL format: paypal.eightfold.ai/careers?domain=paypal.com
+    eightfold_pattern = r'([a-z0-9_-]+)\.eightfold\.ai'
+    match = re.search(eightfold_pattern, url)
+    if match:
+        company = match.group(1)
+        if company not in ['www', 'api', 'app']:
+            # Check for domain parameter which specifies the actual company domain
+            domain_match = re.search(r'[?&]domain=([a-z0-9_.-]+)', url)
+            if domain_match:
+                # Use subdomain:domain format for slug (e.g., "paypal:paypal.com")
+                domain = domain_match.group(1)
+                return ('eightfold', f"{company}:{domain}")
+            return ('eightfold', company)
 
     return (None, None)
 
@@ -1116,6 +1132,140 @@ def fetch_adp_jobs(company_slug: str) -> list:
     return jobs
 
 
+def fetch_eightfold_jobs(company_slug: str) -> list:
+    """
+    Fetch jobs from Eightfold AI career sites by parsing the sitemap.
+
+    Eightfold provides a public sitemap with all job URLs at:
+    https://{company}.eightfold.ai/careers/sitemap.xml?domain={domain}
+
+    Company slug format: "subdomain:domain" (e.g., "paypal:paypal.com")
+    """
+    if not company_slug:
+        raise ValueError("Eightfold company slug is required")
+
+    # Parse company slug (format: subdomain:domain or just subdomain)
+    if ':' in company_slug:
+        subdomain, domain = company_slug.split(':', 1)
+    else:
+        subdomain = company_slug
+        domain = f"{company_slug}.com"
+
+    # Fetch the sitemap
+    sitemap_url = f"https://{subdomain}.eightfold.ai/careers/sitemap.xml?domain={domain}"
+
+    try:
+        request = urllib.request.Request(
+            sitemap_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'Accept': 'application/xml, text/xml, */*'
+            }
+        )
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            sitemap_content = response.read().decode('utf-8')
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise ValueError(f"Eightfold sitemap not found for '{subdomain}'")
+        raise ValueError(f"Eightfold API error: {e.code}")
+    except urllib.error.URLError as e:
+        raise ValueError(f"Network error: {str(e)}")
+
+    jobs = []
+
+    # Parse the sitemap XML to extract job URLs
+    # Job URLs look like: https://paypal.eightfold.ai/careers/job/274908270787-director-corporate-development-san-jose-california-united-states-of-america?domain=paypal.com
+    job_url_pattern = re.compile(
+        r'<loc>(https://[^<]+/careers/job/(\d+)-([^?<]+)\?domain=[^<]+)</loc>(?:\s*<lastmod>([^<]+)</lastmod>)?',
+        re.IGNORECASE
+    )
+
+    for match in job_url_pattern.finditer(sitemap_content):
+        job_url = match.group(1)
+        external_job_id = match.group(2)
+        slug_parts = match.group(3)
+        lastmod = match.group(4) if match.group(4) else None
+
+        # Parse title and location from URL slug
+        # Eightfold slugs end with location: title-city-state/region-country
+        # Example: director-corporate-development-san-jose-california-united-states-of-america
+        slug_text = slug_parts.replace('-', ' ')
+
+        # Known city patterns that indicate start of location
+        city_patterns = [
+            r'\b(san jose|san francisco|new york|los angeles|austin|seattle|chicago|boston|denver|atlanta|dallas|phoenix|portland|miami|nashville)\b',
+            r'\b(london|dublin|berlin|stockholm|amsterdam|paris|munich|zurich|singapore|tokyo|sydney|melbourne|toronto|vancouver)\b',
+            r'\b(chennai|bangalore|hyderabad|mumbai|pune|gurgaon|noida|delhi|kolkata)\b',
+            r'\b(dreilinden)\b',  # PayPal specific locations
+        ]
+
+        # Country/region patterns that indicate location
+        country_patterns = [
+            r'\bunited states of america\b',
+            r'\bunited states\b',
+            r'\bunited kingdom\b',
+            r'\b(india|germany|ireland|singapore|australia|england|sweden|china|japan|france|canada|netherlands|switzerland)\b$',
+        ]
+
+        # Try to find location start using city patterns
+        location_start = None
+        for pattern in city_patterns:
+            match = re.search(pattern, slug_text.lower())
+            if match:
+                location_start = match.start()
+                break
+
+        # If no city found, try to find country at the end
+        if location_start is None:
+            for pattern in country_patterns:
+                match = re.search(pattern, slug_text.lower())
+                if match:
+                    # Location is just the country/region portion
+                    location_start = match.start()
+                    break
+
+        # Split into title and location
+        if location_start and location_start > 5:  # Ensure title has at least a few chars
+            title = slug_text[:location_start].strip()
+            location = slug_text[location_start:].strip()
+        else:
+            # Fallback: use whole slug as title
+            title = slug_text
+            location = None
+
+        # Clean up title (title case, fix abbreviations)
+        title = ' '.join(word.title() for word in title.split())
+        title = title.replace(' Sr ', ' Senior ').replace('Sr ', 'Senior ')
+        title = title.replace(' Swe ', ' SWE ').replace('Swe ', 'SWE ')
+        title = title.replace(' Mts ', ' MTS ').replace('Mts ', 'MTS ')
+
+        # Clean up location
+        if location:
+            location = ' '.join(word.title() for word in location.split())
+            # Normalize common patterns
+            location = location.replace('United States Of America', 'USA')
+            location = location.replace('United Kingdom', 'UK')
+            # Format as "City, State/Country"
+            location = location.strip()
+
+        # Clean up common abbreviations
+        title = title.replace('Sr ', 'Senior ').replace('Sr. ', 'Senior ')
+        title = title.replace('Mts ', 'MTS ').replace('Swe ', 'SWE ')
+
+        normalized_job = {
+            'title': title.strip(),
+            'location': location.strip() if location else None,
+            'job_url': job_url,
+            'job_description': '',  # Would need to fetch individual pages for full description
+            'source': 'eightfold',
+            'external_job_id': external_job_id,
+            'posted_date': lastmod.split('T')[0] if lastmod else None,
+        }
+        jobs.append(normalized_job)
+
+    return jobs
+
+
 def fetch_jobs_from_ats(ats_type: str, company_slug: str) -> list:
     """
     Fetch jobs from the specified ATS.
@@ -1138,6 +1288,7 @@ def fetch_jobs_from_ats(ats_type: str, company_slug: str) -> list:
         'apple': fetch_apple_jobs,
         'intuit': fetch_intuit_jobs,
         'adp': fetch_adp_jobs,
+        'eightfold': fetch_eightfold_jobs,
     }
 
     if ats_type in fetchers:
@@ -1346,5 +1497,10 @@ def get_supported_ats_info() -> dict:
             'name': 'ADP Workforce Now',
             'example_url': 'https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=xxx',
             'pattern': 'workforcenow.adp.com/?cid={company_id}',
+        },
+        'eightfold': {
+            'name': 'Eightfold AI',
+            'example_url': 'https://paypal.eightfold.ai/careers?domain=paypal.com',
+            'pattern': '{company}.eightfold.ai/careers?domain={domain}',
         },
     }
