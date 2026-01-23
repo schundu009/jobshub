@@ -216,9 +216,16 @@
     <script src="../js/app.js"></script>
     <script src="../js/admin-sidebar.js"></script>
     <script>
-        // Initialize admin layout
+        // Initialize admin layout and page
         document.addEventListener('DOMContentLoaded', function() {
             initAdminLayout('settings', 'Settings');
+
+            // Initialize after layout is ready
+            document.getElementById('api-key-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveApiKey();
+            });
+            checkApiKeyStatus();
+            if (currentBatchJobId) checkBatchStatus(true);
         });
 
         async function checkApiKeyStatus() {
@@ -309,12 +316,6 @@
                 showAlert('Failed to remove API key: ' + error.message, 'error');
             }
         }
-
-        document.getElementById('api-key-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') saveApiKey();
-        });
-
-        checkApiKeyStatus();
 
         // Batch Ingestion
         let currentBatchJobId = localStorage.getItem('currentBatchJobId');
@@ -611,7 +612,6 @@
             document.getElementById('log-count').textContent = '0 entries';
         }
 
-        if (currentBatchJobId) checkBatchStatus(true);
     </script>
 </body>
 </html>
