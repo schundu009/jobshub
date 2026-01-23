@@ -326,7 +326,8 @@ def ingest_from_source(source: IngestionSource, db: Session) -> dict:
     fetched_external_ids = set()
     recent_jobs_count = 0
 
-    for job_data in jobs_data:
+    try:
+        for job_data in jobs_data:
         external_id = job_data['external_job_id']
         posted_date = parse_posted_date(job_data.get('posted_date'))
 
@@ -407,8 +408,30 @@ def ingest_from_source(source: IngestionSource, db: Session) -> dict:
         job.is_active = False
         result["jobs_deactivated"] += 1
 
-    db.commit()
-    result["success"] = True
+        db.commit()
+        result["success"] = True
+
+    except Exception as e:
+        db.rollback()
+        error_msg = str(e)
+
+        # Check for sequence/primary key errors and try to fix
+        if "duplicate key" in error_msg.lower() or "unique" in error_msg.lower():
+            try:
+                # Try to fix sequence and retry
+                from sqlalchemy import text
+                max_id_result = db.execute(text("SELECT MAX(id) FROM jobs"))
+                max_id = max_id_result.scalar() or 0
+                db.execute(text("SELECT setval('jobs_id_seq', :val, true)"), {"val": max_id})
+                db.commit()
+                result["error"] = f"Sequence conflict detected and fixed. Please retry. Original error: {error_msg[:200]}"
+            except Exception as fix_error:
+                result["error"] = f"Database error (sequence fix failed): {error_msg[:200]}"
+        else:
+            result["error"] = f"Database error: {error_msg[:300]}"
+
+        return result
+
     return result
 
 
@@ -1408,4 +1431,66 @@ def cleanup_old_jobs(
         "deleted_with_old_posted_date": count_with_date,
         "deleted_with_null_posted_date": count_with_null,
         "cutoff_date": cutoff_date.isoformat()
+    }
+
+
+@router.post("/fix-sequences")
+def fix_database_sequences(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Fix PostgreSQL sequences that are out of sync with table data.
+    This can happen after bulk imports or database restores.
+    """
+    from sqlalchemy import text
+
+    tables_fixed = []
+
+    # List of tables with auto-increment IDs to fix
+    tables = [
+        ("jobs", "id"),
+        ("companies", "id"),
+        ("ingestion_sources", "id"),
+        ("contacts", "id"),
+        ("interviews", "id"),
+        ("notes", "id"),
+        ("documents", "id"),
+        ("users", "id"),
+        ("role_profiles", "id"),
+        ("user_documents", "id"),
+        ("job_relevance_scores", "id"),
+        ("scraper_runs", "id"),
+        ("scraper_configs", "id"),
+    ]
+
+    for table, column in tables:
+        try:
+            # Get the sequence name (PostgreSQL naming convention)
+            seq_name = f"{table}_{column}_seq"
+
+            # Get max ID from table
+            result = db.execute(text(f"SELECT MAX({column}) FROM {table}"))
+            max_id = result.scalar() or 0
+
+            # Reset sequence to max_id + 1
+            db.execute(text(f"SELECT setval('{seq_name}', :val, true)"), {"val": max_id})
+
+            tables_fixed.append({
+                "table": table,
+                "sequence": seq_name,
+                "max_id": max_id,
+                "new_nextval": max_id + 1
+            })
+        except Exception as e:
+            tables_fixed.append({
+                "table": table,
+                "error": str(e)[:200]
+            })
+
+    db.commit()
+
+    return {
+        "message": "Sequences fixed",
+        "tables": tables_fixed
     }
