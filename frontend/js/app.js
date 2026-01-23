@@ -200,12 +200,18 @@ function showAlert(message, type = 'success') {
     alert.className = `alert alert-${type}`;
     alert.textContent = message;
 
-    const container = document.querySelector('.container');
-    const pageHeader = container.querySelector('.page-header');
-    if (pageHeader) {
-        pageHeader.after(alert);
+    // Support both regular pages (.container) and admin pages (.admin-content)
+    const container = document.querySelector('.admin-content') || document.querySelector('.container');
+    if (!container) {
+        console.warn('showAlert: No container found, appending to body');
+        document.body.prepend(alert);
     } else {
-        container.prepend(alert);
+        const pageHeader = container.querySelector('.page-header, .admin-page-header');
+        if (pageHeader) {
+            pageHeader.after(alert);
+        } else {
+            container.prepend(alert);
+        }
     }
 
     setTimeout(() => alert.remove(), 5000);
