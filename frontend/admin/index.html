@@ -427,7 +427,11 @@
     </main>
 
     <script src="../js/app.js"></script>
+    <script src="../js/admin-sidebar.js"></script>
     <script>
+        // Initialize admin layout with sidebar
+        initAdminLayout('dashboard', 'Dashboard');
+
         async function loadDashboard() {
             try {
                 const summary = await apiRequest('/analytics/summary');

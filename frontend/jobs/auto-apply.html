@@ -72,6 +72,26 @@
             margin-left: auto;
         }
 
+        /* Sidebar User */
+        .sidebar-user { padding: 12px; border-top: 1px solid var(--border-color); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .sidebar-user-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #7c3aed 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 12px;
+        }
+        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 13px; }
+        .sidebar-user-email { font-size: 11px; color: var(--text-muted); }
+        .sidebar-logout-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 8px; background: transparent;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            color: var(--text-secondary); font-size: 12px; cursor: pointer;
+        }
+        .sidebar-logout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .sidebar-logout-btn svg { width: 14px; height: 14px; }
+
         /* Top Right Controls */
         .top-right-controls {
             position: fixed;
@@ -539,6 +559,32 @@
             } catch (e) { return null; }
         }
 
+        // User menu initialization
+        function initUserMenu() {
+            const um = document.getElementById('user-menu');
+            if (!um) return;
+            const uj = localStorage.getItem('user');
+            if (uj) {
+                try {
+                    const u = JSON.parse(uj);
+                    const n = u.name || u.email?.split('@')[0] || 'User';
+                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+                    um.innerHTML = `
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-avatar">${i}</div>
+                            <div>
+                                <div class="sidebar-user-name">${n}</div>
+                                <div class="sidebar-user-email">${u.email || ''}</div>
+                            </div>
+                        </div>
+                        <button class="sidebar-logout-btn" onclick="logout()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            Sign Out
+                        </button>`;
+                } catch (e) { console.error('User menu error:', e); }
+            }
+        }
+
         // Toast
         function toast(msg, type = 'success') {
             const t = document.getElementById('toast');
@@ -739,6 +785,7 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            initUserMenu();
             loadSubmissions();
             // Poll for updates every 10 seconds
             setInterval(loadSubmissions, 10000);
