@@ -304,6 +304,30 @@
             text-overflow: ellipsis;
         }
 
+        .sidebar-admin-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            margin-top: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .sidebar-admin-link:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .sidebar-admin-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
         .sidebar-logout-btn {
             display: flex;
             align-items: center;
@@ -912,6 +936,47 @@
             color: var(--accent-blue);
             border-color: var(--accent-blue);
             background: var(--accent-blue-muted);
+        }
+
+        /* Exclude Dropdown */
+        .exclude-dropdown {
+            position: relative;
+        }
+        .exclude-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 0;
+            min-width: 180px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+        }
+        .exclude-dropdown-content.show {
+            display: block;
+        }
+        .exclude-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .exclude-option:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .exclude-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-blue);
         }
 
         /* Checkbox Filters - Premium */
@@ -1666,6 +1731,7 @@
                 Settings
             </a>
         </div>
+        <div class="sidebar-user" id="user-menu"></div>
     </aside>
 
     <!-- Top Right Controls -->
@@ -1768,6 +1834,26 @@
             <button class="btn btn-secondary" id="hidden-toggle">
                 Hidden
             </button>
+            <div class="exclude-dropdown">
+                <button class="btn btn-secondary" id="exclude-btn" onclick="toggleExcludeDropdown()">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Exclude
+                </button>
+                <div class="exclude-dropdown-content" id="exclude-dropdown-content">
+                    <label class="exclude-option">
+                        <input type="checkbox" id="exclude-govt">
+                        <span>Govt/Clearance</span>
+                    </label>
+                    <label class="exclude-option">
+                        <input type="checkbox" id="exclude-citizenship">
+                        <span>US Citizenship Req</span>
+                    </label>
+                    <label class="exclude-option">
+                        <input type="checkbox" id="exclude-no-desc">
+                        <span>No Description</span>
+                    </label>
+                </div>
+            </div>
         </div>
 
         <!-- Active Filters Indicator -->
@@ -1790,22 +1876,6 @@
                 </button>
                 <button class="btn-clear-selection" onclick="clearSelection()">Clear Selection</button>
             </div>
-        </div>
-
-        <!-- Checkbox Filters -->
-        <div style="display:flex;gap:16px;margin-bottom:16px;align-items:center;">
-            <label class="checkbox-label">
-                <input type="checkbox" id="exclude-govt">
-                Exclude Govt/Clearance
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="exclude-citizenship">
-                Exclude US Citizenship Req
-            </label>
-            <label class="checkbox-label" title="Excludes jobs without descriptions">
-                <input type="checkbox" id="exclude-no-desc">
-                Exclude No Description
-            </label>
         </div>
 
         <!-- Role Selector -->
@@ -1950,6 +2020,20 @@
         const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
         updateThemeIcons(currentTheme);
 
+        // Exclude dropdown toggle
+        function toggleExcludeDropdown() {
+            const dropdown = document.getElementById('exclude-dropdown-content');
+            dropdown.classList.toggle('show');
+        }
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('exclude-dropdown-content');
+            const btn = document.getElementById('exclude-btn');
+            if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
         // Initialize user menu
         function initUserMenu() {
             const userMenu = document.getElementById('user-menu');
@@ -1969,6 +2053,9 @@
                     const email = user.email || '';
                     const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
 
+                    const role = user.role || 'job_seeker';
+                    const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(role);
+
                     userMenu.innerHTML = `
                         <div class="sidebar-user-info">
                             <div class="sidebar-user-avatar">${initials}</div>
@@ -1977,10 +2064,12 @@
                                 <div class="sidebar-user-email">${email}</div>
                             </div>
                         </div>
-                        <button class="sidebar-logout-btn" onclick="handleLogout()">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                            Sign Out
-                        </button>
+                        ${isAdmin ? `
+                        <a href="../admin/index.html" class="sidebar-admin-link">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                            Admin Portal
+                        </a>
+                        ` : ''}
                     `;
                 } catch (e) {
                     console.error('Error parsing user data:', e);
