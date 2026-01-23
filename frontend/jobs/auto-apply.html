@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cariara - Auto Apply</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="../css/theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,10 +14,12 @@
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
-            font-size: 13px;
+            font-size: 14px;
         }
+
+        /* Sidebar */
         .sidebar {
-            width: 200px;
+            width: 220px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -29,233 +31,333 @@
             z-index: 100;
         }
         .sidebar-header {
-            padding: 12px 16px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-        .sidebar-header .logo { height: 24px; width: auto; }
-        .sidebar-header .brand-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+        .sidebar-header .logo { height: 32px; width: auto; }
+        .sidebar-nav { flex: 1; padding: 12px; overflow-y: auto; }
         .sidebar-nav a {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 10px;
+            padding: 10px 14px;
             color: var(--text-secondary);
             text-decoration: none;
-            border-radius: 6px;
-            margin-bottom: 2px;
-            font-size: 13px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 14px;
             font-weight: 500;
+            transition: all 0.15s;
         }
         .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
         .sidebar-nav a.active { background: var(--accent-blue); color: white; }
-        .sidebar-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
         .nav-section-title {
             font-size: 11px;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 12px 12px 6px;
+            padding: 16px 14px 8px;
             margin-top: 8px;
         }
         .nav-section-title:first-child { margin-top: 0; padding-top: 4px; }
-        .sidebar-submenu { padding: 2px 0 4px 24px; }
-        .sidebar-submenu a { padding: 6px 10px; font-size: 12px; }
-        .sidebar-submenu a.active { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
-        .sidebar-user { padding: 12px; border-top: 1px solid var(--border-color); }
-        .sidebar-user-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .sidebar-user-avatar {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 600; font-size: 11px;
-        }
-        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 12px; }
-        .sidebar-user-email { font-size: 11px; color: var(--text-muted); }
-        .sidebar-logout-btn {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; padding: 6px; background: transparent;
-            border: 1px solid var(--border-color); border-radius: 6px;
-            color: var(--text-secondary); font-size: 11px; cursor: pointer;
-        }
-        .sidebar-logout-btn:hover { background: var(--bg-hover); }
-        .sidebar-login-btn {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; padding: 8px;
-            background: var(--accent-blue);
-            border: none; border-radius: 6px; color: white;
-            font-size: 12px; font-weight: 500; text-decoration: none;
+        .nav-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: auto;
         }
 
-        .main-content {
-            flex: 1;
-            margin-left: 200px;
-            padding: 16px 24px;
-            max-width: 800px;
+        /* Top Right Controls */
+        .top-right-controls {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .page-header { margin-bottom: 16px; }
-        .page-header h1 { font-size: 18px; font-weight: 600; }
-        .page-header p { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
-
-        .section {
-            background: var(--bg-secondary);
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        .section-title {
+        .theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+        .signout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .signout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .signout-btn svg { width: 16px; height: 16px; }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px 32px;
+            max-width: 1000px;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+        .page-header h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+        .page-header p { color: var(--text-muted); font-size: 14px; }
+        .header-actions { display: flex; gap: 12px; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
             font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--accent-blue); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); }
+        .btn svg { width: 16px; height: 16px; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .stat-label { font-size: 13px; color: var(--text-muted); }
+        .stat-card.highlight { border-color: var(--accent-blue); }
+        .stat-card.highlight .stat-value { color: var(--accent-blue); }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .section-title svg { width: 18px; height: 18px; color: var(--accent-blue); }
-        .section-description {
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .tab-btn .count {
+            background: var(--bg-hover);
+            padding: 2px 8px;
+            border-radius: 10px;
             font-size: 12px;
+        }
+        .tab-btn.active .count { background: var(--accent-blue); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Job Cards */
+        .job-list { display: flex; flex-direction: column; gap: 12px; }
+        .job-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.15s;
+        }
+        .job-card:hover { border-color: var(--accent-blue); }
+        .job-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .job-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .job-company {
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .job-company img {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        .job-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
             color: var(--text-muted);
             margin-bottom: 12px;
         }
-
-        .toggle-row {
+        .job-meta span {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
+            gap: 4px;
         }
-        .toggle-row:last-child { border-bottom: none; }
-        .toggle-label { font-weight: 500; }
-        .toggle-description { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-        .toggle-switch {
-            position: relative;
-            width: 40px;
-            height: 22px;
-        }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--border-color);
-            border-radius: 22px;
-            transition: 0.2s;
-        }
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.2s;
-        }
-        input:checked + .toggle-slider { background: var(--accent-blue); }
-        input:checked + .toggle-slider:before { transform: translateX(18px); }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .form-group { margin-bottom: 12px; }
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 4px;
-            font-size: 12px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 8px 10px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 12px;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-        }
-        .btn-primary { background: var(--accent-blue); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-secondary:hover { background: var(--bg-hover); }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
+        .job-meta svg { width: 14px; height: 14px; }
+        .job-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
             margin-bottom: 16px;
         }
-        .stat-card {
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
+        .job-tag {
+            padding: 4px 10px;
+            background: var(--bg-hover);
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
         }
-        .stat-value { font-size: 24px; font-weight: 600; color: var(--accent-blue); }
-        .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .job-tag.match { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .job-actions {
+            display: flex;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+        .job-actions .btn { flex: 1; justify-content: center; }
+        .btn-approve { background: #22c55e; color: white; }
+        .btn-approve:hover { background: #16a34a; }
+        .btn-skip { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .btn-skip:hover { background: var(--bg-hover); }
 
-        .submission-list { margin-top: 12px; }
-        .submission-item {
+        /* Match Score */
+        .match-score {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background: var(--bg-tertiary);
-            border-radius: 6px;
-            margin-bottom: 8px;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #22c55e;
         }
-        .submission-info { flex: 1; }
-        .submission-title { font-weight: 500; }
-        .submission-company { font-size: 11px; color: var(--text-muted); }
-        .submission-status {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .submission-status.pending { background: #fef3c7; color: #d97706; }
-        .submission-status.submitting { background: #dbeafe; color: #2563eb; }
-        .submission-status.success { background: #d1fae5; color: #059669; }
-        .submission-status.failed { background: #fee2e2; color: #dc2626; }
+        .match-score.medium { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+        .match-score.low { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 
+        /* Status Badge */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.pending { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+        .status-badge.submitting { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .status-badge.success { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .status-badge.failed { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-secondary); }
+        .empty-state p { font-size: 14px; margin-bottom: 20px; }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast */
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 24px;
             left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 13px;
+            transform: translateX(-50%) translateY(20px);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
             z-index: 9999;
             opacity: 0;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .toast.success { background: #22c55e; color: white; }
@@ -263,174 +365,166 @@
 
         @media (max-width: 768px) {
             .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 12px; max-width: 100%; }
+            .main-content { margin-left: 0; padding: 16px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .form-row { grid-template-columns: 1fr; }
+            .job-actions { flex-direction: column; }
         }
     </style>
 </head>
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="../images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
+            <img src="../images/logo-full.svg" alt="Cariara" class="logo">
         </div>
         <nav class="sidebar-nav">
-            <!-- APPLICATION Section -->
+            <div class="nav-section-title">Application Status</div>
+            <a href="auto-apply.html" class="active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Auto Apply
+                <span class="nav-badge" id="queue-badge" style="display:none;">0</span>
+            </a>
+
             <div class="nav-section-title">Application</div>
-            <a href="auto-apply.html" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>Auto Apply</a>
-            <a href="discover.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>Search</a>
+            <a href="discover.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Search
+            </a>
 
-            <!-- DOCUMENTS Section -->
             <div class="nav-section-title">Documents</div>
-            <a href="documents.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Resumes</a>
+            <a href="documents.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Resumes
+            </a>
 
-            <!-- OTHER Section -->
             <div class="nav-section-title">Other</div>
-            <a href="settings.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+            <a href="settings.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Settings
+            </a>
         </nav>
-        <div class="sidebar-user" id="user-menu">
-            <a href="login.html" class="sidebar-login-btn">Sign In</a>
-        </div>
     </aside>
+
+    <div class="top-right-controls">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+        <button class="signout-btn" onclick="logout()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            Sign Out
+        </button>
+    </div>
 
     <main class="main-content">
         <div class="page-header">
-            <h1>Auto Apply</h1>
-            <p>Automatically submit job applications to Greenhouse, Lever, and Workday ATS</p>
+            <div>
+                <h1>Auto Apply</h1>
+                <p>Review and approve jobs for automatic application</p>
+            </div>
+            <div class="header-actions">
+                <a href="settings.html" class="btn btn-secondary">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    Settings
+                </a>
+            </div>
         </div>
-
-        <div id="toast" class="toast"></div>
 
         <!-- Stats -->
         <div class="stats-grid">
+            <div class="stat-card highlight">
+                <div class="stat-value" id="stat-queue">0</div>
+                <div class="stat-label">In Queue</div>
+            </div>
             <div class="stat-card">
-                <div class="stat-value" id="stat-today">0</div>
+                <div class="stat-value" id="stat-progress">0</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-applied">0</div>
                 <div class="stat-label">Applied Today</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="stat-limit">10</div>
-                <div class="stat-label">Daily Limit</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="stat-pending">0</div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="stat-success">0</div>
-                <div class="stat-label">Successful</div>
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-label">Total Applied</div>
             </div>
         </div>
 
-        <!-- Configuration -->
-        <div class="section">
-            <div class="section-title">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Configuration
-            </div>
-
-            <div class="toggle-row">
-                <div>
-                    <div class="toggle-label">Enable Auto Apply</div>
-                    <div class="toggle-description">Allow one-click applications from job listings</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="config-enabled">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="toggle-row">
-                <div>
-                    <div class="toggle-label">AI Cover Letters</div>
-                    <div class="toggle-description">Generate personalized cover letters for each application</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="config-ai-cover-letter" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="form-row" style="margin-top: 16px;">
-                <div class="form-group">
-                    <label>Daily Application Limit</label>
-                    <input type="number" id="config-daily-limit" value="10" min="1" max="50">
-                </div>
-                <div class="form-group">
-                    <label>Minimum Relevance Score</label>
-                    <input type="number" id="config-min-score" value="50" min="0" max="100">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Default Resume</label>
-                    <select id="config-resume">
-                        <option value="">Loading...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Supported ATS</label>
-                    <select id="config-ats" multiple size="3">
-                        <option value="greenhouse" selected>Greenhouse</option>
-                        <option value="lever" selected>Lever</option>
-                        <option value="workday" selected>Workday</option>
-                    </select>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('queue')">
+                Queue
+                <span class="count" id="queue-count">0</span>
+            </button>
+            <button class="tab-btn" onclick="showTab('progress')">
+                In Progress
+                <span class="count" id="progress-count">0</span>
+            </button>
+            <button class="tab-btn" onclick="showTab('applied')">
+                Applied
+                <span class="count" id="applied-count">0</span>
+            </button>
         </div>
 
-        <!-- Workday Credentials -->
-        <div class="section">
-            <div class="section-title">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                Workday Credentials
-            </div>
-            <div class="section-description">
-                Optional credentials for Workday applications. If not provided, the system will attempt to create an account for you.
-                Your password is encrypted and stored securely.
-            </div>
-
-            <div id="workday-status" style="padding: 8px 12px; background: var(--bg-tertiary); border-radius: 6px; margin-bottom: 12px; font-size: 12px;">
-                <span id="workday-status-text">Not configured</span>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Workday Email</label>
-                    <input type="email" id="workday-email" placeholder="email@example.com">
-                </div>
-                <div class="form-group">
-                    <label>Workday Password</label>
-                    <input type="password" id="workday-password" placeholder="Enter password to update">
+        <!-- Queue Tab -->
+        <div id="tab-queue" class="tab-content active">
+            <div class="job-list" id="queue-list">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                    <h3>No jobs in queue</h3>
+                    <p>Jobs matching your preferences will appear here for review</p>
+                    <a href="discover.html" class="btn btn-primary">Browse Jobs</a>
                 </div>
             </div>
-
-            <button class="btn btn-primary" onclick="saveWorkdayCredentials()">Save Workday Credentials</button>
-            <button class="btn btn-secondary" onclick="clearWorkdayCredentials()" style="margin-left: 8px;">Clear Credentials</button>
         </div>
 
-        <!-- Recent Submissions -->
-        <div class="section">
-            <div class="section-title">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                Recent Submissions
-            </div>
-            <div class="section-description">Your recent auto-apply submissions</div>
-
-            <div id="submissions-list" class="submission-list">
-                <p style="color: var(--text-muted); text-align: center; padding: 20px;">Loading...</p>
+        <!-- In Progress Tab -->
+        <div id="tab-progress" class="tab-content">
+            <div class="job-list" id="progress-list">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3>No applications in progress</h3>
+                    <p>Jobs being submitted will appear here</p>
+                </div>
             </div>
         </div>
+
+        <!-- Applied Tab -->
+        <div id="tab-applied" class="tab-content">
+            <div class="job-list" id="applied-list">
+                <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3>No applications yet</h3>
+                    <p>Successfully applied jobs will appear here</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
     </main>
 
     <script>
         const API_BASE = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com'
             ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
 
-        function getToken() { return localStorage.getItem('access_token'); }
+        // Theme
+        function setTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('jobtrails-theme', t);
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+            if (sunIcon && moonIcon) {
+                sunIcon.style.display = t === 'dark' ? 'block' : 'none';
+                moonIcon.style.display = t === 'light' ? 'block' : 'none';
+            }
+        }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        setTheme(localStorage.getItem('jobtrails-theme') || 'dark');
 
+        // Auth
+        function getToken() { return localStorage.getItem('access_token'); }
         function logout() {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
@@ -438,44 +532,17 @@
             window.location.href = 'login.html';
         }
 
-        async function refreshToken() {
-            const rt = localStorage.getItem('refresh_token');
-            if (!rt) { logout(); return null; }
-            try {
-                const r = await fetch(`${API_BASE}/auth/refresh`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh_token: rt })
-                });
-                if (r.ok) {
-                    const d = await r.json();
-                    localStorage.setItem('access_token', d.access_token);
-                    localStorage.setItem('refresh_token', d.refresh_token);
-                    return d.access_token;
-                }
-                logout();
-            } catch (e) { logout(); }
-            return null;
-        }
-
         async function authFetch(url, opts = {}) {
             let token = getToken();
-            if (!token) { logout(); return null; }
+            if (!token) return null;
             opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
             try {
                 let r = await fetch(url, opts);
-                if (r.status === 401) {
-                    token = await refreshToken();
-                    if (token) {
-                        opts.headers['Authorization'] = `Bearer ${token}`;
-                        r = await fetch(url, opts);
-                        if (r.status === 401) { logout(); return null; }
-                    } else return null;
-                }
                 return r;
             } catch (e) { return null; }
         }
 
+        // Toast
         function toast(msg, type = 'success') {
             const t = document.getElementById('toast');
             t.textContent = msg;
@@ -483,225 +550,201 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        function initUserMenu() {
-            const um = document.getElementById('user-menu');
-            const uj = localStorage.getItem('user');
-            if (uj) {
-                try {
-                    const u = JSON.parse(uj);
-                    const n = u.name || u.email?.split('@')[0] || 'User';
-                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
-                    um.innerHTML = `
-                        <div class="sidebar-user-info">
-                            <div class="sidebar-user-avatar">${i}</div>
-                            <div>
-                                <div class="sidebar-user-name">${n}</div>
-                                <div class="sidebar-user-email">${u.email || ''}</div>
+        // Tabs
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Data
+        let queueJobs = [];
+        let progressJobs = [];
+        let appliedJobs = [];
+
+        // Render job card
+        function renderJobCard(job, type) {
+            const matchClass = job.relevance_score >= 80 ? '' : (job.relevance_score >= 60 ? 'medium' : 'low');
+
+            let actions = '';
+            if (type === 'queue') {
+                actions = `
+                    <div class="job-actions">
+                        <button class="btn btn-approve" onclick="approveJob(${job.id})">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Apply Now
+                        </button>
+                        <button class="btn btn-skip" onclick="skipJob(${job.id})">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            Skip
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'progress') {
+                actions = `
+                    <div class="job-actions">
+                        <div class="progress-indicator">
+                            <div class="spinner"></div>
+                            <span>Submitting application...</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'applied') {
+                const statusClass = job.status === 'success' ? 'success' : 'failed';
+                actions = `
+                    <div class="job-actions" style="justify-content: space-between;">
+                        <span class="status-badge ${statusClass}">${job.status === 'success' ? 'Applied' : 'Failed'}</span>
+                        <span style="color: var(--text-muted); font-size: 12px;">${job.applied_at || ''}</span>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="job-card" data-job-id="${job.id}">
+                    <div class="job-card-header">
+                        <div>
+                            <div class="job-title">${job.title || 'Job Title'}</div>
+                            <div class="job-company">
+                                ${job.company_name || 'Company'}
+                                <span style="color: var(--text-muted);">•</span>
+                                <span style="color: var(--text-muted);">${job.source || 'greenhouse'}</span>
                             </div>
                         </div>
-                        <button class="sidebar-logout-btn" onclick="logout()">Sign Out</button>`;
-                } catch (e) {}
-            }
+                        <div class="match-score ${matchClass}">
+                            ${job.relevance_score || 85}% match
+                        </div>
+                    </div>
+                    <div class="job-meta">
+                        <span>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            ${job.location || 'Remote'}
+                        </span>
+                        ${job.salary_min ? `<span>$${(job.salary_min/1000).toFixed(0)}k - $${(job.salary_max/1000).toFixed(0)}k</span>` : ''}
+                    </div>
+                    ${actions}
+                </div>
+            `;
         }
 
-        async function loadConfig() {
-            try {
-                const r = await authFetch(`${API_BASE}/api/auto-apply/config`);
-                if (!r) return;
-                if (r.ok) {
-                    const data = await r.json();
-                    document.getElementById('config-enabled').checked = data.enabled;
-                    document.getElementById('config-ai-cover-letter').checked = data.use_ai_cover_letter;
-                    document.getElementById('config-daily-limit').value = data.daily_limit;
-                    document.getElementById('config-min-score').value = data.min_relevance_score;
-                    document.getElementById('stat-today').textContent = data.applications_today;
-                    document.getElementById('stat-limit').textContent = data.daily_limit;
-
-                    // Load Workday credentials status
-                    updateWorkdayStatus(data.workday_email, data.workday_configured);
-
-                    // Load resumes
-                    await loadResumes(data.default_resume_id);
-                }
-            } catch (e) { console.error('Failed to load config:', e); }
-        }
-
-        function updateWorkdayStatus(email, configured) {
-            const statusText = document.getElementById('workday-status-text');
-            const statusDiv = document.getElementById('workday-status');
-
-            if (configured) {
-                statusText.innerHTML = `<span style="color: var(--accent-green);">Configured</span> - Using email: <strong>${escapeHtml(email)}</strong>`;
-                statusDiv.style.background = 'rgba(34, 197, 94, 0.1)';
-            } else if (email) {
-                statusText.innerHTML = `<span style="color: var(--accent-yellow);">Partial</span> - Email set but missing password`;
-                statusDiv.style.background = 'rgba(250, 204, 21, 0.1)';
-            } else {
-                statusText.textContent = 'Not configured - Will create new accounts when applying';
-                statusDiv.style.background = 'var(--bg-tertiary)';
-            }
-
-            // Set email field value
-            if (email) {
-                document.getElementById('workday-email').value = email;
-            }
-        }
-
-        async function saveWorkdayCredentials() {
-            const email = document.getElementById('workday-email').value.trim();
-            const password = document.getElementById('workday-password').value;
-
-            if (!email) {
-                toast('Please enter an email address', 'error');
-                return;
-            }
-
-            const config = { workday_email: email };
-            if (password) {
-                config.workday_password = password;
-            }
-
-            try {
-                const r = await authFetch(`${API_BASE}/api/auto-apply/config`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
-                });
-                if (!r) return;
-                if (r.ok) {
-                    toast('Workday credentials saved');
-                    document.getElementById('workday-password').value = ''; // Clear password field
-                    // Reload config to get updated status
-                    await loadConfig();
-                } else {
-                    const err = await r.json();
-                    toast('Failed to save: ' + (err.detail || 'Unknown error'), 'error');
-                }
-            } catch (e) {
-                toast('Failed to save: ' + e.message, 'error');
-            }
-        }
-
-        async function clearWorkdayCredentials() {
-            if (!confirm('Are you sure you want to clear your Workday credentials?')) {
-                return;
-            }
-
-            try {
-                const r = await authFetch(`${API_BASE}/api/auto-apply/config`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        workday_email: null,
-                        workday_password: ''
-                    })
-                });
-                if (!r) return;
-                if (r.ok) {
-                    toast('Workday credentials cleared');
-                    document.getElementById('workday-email').value = '';
-                    document.getElementById('workday-password').value = '';
-                    updateWorkdayStatus(null, false);
-                } else {
-                    toast('Failed to clear credentials', 'error');
-                }
-            } catch (e) {
-                toast('Failed to clear: ' + e.message, 'error');
-            }
-        }
-
-        async function loadResumes(selectedId) {
-            try {
-                const r = await authFetch(`${API_BASE}/api/users/documents?type=resume`);
-                if (!r) return;
-                if (r.ok) {
-                    const docs = await r.json();
-                    const select = document.getElementById('config-resume');
-                    select.innerHTML = '<option value="">Select resume...</option>';
-                    docs.forEach(doc => {
-                        const opt = document.createElement('option');
-                        opt.value = doc.id;
-                        opt.textContent = doc.filename + (doc.is_default ? ' (default)' : '');
-                        if (doc.id === selectedId) opt.selected = true;
-                        select.appendChild(opt);
-                    });
-                }
-            } catch (e) { console.error('Failed to load resumes:', e); }
-        }
-
+        // Load submissions
         async function loadSubmissions() {
             try {
-                const r = await authFetch(`${API_BASE}/api/auto-apply/submissions?limit=10`);
-                if (!r) return;
-                if (r.ok) {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/submissions`);
+                if (r && r.ok) {
                     const data = await r.json();
-                    const list = document.getElementById('submissions-list');
 
-                    // Update stats
-                    const pending = data.submissions.filter(s => s.status === 'pending').length;
-                    const success = data.submissions.filter(s => s.status === 'success').length;
-                    document.getElementById('stat-pending').textContent = pending;
-                    document.getElementById('stat-success').textContent = success;
+                    // Categorize submissions
+                    queueJobs = (data.submissions || []).filter(s => s.status === 'pending');
+                    progressJobs = (data.submissions || []).filter(s => s.status === 'submitting');
+                    appliedJobs = (data.submissions || []).filter(s => ['success', 'failed'].includes(s.status));
 
-                    if (data.submissions.length === 0) {
-                        list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">No submissions yet. Apply to jobs from the job listing pages.</p>';
-                        return;
-                    }
-
-                    list.innerHTML = data.submissions.map(s => `
-                        <div class="submission-item">
-                            <div class="submission-info">
-                                <div class="submission-title">${escapeHtml(s.job_title)}</div>
-                                <div class="submission-company">${escapeHtml(s.company_name)} • ${s.ats_type}</div>
-                            </div>
-                            <span class="submission-status ${s.status}">${s.status}</span>
-                        </div>
-                    `).join('');
+                    updateUI();
                 }
             } catch (e) {
                 console.error('Failed to load submissions:', e);
-                document.getElementById('submissions-list').innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 20px;">Failed to load submissions</p>';
             }
         }
 
-        async function saveConfig() {
-            const config = {
-                enabled: document.getElementById('config-enabled').checked,
-                use_ai_cover_letter: document.getElementById('config-ai-cover-letter').checked,
-                daily_limit: parseInt(document.getElementById('config-daily-limit').value) || 10,
-                min_relevance_score: parseFloat(document.getElementById('config-min-score').value) || 50,
-                default_resume_id: document.getElementById('config-resume').value || null,
-            };
+        // Update UI
+        function updateUI() {
+            // Update stats
+            document.getElementById('stat-queue').textContent = queueJobs.length;
+            document.getElementById('stat-progress').textContent = progressJobs.length;
+            document.getElementById('stat-applied').textContent = appliedJobs.filter(j => j.status === 'success').length;
+            document.getElementById('stat-total').textContent = appliedJobs.length;
+
+            // Update tab counts
+            document.getElementById('queue-count').textContent = queueJobs.length;
+            document.getElementById('progress-count').textContent = progressJobs.length;
+            document.getElementById('applied-count').textContent = appliedJobs.length;
+
+            // Update badge
+            const badge = document.getElementById('queue-badge');
+            if (queueJobs.length > 0) {
+                badge.textContent = queueJobs.length;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            // Render lists
+            renderList('queue-list', queueJobs, 'queue');
+            renderList('progress-list', progressJobs, 'progress');
+            renderList('applied-list', appliedJobs, 'applied');
+        }
+
+        function renderList(containerId, jobs, type) {
+            const container = document.getElementById(containerId);
+            if (jobs.length === 0) {
+                const emptyMessages = {
+                    queue: { icon: 'inbox', title: 'No jobs in queue', desc: 'Jobs matching your preferences will appear here for review' },
+                    progress: { icon: 'clock', title: 'No applications in progress', desc: 'Jobs being submitted will appear here' },
+                    applied: { icon: 'check', title: 'No applications yet', desc: 'Successfully applied jobs will appear here' }
+                };
+                const msg = emptyMessages[type];
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        <h3>${msg.title}</h3>
+                        <p>${msg.desc}</p>
+                        ${type === 'queue' ? '<a href="discover.html" class="btn btn-primary">Browse Jobs</a>' : ''}
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = jobs.map(job => renderJobCard(job, type)).join('');
+        }
+
+        // Actions
+        async function approveJob(jobId) {
+            const card = document.querySelector(`[data-job-id="${jobId}"]`);
+            if (card) {
+                card.querySelector('.job-actions').innerHTML = `
+                    <div class="progress-indicator">
+                        <div class="spinner"></div>
+                        <span>Submitting application...</span>
+                    </div>
+                `;
+            }
 
             try {
-                const r = await authFetch(`${API_BASE}/api/auto-apply/config`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
+                const r = await authFetch(`${API_BASE}/api/auto-apply/submit/${jobId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
                 });
-                if (!r) return;
-                if (r.ok) {
-                    toast('Configuration saved');
-                    document.getElementById('stat-limit').textContent = config.daily_limit;
+                if (r && r.ok) {
+                    toast('Application submitted!');
+                    loadSubmissions();
                 } else {
-                    toast('Failed to save', 'error');
+                    toast('Failed to submit application', 'error');
+                    loadSubmissions();
                 }
             } catch (e) {
-                toast('Failed to save: ' + e.message, 'error');
+                toast('Error submitting application', 'error');
+                loadSubmissions();
             }
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
+        async function skipJob(jobId) {
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/skip/${jobId}`, {
+                    method: 'POST'
+                });
+                if (r && r.ok) {
+                    toast('Job skipped');
+                    loadSubmissions();
+                }
+            } catch (e) {
+                toast('Error skipping job', 'error');
+            }
         }
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            if (!getToken()) { window.location.href = 'login.html'; return; }
-            initUserMenu();
-            loadConfig();
             loadSubmissions();
+            // Poll for updates every 10 seconds
+            setInterval(loadSubmissions, 10000);
         });
     </script>
 </body>

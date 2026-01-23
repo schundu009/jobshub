@@ -331,47 +331,47 @@
             height: 16px;
         }
 
-        /* Theme Switch - Fixed Top Right */
-        .theme-switch-fixed {
+        /* Top Right Controls */
+        .top-right-controls {
             position: fixed;
             top: 16px;
             right: 24px;
             z-index: 200;
             display: flex;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 4px;
-            gap: 2px;
+            align-items: center;
+            gap: 12px;
         }
-
-        .theme-switch-fixed button {
+        .theme-toggle {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px 12px;
-            background: transparent;
-            border: none;
-            border-radius: 6px;
-            color: var(--text-muted);
+            width: 36px;
+            height: 36px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s;
         }
-
-        .theme-switch-fixed button:hover {
-            color: var(--text-primary);
+        .theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+        .signout-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
         }
-
-        .theme-switch-fixed button.active {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        .theme-switch-fixed button svg {
-            width: 16px;
-            height: 16px;
-        }
+        .signout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .signout-btn svg { width: 16px; height: 16px; }
 
         .theme-switch {
             display: flex;
@@ -1644,12 +1644,15 @@
             <img src="../images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
         </div>
         <div class="sidebar-nav">
-            <!-- APPLICATION Section -->
-            <div class="nav-section-title">Application</div>
+            <!-- APPLICATION STATUS Section -->
+            <div class="nav-section-title">Application Status</div>
             <a href="auto-apply.html">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 Auto Apply
             </a>
+
+            <!-- APPLICATION Section -->
+            <div class="nav-section-title">Application</div>
             <a href="discover.html" class="active">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 Search
@@ -1669,23 +1672,17 @@
                 Settings
             </a>
         </div>
-
-        <!-- Admin Portal Link -->
-        <div class="sidebar-user" id="user-menu">
-            <a href="../admin/index.html" class="sidebar-login-btn" style="background: var(--bg-hover); border-color: var(--border-light);">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                Admin Portal
-            </a>
-        </div>
     </aside>
 
-    <!-- Theme Switch - Top Right -->
-    <div class="theme-switch-fixed">
-        <button id="theme-light-btn" onclick="setTheme('light')" title="Light mode">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+    <!-- Top Right Controls -->
+    <div class="top-right-controls">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+            <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
         </button>
-        <button id="theme-dark-btn" onclick="setTheme('dark')" title="Dark mode">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        <button class="signout-btn" onclick="logout()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            Sign Out
         </button>
     </div>
 
@@ -1923,25 +1920,41 @@
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('jobtrails-theme', theme);
-            updateThemeSwitch(theme);
+            updateThemeIcons(theme);
         }
 
-        function updateThemeSwitch(theme) {
-            const lightBtn = document.getElementById('theme-light-btn');
-            const darkBtn = document.getElementById('theme-dark-btn');
-            if (theme === 'light') {
-                lightBtn.classList.add('active');
-                darkBtn.classList.remove('active');
-            } else {
-                darkBtn.classList.add('active');
-                lightBtn.classList.remove('active');
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        function updateThemeIcons(theme) {
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+            if (sunIcon && moonIcon) {
+                if (theme === 'light') {
+                    sunIcon.style.display = 'none';
+                    moonIcon.style.display = 'block';
+                } else {
+                    sunIcon.style.display = 'block';
+                    moonIcon.style.display = 'none';
+                }
             }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
         }
 
         // Initialize theme on page load
         initTheme();
         const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
-        updateThemeSwitch(currentTheme);
+        updateThemeIcons(currentTheme);
 
         // Initialize user menu
         function initUserMenu() {
