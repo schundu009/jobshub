@@ -497,19 +497,85 @@
             }
         }
 
+        /* Mobile Hamburger Menu */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 250;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .mobile-menu-btn:hover {
+            background: var(--bg-hover);
+        }
+        .mobile-menu-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+        .mobile-menu-btn .menu-close {
+            display: none;
+        }
+        .mobile-menu-btn.active .menu-open {
+            display: none;
+        }
+        .mobile-menu-btn.active .menu-close {
+            display: block;
+        }
+
+        /* Mobile Sidebar Backdrop */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .sidebar-backdrop.active {
+            opacity: 1;
+        }
+
         /* Responsive - Mobile */
         @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+
             .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                width: 280px;
+                max-width: 85vw;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar-backdrop {
+                display: block;
             }
 
             .main-content {
                 margin-left: 0;
                 padding: 16px;
+                padding-top: 72px; /* Space for hamburger menu */
                 max-height: none;
                 overflow-y: visible;
             }
@@ -519,36 +585,52 @@
             }
 
             .sidebar-header {
-                padding: 12px 16px;
+                padding: 16px 20px;
             }
 
             .sidebar-header .logo {
-                height: 28px;
-            }
-
-            .sidebar-header .brand-name {
-                font-size: 20px;
+                height: 32px;
             }
 
             .sidebar-nav {
-                display: flex;
-                padding: 8px 12px;
-                gap: 4px;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+                padding: 12px 16px;
             }
 
             .sidebar-nav a {
-                white-space: nowrap;
-                margin-bottom: 0;
+                padding: 14px 16px;
+                font-size: 14px;
+                min-height: 48px;
+            }
+
+            .sidebar-filters {
+                padding: 12px 16px;
+            }
+
+            .sidebar-filter-item {
+                padding: 12px 14px;
+                min-height: 48px;
+            }
+
+            .sidebar-company-item {
                 padding: 10px 14px;
-                font-size: 13px;
+                min-height: 44px;
             }
 
             .top-right-controls {
-                top: 12px;
-                right: 12px;
+                top: 16px;
+                right: 16px;
                 gap: 8px;
+            }
+
+            .theme-toggle, .signout-btn {
+                width: 44px;
+                height: 44px;
+                padding: 0;
+                justify-content: center;
+            }
+
+            .signout-btn span {
+                display: none;
             }
 
             .user-menu .user-info {
@@ -578,15 +660,22 @@
                 font-size: 20px;
             }
 
+            .discover-header svg {
+                width: 110px;
+                height: 32px;
+            }
+
             .header-stats {
                 flex-wrap: wrap;
-                gap: 12px;
-                font-size: 12px;
+                gap: 8px;
+                font-size: 11px;
+                padding: 8px 12px;
             }
 
             .controls-bar {
                 flex-direction: column;
                 gap: 10px;
+                padding: 12px;
             }
 
             .search-box {
@@ -595,20 +684,22 @@
 
             .search-box input {
                 font-size: 16px; /* Prevents iOS zoom */
-                padding: 12px 16px 12px 44px;
+                padding: 14px 16px 14px 44px;
             }
 
             .filter-select {
                 width: 100%;
                 font-size: 16px; /* Prevents iOS zoom */
-                padding: 12px 32px 12px 12px;
+                padding: 14px 36px 14px 14px;
+                min-height: 48px;
             }
 
             .btn {
                 width: 100%;
                 justify-content: center;
-                padding: 12px 20px;
+                padding: 14px 20px;
                 font-size: 14px;
+                min-height: 48px;
             }
 
             .checkbox-filters {
@@ -619,12 +710,13 @@
 
             .checkbox-label {
                 font-size: 14px;
-                padding: 8px 0;
+                padding: 12px 0;
+                min-height: 48px;
             }
 
             .checkbox-label input {
-                width: 18px;
-                height: 18px;
+                width: 20px;
+                height: 20px;
             }
 
             .role-selector {
@@ -636,8 +728,9 @@
 
             .role-btn {
                 flex-shrink: 0;
-                padding: 10px 16px;
+                padding: 12px 18px;
                 font-size: 13px;
+                min-height: 44px;
             }
 
             .company-chips {
@@ -649,7 +742,8 @@
 
             .company-chip {
                 flex-shrink: 0;
-                padding: 8px 0;
+                padding: 10px 0;
+                min-height: 44px;
             }
 
             .active-filters-bar {
@@ -661,28 +755,44 @@
             .clear-all-filters {
                 margin-left: 0;
                 margin-top: 8px;
+                min-height: 44px;
             }
 
             .grid-container {
-                height: calc(100vh - 480px);
-                min-height: 350px;
+                height: auto;
+                min-height: 400px;
+                max-height: calc(100vh - 320px);
             }
 
             /* AG Grid mobile adjustments */
             .ag-theme-alpine {
-                --ag-font-size: 12px;
+                --ag-font-size: 13px;
+                --ag-row-height: 56px;
             }
 
             .ag-theme-alpine .ag-header-cell-label {
-                font-size: 10px;
+                font-size: 11px;
+            }
+
+            .ag-theme-alpine .ag-cell {
+                padding: 8px 10px;
             }
 
             .role-title {
                 font-size: 13px !important;
+                line-height: 1.3;
             }
 
             .company-cell .company-name {
-                font-size: 11px !important;
+                font-size: 12px !important;
+            }
+
+            /* Hide less important columns on mobile */
+            .ag-theme-alpine .ag-header-cell[col-id="job_type"],
+            .ag-theme-alpine .ag-cell[col-id="job_type"],
+            .ag-theme-alpine .ag-header-cell[col-id="location"],
+            .ag-theme-alpine .ag-cell[col-id="location"] {
+                display: none;
             }
         }
 
@@ -690,34 +800,90 @@
         @media (max-width: 480px) {
             .main-content {
                 padding: 12px;
+                padding-top: 68px;
             }
 
-            .discover-header h2 {
-                font-size: 18px;
+            .mobile-menu-btn {
+                top: 12px;
+                left: 12px;
+                width: 40px;
+                height: 40px;
+            }
+
+            .discover-header {
+                gap: 8px;
+            }
+
+            .discover-header svg {
+                width: 90px;
+                height: 26px;
             }
 
             .header-stats {
-                font-size: 11px;
+                font-size: 10px;
+                gap: 6px;
+                padding: 6px 10px;
             }
 
             .freshness-badge {
                 font-size: 9px;
+                padding: 3px 8px;
+            }
+
+            .freshness-bar {
+                margin-bottom: 12px;
+            }
+
+            .controls-bar {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            .search-box input {
+                padding: 12px 14px 12px 40px;
             }
 
             .grid-container {
-                height: calc(100vh - 520px);
-                min-height: 300px;
+                height: auto;
+                min-height: 350px;
+                max-height: calc(100vh - 280px);
             }
 
             .role-btn {
-                padding: 8px 12px;
+                padding: 10px 14px;
                 font-size: 12px;
             }
 
-            /* Hide less important columns on very small screens */
-            .ag-theme-alpine .ag-header-cell[col-id="job_type"],
-            .ag-theme-alpine .ag-cell[col-id="job_type"] {
+            /* AG Grid - show only essential columns */
+            .ag-theme-alpine {
+                --ag-row-height: 52px;
+            }
+
+            .ag-theme-alpine .ag-header-cell[col-id="posted_date"],
+            .ag-theme-alpine .ag-cell[col-id="posted_date"] {
                 display: none;
+            }
+
+            .role-title {
+                font-size: 12px !important;
+            }
+
+            .company-cell {
+                max-width: 100px;
+            }
+
+            .company-cell .company-name {
+                font-size: 11px !important;
+            }
+
+            .top-right-controls {
+                top: 12px;
+                right: 12px;
+            }
+
+            .theme-toggle, .signout-btn {
+                width: 40px;
+                height: 40px;
             }
         }
 
@@ -1920,8 +2086,21 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+        <svg class="menu-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg class="menu-close" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <img src="../images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
         </div>
@@ -2813,6 +2992,68 @@
         });
 
         function setupEventListeners() {
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+
+            function toggleMobileMenu() {
+                const isOpen = sidebar.classList.contains('mobile-open');
+                if (isOpen) {
+                    closeMobileMenu();
+                } else {
+                    openMobileMenu();
+                }
+            }
+
+            function openMobileMenu() {
+                sidebar.classList.add('mobile-open');
+                backdrop.classList.add('active');
+                mobileMenuBtn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileMenu() {
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+            }
+
+            if (backdrop) {
+                backdrop.addEventListener('click', closeMobileMenu);
+            }
+
+            // Close mobile menu on sidebar link click
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        closeMobileMenu();
+                    }
+                });
+            });
+
+            // Close mobile menu on sidebar filter click
+            document.querySelectorAll('.sidebar-filter-item, .sidebar-company-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        // Small delay to show selection before closing
+                        setTimeout(closeMobileMenu, 150);
+                    }
+                });
+            });
+
+            // Close mobile menu on window resize to desktop
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    closeMobileMenu();
+                }
+            });
+
             // Role buttons (legacy - hidden)
             document.querySelectorAll('.role-btn').forEach(btn => {
                 btn.addEventListener('click', () => {

@@ -190,9 +190,44 @@ function renderAdminTopbar(title, breadcrumb = null) {
 function toggleSidebar() {
     const sidebar = document.getElementById('admin-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
+    const isOpen = sidebar.classList.contains('open');
+
+    if (isOpen) {
+        closeSidebar();
+    } else {
+        openSidebar();
+    }
 }
+
+function openSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Close sidebar on window resize to desktop
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) {
+        closeSidebar();
+    }
+});
+
+// Close sidebar when clicking a nav link on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 1024 && e.target.closest('.admin-nav-item')) {
+        setTimeout(closeSidebar, 150);
+    }
+});
 
 async function loadSidebarData() {
     // Check cache (refresh every 5 minutes)
