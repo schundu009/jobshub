@@ -382,16 +382,6 @@
                 </select>
                 <select id="type-filter">
                     <option value="">All Job Types</option>
-                    <option value="fullstack">Full Stack</option>
-                    <option value="frontend">Frontend</option>
-                    <option value="backend">Backend</option>
-                    <option value="devops">DevOps</option>
-                    <option value="data">Data/ML</option>
-                    <option value="mobile">Mobile</option>
-                    <option value="security">Security</option>
-                    <option value="qa">QA/Test</option>
-                    <option value="manager">Manager</option>
-                    <option value="other">Other</option>
                 </select>
                 <select id="company-filter">
                     <option value="">All Companies</option>
@@ -468,6 +458,44 @@
                 if (typeFilter) {
                     typeFilter.value = typeParam;
                 }
+            }
+        }
+
+        // Load job type counts and populate dropdown
+        async function loadJobTypeCounts() {
+            try {
+                const data = await apiRequest('/analytics/by-job-type');
+                const select = document.getElementById('type-filter');
+                const currentValue = select.value;
+
+                // Keep the "All Job Types" option
+                select.innerHTML = '<option value="">All Job Types</option>';
+
+                const labels = {
+                    'fullstack': 'Full Stack',
+                    'frontend': 'Frontend',
+                    'backend': 'Backend',
+                    'devops': 'DevOps',
+                    'data': 'Data/ML',
+                    'mobile': 'Mobile',
+                    'security': 'Security',
+                    'qa': 'QA/Test',
+                    'manager': 'Manager',
+                    'other': 'Other'
+                };
+
+                data.job_types.forEach(jt => {
+                    const label = labels[jt.type] || jt.type;
+                    const count = jt.count.toLocaleString();
+                    select.innerHTML += `<option value="${jt.type}">${label} (${count})</option>`;
+                });
+
+                // Restore selected value if any
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Failed to load job type counts:', error);
             }
         }
 
@@ -827,6 +855,7 @@
 
         // Apply URL filters before loading jobs
         applyUrlFilters();
+        loadJobTypeCounts();
         loadJobs();
         loadSources();
     </script>
