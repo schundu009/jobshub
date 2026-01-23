@@ -37,6 +37,9 @@ class JobBoardDetector:
             r'jobs\.ashbyhq\.com',
             r'api\.ashbyhq\.com',
         ],
+        'eightfold': [
+            r'\.eightfold\.ai',
+        ],
         'icims': [
             r'careers-.*\.icims\.com',
             r'\.icims\.com',
@@ -89,6 +92,17 @@ class JobBoardDetector:
             match = re.search(r'ashbyhq\.com/(?:posting-api/job-board/)?([^/]+)', url)
             if match:
                 metadata['ashby_company'] = match.group(1)
+
+        elif board_type == 'eightfold':
+            # URL format: {company}.eightfold.ai/careers?domain={domain}
+            match = re.match(r'([^.]+)\.eightfold\.ai', parsed.netloc)
+            if match:
+                metadata['eightfold_subdomain'] = match.group(1)
+            # Extract domain from query string
+            from urllib.parse import parse_qs
+            query_params = parse_qs(parsed.query)
+            if 'domain' in query_params:
+                metadata['eightfold_domain'] = query_params['domain'][0]
 
         return metadata
 
@@ -228,6 +242,17 @@ class ScraperGenerator:
                         if resp.status == 200:
                             data = await resp.json()
                             job_count = len(data.get('jobs', []))
+
+                elif board_type == 'eightfold':
+                    subdomain = metadata.get('eightfold_subdomain', '')
+                    domain = metadata.get('eightfold_domain', f'{subdomain}.com')
+                    # Eightfold uses a public sitemap - count jobs from there
+                    api_url = f"https://{subdomain}.eightfold.ai/careers/sitemap.xml?domain={domain}"
+                    async with session.get(api_url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                        if resp.status == 200:
+                            text = await resp.text()
+                            # Count job URLs in sitemap
+                            job_count = len(re.findall(r'/careers/job/\d+', text))
 
             except Exception as e:
                 logger.error(f"Error validating API: {e}")
