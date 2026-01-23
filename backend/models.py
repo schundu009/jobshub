@@ -256,12 +256,12 @@ class Job(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
-    title = Column(String(255), nullable=False)
+    title = Column(String(500), nullable=False)  # Extended for long job titles
     company_id = Column(Integer, ForeignKey("companies.id"))
-    location = Column(String(255))
+    location = Column(String(500))  # Extended for detailed locations
     salary_min = Column(Integer)
     salary_max = Column(Integer)
-    job_url = Column(String(500))
+    job_url = Column(Text)  # Extended to TEXT for long Eightfold URLs
     job_description = Column(Text)
     status = Column(String(50), default="wishlist")
     date_found = Column(Date)

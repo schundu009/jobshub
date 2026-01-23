@@ -1282,13 +1282,18 @@ def fetch_eightfold_jobs(company_slug: str) -> list:
         title = title.replace('Sr ', 'Senior ').replace('Sr. ', 'Senior ')
         title = title.replace('Mts ', 'MTS ').replace('Swe ', 'SWE ')
 
+        # Truncate fields to fit database column limits
+        title = title.strip()[:255] if title else ''
+        location = location.strip()[:255] if location else None
+        job_url = job_url[:500] if job_url else None
+
         normalized_job = {
-            'title': title.strip(),
-            'location': location.strip() if location else None,
+            'title': title,
+            'location': location,
             'job_url': job_url,
             'job_description': '',  # Would need to fetch individual pages for full description
             'source': 'eightfold',
-            'external_job_id': external_job_id,
+            'external_job_id': external_job_id[:255] if external_job_id else None,
             'posted_date': lastmod.split('T')[0] if lastmod else None,
         }
         jobs.append(normalized_job)

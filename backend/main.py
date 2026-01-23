@@ -500,6 +500,31 @@ def run_migrations():
             except Exception as e:
                 logger.warning(f"Could not seed admin user: {e}")
 
+        # Extend job table columns for longer Eightfold URLs and titles
+        try:
+            # Extend job_url to TEXT for very long URLs
+            conn.execute(text("ALTER TABLE jobs ALTER COLUMN job_url TYPE TEXT"))
+            logger.info("Extended job_url column to TEXT")
+        except Exception as e:
+            if "already" not in str(e).lower():
+                logger.debug(f"job_url column note: {e}")
+
+        try:
+            # Extend title to VARCHAR(500)
+            conn.execute(text("ALTER TABLE jobs ALTER COLUMN title TYPE VARCHAR(500)"))
+            logger.info("Extended title column to VARCHAR(500)")
+        except Exception as e:
+            if "already" not in str(e).lower():
+                logger.debug(f"title column note: {e}")
+
+        try:
+            # Extend location to VARCHAR(500)
+            conn.execute(text("ALTER TABLE jobs ALTER COLUMN location TYPE VARCHAR(500)"))
+            logger.info("Extended location column to VARCHAR(500)")
+        except Exception as e:
+            if "already" not in str(e).lower():
+                logger.debug(f"location column note: {e}")
+
         conn.commit()
 
         # Add performance indexes for jobs table
