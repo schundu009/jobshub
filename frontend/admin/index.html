@@ -520,9 +520,38 @@
             }
         }
 
+        // Check admin access
+        function checkAdminAccess() {
+            const token = localStorage.getItem('access_token');
+            const userJson = localStorage.getItem('user');
+
+            if (!token || !userJson) {
+                window.location.href = '../jobs/login.html';
+                return false;
+            }
+
+            try {
+                const user = JSON.parse(userJson);
+                const role = user.role || 'job_seeker';
+                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(role);
+
+                if (!isAdmin) {
+                    alert('Access denied. Admin privileges required.');
+                    window.location.href = '../jobs/discover.html';
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                window.location.href = '../jobs/login.html';
+                return false;
+            }
+        }
+
         // Initialize
-        loadDashboard();
-        checkSystemHealth();
+        if (checkAdminAccess()) {
+            loadDashboard();
+            checkSystemHealth();
+        }
     </script>
 </body>
 </html>
