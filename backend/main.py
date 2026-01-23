@@ -370,6 +370,29 @@ def run_migrations():
         ("ethnicity", "VARCHAR(50)"),
         ("veteran_status", "VARCHAR(30)"),
         ("disability_status", "VARCHAR(20)"),
+        # Extended Profile fields
+        ("full_name", "VARCHAR(255)"),
+        ("job_title", "VARCHAR(255)"),
+        ("date_of_birth", "DATE"),
+        # Preferences tab fields
+        ("resume_email", "VARCHAR(255)"),
+        ("language", "VARCHAR(10) DEFAULT 'en'"),
+        ("base_resume_id", "INTEGER"),
+        ("ai_model", "VARCHAR(50) DEFAULT 'gpt-4'"),
+        # Auto Apply tab fields
+        ("employment_status", "VARCHAR(50)"),
+        ("job_titles", "JSON"),
+        ("experience_level", "VARCHAR(50)"),
+        ("industry", "VARCHAR(100)"),
+        ("work_type", "VARCHAR(50)"),
+        ("available_date", "DATE"),
+        ("preferred_cities", "JSON"),
+        ("remote_ok", "BOOLEAN DEFAULT FALSE"),
+        ("hybrid_ok", "BOOLEAN DEFAULT FALSE"),
+        ("drivers_license", "VARCHAR(10)"),
+        ("security_clearance", "VARCHAR(10)"),
+        ("apply_mode", "VARCHAR(20) DEFAULT 'hybrid'"),
+        ("excluded_companies", "JSON"),
     ]
 
     with engine.connect() as conn:
