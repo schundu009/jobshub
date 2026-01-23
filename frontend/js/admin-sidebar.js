@@ -215,10 +215,8 @@ async function loadJobTypeFilters() {
     if (!container) return;
 
     try {
-        const response = await fetch('/api/analytics/by-job-type');
-        if (!response.ok) throw new Error('Failed to load job types');
-
-        const data = await response.json();
+        // Use apiRequest from app.js which handles the correct backend URL
+        const data = await window.apiRequest('/analytics/by-job-type');
         renderJobTypeFilters(data.job_types);
     } catch (error) {
         console.error('Error loading job types:', error);
