@@ -328,85 +328,85 @@ def ingest_from_source(source: IngestionSource, db: Session) -> dict:
 
     try:
         for job_data in jobs_data:
-        external_id = job_data['external_job_id']
-        posted_date = parse_posted_date(job_data.get('posted_date'))
+            external_id = job_data['external_job_id']
+            posted_date = parse_posted_date(job_data.get('posted_date'))
 
-        # Skip jobs older than 30 days
-        if posted_date and posted_date < cutoff_date:
-            result["jobs_skipped_old"] += 1
-            continue
+            # Skip jobs older than 30 days
+            if posted_date and posted_date < cutoff_date:
+                result["jobs_skipped_old"] += 1
+                continue
 
-        fetched_external_ids.add(external_id)
-        recent_jobs_count += 1
+            fetched_external_ids.add(external_id)
+            recent_jobs_count += 1
 
-        existing_job = db.query(Job).filter(
-            Job.source == source.ats_type,
-            Job.external_job_id == external_id
-        ).first()
+            existing_job = db.query(Job).filter(
+                Job.source == source.ats_type,
+                Job.external_job_id == external_id
+            ).first()
 
-        # Extract salary from description
-        salary_min, salary_max = extract_salary(job_data['job_description'])
+            # Extract salary from description
+            salary_min, salary_max = extract_salary(job_data['job_description'])
 
-        if existing_job:
-            existing_job.title = job_data['title']
-            existing_job.location = job_data['location']
-            existing_job.job_url = job_data['job_url']
-            existing_job.job_description = job_data['job_description']
-            existing_job.is_active = True
-            existing_job.posted_date = posted_date
-            existing_job.department = job_data.get('department')
-            if salary_min:
-                existing_job.salary_min = salary_min
-            if salary_max:
-                existing_job.salary_max = salary_max
-            result["jobs_updated"] += 1
-        else:
-            new_job = Job(
-                title=job_data['title'],
-                company_id=company.id,
-                location=job_data['location'],
-                job_url=job_data['job_url'],
-                job_description=job_data['job_description'],
-                source=source.ats_type,
-                external_job_id=external_id,
-                status='wishlist',
-                date_found=date.today(),
-                excitement_level=3,
-                is_active=True,
-                posted_date=posted_date,
-                department=job_data.get('department'),
-                salary_min=salary_min,
-                salary_max=salary_max
-            )
-            db.add(new_job)
-            result["jobs_added"] += 1
+            if existing_job:
+                existing_job.title = job_data['title']
+                existing_job.location = job_data['location']
+                existing_job.job_url = job_data['job_url']
+                existing_job.job_description = job_data['job_description']
+                existing_job.is_active = True
+                existing_job.posted_date = posted_date
+                existing_job.department = job_data.get('department')
+                if salary_min:
+                    existing_job.salary_min = salary_min
+                if salary_max:
+                    existing_job.salary_max = salary_max
+                result["jobs_updated"] += 1
+            else:
+                new_job = Job(
+                    title=job_data['title'],
+                    company_id=company.id,
+                    location=job_data['location'],
+                    job_url=job_data['job_url'],
+                    job_description=job_data['job_description'],
+                    source=source.ats_type,
+                    external_job_id=external_id,
+                    status='wishlist',
+                    date_found=date.today(),
+                    excitement_level=3,
+                    is_active=True,
+                    posted_date=posted_date,
+                    department=job_data.get('department'),
+                    salary_min=salary_min,
+                    salary_max=salary_max
+                )
+                db.add(new_job)
+                result["jobs_added"] += 1
 
-    # Update job count to only reflect recent jobs
-    source.job_count = recent_jobs_count
+        # Update job count to only reflect recent jobs
+        source.job_count = recent_jobs_count
 
-    # Mark removed jobs as inactive
-    if fetched_external_ids:
-        jobs_to_deactivate = db.query(Job).filter(
-            Job.source == source.ats_type,
+        # Mark removed jobs as inactive
+        if fetched_external_ids:
+            jobs_to_deactivate = db.query(Job).filter(
+                Job.source == source.ats_type,
+                Job.company_id == company.id,
+                Job.is_active == True,
+                ~Job.external_job_id.in_(fetched_external_ids)
+            ).all()
+
+            for job in jobs_to_deactivate:
+                job.is_active = False
+                result["jobs_deactivated"] += 1
+
+        # Also deactivate jobs older than 30 days from this company
+        old_jobs = db.query(Job).filter(
             Job.company_id == company.id,
             Job.is_active == True,
-            ~Job.external_job_id.in_(fetched_external_ids)
+            Job.posted_date < cutoff_date
         ).all()
 
-        for job in jobs_to_deactivate:
+        for job in old_jobs:
             job.is_active = False
             result["jobs_deactivated"] += 1
-
-    # Also deactivate jobs older than 30 days from this company
-    old_jobs = db.query(Job).filter(
-        Job.company_id == company.id,
-        Job.is_active == True,
-        Job.posted_date < cutoff_date
-    ).all()
-
-    for job in old_jobs:
-        job.is_active = False
-        result["jobs_deactivated"] += 1
 
         db.commit()
         result["success"] = True
