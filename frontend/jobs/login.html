@@ -286,8 +286,8 @@
                 localStorage.setItem('user', JSON.stringify(user));
                 history.replaceState(null, '', window.location.pathname);
                 // Redirect based on role - admins go to admin portal
-                const redirect = userRole === 'admin' ? '../admin/index.html' : DEFAULT_REDIRECT;
-                window.location.href = redirect;
+                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
+                window.location.href = isAdmin ? '../admin/index.html' : DEFAULT_REDIRECT;
                 return true;
             }
             return false;
@@ -341,8 +341,10 @@
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('token', data.access_token); // For compatibility with app.js
                 localStorage.setItem('user', JSON.stringify(data.user));
-                // Always redirect to job seeker portal
-                window.location.href = DEFAULT_REDIRECT;
+                // Redirect based on role - admins go to admin portal
+                const userRole = data.user?.role || 'job_seeker';
+                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
+                window.location.href = isAdmin ? '../admin/index.html' : DEFAULT_REDIRECT;
             } catch (error) {
                 showError(error.message);
                 btn.disabled = false;

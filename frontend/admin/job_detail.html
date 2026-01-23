@@ -62,6 +62,38 @@
             --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.1);
         }
 
+        /* Light theme sidebar fixes */
+        [data-theme="light"] .sidebar {
+            background: #ffffff;
+            border-right-color: #e5e0f0;
+        }
+        [data-theme="light"] .sidebar-nav a {
+            color: #4a3d5c;
+        }
+        [data-theme="light"] .sidebar-nav a:hover {
+            background: #f5f0fa;
+            color: #1a1025;
+        }
+        [data-theme="light"] .sidebar-nav a.active {
+            background: #ede5f8;
+            color: #7c3aed;
+        }
+        [data-theme="light"] .nav-section-title {
+            color: #8a7aa0;
+        }
+        [data-theme="light"] .sidebar-header .logo {
+            filter: none;
+        }
+        [data-theme="light"] .sidebar-user-info {
+            background: #f5f3f8;
+        }
+        [data-theme="light"] .sidebar-user-name {
+            color: #1a1025;
+        }
+        [data-theme="light"] .sidebar-user-email {
+            color: #4a3d5c;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -1817,6 +1849,7 @@
                 Settings
             </a>
         </nav>
+        <div class="sidebar-user" id="user-menu"></div>
     </aside>
 
     <!-- Top Right Controls -->
