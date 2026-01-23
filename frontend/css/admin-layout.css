@@ -8,7 +8,7 @@
 
 /* Sidebar */
 .admin-sidebar {
-    width: 260px;
+    width: 220px;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border-default);
     display: flex;
@@ -18,7 +18,6 @@
     left: 0;
     bottom: 0;
     z-index: 100;
-    transition: transform 0.3s ease;
 }
 
 .admin-sidebar-header {
@@ -160,7 +159,7 @@
 /* Main Content Area */
 .admin-main {
     flex: 1;
-    margin-left: 260px;
+    margin-left: 220px;
     min-height: 100vh;
     background: var(--bg-primary);
 }
