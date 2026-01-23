@@ -84,7 +84,7 @@ RATE_LIMITS = {
     "auth_login": {"limit": 5, "window": 60},  # 5 login attempts/minute
     "api_read": {"limit": 300, "window": 60},  # 300 reads/minute
     "api_write": {"limit": 150, "window": 60}, # 150 writes/minute (for auto-save)
-    "scraper": {"limit": 5, "window": 3600},   # 5 scraper triggers/hour
+    "scraper": {"limit": 20, "window": 3600},  # 20 scraper triggers/hour
     "default": {"limit": RATE_LIMIT_REQUESTS, "window": RATE_LIMIT_WINDOW},
 }
 
@@ -225,9 +225,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 return "auth_login"
             return "auth"
 
-        # Scraper endpoints
-        if path.startswith("/api/scrapers") or path.startswith("/api/ingest"):
-            if method == "POST":
+        # Scraper endpoints - only limit actual scraper triggers, not management
+        if method == "POST":
+            # These are the actual scraper/ingestion triggers that should be limited
+            if "/refresh" in path and "/stop" not in path and "/status" not in path:
+                if path.startswith("/api/scrapers") or path.startswith("/api/ingest"):
+                    return "scraper"
+            # Webhook triggers
+            if "/webhook/trigger" in path:
                 return "scraper"
 
         # API endpoints
