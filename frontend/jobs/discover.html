@@ -3364,18 +3364,18 @@
             Object.keys(ROLE_KEYWORDS).forEach(role => {
                 const config = ROLE_KEYWORDS[role];
                 roleCounts[role] = processedJobs.filter(job => {
-                    const title = (job.title || '').toLowerCase();
+                    const jobTitle = (job.title || '').toLowerCase();
                     const desc = (job.job_description || '').toLowerCase();
-                    const combined = title + ' ' + desc;
-                    return config.primary.some(k => combined.includes(k.toLowerCase())) ||
-                           config.secondary.some(k => combined.includes(k.toLowerCase()));
+                    const combined = jobTitle + ' ' + desc;
+                    return (config.title || []).some(k => combined.includes(k.toLowerCase())) ||
+                           (config.keywords || []).some(k => combined.includes(k.toLowerCase()));
                 }).length;
             });
 
             // Update sidebar counts
             Object.keys(roleCounts).forEach(role => {
                 const el = document.getElementById(`sidebar-count-${role}`);
-                if (el) el.textContent = roleCounts[role];
+                if (el) el.textContent = roleCounts[role].toLocaleString();
             });
         }
 
