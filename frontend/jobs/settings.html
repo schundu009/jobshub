@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Profile</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    <title>Cariara - Settings</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="../css/theme.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,10 +14,12 @@
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
-            font-size: 13px;
+            font-size: 14px;
         }
+
+        /* Sidebar */
         .sidebar {
-            width: 200px;
+            width: 220px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border-color);
             display: flex;
@@ -29,380 +31,1165 @@
             z-index: 100;
         }
         .sidebar-header {
-            padding: 12px 16px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .sidebar-header .logo { height: 24px; width: auto; }
-        .sidebar-header .brand-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+        .sidebar-header .logo { height: 32px; width: auto; }
+        .sidebar-nav { flex: 1; padding: 12px; overflow-y: auto; }
         .sidebar-nav a {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+            gap: 10px;
+            padding: 10px 14px;
             color: var(--text-secondary);
             text-decoration: none;
-            border-radius: 6px;
-            margin-bottom: 2px;
-            font-size: 13px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 14px;
             font-weight: 500;
+            transition: all 0.15s;
         }
         .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
         .sidebar-nav a.active { background: var(--accent-blue); color: white; }
-        .sidebar-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
-        .sidebar-submenu { padding: 2px 0 4px 24px; }
-        .sidebar-submenu a { padding: 6px 10px; font-size: 12px; }
-        .sidebar-submenu a.active { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
-        .sidebar-submenu a svg { width: 14px; height: 14px; }
-        .sidebar-user { padding: 12px; border-top: 1px solid var(--border-color); }
-        .sidebar-user-info { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 14px 8px;
+            margin-top: 8px;
+        }
+        .nav-section-title:first-child { margin-top: 0; padding-top: 4px; }
+        .nav-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+        .sidebar-user { padding: 16px; border-top: 1px solid var(--border-color); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .sidebar-user-avatar {
-            width: 28px; height: 28px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
             display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 600; font-size: 11px;
+            color: white; font-weight: 600; font-size: 13px;
         }
-        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 12px; }
+        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 13px; }
         .sidebar-user-email { font-size: 11px; color: var(--text-muted); }
         .sidebar-logout-btn {
             display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; padding: 6px; background: transparent;
+            width: 100%; padding: 8px; background: transparent;
             border: 1px solid var(--border-color); border-radius: 6px;
-            color: var(--text-secondary); font-size: 11px; cursor: pointer;
+            color: var(--text-secondary); font-size: 12px; cursor: pointer;
         }
         .sidebar-logout-btn:hover { background: var(--bg-hover); }
-        .sidebar-logout-btn svg { width: 12px; height: 12px; }
-        .sidebar-login-btn {
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; padding: 8px;
-            background: var(--accent-blue);
-            border: none; border-radius: 6px; color: white;
-            font-size: 12px; font-weight: 500; text-decoration: none;
-        }
+        .sidebar-logout-btn svg { width: 14px; height: 14px; }
 
+        /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 200px;
-            padding: 16px 24px;
-            max-width: 680px;
+            margin-left: 220px;
+            padding: 24px 40px;
+            max-width: 900px;
         }
-        .page-header {
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
         }
-        .page-header h1 { font-size: 18px; font-weight: 600; }
-        .save-indicator {
-            font-size: 11px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .save-indicator.saving { color: var(--accent-blue); }
-        .save-indicator.saved { color: #22c55e; }
-        .save-indicator.error { color: #ef4444; }
-        .save-indicator svg { width: 12px; height: 12px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .save-indicator.saving svg { animation: spin 1s linear infinite; }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 32px;
+            width: fit-content;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Section */
         .section {
-            margin-bottom: 20px;
+            margin-bottom: 32px;
         }
         .section-title {
-            font-size: 11px;
+            font-size: 18px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
             margin-bottom: 8px;
-            padding-bottom: 6px;
+        }
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Form Fields */
+        .form-row {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
             border-bottom: 1px solid var(--border-color);
         }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        .form-grid.two-col { grid-template-columns: repeat(2, 1fr); }
-        .form-grid.four-col { grid-template-columns: repeat(4, 1fr); }
-        .span-2 { grid-column: span 2; }
-        .span-3 { grid-column: span 3; }
-
-        .field label {
-            display: block;
-            margin-bottom: 3px;
+        .form-row:last-child { border-bottom: none; }
+        .form-label {
+            flex: 0 0 200px;
             font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 11px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .field input, .field select, .field textarea {
+        .form-label .help-icon {
+            width: 14px; height: 14px;
+            color: var(--text-muted);
+            cursor: help;
+        }
+        .form-control {
+            flex: 1;
+        }
+        .form-control input,
+        .form-control select,
+        .form-control textarea {
             width: 100%;
-            padding: 6px 10px;
+            padding: 10px 14px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 8px;
             color: var(--text-primary);
-            font-size: 12px;
+            font-size: 14px;
             font-family: inherit;
         }
-        .field input:focus, .field select:focus, .field textarea:focus {
+        .form-control input:focus,
+        .form-control select:focus,
+        .form-control textarea:focus {
             outline: none;
             border-color: var(--accent-blue);
         }
-        .field input.saved, .field select.saved, .field textarea.saved {
-            border-color: #22c55e;
-        }
-        .field textarea { min-height: 60px; resize: vertical; }
-        .field input::placeholder { color: var(--text-muted); font-size: 11px; }
+        .form-control textarea { min-height: 100px; resize: vertical; }
+        .form-control input::placeholder { color: var(--text-muted); }
 
+        /* Tags Input */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 44px;
+            align-items: center;
+        }
+        .tags-container:focus-within { border-color: var(--accent-blue); }
+        .tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            opacity: 0.8;
+        }
+        .tag-remove:hover { opacity: 1; }
+        .tag-remove svg { width: 12px; height: 12px; }
+        .tags-input {
+            flex: 1;
+            min-width: 120px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .tag-limit { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* City Tags */
+        .city-tags { margin-bottom: 8px; }
+        .city-tag {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* Radio/Checkbox Groups */
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .option-btn {
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .option-btn:hover { border-color: var(--accent-blue); }
+        .option-btn.selected {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Mode Cards */
+        .mode-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mode-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .mode-card:hover { border-color: var(--accent-blue); }
+        .mode-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(167, 139, 250, 0.1);
+        }
+        .mode-radio {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mode-card.selected .mode-radio {
+            border-color: var(--accent-blue);
+        }
+        .mode-card.selected .mode-radio::after {
+            content: '';
+            width: 10px; height: 10px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+        }
+        .mode-content { flex: 1; }
+        .mode-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .mode-title { font-weight: 600; margin-bottom: 4px; }
+        .mode-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Experience/Education Cards */
+        .exp-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .exp-title { font-weight: 600; }
+        .exp-company { color: var(--text-secondary); font-size: 13px; }
+        .exp-dates { font-size: 12px; color: var(--text-muted); }
+        .exp-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 8px; }
+        .exp-actions { display: flex; gap: 8px; }
+        .exp-btn {
+            padding: 4px 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .exp-btn:hover { color: var(--text-primary); }
+
+        /* Skills */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .skill-tag {
+            padding: 6px 12px;
+            background: var(--bg-hover);
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .file-upload:hover { border-color: var(--accent-blue); }
+        .file-upload-icon { color: var(--text-muted); margin-bottom: 8px; }
+        .file-upload-icon svg { width: 32px; height: 32px; }
+        .file-upload-text { font-size: 13px; color: var(--text-muted); }
+        .file-upload-text span { color: var(--accent-blue); }
+        .file-uploaded {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+        .file-uploaded-icon { color: var(--accent-blue); }
+        .file-uploaded-name { flex: 1; font-size: 13px; }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: var(--bg-hover);
+            border-radius: 24px;
+            transition: 0.2s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent-blue); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* Save Button */
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 220px;
+            right: 0;
+            padding: 16px 40px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-primary {
+            background: var(--accent-blue);
+            border: none;
+            color: white;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); }
+
+        /* Toast */
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 12px;
+            transform: translateX(-50%) translateY(20px);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
             z-index: 9999;
             opacity: 0;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .toast.success { background: #22c55e; color: white; }
         .toast.error { background: #ef4444; color: white; }
 
-        .theme-switch-container { position: fixed; top: 12px; right: 16px; z-index: 200; }
-        .theme-switch {
+        /* Top Right Controls */
+        .top-right-controls {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 200;
             display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 2px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
         }
-        .theme-switch button {
-            display: flex; align-items: center; justify-content: center;
-            padding: 4px 8px; background: transparent; border: none;
-            border-radius: 4px; color: var(--text-muted); cursor: pointer;
+        .theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+        .signout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
         }
-        .theme-switch button.active { background: var(--bg-primary); color: var(--text-primary); }
-        .theme-switch button svg { width: 14px; height: 14px; }
+        .signout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .signout-btn svg { width: 16px; height: 16px; }
 
         @media (max-width: 768px) {
             .sidebar { display: none; }
-            .main-content { margin-left: 0; padding: 12px; max-width: 100%; }
-            .form-grid, .form-grid.two-col, .form-grid.four-col { grid-template-columns: 1fr 1fr; }
-            .span-2, .span-3 { grid-column: span 1; }
+            .main-content { margin-left: 0; padding: 16px; max-width: 100%; }
+            .form-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .form-label { flex: none; }
+            .save-bar { left: 0; padding: 16px; }
         }
     </style>
 </head>
 <body>
     <aside class="sidebar">
         <div class="sidebar-header">
-            <img src="../images/toritchLogo.png" alt="Cariara" class="logo">
-            <span class="brand-name">Cariara</span>
+            <img src="../images/logo-full.svg" alt="Cariara" class="logo">
         </div>
         <nav class="sidebar-nav">
-            <a href="discover.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>Jobs</a>
-            <a href="settings.html" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+            <!-- APPLICATION Section -->
+            <div class="nav-section-title">Application</div>
+            <a href="auto-apply.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Auto Apply
+                <span class="nav-badge" id="auto-apply-count" style="display:none;">0</span>
+            </a>
+            <a href="discover.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Search
+            </a>
+
+            <!-- DOCUMENTS Section -->
+            <div class="nav-section-title">Documents</div>
+            <a href="documents.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Resumes
+            </a>
+
+            <!-- OTHER Section -->
+            <div class="nav-section-title">Other</div>
+            <a href="settings.html" class="active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Settings
+            </a>
         </nav>
-        <div class="sidebar-user" id="user-menu">
-            <a href="../admin/index.html" class="sidebar-login-btn" style="background: var(--bg-hover); border-color: var(--border-light);"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>Admin Portal</a>
-        </div>
     </aside>
 
-    <div class="theme-switch-container">
-        <div class="theme-switch">
-            <button id="theme-light-btn" onclick="setTheme('light')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></button>
-            <button id="theme-dark-btn" onclick="setTheme('dark')"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg></button>
-        </div>
+    <div class="top-right-controls">
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" title="Toggle theme">
+            <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+        <button class="signout-btn" onclick="logout()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            Sign Out
+        </button>
     </div>
 
     <main class="main-content">
-        <div class="page-header">
-            <h1>Profile</h1>
-            <div class="save-indicator" id="save-indicator">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                <span>Saved</span>
+        <h1 class="page-title">Account Settings</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('preferences')">Preferences</button>
+            <button class="tab-btn" onclick="showTab('auto-apply')">Auto Apply</button>
+            <button class="tab-btn" onclick="showTab('personal-info')">Personal Info</button>
+        </div>
+
+        <!-- PREFERENCES TAB -->
+        <div id="tab-preferences" class="tab-content active">
+            <div class="section">
+                <h2 class="section-title">Preferences</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Language</div>
+                    <div class="form-control">
+                        <select name="language">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Resume Email</div>
+                    <div class="form-control">
+                        <input type="email" name="resume_email" placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">
+                        Base Resume
+                        <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                    </div>
+                    <div class="form-control">
+                        <select name="base_resume" id="base-resume-select">
+                            <option value="">Select a resume...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">AI Model</div>
+                    <div class="form-control">
+                        <select name="ai_model">
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="claude-3">Claude 3</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUTO APPLY TAB -->
+        <div id="tab-auto-apply" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Auto Apply</h2>
+                <p class="section-desc">These settings help us find the right jobs for you and complete applications on your behalf. The details you share here are used both to match you to relevant roles and to auto-fill application forms.</p>
+
+                <div class="form-row">
+                    <div class="form-label">Employment Status</div>
+                    <div class="form-control">
+                        <select name="employment_status">
+                            <option value="">Select status...</option>
+                            <option value="employed">Currently Employed</option>
+                            <option value="unemployed">Unemployed</option>
+                            <option value="freelance">Freelancer/Contractor</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Desired Job Titles</div>
+                    <div class="form-control">
+                        <div class="tags-container" id="job-titles-container">
+                            <input type="text" class="tags-input" id="job-titles-input" placeholder="Type and press Enter...">
+                        </div>
+                        <div class="tag-limit">Maximum 5 job titles</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Experience Level</div>
+                    <div class="form-control">
+                        <select name="experience_level">
+                            <option value="">Select level...</option>
+                            <option value="entry">Entry Level (0-2 years)</option>
+                            <option value="mid">Mid Level (3-5 years)</option>
+                            <option value="senior">Senior Level (6-10 years)</option>
+                            <option value="lead">Lead/Principal (10+ years)</option>
+                            <option value="executive">Executive/Director</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Minimum Salary</div>
+                    <div class="form-control">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span>$</span>
+                            <input type="number" name="minimum_salary" placeholder="150000" style="flex:1;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Industry Preference</div>
+                    <div class="form-control">
+                        <select name="industry">
+                            <option value="">Select industry...</option>
+                            <option value="tech">Technology</option>
+                            <option value="finance">Finance</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="retail">Retail</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="any">Open to All</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Work Type</div>
+                    <div class="form-control">
+                        <div class="option-group" id="work-type-options">
+                            <button type="button" class="option-btn" data-value="full-time">Full-time</button>
+                            <button type="button" class="option-btn" data-value="part-time">Part-time</button>
+                            <button type="button" class="option-btn" data-value="contract">Contract</button>
+                            <button type="button" class="option-btn" data-value="freelance">Freelance</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Available to Start</div>
+                    <div class="form-control">
+                        <input type="date" name="available_date">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Willing to Relocate</div>
+                    <div class="form-control">
+                        <div class="option-group" id="relocate-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                            <button type="button" class="option-btn" data-value="depends">Depends on Role</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Preferred Locations</div>
+                    <div class="form-control">
+                        <select name="country" id="country-select" style="margin-bottom:10px;">
+                            <option value="">Select country...</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                        </select>
+                        <div class="tags-container city-tags" id="cities-container">
+                            <input type="text" class="tags-input" id="cities-input" placeholder="Add cities...">
+                        </div>
+                        <div style="display:flex;gap:16px;margin-top:10px;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" name="remote_ok" id="remote-ok"> Full remote
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" name="hybrid_ok" id="hybrid-ok"> In-person/Hybrid
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Work Authorization (US)</div>
+                    <div class="form-control">
+                        <div class="option-group" id="us-auth-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Visa Sponsorship Required</div>
+                    <div class="form-control">
+                        <div class="option-group" id="sponsorship-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Driver's License</div>
+                    <div class="form-control">
+                        <div class="option-group" id="license-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demographics Section -->
+            <div class="section">
+                <h2 class="section-title">Demographics (Optional)</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Gender</div>
+                    <div class="form-control">
+                        <select name="gender">
+                            <option value="">Prefer not to say</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="non_binary">Non-binary</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Race/Ethnicity</div>
+                    <div class="form-control">
+                        <select name="ethnicity">
+                            <option value="">Prefer not to say</option>
+                            <option value="asian">Asian</option>
+                            <option value="black">Black or African American</option>
+                            <option value="hispanic">Hispanic or Latino</option>
+                            <option value="white">White</option>
+                            <option value="native">American Indian or Alaska Native</option>
+                            <option value="pacific">Native Hawaiian or Pacific Islander</option>
+                            <option value="two_or_more">Two or more races</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Disability Status</div>
+                    <div class="form-control">
+                        <select name="disability_status">
+                            <option value="">Prefer not to say</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Veteran Status</div>
+                    <div class="form-control">
+                        <select name="veteran_status">
+                            <option value="">Prefer not to say</option>
+                            <option value="veteran">Veteran</option>
+                            <option value="protected">Protected Veteran</option>
+                            <option value="not_veteran">Not a Veteran</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Security Clearance</div>
+                    <div class="form-control">
+                        <div class="option-group" id="clearance-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto Apply Mode Section -->
+            <div class="section">
+                <h2 class="section-title">How should we apply to jobs for you?</h2>
+
+                <div class="mode-cards" id="apply-mode-cards">
+                    <div class="mode-card selected" data-mode="hybrid">
+                        <div class="mode-radio"></div>
+                        <div class="mode-content">
+                            <span class="mode-badge">Best of both worlds</span>
+                            <div class="mode-title">Hybrid mode</div>
+                            <div class="mode-desc">We'll automatically apply to jobs that strongly match your preferences, saving you time. For other roles that may still interest you, you'll stay in control and decide whether to approve or skip.</div>
+                        </div>
+                    </div>
+                    <div class="mode-card" data-mode="auto">
+                        <div class="mode-radio"></div>
+                        <div class="mode-content">
+                            <span class="mode-badge">Save time, no approval needed</span>
+                            <div class="mode-title">Auto mode</div>
+                            <div class="mode-desc">We'll instantly apply to jobs that match your preferences on your behalf, so you can sit back while we handle everything.</div>
+                        </div>
+                    </div>
+                    <div class="mode-card" data-mode="review">
+                        <div class="mode-radio"></div>
+                        <div class="mode-content">
+                            <span class="mode-badge">Review and approve each job</span>
+                            <div class="mode-title">Review mode</div>
+                            <div class="mode-desc">We'll suggest roles based on your preferences - you decide which ones we apply to.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excluded Companies -->
+            <div class="section">
+                <h2 class="section-title">Excluded Companies</h2>
+                <p class="section-desc">Companies you don't want to apply to</p>
+                <div class="form-control">
+                    <div class="tags-container" id="excluded-companies-container">
+                        <input type="text" class="tags-input" id="excluded-companies-input" placeholder="Type company name and press Enter...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERSONAL INFO TAB -->
+        <div id="tab-personal-info" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Personal Info</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Full Name</div>
+                    <div class="form-control">
+                        <input type="text" name="full_name" placeholder="John Doe">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Job Title</div>
+                    <div class="form-control">
+                        <input type="text" name="job_title" placeholder="Software Engineer">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Email</div>
+                    <div class="form-control">
+                        <input type="email" name="email" placeholder="john@example.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Phone Number</div>
+                    <div class="form-control">
+                        <input type="tel" name="phone" placeholder="(555) 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">LinkedIn URL</div>
+                    <div class="form-control">
+                        <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/yourprofile">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">GitHub URL</div>
+                    <div class="form-control">
+                        <input type="url" name="github_url" placeholder="https://github.com/yourusername">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Portfolio URL</div>
+                    <div class="form-control">
+                        <input type="url" name="portfolio_url" placeholder="https://yourportfolio.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Date of Birth</div>
+                    <div class="form-control">
+                        <input type="date" name="date_of_birth">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Section -->
+            <div class="section">
+                <h2 class="section-title">Address</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Street Address</div>
+                    <div class="form-control">
+                        <input type="text" name="address_line1" placeholder="123 Main St">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Address Line 2</div>
+                    <div class="form-control">
+                        <input type="text" name="address_line2" placeholder="Apt 4B">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">City</div>
+                    <div class="form-control">
+                        <input type="text" name="city" placeholder="San Francisco">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">State</div>
+                    <div class="form-control">
+                        <input type="text" name="state" placeholder="CA">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Zip Code</div>
+                    <div class="form-control">
+                        <input type="text" name="postal_code" placeholder="94102">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Country</div>
+                    <div class="form-control">
+                        <select name="address_country">
+                            <option value="">Select country...</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                            <option value="IN">India</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="section">
+                <h2 class="section-title">Documents</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Resume</div>
+                    <div class="form-control">
+                        <div class="file-upload" id="resume-upload">
+                            <div class="file-upload-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            </div>
+                            <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
+                            <div class="file-upload-text">PDF, DOCX</div>
+                        </div>
+                        <input type="file" id="resume-file-input" accept=".pdf,.docx" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Profile Photo</div>
+                    <div class="form-control">
+                        <div class="file-upload" id="photo-upload">
+                            <div class="file-upload-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
+                            <div class="file-upload-text">PNG, JPG, JPEG</div>
+                        </div>
+                        <input type="file" id="photo-file-input" accept=".png,.jpg,.jpeg" style="display:none;">
+                    </div>
+                </div>
             </div>
         </div>
 
         <div id="toast" class="toast"></div>
-
-        <div class="section">
-            <div class="section-title">Personal</div>
-            <div class="form-grid">
-                <div class="field"><label>First Name</label><input type="text" name="first_name" placeholder="John"></div>
-                <div class="field"><label>Last Name</label><input type="text" name="last_name" placeholder="Doe"></div>
-                <div class="field"><label>Preferred</label><input type="text" name="preferred_name" placeholder="Johnny"></div>
-                <div class="field"><label>Email</label><input type="email" name="email" placeholder="john@example.com"></div>
-                <div class="field"><label>Phone</label><input type="tel" name="phone" placeholder="+1 555-123-4567"></div>
-                <div class="field"><label>Country</label>
-                    <select name="country">
-                        <option value="">-</option>
-                        <option value="US">United States</option>
-                        <option value="CA">Canada</option>
-                        <option value="UK">United Kingdom</option>
-                        <option value="DE">Germany</option>
-                        <option value="IN">India</option>
-                        <option value="OTHER">Other</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">Address</div>
-            <div class="form-grid">
-                <div class="field span-2"><label>Street</label><input type="text" name="address_line1" placeholder="123 Main St"></div>
-                <div class="field"><label>Apt/Suite</label><input type="text" name="address_line2" placeholder="4B"></div>
-                <div class="field"><label>City</label><input type="text" name="city" placeholder="San Francisco"></div>
-                <div class="field"><label>State</label><input type="text" name="state" placeholder="CA"></div>
-                <div class="field"><label>ZIP</label><input type="text" name="postal_code" placeholder="94102"></div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">Work Authorization</div>
-            <div class="form-grid two-col">
-                <div class="field"><label>US Authorized</label>
-                    <select name="us_authorized"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-                <div class="field"><label>Sponsorship Required</label>
-                    <select name="requires_sponsorship"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-                <div class="field"><label>Relocate</label>
-                    <select name="willing_to_relocate"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option><option value="depends">Depends</option></select>
-                </div>
-                <div class="field"><label>Work Arrangement</label>
-                    <select name="work_arrangement"><option value="">-</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="onsite">On-site</option><option value="flexible">Flexible</option></select>
-                </div>
-                <div class="field"><label>Gov Employee</label>
-                    <select name="us_government_employee"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-                <div class="field"><label>Non-compete</label>
-                    <select name="non_compete"><option value="">-</option><option value="yes">Yes</option><option value="no">No</option></select>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">Links</div>
-            <div class="form-grid two-col">
-                <div class="field"><label>LinkedIn</label><input type="url" name="linkedin_url" placeholder="linkedin.com/in/..."></div>
-                <div class="field"><label>GitHub</label><input type="url" name="github_url" placeholder="github.com/..."></div>
-                <div class="field"><label>Portfolio</label><input type="url" name="portfolio_url" placeholder="yoursite.com"></div>
-                <div class="field"><label>Twitter</label><input type="url" name="twitter_url" placeholder="twitter.com/..."></div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">Professional</div>
-            <div class="form-grid">
-                <div class="field"><label>Referral Source</label>
-                    <select name="referral_source"><option value="">-</option><option value="linkedin">LinkedIn</option><option value="indeed">Indeed</option><option value="glassdoor">Glassdoor</option><option value="friend">Referral</option><option value="recruiter">Recruiter</option><option value="other">Other</option></select>
-                </div>
-                <div class="field span-2"><label>Skills</label><input type="text" name="skills" placeholder="Python, JavaScript, React..."></div>
-            </div>
-            <div class="form-grid" style="margin-top: 10px;">
-                <div class="field span-3"><label>Bio</label><textarea name="bio" rows="2" placeholder="Brief professional summary..."></textarea></div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title">Demographics (Optional)</div>
-            <div class="form-grid four-col">
-                <div class="field"><label>Gender</label>
-                    <select name="gender"><option value="">-</option><option value="male">Male</option><option value="female">Female</option><option value="non_binary">Non-binary</option><option value="other">Other</option><option value="decline">Decline</option></select>
-                </div>
-                <div class="field"><label>Ethnicity</label>
-                    <select name="ethnicity"><option value="">-</option><option value="american_indian">American Indian</option><option value="asian">Asian</option><option value="black">Black</option><option value="hispanic">Hispanic</option><option value="pacific_islander">Pacific Islander</option><option value="white">White</option><option value="two_or_more">Two+</option><option value="decline">Decline</option></select>
-                </div>
-                <div class="field"><label>Veteran</label>
-                    <select name="veteran_status"><option value="">-</option><option value="not_veteran">No</option><option value="veteran">Yes</option><option value="protected_veteran">Protected</option><option value="decline">Decline</option></select>
-                </div>
-                <div class="field"><label>Disability</label>
-                    <select name="disability_status"><option value="">-</option><option value="no">No</option><option value="yes">Yes</option><option value="decline">Decline</option></select>
-                </div>
-            </div>
-        </div>
     </main>
+
+    <div class="save-bar">
+        <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+    </div>
 
     <script>
         const API_BASE = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com'
             ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
 
-        let originalValues = {};
+        let settings = {};
+        let jobTitles = [];
+        let cities = [];
+        let excludedCompanies = [];
 
+        // Theme
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
             localStorage.setItem('jobtrails-theme', t);
-            document.getElementById('theme-light-btn').classList.toggle('active', t === 'light');
-            document.getElementById('theme-dark-btn').classList.toggle('active', t === 'dark');
-        }
-        setTheme(localStorage.getItem('jobtrails-theme') || 'dark');
-
-        function getToken() { return localStorage.getItem('access_token'); }
-
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-        }
-
-        async function refreshToken() {
-            const rt = localStorage.getItem('refresh_token');
-            if (!rt) { logout(); return null; }
-            try {
-                const r = await fetch(`${API_BASE}/auth/refresh`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh_token: rt })
-                });
-                if (r.ok) {
-                    const d = await r.json();
-                    localStorage.setItem('access_token', d.access_token);
-                    localStorage.setItem('refresh_token', d.refresh_token);
-                    if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
-                    return d.access_token;
-                }
-                logout();
-                return null;
-            } catch (e) {
-                logout();
-                return null;
+            // Update icon - show sun in dark mode (to switch to light), moon in light mode (to switch to dark)
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+            if (sunIcon && moonIcon) {
+                sunIcon.style.display = t === 'dark' ? 'block' : 'none';
+                moonIcon.style.display = t === 'light' ? 'block' : 'none';
             }
         }
 
-        async function authFetch(url, opts = {}) {
-            let token = getToken();
-            if (!token) { logout(); return null; }
-            opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
-            try {
-                let r = await fetch(url, opts);
-                if (r.status === 401) {
-                    token = await refreshToken();
-                    if (token) {
-                        opts.headers['Authorization'] = `Bearer ${token}`;
-                        r = await fetch(url, opts);
-                        if (r.status === 401) { logout(); return null; }
-                    } else return null;
-                }
-                return r;
-            } catch (e) { return null; }
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            setTheme(current === 'dark' ? 'light' : 'dark');
         }
 
-        function handleLogout() { logout(); }
+        setTheme(localStorage.getItem('jobtrails-theme') || 'dark');
 
+        // Tabs
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // Toast
+        function toast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Tags functionality
+        function setupTagsInput(inputId, containerId, tagsArray, maxTags = 5) {
+            const input = document.getElementById(inputId);
+            const container = document.getElementById(containerId);
+
+            function renderTags() {
+                const existingTags = container.querySelectorAll('.tag');
+                existingTags.forEach(tag => tag.remove());
+
+                tagsArray.forEach((tag, index) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'tag';
+                    tagEl.innerHTML = `${tag}<button class="tag-remove" onclick="removeTag('${inputId}', ${index})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
+                    container.insertBefore(tagEl, input);
+                });
+            }
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && input.value.trim()) {
+                    e.preventDefault();
+                    if (tagsArray.length < maxTags) {
+                        tagsArray.push(input.value.trim());
+                        input.value = '';
+                        renderTags();
+                    } else {
+                        toast(`Maximum ${maxTags} items allowed`, 'error');
+                    }
+                }
+            });
+
+            renderTags();
+        }
+
+        window.removeTag = function(inputId, index) {
+            if (inputId === 'job-titles-input') {
+                jobTitles.splice(index, 1);
+                setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            } else if (inputId === 'cities-input') {
+                cities.splice(index, 1);
+                setupTagsInput('cities-input', 'cities-container', cities, 5);
+            } else if (inputId === 'excluded-companies-input') {
+                excludedCompanies.splice(index, 1);
+                setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+            }
+        };
+
+        // Option buttons
+        function setupOptionGroup(groupId, fieldName) {
+            const group = document.getElementById(groupId);
+            if (!group) return;
+
+            group.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    settings[fieldName] = btn.dataset.value;
+                });
+            });
+        }
+
+        // Mode cards
+        function setupModeCards() {
+            const cards = document.querySelectorAll('.mode-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    cards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    settings.apply_mode = card.dataset.mode;
+                });
+            });
+        }
+
+        // File uploads
+        function setupFileUpload(uploadId, inputId) {
+            const upload = document.getElementById(uploadId);
+            const input = document.getElementById(inputId);
+
+            upload.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    upload.innerHTML = `
+                        <div class="file-uploaded">
+                            <div class="file-uploaded-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                            <div class="file-uploaded-name">${file.name}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // User menu
         function initUserMenu() {
             const um = document.getElementById('user-menu');
             const uj = localStorage.getItem('user');
@@ -419,7 +1206,7 @@
                                 <div class="sidebar-user-email">${u.email || ''}</div>
                             </div>
                         </div>
-                        <button class="sidebar-logout-btn" onclick="handleLogout()">
+                        <button class="sidebar-logout-btn" onclick="logout()">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                             Sign Out
                         </button>`;
@@ -427,72 +1214,129 @@
             }
         }
 
-        function toast(msg, type = 'success') {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.className = `toast ${type} show`;
-            setTimeout(() => t.classList.remove('show'), 2500);
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
         }
 
-        function setSaveStatus(status) {
-            const ind = document.getElementById('save-indicator');
-            ind.className = 'save-indicator ' + status;
-            const icons = {
-                saving: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="30" stroke-dashoffset="10"></circle></svg>',
-                saved: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
-                error: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>'
-            };
-            const texts = { saving: 'Saving...', saved: 'Saved', error: 'Error' };
-            ind.innerHTML = `${icons[status] || icons.saved}<span>${texts[status] || 'Saved'}</span>`;
-        }
-
+        // Load settings
         async function loadSettings() {
             try {
                 const r = await fetch(`${API_BASE}/api/users/settings`);
                 if (r.ok) {
-                    const data = await r.json();
-                    originalValues = { ...data };
-                    document.querySelectorAll('[name]').forEach(el => {
-                        if (data[el.name] !== undefined && data[el.name] !== null) {
-                            el.value = data[el.name];
-                        }
-                    });
+                    settings = await r.json();
+                    populateForm();
                 }
-            } catch (e) { console.log('Settings not loaded:', e); }
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+            }
         }
 
-        async function saveField(fieldName, value) {
-            if (originalValues[fieldName] === value) return;
-            setSaveStatus('saving');
+        function populateForm() {
+            // Populate text inputs and selects
+            document.querySelectorAll('[name]').forEach(el => {
+                if (settings[el.name] !== undefined && settings[el.name] !== null) {
+                    el.value = settings[el.name];
+                }
+            });
+
+            // Populate tags
+            if (settings.job_titles) {
+                jobTitles = settings.job_titles;
+                setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            }
+            if (settings.preferred_cities) {
+                cities = settings.preferred_cities;
+                setupTagsInput('cities-input', 'cities-container', cities, 5);
+            }
+            if (settings.excluded_companies) {
+                excludedCompanies = settings.excluded_companies;
+                setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+            }
+
+            // Populate option groups
+            ['work-type-options', 'relocate-options', 'us-auth-options', 'sponsorship-options', 'license-options', 'clearance-options'].forEach(groupId => {
+                const group = document.getElementById(groupId);
+                if (group && settings[groupId.replace('-options', '').replace(/-/g, '_')]) {
+                    const val = settings[groupId.replace('-options', '').replace(/-/g, '_')];
+                    group.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.classList.toggle('selected', btn.dataset.value === val);
+                    });
+                }
+            });
+
+            // Populate checkboxes
+            if (settings.remote_ok) document.getElementById('remote-ok').checked = true;
+            if (settings.hybrid_ok) document.getElementById('hybrid-ok').checked = true;
+
+            // Populate mode
+            if (settings.apply_mode) {
+                document.querySelectorAll('.mode-card').forEach(card => {
+                    card.classList.toggle('selected', card.dataset.mode === settings.apply_mode);
+                });
+            }
+        }
+
+        // Save settings
+        async function saveSettings() {
+            // Gather all form data
+            document.querySelectorAll('[name]').forEach(el => {
+                if (el.type === 'checkbox') {
+                    settings[el.name] = el.checked;
+                } else {
+                    settings[el.name] = el.value || null;
+                }
+            });
+
+            // Add tags
+            settings.job_titles = jobTitles;
+            settings.preferred_cities = cities;
+            settings.excluded_companies = excludedCompanies;
+
             try {
                 const r = await fetch(`${API_BASE}/api/users/settings`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ [fieldName]: value || null })
+                    body: JSON.stringify(settings)
                 });
                 if (r.ok) {
-                    originalValues[fieldName] = value;
-                    const el = document.querySelector(`[name="${fieldName}"]`);
-                    if (el) {
-                        el.classList.add('saved');
-                        setTimeout(() => el.classList.remove('saved'), 1000);
-                    }
-                    setSaveStatus('saved');
+                    toast('Settings saved successfully');
                 } else {
-                    setSaveStatus('error');
+                    toast('Failed to save settings', 'error');
                 }
-            } catch (e) { setSaveStatus('error'); }
+            } catch (e) {
+                toast('Error saving settings', 'error');
+            }
         }
 
+        function resetForm() {
+            if (confirm('Reset all changes?')) {
+                loadSettings();
+            }
+        }
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initUserMenu();
             loadSettings();
-            document.querySelectorAll('[name]').forEach(el => {
-                el.addEventListener('blur', () => saveField(el.name, el.value));
-                if (el.tagName === 'SELECT') {
-                    el.addEventListener('change', () => saveField(el.name, el.value));
-                }
-            });
+
+            setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            setupTagsInput('cities-input', 'cities-container', cities, 5);
+            setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+
+            setupOptionGroup('work-type-options', 'work_type');
+            setupOptionGroup('relocate-options', 'willing_to_relocate');
+            setupOptionGroup('us-auth-options', 'us_authorized');
+            setupOptionGroup('sponsorship-options', 'requires_sponsorship');
+            setupOptionGroup('license-options', 'drivers_license');
+            setupOptionGroup('clearance-options', 'security_clearance');
+
+            setupModeCards();
+
+            setupFileUpload('resume-upload', 'resume-file-input');
+            setupFileUpload('photo-upload', 'photo-file-input');
         });
     </script>
 </body>

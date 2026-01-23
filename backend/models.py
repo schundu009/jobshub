@@ -138,6 +138,32 @@ class User(Base):
     veteran_status = Column(String(30), nullable=True)  # not_veteran, veteran, protected_veteran, decline
     disability_status = Column(String(20), nullable=True)  # no, yes, decline
 
+    # Extended Profile fields (for comprehensive settings page)
+    full_name = Column(String(255), nullable=True)
+    job_title = Column(String(255), nullable=True)
+    date_of_birth = Column(Date, nullable=True)
+
+    # Preferences tab fields
+    resume_email = Column(String(255), nullable=True)  # Email for job applications
+    language = Column(String(10), default="en")  # Preferred language code
+    base_resume_id = Column(Integer, ForeignKey("user_documents.id"), nullable=True)
+    ai_model = Column(String(50), default="gpt-4")  # AI model preference
+
+    # Auto Apply tab fields
+    employment_status = Column(String(50), nullable=True)  # employed, unemployed, freelance, student
+    job_titles = Column(JSON, default=list)  # Array of desired job titles (max 5)
+    experience_level = Column(String(50), nullable=True)  # entry, mid, senior, lead, executive
+    industry = Column(String(100), nullable=True)  # tech, finance, healthcare, etc.
+    work_type = Column(String(50), nullable=True)  # full-time, part-time, contract, freelance
+    available_date = Column(Date, nullable=True)  # When available to start
+    preferred_cities = Column(JSON, default=list)  # Array of preferred cities
+    remote_ok = Column(Boolean, default=False)  # Open to full remote
+    hybrid_ok = Column(Boolean, default=False)  # Open to hybrid/in-person
+    drivers_license = Column(String(10), nullable=True)  # yes, no
+    security_clearance = Column(String(10), nullable=True)  # yes, no
+    apply_mode = Column(String(20), default="hybrid")  # hybrid, auto, review
+    excluded_companies = Column(JSON, default=list)  # Companies to exclude from auto-apply
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

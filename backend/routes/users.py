@@ -202,24 +202,34 @@ def get_current_user_profile(
 
 class UserSettingsUpdate(BaseModel):
     """Schema for updating user application settings."""
+    # Personal Info fields
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     preferred_name: Optional[str] = Field(None, max_length=100)
+    full_name: Optional[str] = Field(None, max_length=255)
+    job_title: Optional[str] = Field(None, max_length=255)
     email: Optional[str] = Field(None, max_length=255)
     phone: Optional[str] = Field(None, max_length=50)
+    date_of_birth: Optional[str] = Field(None, max_length=20)  # Will be parsed to date
     country: Optional[str] = Field(None, max_length=50)
+
+    # Address fields
     address_line1: Optional[str] = Field(None, max_length=255)
     address_line2: Optional[str] = Field(None, max_length=255)
     city: Optional[str] = Field(None, max_length=100)
     state: Optional[str] = Field(None, max_length=100)
     postal_code: Optional[str] = Field(None, max_length=20)
     address_country: Optional[str] = Field(None, max_length=50)
+
+    # Work authorization fields
     us_authorized: Optional[str] = Field(None, max_length=20)
     requires_sponsorship: Optional[str] = Field(None, max_length=20)
     willing_to_relocate: Optional[str] = Field(None, max_length=20)
     us_government_employee: Optional[str] = Field(None, max_length=20)
     non_compete: Optional[str] = Field(None, max_length=20)
     work_arrangement: Optional[str] = Field(None, max_length=20)
+
+    # Social profiles
     linkedin_url: Optional[str] = Field(None, max_length=500)
     github_url: Optional[str] = Field(None, max_length=500)
     portfolio_url: Optional[str] = Field(None, max_length=500)
@@ -227,11 +237,34 @@ class UserSettingsUpdate(BaseModel):
     referral_source: Optional[str] = Field(None, max_length=50)
     bio: Optional[str] = None
     skills: Optional[str] = None
+
     # Demographics / EEO fields
     gender: Optional[str] = Field(None, max_length=20)
     ethnicity: Optional[str] = Field(None, max_length=50)
     veteran_status: Optional[str] = Field(None, max_length=30)
     disability_status: Optional[str] = Field(None, max_length=20)
+
+    # Preferences tab fields
+    resume_email: Optional[str] = Field(None, max_length=255)
+    language: Optional[str] = Field(None, max_length=10)
+    base_resume_id: Optional[int] = None
+    ai_model: Optional[str] = Field(None, max_length=50)
+
+    # Auto Apply tab fields
+    employment_status: Optional[str] = Field(None, max_length=50)
+    job_titles: Optional[List[str]] = None  # Array of desired job titles
+    experience_level: Optional[str] = Field(None, max_length=50)
+    minimum_salary: Optional[int] = None  # Maps to min_salary
+    industry: Optional[str] = Field(None, max_length=100)
+    work_type: Optional[str] = Field(None, max_length=50)
+    available_date: Optional[str] = Field(None, max_length=20)  # Will be parsed to date
+    preferred_cities: Optional[List[str]] = None
+    remote_ok: Optional[bool] = None
+    hybrid_ok: Optional[bool] = None
+    drivers_license: Optional[str] = Field(None, max_length=10)
+    security_clearance: Optional[str] = Field(None, max_length=10)
+    apply_mode: Optional[str] = Field(None, max_length=20)
+    excluded_companies: Optional[List[str]] = None
 
 
 @router.get("/settings")
@@ -241,24 +274,34 @@ def get_user_settings(
 ):
     """Get current user's application settings."""
     return {
+        # Personal Info
         "first_name": current_user.first_name,
         "last_name": current_user.last_name,
         "preferred_name": current_user.preferred_name,
+        "full_name": current_user.full_name or current_user.name,
+        "job_title": current_user.job_title,
         "email": current_user.email,
         "phone": current_user.phone,
+        "date_of_birth": str(current_user.date_of_birth) if current_user.date_of_birth else None,
         "country": current_user.country,
+
+        # Address
         "address_line1": current_user.address_line1,
         "address_line2": current_user.address_line2,
         "city": current_user.city,
         "state": current_user.state,
         "postal_code": current_user.postal_code,
         "address_country": current_user.address_country,
+
+        # Work Authorization
         "us_authorized": current_user.us_authorized,
         "requires_sponsorship": current_user.requires_sponsorship,
         "willing_to_relocate": current_user.willing_to_relocate,
         "us_government_employee": current_user.us_government_employee,
         "non_compete": current_user.non_compete,
         "work_arrangement": current_user.work_arrangement,
+
+        # Social profiles
         "linkedin_url": current_user.linkedin_url,
         "github_url": current_user.github_url,
         "portfolio_url": current_user.portfolio_url,
@@ -266,10 +309,34 @@ def get_user_settings(
         "referral_source": current_user.referral_source,
         "bio": current_user.bio,
         "skills": current_user.skills,
+
+        # Demographics
         "gender": current_user.gender,
         "ethnicity": current_user.ethnicity,
         "veteran_status": current_user.veteran_status,
-        "disability_status": current_user.disability_status
+        "disability_status": current_user.disability_status,
+
+        # Preferences
+        "resume_email": current_user.resume_email,
+        "language": current_user.language or "en",
+        "base_resume_id": current_user.base_resume_id,
+        "ai_model": current_user.ai_model or "gpt-4",
+
+        # Auto Apply
+        "employment_status": current_user.employment_status,
+        "job_titles": current_user.job_titles or [],
+        "experience_level": current_user.experience_level,
+        "minimum_salary": current_user.min_salary,
+        "industry": current_user.industry,
+        "work_type": current_user.work_type,
+        "available_date": str(current_user.available_date) if current_user.available_date else None,
+        "preferred_cities": current_user.preferred_cities or [],
+        "remote_ok": current_user.remote_ok or False,
+        "hybrid_ok": current_user.hybrid_ok or False,
+        "drivers_license": current_user.drivers_license,
+        "security_clearance": current_user.security_clearance,
+        "apply_mode": current_user.apply_mode or "hybrid",
+        "excluded_companies": current_user.excluded_companies or []
     }
 
 
@@ -280,6 +347,8 @@ def update_user_settings(
     db: Session = Depends(get_db)
 ):
     """Update current user's application settings."""
+    from datetime import date as date_type
+
     # Pydantic v2 uses model_dump instead of dict
     update_fields = settings.model_dump(exclude_unset=True)
 
@@ -288,9 +357,27 @@ def update_user_settings(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # Field name mapping (frontend name -> database column name)
+    field_mapping = {
+        "minimum_salary": "min_salary",  # Map minimum_salary to min_salary
+    }
+
     for field, value in update_fields.items():
-        if hasattr(user, field):
-            setattr(user, field, value)
+        # Map field name if needed
+        db_field = field_mapping.get(field, field)
+
+        if hasattr(user, db_field):
+            # Handle date fields
+            if db_field in ["date_of_birth", "available_date"] and value:
+                try:
+                    if isinstance(value, str):
+                        # Parse date string (YYYY-MM-DD format)
+                        year, month, day = value.split("-")
+                        value = date_type(int(year), int(month), int(day))
+                except (ValueError, AttributeError):
+                    value = None
+
+            setattr(user, db_field, value)
 
     db.commit()
     db.refresh(user)
