@@ -196,6 +196,55 @@ async def get_excitement_distribution(db: Session = Depends(get_db)):
     }
 
 
+@router.get("/by-job-type")
+async def get_jobs_by_type(db: Session = Depends(get_db)):
+    """Get job counts grouped by job type (derived from title keywords)."""
+    import re
+
+    # Job type patterns - order matters (more specific first)
+    JOB_TYPE_PATTERNS = {
+        'fullstack': [r'full\s*stack', r'fullstack'],
+        'frontend': [r'front\s*end', r'frontend', r'\bui\b', r'\bux\b', r'react', r'angular', r'vue'],
+        'backend': [r'back\s*end', r'backend', r'server', r'\bapi\b', r'java\b', r'python', r'golang', r'node'],
+        'devops': [r'devops', r'\bsre\b', r'site reliability', r'platform', r'infrastructure', r'cloud'],
+        'data': [r'\bdata\b', r'analytics', r'\bml\b', r'machine learning', r'\bai\b', r'artificial intelligence', r'scientist'],
+        'mobile': [r'mobile', r'\bios\b', r'android', r'swift', r'kotlin'],
+        'security': [r'security', r'infosec', r'cyber'],
+        'qa': [r'\bqa\b', r'quality', r'\btest', r'sdet'],
+        'manager': [r'manager', r'\blead\b', r'director', r'head of', r'vp ', r'principal'],
+    }
+
+    jobs = db.query(Job).filter(Job.is_active == True).all()
+
+    type_counts = {k: 0 for k in JOB_TYPE_PATTERNS.keys()}
+    type_counts['other'] = 0
+
+    for job in jobs:
+        title_lower = (job.title or '').lower()
+        matched = False
+
+        for job_type, patterns in JOB_TYPE_PATTERNS.items():
+            for pattern in patterns:
+                if re.search(pattern, title_lower, re.IGNORECASE):
+                    type_counts[job_type] += 1
+                    matched = True
+                    break
+            if matched:
+                break
+
+        if not matched:
+            type_counts['other'] += 1
+
+    # Return as list sorted by count
+    result = [
+        {"type": jtype, "count": count, "label": jtype.replace('_', ' ').title()}
+        for jtype, count in sorted(type_counts.items(), key=lambda x: x[1], reverse=True)
+        if count > 0
+    ]
+
+    return {"job_types": result, "total": len(jobs)}
+
+
 @router.get("/interview-stats")
 async def get_interview_stats(db: Session = Depends(get_db)):
     """Get interview statistics."""

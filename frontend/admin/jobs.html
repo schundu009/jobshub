@@ -380,6 +380,19 @@
                     <option value="recruitee">Recruitee</option>
                     <option value="manual">Manual</option>
                 </select>
+                <select id="type-filter">
+                    <option value="">All Job Types</option>
+                    <option value="fullstack">Full Stack</option>
+                    <option value="frontend">Frontend</option>
+                    <option value="backend">Backend</option>
+                    <option value="devops">DevOps</option>
+                    <option value="data">Data/ML</option>
+                    <option value="mobile">Mobile</option>
+                    <option value="security">Security</option>
+                    <option value="qa">QA/Test</option>
+                    <option value="manager">Manager</option>
+                    <option value="other">Other</option>
+                </select>
                 <select id="company-filter">
                     <option value="">All Companies</option>
                 </select>
@@ -420,6 +433,43 @@
         let allJobs = [];
         let allSources = [];
         let timeFilterDays = 0;
+
+        // Job type patterns for client-side filtering
+        const JOB_TYPE_PATTERNS = {
+            'fullstack': ['full stack', 'fullstack'],
+            'frontend': ['front end', 'frontend', ' ui ', ' ux ', 'react', 'angular', 'vue'],
+            'backend': ['back end', 'backend', 'server', ' api ', 'java ', 'python', 'golang', 'node'],
+            'devops': ['devops', ' sre ', 'site reliability', 'platform', 'infrastructure', 'cloud'],
+            'data': [' data ', 'analytics', ' ml ', 'machine learning', ' ai ', 'artificial intelligence', 'scientist'],
+            'mobile': ['mobile', ' ios ', 'android', 'swift', 'kotlin'],
+            'security': ['security', 'infosec', 'cyber'],
+            'qa': [' qa ', 'quality', ' test', 'sdet'],
+            'manager': ['manager', ' lead ', 'director', 'head of', 'vp ', 'principal'],
+        };
+
+        function getJobType(title) {
+            const titleLower = (' ' + (title || '').toLowerCase() + ' ');
+            for (const [type, patterns] of Object.entries(JOB_TYPE_PATTERNS)) {
+                for (const pattern of patterns) {
+                    if (titleLower.includes(pattern)) {
+                        return type;
+                    }
+                }
+            }
+            return 'other';
+        }
+
+        // Check URL parameters on load
+        function applyUrlFilters() {
+            const params = new URLSearchParams(window.location.search);
+            const typeParam = params.get('type');
+            if (typeParam) {
+                const typeFilter = document.getElementById('type-filter');
+                if (typeFilter) {
+                    typeFilter.value = typeParam;
+                }
+            }
+        }
 
         function switchImportTab(tab) {
             document.querySelectorAll('.import-tab').forEach(btn => btn.classList.remove('active'));
@@ -520,9 +570,9 @@
             try {
                 const response = await apiRequest('/jobs?active_only=true&all=true&limit=50000');
                 allJobs = Array.isArray(response) ? response : (response.jobs || []);
-                renderJobs(allJobs);
                 updateStats();
                 populateCompanyFilter();
+                filterJobs(); // Apply any active filters including URL params
             } catch (error) {
                 console.error('Failed to load jobs:', error);
                 document.getElementById('jobs-table-body').innerHTML = '<tr><td colspan="7" class="alert alert-error">Failed to load jobs</td></tr>';
@@ -607,6 +657,7 @@
             const statusFilter = document.getElementById('status-filter').value;
             const sourceFilter = document.getElementById('source-filter').value;
             const companyFilter = document.getElementById('company-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
 
             const now = new Date();
@@ -617,6 +668,7 @@
                 const matchesStatus = !statusFilter || job.status === statusFilter;
                 const matchesSource = !sourceFilter || job.source === sourceFilter;
                 const matchesCompany = !companyFilter || jobCompanyName === companyFilter;
+                const matchesType = !typeFilter || getJobType(job.title) === typeFilter;
                 const matchesSearch = !searchQuery ||
                     job.title.toLowerCase().includes(searchQuery) ||
                     (jobCompanyName && jobCompanyName.toLowerCase().includes(searchQuery)) ||
@@ -628,7 +680,7 @@
                     matchesTime = jobDate && jobDate >= cutoffDate;
                 }
 
-                return matchesStatus && matchesSource && matchesCompany && matchesSearch && matchesTime;
+                return matchesStatus && matchesSource && matchesCompany && matchesType && matchesSearch && matchesTime;
             });
 
             renderJobs(filtered);
@@ -767,11 +819,14 @@
         document.getElementById('status-filter').addEventListener('change', filterJobs);
         document.getElementById('source-filter').addEventListener('change', filterJobs);
         document.getElementById('company-filter').addEventListener('change', filterJobs);
+        document.getElementById('type-filter').addEventListener('change', filterJobs);
         document.getElementById('search-input').addEventListener('input', filterJobs);
         document.getElementById('career-url').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') ingestJobs();
         });
 
+        // Apply URL filters before loading jobs
+        applyUrlFilters();
         loadJobs();
         loadSources();
     </script>

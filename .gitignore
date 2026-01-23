@@ -34,3 +34,4 @@ logs/
 uploads/
 backend/uploads/
 .vercel
+.env*.local

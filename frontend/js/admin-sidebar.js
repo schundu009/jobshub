@@ -81,6 +81,12 @@ function renderAdminSidebar(activePageId) {
             </div>
             <nav class="admin-nav">
                 ${navHtml}
+                <div class="admin-nav-section">
+                    <div class="admin-nav-label">Job Types</div>
+                    <div id="job-type-filters" class="job-type-filters">
+                        <div class="job-type-loading">Loading...</div>
+                    </div>
+                </div>
             </nav>
             <div class="admin-sidebar-footer">
                 <div class="admin-user">
@@ -198,4 +204,63 @@ function initAdminLayout(pageId, pageTitle, breadcrumb = null) {
     const scripts = document.body.querySelectorAll('script');
     document.body.innerHTML = layoutHtml;
     scripts.forEach(script => document.body.appendChild(script.cloneNode(true)));
+
+    // Load job type filters
+    loadJobTypeFilters();
+}
+
+// Job type filter functionality
+async function loadJobTypeFilters() {
+    const container = document.getElementById('job-type-filters');
+    if (!container) return;
+
+    try {
+        const response = await fetch('/api/analytics/by-job-type');
+        if (!response.ok) throw new Error('Failed to load job types');
+
+        const data = await response.json();
+        renderJobTypeFilters(data.job_types);
+    } catch (error) {
+        console.error('Error loading job types:', error);
+        container.innerHTML = '<div class="job-type-error">Failed to load</div>';
+    }
+}
+
+function renderJobTypeFilters(jobTypes) {
+    const container = document.getElementById('job-type-filters');
+    if (!container) return;
+
+    if (!jobTypes || jobTypes.length === 0) {
+        container.innerHTML = '<div class="job-type-empty">No jobs found</div>';
+        return;
+    }
+
+    let html = '';
+    jobTypes.forEach(jt => {
+        const label = formatJobTypeLabel(jt.type);
+        html += `
+            <a href="/admin/jobs.html?type=${jt.type}" class="job-type-item" data-type="${jt.type}">
+                <span class="job-type-label">${label}</span>
+                <span class="job-type-count">${jt.count}</span>
+            </a>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function formatJobTypeLabel(type) {
+    const labels = {
+        'fullstack': 'Full Stack',
+        'frontend': 'Frontend',
+        'backend': 'Backend',
+        'devops': 'DevOps',
+        'data': 'Data/ML',
+        'mobile': 'Mobile',
+        'security': 'Security',
+        'qa': 'QA/Test',
+        'manager': 'Manager',
+        'other': 'Other'
+    };
+    return labels[type] || type.charAt(0).toUpperCase() + type.slice(1);
 }

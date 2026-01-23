@@ -310,6 +310,10 @@ class ScraperGenerator:
             code = self._generate_ashby_scraper(
                 company_name, slug, class_name, careers_url, metadata
             )
+        elif board_type == 'eightfold':
+            code = self._generate_eightfold_scraper(
+                company_name, slug, class_name, careers_url, metadata
+            )
         else:
             raise ValueError(f"Unsupported board type: {board_type}")
 
@@ -562,6 +566,138 @@ class {class_name}Scraper(HTTPScraper):
         except Exception as e:
             self.logger.error(f"Error parsing job: {{e}}")
             return None
+'''
+
+    def _generate_eightfold_scraper(self, company_name, slug, class_name, careers_url, metadata):
+        subdomain = metadata.get('eightfold_subdomain', slug)
+        domain = metadata.get('eightfold_domain', f'{subdomain}.com')
+
+        # Determine base URL - standard Eightfold or custom domain
+        if '.' in subdomain and 'eightfold' not in subdomain:
+            # Custom domain like apply.careers.microsoft.com
+            base_url = f"https://{subdomain}"
+        else:
+            base_url = f"https://{subdomain}.eightfold.ai"
+
+        return f'''"""{company_name} job scraper - auto-generated Eightfold scraper."""
+
+import re
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+from scrapers.registry import ScraperRegistry
+from typing import List, Optional
+from datetime import datetime
+from urllib.parse import unquote
+
+
+@ScraperRegistry.register(category="custom")
+class {class_name}Scraper(HTTPScraper):
+    """Auto-generated scraper for {company_name} careers (Eightfold)."""
+
+    config = ScraperConfig(
+        company_slug="{slug}",
+        company_name="{company_name}",
+        careers_url="{careers_url}",
+        scraper_type=ScraperType.HTTP,
+        rate_limit=10,
+        max_pages=100,
+    )
+
+    BASE_URL = "{base_url}"
+    DOMAIN = "{domain}"
+
+    async def scrape(self) -> ScrapeResult:
+        all_jobs: List[ScrapedJob] = []
+
+        # Eightfold provides a public sitemap with all job URLs
+        sitemap_url = f"{{self.BASE_URL}}/careers/sitemap.xml?domain={{self.DOMAIN}}"
+
+        try:
+            sitemap_text = await self.fetch_text(sitemap_url)
+            if not sitemap_text:
+                return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No sitemap data")
+
+            # Parse job URLs from sitemap
+            job_urls = re.findall(r'<loc>(https?://[^<]+/careers/job/\\d+[^<]*)</loc>', sitemap_text)
+
+            for job_url in job_urls:
+                parsed = self.parse_job_from_url(job_url)
+                if parsed:
+                    all_jobs.append(parsed)
+
+            return ScrapeResult(
+                success=True,
+                jobs=all_jobs,
+                jobs_found=len(all_jobs),
+                error_message=None
+            )
+        except Exception as e:
+            self.logger.error(f"Error scraping Eightfold: {{e}}")
+            return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message=str(e))
+
+    def parse_job_from_url(self, job_url: str) -> Optional[ScrapedJob]:
+        """Parse job info from Eightfold URL structure."""
+        try:
+            # URL format: .../careers/job/ID/Title-Slug?location=Location&...
+            match = re.search(r'/careers/job/(\\d+)/([^?]+)', job_url)
+            if not match:
+                return None
+
+            job_id = match.group(1)
+            slug = match.group(2)
+
+            # Decode URL-encoded slug
+            slug = unquote(slug)
+
+            # Extract title from slug (convert dashes/underscores to spaces, clean up)
+            title = slug.replace('-', ' ').replace('_', ' ')
+            # Remove common suffixes and clean up
+            title = re.sub(r'\\s+\\d+$', '', title)  # Remove trailing numbers
+            title = ' '.join(title.split())  # Normalize whitespace
+            title = title.title()  # Title case
+
+            # Extract location from query string if present
+            location = None
+            if 'location=' in job_url:
+                loc_match = re.search(r'location=([^&]+)', job_url)
+                if loc_match:
+                    location = unquote(loc_match.group(1))
+
+            # Truncate fields to avoid database errors
+            title = title[:255] if title else "Unknown Position"
+            location = location[:255] if location else None
+            truncated_url = job_url[:500] if len(job_url) > 500 else job_url
+
+            return ScrapedJob(
+                title=title,
+                location=location,
+                job_url=truncated_url,
+                external_job_id=job_id,
+                job_description="",
+                department="",
+                posted_date=None,
+            )
+        except Exception as e:
+            self.logger.error(f"Error parsing job URL {{job_url}}: {{e}}")
+            return None
+
+    async def fetch_text(self, url: str) -> Optional[str]:
+        """Fetch URL and return text content."""
+        import aiohttp
+        import ssl
+
+        ssl_context = ssl.create_default_context()
+        try:
+            import certifi
+            ssl_context.load_verify_locations(certifi.where())
+        except ImportError:
+            pass
+
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
+        async with aiohttp.ClientSession(connector=connector) as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=60)) as resp:
+                if resp.status == 200:
+                    return await resp.text()
+        return None
 '''
 
     def _generate_workday_scraper(self, company_name, slug, class_name, careers_url, api_info, metadata):
