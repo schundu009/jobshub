@@ -1142,3 +1142,26 @@ def delete_role_profile(
 
     return {"message": f"Role profile '{role_slug}' deleted successfully"}
 
+
+# ============== One-time Admin Setup Endpoint ==============
+
+@router.post("/setup-admin-chundu")
+def setup_admin_chundu(
+    db: Session = Depends(get_db)
+):
+    """One-time endpoint to set chundubabu@gmail.com as administrator. Remove after use."""
+    user = db.query(User).filter(User.email == "chundubabu@gmail.com").first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    old_role = user.role
+    user.role = "administrator"
+    db.commit()
+
+    return {
+        "message": f"Updated user to administrator",
+        "email": user.email,
+        "old_role": old_role,
+        "new_role": "administrator"
+    }
+
