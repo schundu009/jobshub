@@ -36,15 +36,14 @@ async def get_current_user(
     """
     Dependency to get the current authenticated user.
 
-    Returns a mock admin user if not authenticated (auth disabled for admin).
+    Requires valid Bearer token in Authorization header.
     """
     if not credentials:
-        # Return mock admin user for unauthenticated requests
-        mock_user = User(id=0, email="admin@cariara.com", name="Admin", role="admin", is_active=True)
-        mock_user.role_profile = None
-        mock_user.custom_preferences = None
-        mock_user.target_seniority = None
-        return mock_user
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     token = credentials.credentials
     payload = decode_token(token)
@@ -140,8 +139,10 @@ async def get_current_admin(
     Dependency to require admin role.
 
     Raises HTTPException 403 if user is not an admin.
+    Accepts: admin, administrator, manager, developer roles.
     """
-    if current_user.role != "admin":
+    admin_roles = ['admin', 'administrator', 'manager', 'developer']
+    if current_user.role not in admin_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
