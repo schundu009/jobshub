@@ -28,7 +28,16 @@ from routes import jobs, companies, contacts, interviews, notes, documents, ai, 
 from config import settings as app_settings
 from services.redis_service import redis_service
 
-logger = logging.getLogger(__name__)
+# Observability
+from observability import setup_logging, get_logger, metrics, MetricsMiddleware, ObservabilityMiddleware
+
+# Set up structured logging based on environment
+setup_logging(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    json_format=os.getenv("ENV", "development").lower() in ("production", "staging")
+)
+
+logger = get_logger(__name__)
 
 
 # =============================================================================
@@ -731,6 +740,11 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
+# Observability middleware
+app.add_middleware(ObservabilityMiddleware)
+if metrics.enabled:
+    app.add_middleware(MetricsMiddleware)
+
 # Session middleware for OAuth state management
 app.add_middleware(
     SessionMiddleware,
@@ -816,3 +830,13 @@ def health_check():
 def redis_health():
     """Detailed Redis health check."""
     return redis_service.health_check()
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    """Prometheus metrics endpoint."""
+    from starlette.responses import Response
+    return Response(
+        content=metrics.generate_metrics(),
+        media_type="text/plain; charset=utf-8"
+    )
