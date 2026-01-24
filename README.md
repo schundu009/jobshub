@@ -13,7 +13,7 @@ A personal job application tracking system with AI-powered job discovery, ATS in
 **Job Discovery**
 - Ingest jobs from ATS platforms (Greenhouse, Lever, Ashby, Workday)
 - AI-powered job relevance scoring based on role profiles
-- Custom scraper support for any job board
+- Custom scraper support for any job boardƒ
 
 **AI Features**
 - Resume parsing and analysis
@@ -51,7 +51,7 @@ A personal job application tracking system with AI-powered job discovery, ATS in
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd Cariara
+cd cariara
 
 # Create and activate virtual environment
 python3 -m venv venv
@@ -100,7 +100,7 @@ celery -A backend.celery_app beat --loglevel=info
 ## Project Structure
 
 ```
-Cariara/
+cariara/
 ├── backend/
 │   ├── main.py              # FastAPI application entry point
 │   ├── database.py          # SQLAlchemy database configuration
@@ -142,7 +142,7 @@ Cariara/
 │   ├── css/                 # Stylesheets
 │   └── js/                  # Shared JavaScript
 ├── data/
-│   └── Cariara.db         # SQLite database
+│   └── cariara.db         # SQLite database
 └── requirements.txt
 ```
 
@@ -229,7 +229,7 @@ Create a `.env` file in the project root:
 
 ```env
 # Database (optional, defaults to SQLite)
-DATABASE_URL=postgresql://user:pass@localhost/Cariara
+DATABASE_URL=postgresql://user:pass@localhost/cariara
 
 # Redis (optional, for background tasks)
 REDIS_URL=redis://localhost:6379/0
@@ -316,7 +316,7 @@ pip install -r requirements.txt
 ### Database issues
 ```bash
 # Reset database
-rm data/Cariara.db
+rm data/cariara.db
 # Restart backend to recreate tables
 ```
 
