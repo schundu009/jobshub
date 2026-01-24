@@ -1,4 +1,4 @@
-# JobTrails
+# Cariara
 
 A personal job application tracking system with AI-powered job discovery, ATS integration, and automated scraping capabilities.
 
@@ -51,7 +51,7 @@ A personal job application tracking system with AI-powered job discovery, ATS in
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd jobtrails
+cd Cariara
 
 # Create and activate virtual environment
 python3 -m venv venv
@@ -100,7 +100,7 @@ celery -A backend.celery_app beat --loglevel=info
 ## Project Structure
 
 ```
-jobtrails/
+Cariara/
 ├── backend/
 │   ├── main.py              # FastAPI application entry point
 │   ├── database.py          # SQLAlchemy database configuration
@@ -142,7 +142,7 @@ jobtrails/
 │   ├── css/                 # Stylesheets
 │   └── js/                  # Shared JavaScript
 ├── data/
-│   └── jobtrails.db         # SQLite database
+│   └── Cariara.db         # SQLite database
 └── requirements.txt
 ```
 
@@ -229,7 +229,7 @@ Create a `.env` file in the project root:
 
 ```env
 # Database (optional, defaults to SQLite)
-DATABASE_URL=postgresql://user:pass@localhost/jobtrails
+DATABASE_URL=postgresql://user:pass@localhost/Cariara
 
 # Redis (optional, for background tasks)
 REDIS_URL=redis://localhost:6379/0
@@ -316,7 +316,7 @@ pip install -r requirements.txt
 ### Database issues
 ```bash
 # Reset database
-rm data/jobtrails.db
+rm data/Cariara.db
 # Restart backend to recreate tables
 ```
 
