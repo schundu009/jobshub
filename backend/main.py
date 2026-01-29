@@ -723,14 +723,27 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup
-    logger.info("Running early migrations...")
-    run_early_migrations()
-    logger.info("Creating tables...")
-    create_tables()
-    logger.info("Running full migrations...")
-    run_migrations()
-    logger.info("Startup complete")
+    # Startup - wrap in try/except to ensure app starts even if DB has issues
+    logger.info("Starting application...")
+    try:
+        logger.info("Running early migrations...")
+        run_early_migrations()
+    except Exception as e:
+        logger.error(f"Early migrations failed: {e}")
+
+    try:
+        logger.info("Creating tables...")
+        create_tables()
+    except Exception as e:
+        logger.error(f"Create tables failed: {e}")
+
+    try:
+        logger.info("Running full migrations...")
+        run_migrations()
+    except Exception as e:
+        logger.error(f"Full migrations failed: {e}")
+
+    logger.info("Startup complete - app ready to serve requests")
     yield
     # Shutdown (cleanup if needed)
     logger.info("Shutting down...")
