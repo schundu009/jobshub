@@ -679,16 +679,28 @@
         function syncTagsFromDOM(containerId, tagsArray) {
             tagsArray.length = 0; // Clear array
             const container = document.getElementById(containerId);
+            if (!container) return;
             container.querySelectorAll('.tag').forEach(tag => {
-                const value = tag.dataset.value || tag.textContent.replace('×', '').trim();
+                // Get value from data attribute or parse from text content
+                let value = tag.dataset.value;
+                if (!value) {
+                    // Remove the × button text and any whitespace
+                    const btn = tag.querySelector('.remove-tag, button');
+                    if (btn) btn.remove();
+                    value = tag.textContent.trim();
+                    // Recreate the button
+                    const newBtn = document.createElement('button');
+                    newBtn.type = 'button';
+                    newBtn.className = 'remove-tag';
+                    newBtn.innerHTML = '&times;';
+                    tag.appendChild(newBtn);
+                    tag.dataset.value = value;
+                }
                 if (value && !tagsArray.includes(value)) {
                     tagsArray.push(value);
-                    // Ensure data-value is set
-                    if (!tag.dataset.value) {
-                        tag.dataset.value = value;
-                    }
                 }
             });
+            console.log('Synced tags:', tagsArray);
         }
 
         // Step navigation handlers
@@ -722,9 +734,23 @@
             syncTagsFromDOM('job-titles-container', jobTitles);
             syncTagsFromDOM('preferred-cities-container', preferredCities);
 
-            if (jobTitles.length === 0) {
+            // Double-check by counting DOM elements
+            const visibleJobTags = document.querySelectorAll('#job-titles-container .tag').length;
+            console.log('Job titles array:', jobTitles, 'Visible tags:', visibleJobTags);
+
+            if (jobTitles.length === 0 && visibleJobTags === 0) {
                 showError('Please add at least one desired job title.');
                 return;
+            }
+
+            // If we have visible tags but empty array, use DOM values
+            if (jobTitles.length === 0 && visibleJobTags > 0) {
+                document.querySelectorAll('#job-titles-container .tag').forEach(tag => {
+                    const btn = tag.querySelector('button');
+                    const text = btn ? tag.textContent.replace(btn.textContent, '').trim() : tag.textContent.trim();
+                    if (text) jobTitles.push(text);
+                });
+                console.log('Recovered job titles from DOM:', jobTitles);
             }
 
             const experienceLevel = document.getElementById('experience-level').value;
