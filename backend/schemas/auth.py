@@ -54,6 +54,7 @@ class UserResponse(BaseModel):
     name: str
     role: str
     is_email_verified: bool
+    onboarding_completed: bool = False
     created_at: datetime
 
     class Config:

@@ -2260,6 +2260,13 @@
                 <option value="europe">Europe</option>
                 <option value="uk">United Kingdom</option>
                 <option value="canada">Canada</option>
+                <option value="india">India</option>
+            </select>
+            <select class="filter-select" id="work-type-filter">
+                <option value="" selected>All Work Types</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="onsite">Onsite</option>
             </select>
             <select class="filter-select" id="time-range-filter">
                 <option value="6">Last 6 hours</option>
@@ -3015,7 +3022,21 @@
         };
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Require authentication - redirect to login if not logged in
+            if (!requireAuth()) return;
+
+            // Check if onboarding is completed
+            try {
+                const status = await apiRequest('/users/onboarding-status');
+                if (!status.onboarding_completed) {
+                    window.location.href = 'onboarding.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to check onboarding status:', error);
+            }
+
             const gridDiv = document.querySelector('#jobsGrid');
             agGrid.createGrid(gridDiv, gridOptions);
             setupEventListeners();
@@ -3024,6 +3045,10 @@
             const savedLocation = localStorage.getItem('preferredLocation');
             if (savedLocation) {
                 document.getElementById('location-filter').value = savedLocation;
+            }
+            const savedWorkType = localStorage.getItem('preferredWorkType');
+            if (savedWorkType) {
+                document.getElementById('work-type-filter').value = savedWorkType;
             }
             const savedSalaryMin = localStorage.getItem('preferredSalaryMin');
             if (savedSalaryMin) {
@@ -3142,6 +3167,12 @@
                 applyFilters();
                 updateActiveFilters();
             });
+            document.getElementById('work-type-filter').addEventListener('change', (e) => {
+                if (e.target.value) localStorage.setItem('preferredWorkType', e.target.value);
+                else localStorage.removeItem('preferredWorkType');
+                applyFilters();
+                updateActiveFilters();
+            });
             document.getElementById('salary-min-filter').addEventListener('change', (e) => {
                 if (e.target.value) localStorage.setItem('preferredSalaryMin', e.target.value);
                 else localStorage.removeItem('preferredSalaryMin');
@@ -3180,6 +3211,16 @@
                 locationFilter.classList.add('active');
             } else {
                 locationFilter.classList.remove('active');
+            }
+
+            // Check work type filter
+            const workTypeFilter = document.getElementById('work-type-filter');
+            if (workTypeFilter.value) {
+                const workTypeText = workTypeFilter.options[workTypeFilter.selectedIndex].text;
+                tags.push({ text: `Work Type: ${workTypeText}`, clear: () => { workTypeFilter.value = ''; applyFilters(); updateActiveFilters(); } });
+                workTypeFilter.classList.add('active');
+            } else {
+                workTypeFilter.classList.remove('active');
             }
 
             // Check time filter (only show if not default 72h)
@@ -3280,6 +3321,7 @@
         function clearAllFilters() {
             // Reset all filters to defaults
             document.getElementById('location-filter').value = '';
+            document.getElementById('work-type-filter').value = '';
             document.getElementById('time-range-filter').value = '72';
             document.getElementById('salary-min-filter').value = '';
             document.getElementById('salary-max-filter').value = '';
@@ -3455,6 +3497,7 @@
             if (!gridApi) return;
 
             const locationFilter = document.getElementById('location-filter').value.toLowerCase();
+            const workTypeFilter = document.getElementById('work-type-filter').value.toLowerCase();
             const salaryMinFilter = parseInt(document.getElementById('salary-min-filter').value) || 0;
             const salaryMaxFilter = parseInt(document.getElementById('salary-max-filter').value) || 0;
             const matchMinFilter = parseInt(document.getElementById('match-filter').value) || 0;
@@ -3463,7 +3506,7 @@
             const excludeNoDesc = document.getElementById('exclude-no-desc').checked;
 
             gridApi.setGridOption('isExternalFilterPresent', () => {
-                return !!(locationFilter || salaryMinFilter || salaryMaxFilter || matchMinFilter || excludeGovt || excludeCitizenship || excludeNoDesc || selectedCompanies.size > 0);
+                return !!(locationFilter || workTypeFilter || salaryMinFilter || salaryMaxFilter || matchMinFilter || excludeGovt || excludeCitizenship || excludeNoDesc || selectedCompanies.size > 0);
             });
 
             gridApi.setGridOption('doesExternalFilterPass', (node) => {
@@ -3500,7 +3543,12 @@
                               loc.includes('new york') || loc.includes('san francisco') || loc.includes('seattle') ||
                               loc.includes('austin') || loc.includes('boston') || loc.includes('los angeles') ||
                               loc.includes('california') || loc.includes('texas') || loc.includes('washington') ||
-                              loc.includes(', ca') || loc.includes(', ny') || loc.includes(', tx') || loc.includes(', wa'))) {
+                              loc.includes('indiana') || loc.includes('chicago') || loc.includes('denver') ||
+                              loc.includes('atlanta') || loc.includes('miami') || loc.includes('phoenix') ||
+                              loc.includes(', ca') || loc.includes(', ny') || loc.includes(', tx') || loc.includes(', wa') ||
+                              loc.includes(', in') || loc.includes(', il') || loc.includes(', co') || loc.includes(', ga') ||
+                              loc.includes(', fl') || loc.includes(', az') || loc.includes(', ma') || loc.includes(', or') ||
+                              loc.includes(', nc') || loc.includes(', pa') || loc.includes(', oh') || loc.includes(', mi'))) {
                             return false;
                         }
                     } else if (locationFilter === 'europe') {
@@ -3509,10 +3557,27 @@
                               loc.includes('berlin') || loc.includes('paris') || loc.includes('amsterdam'))) {
                             return false;
                         }
+                    } else if (locationFilter === 'india') {
+                        // Use word boundary to avoid matching "Indiana"
+                        if (!(/\bindia\b/.test(loc) || loc.includes('bangalore') || loc.includes('bengaluru') ||
+                              loc.includes('mumbai') || loc.includes('delhi') || loc.includes('hyderabad') ||
+                              loc.includes('chennai') || loc.includes('pune') || loc.includes('gurgaon') ||
+                              loc.includes('noida') || loc.includes('kolkata'))) {
+                            return false;
+                        }
                     } else if (!loc.includes(locationFilter)) {
                         return false;
                     }
                 }
+
+                // Work type filter (remote/hybrid/onsite)
+                if (workTypeFilter) {
+                    const detectedType = detectJobType(node.data);
+                    if (workTypeFilter !== detectedType) {
+                        return false;
+                    }
+                }
+
                 return true;
             });
 

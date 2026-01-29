@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Complete Your Profile</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        body {
+            background: var(--bg-primary) !important;
+            min-height: 100vh;
+        }
+        .onboarding-container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .onboarding-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .onboarding-header .logo {
+            height: 48px;
+            width: auto;
+            margin-bottom: 16px;
+        }
+        .onboarding-header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+        }
+        .onboarding-header p {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+        .step-item.active .step-circle {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue);
+            color: white;
+        }
+        .step-item.completed .step-circle {
+            border-color: var(--accent-green);
+            background: var(--accent-green);
+            color: white;
+        }
+        .step-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: none;
+        }
+        @media (min-width: 600px) {
+            .step-label {
+                display: inline;
+            }
+        }
+        .step-connector {
+            width: 40px;
+            height: 2px;
+            background: var(--border-color);
+            transition: background 0.3s ease;
+        }
+        .step-item.completed + .step-connector {
+            background: var(--accent-green);
+        }
+
+        /* Step Content */
+        .step-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        .step-panel {
+            display: none;
+        }
+        .step-panel.active {
+            display: block;
+        }
+        .step-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 8px 0;
+        }
+        .step-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0 0 24px 0;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        .form-group label .required {
+            color: var(--accent-red);
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-muted);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 500px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: var(--bg-tertiary);
+        }
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue-muted);
+        }
+        .upload-area.has-file {
+            border-color: var(--accent-green);
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+        .upload-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .upload-file-name {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .upload-file-name .remove-btn {
+            background: none;
+            border: none;
+            color: var(--accent-red);
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 14px;
+        }
+        .upload-section {
+            margin-bottom: 24px;
+        }
+        .upload-section-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .upload-section-label .required {
+            color: var(--accent-red);
+        }
+        .upload-section-label .optional {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Tags Input */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 50px;
+        }
+        .tags-container:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-muted);
+        }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--accent-blue-muted);
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--accent-blue-light);
+        }
+        .tag .remove-tag {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        .tag .remove-tag:hover {
+            opacity: 1;
+        }
+        .tag-input {
+            flex: 1;
+            min-width: 120px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .tags-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* Navigation Buttons */
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+            gap: 16px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-family: inherit;
+        }
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent-blue-hover);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-spacer {
+            flex: 1;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+
+        /* Success checkmark */
+        .checkmark {
+            color: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+        <div class="onboarding-header">
+            <img src="../images/logo-full.svg" alt="Cariara" class="logo">
+            <h1>Complete Your Profile</h1>
+            <p>Set up your profile to start discovering jobs</p>
+        </div>
+
+        <div class="progress-steps">
+            <div class="step-item active" data-step="1">
+                <div class="step-circle">1</div>
+                <span class="step-label">Resume</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-item" data-step="2">
+                <div class="step-circle">2</div>
+                <span class="step-label">Personal Info</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step-item" data-step="3">
+                <div class="step-circle">3</div>
+                <span class="step-label">Preferences</span>
+            </div>
+        </div>
+
+        <div class="step-content">
+            <div id="error-message" class="error-message"></div>
+
+            <!-- Step 1: Resume Upload -->
+            <div class="step-panel active" data-step="1">
+                <h2 class="step-title">Upload Your Resume</h2>
+                <p class="step-description">Your resume helps us match you with the right jobs and auto-fill applications.</p>
+
+                <div class="upload-section">
+                    <div class="upload-section-label">Resume <span class="required">*</span></div>
+                    <div class="upload-area" id="resume-upload-area">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Drop your resume here or click to browse</div>
+                        <div class="upload-hint">PDF, DOC, DOCX (max 5MB)</div>
+                        <input type="file" id="resume-input" accept=".pdf,.doc,.docx" style="display:none">
+                    </div>
+                    <div id="resume-file-name" class="upload-file-name" style="display:none"></div>
+                </div>
+
+                <div class="upload-section">
+                    <div class="upload-section-label">Cover Letter <span class="optional">(Optional)</span></div>
+                    <div class="upload-area" id="cover-letter-upload-area">
+                        <div class="upload-icon">📝</div>
+                        <div class="upload-text">Drop your cover letter here or click to browse</div>
+                        <div class="upload-hint">PDF, DOC, DOCX (max 5MB)</div>
+                        <input type="file" id="cover-letter-input" accept=".pdf,.doc,.docx" style="display:none">
+                    </div>
+                    <div id="cover-letter-file-name" class="upload-file-name" style="display:none"></div>
+                </div>
+
+                <div class="step-navigation">
+                    <div class="btn-spacer"></div>
+                    <button class="btn btn-primary" id="step1-next" disabled>Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Personal Info -->
+            <div class="step-panel" data-step="2">
+                <h2 class="step-title">Personal Information</h2>
+                <p class="step-description">This information will be used to auto-fill your job applications.</p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first-name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last-name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last-name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" placeholder="+1 (555) 123-4567" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn URL <span class="optional">(Optional)</span></label>
+                    <input type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile">
+                </div>
+
+                <div class="step-navigation">
+                    <button class="btn btn-secondary" id="step2-back">Back</button>
+                    <button class="btn btn-primary" id="step2-next">Continue</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Job Preferences -->
+            <div class="step-panel" data-step="3">
+                <h2 class="step-title">Job Preferences</h2>
+                <p class="step-description">Tell us what kind of roles you're looking for.</p>
+
+                <div class="form-group">
+                    <label for="job-titles">Desired Job Titles <span class="required">*</span></label>
+                    <div class="tags-container" id="job-titles-container">
+                        <input type="text" class="tag-input" id="job-titles-input" placeholder="Type and press Enter">
+                    </div>
+                    <div class="tags-hint">Add up to 5 job titles. Press Enter or comma to add.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience-level">Experience Level <span class="required">*</span></label>
+                    <select id="experience-level" required>
+                        <option value="">Select your experience level</option>
+                        <option value="entry">Entry Level (0-2 years)</option>
+                        <option value="mid">Mid Level (3-5 years)</option>
+                        <option value="senior">Senior (6-10 years)</option>
+                        <option value="lead">Lead / Staff (10+ years)</option>
+                        <option value="executive">Executive</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="preferred-cities">Preferred Cities <span class="optional">(Optional)</span></label>
+                    <div class="tags-container" id="preferred-cities-container">
+                        <input type="text" class="tag-input" id="preferred-cities-input" placeholder="Type and press Enter">
+                    </div>
+                    <div class="tags-hint">Add cities where you'd like to work. Press Enter or comma to add.</div>
+                </div>
+
+                <div class="step-navigation">
+                    <button class="btn btn-secondary" id="step3-back">Back</button>
+                    <button class="btn btn-primary" id="step3-submit">Complete Setup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/app.js"></script>
+    <script>
+        // Redirect if not authenticated
+        if (!requireAuth()) {
+            // requireAuth will redirect to login
+        }
+
+        let currentStep = 1;
+        let resumeUploaded = false;
+        let coverLetterUploaded = false;
+        const jobTitles = [];
+        const preferredCities = [];
+
+        // Step navigation
+        function goToStep(step) {
+            // Update progress indicators
+            document.querySelectorAll('.step-item').forEach(item => {
+                const itemStep = parseInt(item.dataset.step);
+                item.classList.remove('active', 'completed');
+                if (itemStep === step) {
+                    item.classList.add('active');
+                } else if (itemStep < step) {
+                    item.classList.add('completed');
+                    item.querySelector('.step-circle').textContent = '✓';
+                }
+            });
+
+            // Update step panels
+            document.querySelectorAll('.step-panel').forEach(panel => {
+                panel.classList.remove('active');
+                if (parseInt(panel.dataset.step) === step) {
+                    panel.classList.add('active');
+                }
+            });
+
+            currentStep = step;
+            hideError();
+        }
+
+        function showError(message) {
+            const el = document.getElementById('error-message');
+            el.textContent = message;
+            el.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('error-message').classList.remove('show');
+        }
+
+        // File upload handling
+        function setupUploadArea(areaId, inputId, fileNameId, type) {
+            const area = document.getElementById(areaId);
+            const input = document.getElementById(inputId);
+            const fileNameDiv = document.getElementById(fileNameId);
+
+            area.addEventListener('click', () => input.click());
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    handleFileSelect(input, area, fileNameDiv, type);
+                }
+            });
+            input.addEventListener('change', () => {
+                handleFileSelect(input, area, fileNameDiv, type);
+            });
+        }
+
+        async function handleFileSelect(input, area, fileNameDiv, type) {
+            const file = input.files[0];
+            if (!file) return;
+
+            // Validate file size
+            if (file.size > 5 * 1024 * 1024) {
+                showError('File is too large. Maximum size is 5MB.');
+                return;
+            }
+
+            // Upload the file
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const documentType = type === 'resume' ? 'resume' : 'cover_letter';
+                const response = await fetch(`${API_BASE}/users/documents?document_type=${documentType}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getAccessToken()}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+
+                area.classList.add('has-file');
+                fileNameDiv.innerHTML = `
+                    <span>${file.name}</span>
+                    <button class="remove-btn" onclick="removeFile('${type}')">&times;</button>
+                `;
+                fileNameDiv.style.display = 'flex';
+
+                if (type === 'resume') {
+                    resumeUploaded = true;
+                    document.getElementById('step1-next').disabled = false;
+                } else {
+                    coverLetterUploaded = true;
+                }
+
+                hideError();
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function removeFile(type) {
+            if (type === 'resume') {
+                document.getElementById('resume-upload-area').classList.remove('has-file');
+                document.getElementById('resume-file-name').style.display = 'none';
+                document.getElementById('resume-input').value = '';
+                resumeUploaded = false;
+                document.getElementById('step1-next').disabled = true;
+            } else {
+                document.getElementById('cover-letter-upload-area').classList.remove('has-file');
+                document.getElementById('cover-letter-file-name').style.display = 'none';
+                document.getElementById('cover-letter-input').value = '';
+                coverLetterUploaded = false;
+            }
+        }
+
+        // Tags input handling
+        function setupTagsInput(containerId, inputId, tagsArray, maxTags = 5) {
+            const container = document.getElementById(containerId);
+            const input = document.getElementById(inputId);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addTag(input, container, tagsArray, maxTags);
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                if (input.value.trim()) {
+                    addTag(input, container, tagsArray, maxTags);
+                }
+            });
+        }
+
+        function addTag(input, container, tagsArray, maxTags) {
+            const value = input.value.trim().replace(/,/g, '');
+            if (!value || tagsArray.length >= maxTags || tagsArray.includes(value)) {
+                input.value = '';
+                return;
+            }
+
+            tagsArray.push(value);
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.innerHTML = `${value}<button class="remove-tag" onclick="removeTag(this, '${value}')">&times;</button>`;
+            container.insertBefore(tag, input);
+            input.value = '';
+        }
+
+        window.removeTag = function(btn, value) {
+            const containerId = btn.closest('.tags-container').id;
+            const tagsArray = containerId.includes('job-titles') ? jobTitles : preferredCities;
+            const index = tagsArray.indexOf(value);
+            if (index > -1) {
+                tagsArray.splice(index, 1);
+            }
+            btn.parentElement.remove();
+        };
+
+        // Step navigation handlers
+        document.getElementById('step1-next').addEventListener('click', () => {
+            if (!resumeUploaded) {
+                showError('Please upload your resume to continue.');
+                return;
+            }
+            goToStep(2);
+        });
+
+        document.getElementById('step2-back').addEventListener('click', () => goToStep(1));
+
+        document.getElementById('step2-next').addEventListener('click', () => {
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!firstName || !lastName || !phone) {
+                showError('Please fill in all required fields.');
+                return;
+            }
+
+            goToStep(3);
+        });
+
+        document.getElementById('step3-back').addEventListener('click', () => goToStep(2));
+
+        document.getElementById('step3-submit').addEventListener('click', async () => {
+            if (jobTitles.length === 0) {
+                showError('Please add at least one job title.');
+                return;
+            }
+
+            const experienceLevel = document.getElementById('experience-level').value;
+            if (!experienceLevel) {
+                showError('Please select your experience level.');
+                return;
+            }
+
+            const btn = document.getElementById('step3-submit');
+            btn.disabled = true;
+            btn.textContent = 'Completing...';
+
+            try {
+                const response = await apiRequest('/users/complete-onboarding', 'POST', {
+                    first_name: document.getElementById('first-name').value.trim(),
+                    last_name: document.getElementById('last-name').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    linkedin_url: document.getElementById('linkedin').value.trim() || null,
+                    job_titles: jobTitles,
+                    experience_level: experienceLevel,
+                    preferred_cities: preferredCities.length > 0 ? preferredCities : null
+                });
+
+                // Update user in localStorage
+                const user = getCurrentUser();
+                if (user) {
+                    user.onboarding_completed = true;
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+
+                // Redirect to discover page
+                window.location.href = 'discover.html';
+            } catch (error) {
+                showError(error.message);
+                btn.disabled = false;
+                btn.textContent = 'Complete Setup';
+            }
+        });
+
+        // Check if user already completed onboarding
+        async function checkOnboardingStatus() {
+            try {
+                const status = await apiRequest('/users/onboarding-status');
+                if (status.onboarding_completed) {
+                    window.location.href = 'discover.html';
+                    return;
+                }
+
+                // If user has resume already, mark step 1 as complete
+                if (status.has_resume) {
+                    resumeUploaded = true;
+                    document.getElementById('step1-next').disabled = false;
+                    document.getElementById('resume-upload-area').classList.add('has-file');
+                    document.getElementById('resume-upload-area').querySelector('.upload-text').textContent = 'Resume already uploaded';
+                }
+            } catch (error) {
+                console.error('Failed to check onboarding status:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupUploadArea('resume-upload-area', 'resume-input', 'resume-file-name', 'resume');
+            setupUploadArea('cover-letter-upload-area', 'cover-letter-input', 'cover-letter-file-name', 'cover_letter');
+            setupTagsInput('job-titles-container', 'job-titles-input', jobTitles, 5);
+            setupTagsInput('preferred-cities-container', 'preferred-cities-input', preferredCities, 10);
+            checkOnboardingStatus();
+        });
+    </script>
+</body>
+</html>

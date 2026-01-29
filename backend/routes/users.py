@@ -140,6 +140,107 @@ class RoleProfileUpdate(BaseModel):
         return v
 
 
+# ============== Onboarding Endpoints ==============
+
+@router.get("/onboarding-status")
+def get_onboarding_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Check if user has completed onboarding."""
+    # Check if user has uploaded a resume (required for onboarding)
+    has_resume = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == "resume"
+    ).first() is not None
+
+    return {
+        "onboarding_completed": current_user.onboarding_completed or False,
+        "onboarding_completed_at": current_user.onboarding_completed_at,
+        "has_resume": has_resume,
+        "has_personal_info": bool(current_user.first_name and current_user.last_name and current_user.phone),
+        "has_job_preferences": bool(current_user.job_titles and current_user.experience_level)
+    }
+
+
+class OnboardingComplete(BaseModel):
+    """Schema for completing onboarding."""
+    # Step 1 is validated by checking resume exists
+    # Step 2: Personal Info
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    phone: str = Field(..., min_length=1, max_length=50)
+    linkedin_url: Optional[str] = Field(None, max_length=500)
+
+    # Step 3: Auto Apply Preferences
+    job_titles: List[str] = Field(..., min_items=1, max_items=5)
+    experience_level: str = Field(..., max_length=50)
+    preferred_cities: Optional[List[str]] = Field(default_factory=list)
+
+
+@router.post("/complete-onboarding")
+def complete_onboarding(
+    data: OnboardingComplete,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark onboarding as complete after validating all required steps.
+
+    Requirements:
+    - Step 1: User must have uploaded at least one resume
+    - Step 2: Personal info (first_name, last_name, phone) provided
+    - Step 3: Job preferences (job_titles, experience_level) provided
+    """
+    # Validate Step 1: Resume must exist
+    has_resume = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == "resume"
+    ).first() is not None
+
+    if not has_resume:
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a resume to complete onboarding"
+        )
+
+    # Validate experience level
+    valid_levels = {"entry", "mid", "senior", "lead", "executive"}
+    if data.experience_level not in valid_levels:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid experience level. Must be one of: {', '.join(valid_levels)}"
+        )
+
+    # Get fresh user from DB
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update user with onboarding data
+    user.first_name = data.first_name
+    user.last_name = data.last_name
+    user.phone = data.phone
+    if data.linkedin_url:
+        user.linkedin_url = data.linkedin_url
+    user.job_titles = data.job_titles
+    user.experience_level = data.experience_level
+    if data.preferred_cities:
+        user.preferred_cities = data.preferred_cities
+
+    # Mark onboarding as complete
+    user.onboarding_completed = True
+    user.onboarding_completed_at = datetime.now()
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "Onboarding completed successfully",
+        "onboarding_completed": True
+    }
+
+
 # ============== User Endpoints ==============
 
 @router.get("")
@@ -494,20 +595,22 @@ async def upload_document(
     if file_size > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB")
 
-    # Extract text content from the file
-    extracted_text, error_msg = extract_text_from_file(content, file.filename)
-    if not extracted_text:
-        detail = f"Could not extract text from file. {error_msg}" if error_msg else "Could not extract text from file. Please upload a text-based document."
-        raise HTTPException(status_code=400, detail=detail)
-
-    # Save file locally (for local development)
+    # Save file locally first
     unique_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
     try:
         with open(file_path, "wb") as f:
             f.write(content)
-    except Exception:
-        file_path = None  # File storage failed, but we have content_text
+    except Exception as e:
+        print(f"File storage failed: {e}")
+        file_path = None
+
+    # Extract text content from the file (non-blocking - allow upload even if extraction fails)
+    extracted_text, error_msg = extract_text_from_file(content, file.filename)
+    extraction_warning = None
+    if not extracted_text and error_msg:
+        extraction_warning = f"File uploaded but text extraction failed: {error_msg}"
+        print(f"Text extraction warning for {file.filename}: {error_msg}")
 
     existing_docs = db.query(UserDocument).filter(
         UserDocument.user_id == current_user.id,
@@ -520,13 +623,14 @@ async def upload_document(
         file_path=file_path,
         file_size=file_size,
         mime_type=file.content_type,
-        content_text=extracted_text,  # Store extracted text in DB
+        content_text=extracted_text or "",  # Store extracted text in DB (empty string if extraction failed)
         is_default=(existing_docs == 0)
     )
     db.add(doc)
     db.commit()
     db.refresh(doc)
-    return {
+
+    response = {
         "id": doc.id,
         "filename": doc.filename,
         "document_type": doc.document_type,
@@ -535,6 +639,9 @@ async def upload_document(
         "created_at": doc.created_at,
         "message": "Document uploaded successfully"
     }
+    if extraction_warning:
+        response["warning"] = extraction_warning
+    return response
 
 
 @router.get("/documents")

@@ -277,17 +277,25 @@
                 localStorage.setItem('refresh_token', refreshToken);
                 localStorage.setItem('token', accessToken); // For compatibility with app.js
                 const userRole = params.get('user_role') || 'user';
+                const onboardingCompleted = params.get('onboarding_completed') === 'true';
                 const user = {
                     id: params.get('user_id'),
                     email: params.get('user_email'),
                     name: decodeURIComponent(params.get('user_name') || ''),
                     role: userRole,
+                    onboarding_completed: onboardingCompleted,
                 };
                 localStorage.setItem('user', JSON.stringify(user));
                 history.replaceState(null, '', window.location.pathname);
                 // Redirect based on role - admins go to admin portal
                 const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
-                window.location.href = isAdmin ? '../admin/index.html' : DEFAULT_REDIRECT;
+                if (isAdmin) {
+                    window.location.href = '../admin/index.html';
+                } else if (!onboardingCompleted) {
+                    window.location.href = 'onboarding.html';
+                } else {
+                    window.location.href = DEFAULT_REDIRECT;
+                }
                 return true;
             }
             return false;
@@ -344,7 +352,14 @@
                 // Redirect based on role - admins go to admin portal
                 const userRole = data.user?.role || 'job_seeker';
                 const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
-                window.location.href = isAdmin ? '../admin/index.html' : DEFAULT_REDIRECT;
+                const onboardingCompleted = data.user?.onboarding_completed || false;
+                if (isAdmin) {
+                    window.location.href = '../admin/index.html';
+                } else if (!onboardingCompleted) {
+                    window.location.href = 'onboarding.html';
+                } else {
+                    window.location.href = DEFAULT_REDIRECT;
+                }
             } catch (error) {
                 showError(error.message);
                 btn.disabled = false;

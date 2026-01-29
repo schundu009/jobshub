@@ -53,6 +53,51 @@ function logout() {
     window.location.href = basePath + 'login.html';
 }
 
+/**
+ * Check if user has completed onboarding - redirects to onboarding if not completed.
+ * Call this after requireAuth() on pages that require onboarding completion.
+ * Returns a promise that resolves to true if onboarding is complete.
+ */
+async function requireOnboarding() {
+    // First check localStorage for cached status
+    const user = getCurrentUser();
+    if (user && user.onboarding_completed) {
+        return true;
+    }
+
+    // Check with the server
+    try {
+        const response = await fetch(`${API_BASE}/users/onboarding-status`, {
+            headers: {
+                'Authorization': `Bearer ${getAccessToken()}`
+            }
+        });
+
+        if (!response.ok) {
+            console.error('Failed to check onboarding status');
+            return true; // Don't block on error
+        }
+
+        const status = await response.json();
+        if (!status.onboarding_completed) {
+            const basePath = window.location.pathname.includes('/admin/') ? '../jobs/' : '';
+            window.location.href = basePath + 'onboarding.html';
+            return false;
+        }
+
+        // Update localStorage with correct status
+        if (user) {
+            user.onboarding_completed = true;
+            localStorage.setItem('user', JSON.stringify(user));
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error checking onboarding status:', error);
+        return true; // Don't block on error
+    }
+}
+
 async function refreshAccessToken() {
     const refreshToken = getRefreshToken();
     if (!refreshToken) {
@@ -351,3 +396,4 @@ window.getCurrentUser = getCurrentUser;
 window.logout = logout;
 window.renderUserMenu = renderUserMenu;
 window.requireAuth = requireAuth;
+window.requireOnboarding = requireOnboarding;

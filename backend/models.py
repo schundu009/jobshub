@@ -164,6 +164,10 @@ class User(Base):
     apply_mode = Column(String(20), default="hybrid")  # hybrid, auto, review
     excluded_companies = Column(JSON, default=list)  # Companies to exclude from auto-apply
 
+    # Onboarding tracking
+    onboarding_completed = Column(Boolean, default=False, index=True)
+    onboarding_completed_at = Column(DateTime, nullable=True)
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

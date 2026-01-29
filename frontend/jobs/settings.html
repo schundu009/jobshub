@@ -759,8 +759,9 @@
                     <div class="form-label">Minimum Salary</div>
                     <div class="form-control">
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <span>$</span>
+                            <span id="currency-symbol">$</span>
                             <input type="number" name="minimum_salary" placeholder="150000" style="flex:1;">
+                            <span id="currency-code" style="color:var(--text-muted);font-size:12px;">USD</span>
                         </div>
                     </div>
                 </div>
@@ -783,12 +784,14 @@
                 <div class="form-row">
                     <div class="form-label">Work Type</div>
                     <div class="form-control">
-                        <div class="option-group" id="work-type-options">
+                        <div class="option-group multi-select" id="work-type-options">
+                            <button type="button" class="option-btn" data-value="all">All Types</button>
                             <button type="button" class="option-btn" data-value="full-time">Full-time</button>
                             <button type="button" class="option-btn" data-value="part-time">Part-time</button>
                             <button type="button" class="option-btn" data-value="contract">Contract</button>
                             <button type="button" class="option-btn" data-value="freelance">Freelance</button>
                         </div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Select multiple or choose "All Types"</div>
                     </div>
                 </div>
 
@@ -813,12 +816,22 @@
                 <div class="form-row">
                     <div class="form-label">Preferred Locations</div>
                     <div class="form-control">
-                        <select name="country" id="country-select" style="margin-bottom:10px;">
+                        <select name="country" id="country-select" style="margin-bottom:10px;" onchange="onCountryChange()">
                             <option value="">Select country...</option>
                             <option value="US">United States</option>
                             <option value="CA">Canada</option>
                             <option value="UK">United Kingdom</option>
                             <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="AU">Australia</option>
+                            <option value="IN">India</option>
+                            <option value="SG">Singapore</option>
+                            <option value="AE">UAE</option>
+                            <option value="NL">Netherlands</option>
+                            <option value="IE">Ireland</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
                         </select>
                         <div class="tags-container city-tags" id="cities-container">
                             <input type="text" class="tags-input" id="cities-input" placeholder="Add cities...">
@@ -1078,13 +1091,22 @@
                 <div class="form-row">
                     <div class="form-label">Country</div>
                     <div class="form-control">
-                        <select name="address_country">
+                        <select name="address_country" id="address-country-select">
                             <option value="">Select country...</option>
                             <option value="US">United States</option>
                             <option value="CA">Canada</option>
                             <option value="UK">United Kingdom</option>
                             <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="AU">Australia</option>
                             <option value="IN">India</option>
+                            <option value="SG">Singapore</option>
+                            <option value="AE">UAE</option>
+                            <option value="NL">Netherlands</option>
+                            <option value="IE">Ireland</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
                         </select>
                     </div>
                 </div>
@@ -1140,6 +1162,84 @@
         let jobTitles = [];
         let cities = [];
         let excludedCompanies = [];
+        let selectedWorkTypes = [];
+
+        // Country to currency mapping
+        const countryCurrency = {
+            'US': { symbol: '$', code: 'USD', name: 'US Dollar' },
+            'CA': { symbol: '$', code: 'CAD', name: 'Canadian Dollar' },
+            'UK': { symbol: '£', code: 'GBP', name: 'British Pound' },
+            'DE': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'FR': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'AU': { symbol: '$', code: 'AUD', name: 'Australian Dollar' },
+            'IN': { symbol: '₹', code: 'INR', name: 'Indian Rupee' },
+            'SG': { symbol: '$', code: 'SGD', name: 'Singapore Dollar' },
+            'AE': { symbol: 'د.إ', code: 'AED', name: 'UAE Dirham' },
+            'NL': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'IE': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'JP': { symbol: '¥', code: 'JPY', name: 'Japanese Yen' },
+            'BR': { symbol: 'R$', code: 'BRL', name: 'Brazilian Real' },
+            'MX': { symbol: '$', code: 'MXN', name: 'Mexican Peso' }
+        };
+
+        // Update currency display based on country
+        function updateCurrencyDisplay(countryCode) {
+            const currencySymbol = document.getElementById('currency-symbol');
+            const currencyCodeEl = document.getElementById('currency-code');
+            const currency = countryCurrency[countryCode] || countryCurrency['US'];
+            if (currencySymbol) currencySymbol.textContent = currency.symbol;
+            if (currencyCodeEl) currencyCodeEl.textContent = currency.code;
+        }
+
+        // Handle country change
+        function onCountryChange() {
+            const countrySelect = document.getElementById('country-select');
+            const countryCode = countrySelect.value;
+            updateCurrencyDisplay(countryCode);
+        }
+
+        // Auto-detect user's country using IP geolocation
+        async function detectUserCountry() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.country_code || 'US';
+                }
+            } catch (e) {
+                console.log('Could not detect country, defaulting to US');
+            }
+            return 'US';
+        }
+
+        // Load user's resumes for base resume dropdown
+        async function loadResumes() {
+            const select = document.getElementById('base-resume-select');
+            if (!select) return;
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`${API_BASE}/api/users/documents?type=resume`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const resumes = await response.json();
+                    select.innerHTML = '<option value="">Select a resume...</option>';
+                    resumes.forEach(resume => {
+                        const option = document.createElement('option');
+                        option.value = resume.id;
+                        option.textContent = `${resume.filename}${resume.is_default ? ' (Default)' : ''}`;
+                        if (settings.base_resume_id === resume.id) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load resumes:', e);
+            }
+        }
 
         // Theme
         function setTheme(t) {
@@ -1248,7 +1348,7 @@
             }
         };
 
-        // Option buttons
+        // Option buttons (single select)
         function setupOptionGroup(groupId, fieldName) {
             const group = document.getElementById(groupId);
             if (!group) return;
@@ -1258,6 +1358,50 @@
                     group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
                     settings[fieldName] = btn.dataset.value;
+                });
+            });
+        }
+
+        // Multi-select option group (for work types)
+        function setupMultiSelectOptionGroup(groupId, fieldName) {
+            const group = document.getElementById(groupId);
+            if (!group) return;
+
+            group.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = btn.dataset.value;
+                    const allBtn = group.querySelector('[data-value="all"]');
+
+                    if (value === 'all') {
+                        // Toggle "All" - deselect others when All is selected
+                        if (btn.classList.contains('selected')) {
+                            btn.classList.remove('selected');
+                            selectedWorkTypes = [];
+                        } else {
+                            group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedWorkTypes = ['all'];
+                        }
+                    } else {
+                        // Toggle individual option
+                        if (btn.classList.contains('selected')) {
+                            btn.classList.remove('selected');
+                            selectedWorkTypes = selectedWorkTypes.filter(t => t !== value);
+                        } else {
+                            // Deselect "All" if selecting individual option
+                            if (allBtn) allBtn.classList.remove('selected');
+                            selectedWorkTypes = selectedWorkTypes.filter(t => t !== 'all');
+                            btn.classList.add('selected');
+                            selectedWorkTypes.push(value);
+                        }
+                    }
+
+                    // Store as array or 'all' or comma-separated string
+                    if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
+                        settings[fieldName] = selectedWorkTypes.length === 0 ? null : 'all';
+                    } else {
+                        settings[fieldName] = selectedWorkTypes.join(',');
+                    }
                 });
             });
         }
@@ -1328,17 +1472,22 @@
         // Load settings
         async function loadSettings() {
             try {
-                const r = await fetch(`${API_BASE}/api/users/settings`);
+                const token = localStorage.getItem('access_token');
+                const r = await fetch(`${API_BASE}/api/users/settings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (r.ok) {
                     settings = await r.json();
-                    populateForm();
+                    await populateForm();
+                } else if (r.status === 401) {
+                    window.location.href = 'login.html';
                 }
             } catch (e) {
                 console.error('Failed to load settings:', e);
             }
         }
 
-        function populateForm() {
+        async function populateForm() {
             // Populate text inputs and selects
             document.querySelectorAll('[name]').forEach(el => {
                 if (settings[el.name] !== undefined && settings[el.name] !== null) {
@@ -1353,15 +1502,15 @@
             }
             if (settings.preferred_cities) {
                 cities = settings.preferred_cities;
-                setupTagsInput('cities-input', 'cities-container', cities, 5);
+                setupTagsInput('cities-input', 'cities-container', cities, 10);
             }
             if (settings.excluded_companies) {
                 excludedCompanies = settings.excluded_companies;
                 setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
             }
 
-            // Populate option groups
-            ['work-type-options', 'relocate-options', 'us-auth-options', 'sponsorship-options', 'license-options', 'clearance-options'].forEach(groupId => {
+            // Populate single-select option groups
+            ['relocate-options', 'us-auth-options', 'sponsorship-options', 'license-options', 'clearance-options'].forEach(groupId => {
                 const group = document.getElementById(groupId);
                 if (group && settings[groupId.replace('-options', '').replace(/-/g, '_')]) {
                     const val = settings[groupId.replace('-options', '').replace(/-/g, '_')];
@@ -1370,6 +1519,22 @@
                     });
                 }
             });
+
+            // Populate work type (multi-select)
+            const workTypeGroup = document.getElementById('work-type-options');
+            if (workTypeGroup && settings.work_type) {
+                const workTypeValue = settings.work_type;
+                if (workTypeValue === 'all') {
+                    selectedWorkTypes = ['all'];
+                    workTypeGroup.querySelector('[data-value="all"]')?.classList.add('selected');
+                } else if (workTypeValue) {
+                    selectedWorkTypes = workTypeValue.split(',');
+                    selectedWorkTypes.forEach(type => {
+                        const btn = workTypeGroup.querySelector(`[data-value="${type}"]`);
+                        if (btn) btn.classList.add('selected');
+                    });
+                }
+            }
 
             // Populate checkboxes
             if (settings.remote_ok) document.getElementById('remote-ok').checked = true;
@@ -1381,6 +1546,21 @@
                     card.classList.toggle('selected', card.dataset.mode === settings.apply_mode);
                 });
             }
+
+            // Update currency based on country
+            const countrySelect = document.getElementById('country-select');
+            if (countrySelect && countrySelect.value) {
+                updateCurrencyDisplay(countrySelect.value);
+            } else if (!countrySelect.value) {
+                // Auto-detect country if not set
+                const detectedCountry = await detectUserCountry();
+                countrySelect.value = detectedCountry;
+                document.getElementById('address-country-select').value = detectedCountry;
+                updateCurrencyDisplay(detectedCountry);
+            }
+
+            // Load resumes for base resume dropdown
+            await loadResumes();
         }
 
         // Save settings
@@ -1399,14 +1579,27 @@
             settings.preferred_cities = cities;
             settings.excluded_companies = excludedCompanies;
 
+            // Handle work_type (from multi-select)
+            if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
+                settings.work_type = selectedWorkTypes.length === 0 ? null : 'all';
+            } else {
+                settings.work_type = selectedWorkTypes.join(',');
+            }
+
             try {
+                const token = localStorage.getItem('access_token');
                 const r = await fetch(`${API_BASE}/api/users/settings`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify(settings)
                 });
                 if (r.ok) {
                     toast('Settings saved successfully');
+                } else if (r.status === 401) {
+                    window.location.href = 'login.html';
                 } else {
                     toast('Failed to save settings', 'error');
                 }
@@ -1454,16 +1647,25 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
             setupMobileMenu();
             initUserMenu();
-            loadSettings();
 
             setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
-            setupTagsInput('cities-input', 'cities-container', cities, 5);
+            setupTagsInput('cities-input', 'cities-container', cities, 10);
             setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
 
-            setupOptionGroup('work-type-options', 'work_type');
+            // Multi-select for work types
+            setupMultiSelectOptionGroup('work-type-options', 'work_type');
+
+            // Single select for other option groups
             setupOptionGroup('relocate-options', 'willing_to_relocate');
             setupOptionGroup('us-auth-options', 'us_authorized');
             setupOptionGroup('sponsorship-options', 'requires_sponsorship');
@@ -1474,6 +1676,9 @@
 
             setupFileUpload('resume-upload', 'resume-file-input');
             setupFileUpload('photo-upload', 'photo-file-input');
+
+            // Load settings (will also load resumes and detect country)
+            await loadSettings();
         });
     </script>
 </body>

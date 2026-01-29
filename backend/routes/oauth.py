@@ -109,6 +109,9 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     # URL encode the user name to handle special characters
     encoded_name = urllib.parse.quote(user.name or '')
 
+    # Get onboarding status
+    onboarding_completed = "true" if user.onboarding_completed else "false"
+
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
         f"{settings.oauth_redirect_base}{login_path}"
@@ -118,6 +121,7 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
         f"&user_email={user.email}"
         f"&user_name={encoded_name}"
         f"&user_role={user.role or 'user'}"
+        f"&onboarding_completed={onboarding_completed}"
     )
     return RedirectResponse(url=redirect_url)
 
