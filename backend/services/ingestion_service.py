@@ -6,6 +6,7 @@ Security: Uses proper SSL verification by default.
 Set DISABLE_SSL_VERIFY=true in development only if needed.
 """
 import re
+import time
 import urllib.request
 import urllib.error
 import json
@@ -1154,6 +1155,97 @@ def fetch_adp_jobs(company_slug: str) -> list:
     return jobs
 
 
+def fetch_eightfold_job_details(job_url: str) -> dict:
+    """
+    Fetch full job details from an Eightfold job page.
+    Extracts job description from JSON-LD structured data or page content.
+
+    Returns dict with 'description', 'title', 'location' or empty dict on failure.
+    """
+    if not job_url:
+        return {}
+
+    try:
+        request = urllib.request.Request(
+            job_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            }
+        )
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            html = response.read().decode('utf-8')
+    except Exception as e:
+        logger.debug(f"Failed to fetch Eightfold job details from {job_url}: {e}")
+        return {}
+
+    result = {}
+
+    # Try to extract JSON-LD structured data (most reliable)
+    json_ld_pattern = r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>'
+    json_ld_matches = re.findall(json_ld_pattern, html, re.DOTALL | re.IGNORECASE)
+
+    for json_str in json_ld_matches:
+        try:
+            data = json.loads(json_str.strip())
+            # Handle both single object and array
+            if isinstance(data, list):
+                for item in data:
+                    if item.get('@type') == 'JobPosting':
+                        data = item
+                        break
+                else:
+                    continue
+
+            if data.get('@type') == 'JobPosting':
+                # Extract description
+                description = data.get('description', '')
+                if description:
+                    result['description'] = html_to_text(description)
+
+                # Extract title if available
+                if data.get('title'):
+                    result['title'] = data['title']
+
+                # Extract location
+                job_location = data.get('jobLocation')
+                if job_location:
+                    if isinstance(job_location, list):
+                        job_location = job_location[0] if job_location else {}
+                    address = job_location.get('address', {})
+                    if isinstance(address, dict):
+                        loc_parts = []
+                        if address.get('addressLocality'):
+                            loc_parts.append(address['addressLocality'])
+                        if address.get('addressRegion'):
+                            loc_parts.append(address['addressRegion'])
+                        if address.get('addressCountry'):
+                            country = address['addressCountry']
+                            if isinstance(country, dict):
+                                country = country.get('name', '')
+                            loc_parts.append(country)
+                        if loc_parts:
+                            result['location'] = ', '.join(filter(None, loc_parts))
+
+                return result
+        except json.JSONDecodeError:
+            continue
+
+    # Fallback: Try to extract from meta tags
+    desc_meta_pattern = r'<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"\']+)["\']'
+    desc_match = re.search(desc_meta_pattern, html, re.IGNORECASE)
+    if desc_match:
+        result['description'] = desc_match.group(1)
+
+    # Fallback: Try to find job description div
+    desc_div_pattern = r'<div[^>]*class=["\'][^"\']*job-description[^"\']*["\'][^>]*>(.*?)</div>'
+    desc_div_match = re.search(desc_div_pattern, html, re.DOTALL | re.IGNORECASE)
+    if desc_div_match and not result.get('description'):
+        result['description'] = html_to_text(desc_div_match.group(1))
+
+    return result
+
+
 def fetch_eightfold_jobs(company_slug: str) -> list:
     """
     Fetch jobs from Eightfold AI career sites by parsing the sitemap.
@@ -1285,18 +1377,37 @@ def fetch_eightfold_jobs(company_slug: str) -> list:
         # Truncate fields to fit database column limits
         title = title.strip()[:255] if title else ''
         location = location.strip()[:255] if location else None
-        job_url = job_url[:500] if job_url else None
+        job_url_truncated = job_url[:500] if job_url else None
+
+        # Fetch full job details (including description) from the job page
+        job_description = ''
+        try:
+            details = fetch_eightfold_job_details(job_url)
+            if details:
+                # Use description from job page
+                if details.get('description'):
+                    job_description = details['description']
+                # Use better title/location from structured data if available
+                if details.get('title'):
+                    title = details['title'][:255]
+                if details.get('location'):
+                    location = details['location'][:255]
+        except Exception as e:
+            logger.debug(f"Failed to fetch Eightfold job details: {e}")
 
         normalized_job = {
             'title': title,
             'location': location,
-            'job_url': job_url,
-            'job_description': '',  # Would need to fetch individual pages for full description
+            'job_url': job_url_truncated,
+            'job_description': job_description,
             'source': 'eightfold',
             'external_job_id': external_job_id[:255] if external_job_id else None,
             'posted_date': lastmod.split('T')[0] if lastmod else None,
         }
         jobs.append(normalized_job)
+
+        # Rate limit to avoid overwhelming the server (100ms between requests)
+        time.sleep(0.1)
 
     return jobs
 
