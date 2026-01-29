@@ -24,7 +24,7 @@ import logging
 from collections import defaultdict
 from typing import Optional
 
-from database import create_tables
+from database import create_tables, run_early_migrations
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, auto_apply
 from config import settings as app_settings
 from services.redis_service import redis_service
@@ -724,10 +724,16 @@ def run_migrations():
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
+    logger.info("Running early migrations...")
+    run_early_migrations()
+    logger.info("Creating tables...")
     create_tables()
+    logger.info("Running full migrations...")
     run_migrations()
+    logger.info("Startup complete")
     yield
     # Shutdown (cleanup if needed)
+    logger.info("Shutting down...")
 
 
 app = FastAPI(

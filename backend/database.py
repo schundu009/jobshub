@@ -46,7 +46,7 @@ def get_engine():
 engine = get_engine()
 
 
-def _run_early_migrations():
+def run_early_migrations():
     """Run critical migrations before models are loaded."""
     from sqlalchemy import text
 
@@ -118,8 +118,7 @@ def _run_early_migrations():
         print(f"Early migration error: {e}")
 
 
-# Run migrations before models load
-_run_early_migrations()
+# Note: Early migrations are called from main.py lifespan to avoid import-time DB connections
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
