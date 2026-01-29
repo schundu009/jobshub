@@ -861,13 +861,19 @@
             try {
                 const r = await authFetch(`${API_BASE}/api/auto-apply/submit/${jobId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resume_id: null,
+                        cover_letter_text: null,
+                        use_ai_cover_letter: true
+                    })
                 });
                 if (r && r.ok) {
                     toast('Application submitted!');
                     loadSubmissions();
                 } else {
-                    toast('Failed to submit application', 'error');
+                    const errorData = await r.json().catch(() => ({}));
+                    toast(errorData.detail || 'Failed to submit application', 'error');
                     loadSubmissions();
                 }
             } catch (e) {

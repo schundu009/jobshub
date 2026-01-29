@@ -523,6 +523,46 @@ def cancel_submission(
     return {"message": "Submission cancelled"}
 
 
+@router.post("/skip/{job_id}")
+def skip_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Skip a job from auto-apply queue.
+
+    Marks the job as skipped so it won't appear in the queue again.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Check for existing submission
+    existing = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.job_id == job_id,
+        ApplicationSubmission.user_id == current_user.id
+    ).first()
+
+    if existing:
+        # Update existing submission to skipped
+        existing.status = "skipped"
+        db.commit()
+    else:
+        # Create a skipped submission record
+        submission = ApplicationSubmission(
+            job_id=job_id,
+            user_id=current_user.id,
+            status="skipped",
+            ats_type=job.source or "unknown",
+            application_url=job.job_url,
+        )
+        db.add(submission)
+        db.commit()
+
+    return {"message": "Job skipped", "job_id": job_id}
+
+
 # ============== Answer Templates Endpoints ==============
 
 @router.get("/answers")
