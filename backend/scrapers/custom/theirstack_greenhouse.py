@@ -109,11 +109,6 @@ class CloudflareScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs"
 
 @ScraperRegistry.register(category="custom")
-class DeliverooScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="deliveroouk", company_name="Deliveroo", careers_url="https://deliveroo.co.uk/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/deliveroo/jobs"
-
-@ScraperRegistry.register(category="custom")
 class CelonisScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="celonis", company_name="Celonis", careers_url="https://celonis.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/celonis/jobs"
@@ -122,11 +117,6 @@ class CelonisScraper(GreenhouseMixin, HTTPScraper):
 class UnityTechnologiesScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="unity3d", company_name="Unity Technologies", careers_url="https://unity3d.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/unity3d/jobs"
-
-@ScraperRegistry.register(category="custom")
-class SobeysScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="sobeys", company_name="Sobeys", careers_url="https://sobeys.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/sobeys/jobs"
 
 @ScraperRegistry.register(category="custom")
 class PureStorageScraper(GreenhouseMixin, HTTPScraper):
@@ -154,11 +144,6 @@ class EsriScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/esri/jobs"
 
 @ScraperRegistry.register(category="custom")
-class ChewyScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="chewy", company_name="Chewy", careers_url="https://chewy.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/chewy/jobs"
-
-@ScraperRegistry.register(category="custom")
 class ElasticScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="elastic", company_name="Elastic", careers_url="https://elastic.co/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/elastic/jobs"
@@ -169,24 +154,9 @@ class RiotGamesScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/riotgames/jobs"
 
 @ScraperRegistry.register(category="custom")
-class SharkninjaScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="sharkninja", company_name="SharkNinja", careers_url="https://sharkninja.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/sharkninja/jobs"
-
-@ScraperRegistry.register(category="custom")
 class PinterestScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="pinterest", company_name="Pinterest", careers_url="https://pinterest.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/pinterest/jobs"
-
-@ScraperRegistry.register(category="custom")
-class OcadoGroupScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="ocadogroup", company_name="Ocado Group", careers_url="https://ocadogroup.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/ocado/jobs"
-
-@ScraperRegistry.register(category="custom")
-class PelotonScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="onepeloton", company_name="Peloton", careers_url="https://onepeloton.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/onepeloton/jobs"
 
 @ScraperRegistry.register(category="custom")
 class VivianHealthScraper(GreenhouseMixin, HTTPScraper):
@@ -209,34 +179,14 @@ class RipplematchScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/ripplematch/jobs"
 
 @ScraperRegistry.register(category="custom")
-class ThgScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="thg", company_name="THG", careers_url="https://thg.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/thg/jobs"
-
-@ScraperRegistry.register(category="custom")
-class GreenThumbIndustriesScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="gtigrows", company_name="Green Thumb Industries", careers_url="https://gtigrows.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/gtigrows/jobs"
-
-@ScraperRegistry.register(category="custom")
 class NewRelicScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="newrelic", company_name="New Relic", careers_url="https://newrelic.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/newrelic/jobs"
 
 @ScraperRegistry.register(category="custom")
-class BoxScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="box", company_name="Box", careers_url="https://box.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/box/jobs"
-
-@ScraperRegistry.register(category="custom")
 class EpicGamesScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="epicgames", company_name="Epic Games", careers_url="https://epicgames.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/epicgames/jobs"
-
-@ScraperRegistry.register(category="custom")
-class FollettCorporationScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="follett", company_name="Follett Corporation", careers_url="https://follett.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/follett/jobs"
 
 @ScraperRegistry.register(category="custom")
 class DoctolibScraper(GreenhouseMixin, HTTPScraper):
@@ -247,21 +197,6 @@ class DoctolibScraper(GreenhouseMixin, HTTPScraper):
 class OkxScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="okx", company_name="OKX", careers_url="https://okx.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/okx/jobs"
-
-@ScraperRegistry.register(category="custom")
-class GitlabScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="aboutgitlab", company_name="GitLab", careers_url="https://about.gitlab.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/aboutgitlab/jobs"
-
-@ScraperRegistry.register(category="custom")
-class CrocsScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="crocs", company_name="Crocs", careers_url="https://crocs.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/crocs/jobs"
-
-@ScraperRegistry.register(category="custom")
-class ZalandoScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="zalando", company_name="Zalando", careers_url="https://zalando.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/zalando/jobs"
 
 @ScraperRegistry.register(category="custom")
 class HubspotScraper(GreenhouseMixin, HTTPScraper):

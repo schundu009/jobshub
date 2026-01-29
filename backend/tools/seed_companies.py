@@ -43,7 +43,7 @@ COMPANIES = [
 
     # Ashby
     {"name": "Character AI", "ats_type": "ashby", "slug": "character"},
-    {"name": "Cohere", "ats_type": "ashby", "slug": "cohere"},
+    # Cohere uses dedicated Lever scraper (backend/scrapers/custom/cohere.py)
     {"name": "Together AI", "ats_type": "ashby", "slug": "togetherai"},
     {"name": "Baseten", "ats_type": "ashby", "slug": "baseten"},
     {"name": "Lambda", "ats_type": "ashby", "slug": "lambda"},
