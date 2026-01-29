@@ -9,7 +9,6 @@ Security features:
 - Rate limiting
 - No-cache headers for API responses
 """
-print("=== main.py starting to load ===")
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,14 +24,13 @@ import logging
 from collections import defaultdict
 from typing import Optional
 
-from database import create_tables, run_early_migrations
+from database import create_tables
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, auto_apply
 from config import settings as app_settings
 from services.redis_service import redis_service
 
 # Observability
 from observability import setup_logging, get_logger, metrics, MetricsMiddleware, ObservabilityMiddleware
-print("=== All imports completed ===")
 
 # Set up structured logging based on environment
 setup_logging(
@@ -725,30 +723,11 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup - wrap in try/except to ensure app starts even if DB has issues
-    logger.info("Starting application...")
-    try:
-        logger.info("Running early migrations...")
-        run_early_migrations()
-    except Exception as e:
-        logger.error(f"Early migrations failed: {e}")
-
-    try:
-        logger.info("Creating tables...")
-        create_tables()
-    except Exception as e:
-        logger.error(f"Create tables failed: {e}")
-
-    try:
-        logger.info("Running full migrations...")
-        run_migrations()
-    except Exception as e:
-        logger.error(f"Full migrations failed: {e}")
-
-    logger.info("Startup complete - app ready to serve requests")
+    # Startup
+    create_tables()
+    run_migrations()
     yield
     # Shutdown (cleanup if needed)
-    logger.info("Shutting down...")
 
 
 app = FastAPI(
@@ -838,8 +817,21 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    """Health check endpoint - minimal for fast response."""
-    return {"status": "healthy", "version": "2.1.2"}
+    """Health check endpoint."""
+    import asyncio
+    try:
+        # Try Redis with a short timeout to prevent hanging
+        redis_healthy = redis_service.ping()
+    except Exception:
+        redis_healthy = False
+    return {
+        "status": "healthy",  # Always return healthy for Railway if API is up
+        "version": "2.1.1",
+        "services": {
+            "api": "healthy",
+            "redis": "healthy" if redis_healthy else "unavailable",
+        }
+    }
 
 
 @app.get("/health/redis")
