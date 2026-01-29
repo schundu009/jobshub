@@ -134,8 +134,42 @@
             color: var(--text-primary);
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+        .tab-btn.completed .tab-number { display: none; }
+        .tab-btn.completed .tab-check { display: inline !important; color: #22c55e; }
+        .tab-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tab-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        .tab-btn.active .tab-number { background: var(--accent-blue); color: white; }
+        .tab-check { color: #22c55e; font-weight: bold; margin-left: 6px; }
+        .tab-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+        .tab-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        .tab-navigation .btn { min-width: 120px; }
+        .required-indicator { color: #ef4444; margin-left: 2px; }
 
         /* Section */
         .section {
@@ -661,10 +695,20 @@
         <h1 class="page-title">Account Settings</h1>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('preferences')">Preferences</button>
-            <button class="tab-btn" onclick="showTab('auto-apply')">Auto Apply</button>
-            <button class="tab-btn" onclick="showTab('personal-info')">Personal Info</button>
+            <button class="tab-btn active" data-tab="preferences" onclick="showTab('preferences')">
+                <span class="tab-number">1</span> Preferences
+                <span class="tab-check" id="check-preferences" style="display:none;">✓</span>
+            </button>
+            <button class="tab-btn" data-tab="auto-apply" onclick="showTab('auto-apply')">
+                <span class="tab-number">2</span> Auto Apply
+                <span class="tab-check" id="check-auto-apply" style="display:none;">✓</span>
+            </button>
+            <button class="tab-btn" data-tab="personal-info" onclick="showTab('personal-info')">
+                <span class="tab-number">3</span> Personal Info
+                <span class="tab-check" id="check-personal-info" style="display:none;">✓</span>
+            </button>
         </div>
+        <div id="tab-error" class="tab-error" style="display:none;"></div>
 
         <!-- PREFERENCES TAB -->
         <div id="tab-preferences" class="tab-content active">
@@ -682,19 +726,19 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-label">Resume Email</div>
+                    <div class="form-label">Resume Email<span class="required-indicator">*</span></div>
                     <div class="form-control">
-                        <input type="email" name="resume_email" placeholder="your@email.com">
+                        <input type="email" name="resume_email" id="resume_email" placeholder="your@email.com" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-label">
-                        Base Resume
+                        Base Resume<span class="required-indicator">*</span>
                         <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
                     </div>
                     <div class="form-control">
-                        <select name="base_resume" id="base-resume-select">
+                        <select name="base_resume" id="base-resume-select" required>
                             <option value="">Select a resume...</option>
                         </select>
                     </div>
@@ -709,6 +753,11 @@
                             <option value="claude-3">Claude 3</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="tab-navigation">
+                    <div></div>
+                    <button class="btn btn-primary" onclick="nextTab('preferences')">Next: Auto Apply →</button>
                 </div>
             </div>
         </div>
@@ -732,19 +781,19 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-label">Desired Job Titles</div>
+                    <div class="form-label">Desired Job Titles<span class="required-indicator">*</span></div>
                     <div class="form-control">
                         <div class="tags-container" id="job-titles-container">
                             <input type="text" class="tags-input" id="job-titles-input" placeholder="Type and press Enter...">
                         </div>
-                        <div class="tag-limit">Maximum 5 job titles</div>
+                        <div class="tag-limit">Maximum 5 job titles (at least 1 required)</div>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-label">Experience Level</div>
+                    <div class="form-label">Experience Level<span class="required-indicator">*</span></div>
                     <div class="form-control">
-                        <select name="experience_level">
+                        <select name="experience_level" id="experience_level" required>
                             <option value="">Select level...</option>
                             <option value="entry">Entry Level (0-2 years)</option>
                             <option value="mid">Mid Level (3-5 years)</option>
@@ -986,6 +1035,11 @@
                         <input type="text" class="tags-input" id="excluded-companies-input" placeholder="Type company name and press Enter...">
                     </div>
                 </div>
+
+                <div class="tab-navigation">
+                    <button class="btn btn-secondary" onclick="prevTab('auto-apply')">← Back: Preferences</button>
+                    <button class="btn btn-primary" onclick="nextTab('auto-apply')">Next: Personal Info →</button>
+                </div>
             </div>
         </div>
 
@@ -993,9 +1047,9 @@
         <div id="tab-personal-info" class="tab-content">
             <div class="section">
                 <div class="form-row">
-                    <div class="form-label">Full Name</div>
+                    <div class="form-label">Full Name<span class="required-indicator">*</span></div>
                     <div class="form-control">
-                        <input type="text" name="full_name" placeholder="John Doe">
+                        <input type="text" name="full_name" id="full_name" placeholder="John Doe" required>
                     </div>
                 </div>
 
@@ -1007,16 +1061,16 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-label">Email</div>
+                    <div class="form-label">Email<span class="required-indicator">*</span></div>
                     <div class="form-control">
-                        <input type="email" name="email" placeholder="john@example.com">
+                        <input type="email" name="email" id="personal_email" placeholder="john@example.com" required>
                     </div>
                 </div>
 
                 <div class="form-row">
-                    <div class="form-label">Phone Number</div>
+                    <div class="form-label">Phone Number<span class="required-indicator">*</span></div>
                     <div class="form-control">
-                        <input type="tel" name="phone" placeholder="(555) 123-4567">
+                        <input type="tel" name="phone" id="phone" placeholder="(555) 123-4567" required>
                     </div>
                 </div>
 
@@ -1143,13 +1197,19 @@
                         <input type="file" id="photo-file-input" accept=".png,.jpg,.jpeg" style="display:none;">
                     </div>
                 </div>
+
+                <div class="tab-navigation">
+                    <button class="btn btn-secondary" onclick="prevTab('personal-info')">← Back: Auto Apply</button>
+                    <button class="btn btn-primary" onclick="validateAndSave()">Save & Continue →</button>
+                </div>
             </div>
         </div>
 
         <div id="toast" class="toast"></div>
     </main>
 
-    <div class="save-bar">
+    <!-- Save bar hidden - save is done via tab navigation -->
+    <div class="save-bar" id="save-bar" style="display:none;">
         <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
         <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
     </div>
@@ -1286,12 +1346,130 @@
         }
         window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileSidebar());
 
+        // Tab order
+        const tabOrder = ['preferences', 'auto-apply', 'personal-info'];
+        let completedTabs = { preferences: false, 'auto-apply': false, 'personal-info': false };
+
         // Tabs
-        function showTab(tabName) {
+        function showTab(tabName, force = false) {
+            // Check if user can navigate to this tab (must complete previous tabs first)
+            const targetIndex = tabOrder.indexOf(tabName);
+            if (!force && targetIndex > 0) {
+                for (let i = 0; i < targetIndex; i++) {
+                    if (!completedTabs[tabOrder[i]]) {
+                        showTabError(`Please complete the "${tabOrder[i].replace('-', ' ')}" tab first.`);
+                        return;
+                    }
+                }
+            }
+
+            hideTabError();
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
             document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function showTabError(msg) {
+            const el = document.getElementById('tab-error');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideTabError() {
+            document.getElementById('tab-error').style.display = 'none';
+        }
+
+        function validatePreferences() {
+            const resumeEmail = document.getElementById('resume_email').value.trim();
+            const baseResume = document.getElementById('base-resume-select').value;
+
+            if (!resumeEmail) {
+                showTabError('Please enter your resume email.');
+                return false;
+            }
+            if (!baseResume) {
+                showTabError('Please select a base resume. If you don\'t have one, upload it in the Resumes section first.');
+                return false;
+            }
+            return true;
+        }
+
+        function validateAutoApply() {
+            if (jobTitles.length === 0) {
+                showTabError('Please add at least one desired job title.');
+                return false;
+            }
+            const experienceLevel = document.getElementById('experience_level').value;
+            if (!experienceLevel) {
+                showTabError('Please select your experience level.');
+                return false;
+            }
+            return true;
+        }
+
+        function validatePersonalInfo() {
+            const fullName = document.getElementById('full_name').value.trim();
+            const email = document.getElementById('personal_email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!fullName) {
+                showTabError('Please enter your full name.');
+                return false;
+            }
+            if (!email) {
+                showTabError('Please enter your email.');
+                return false;
+            }
+            if (!phone) {
+                showTabError('Please enter your phone number.');
+                return false;
+            }
+            return true;
+        }
+
+        function nextTab(currentTab) {
+            hideTabError();
+            let isValid = false;
+
+            if (currentTab === 'preferences') {
+                isValid = validatePreferences();
+                if (isValid) {
+                    completedTabs.preferences = true;
+                    markTabCompleted('preferences');
+                    showTab('auto-apply', true);
+                }
+            } else if (currentTab === 'auto-apply') {
+                isValid = validateAutoApply();
+                if (isValid) {
+                    completedTabs['auto-apply'] = true;
+                    markTabCompleted('auto-apply');
+                    showTab('personal-info', true);
+                }
+            }
+        }
+
+        function prevTab(currentTab) {
+            hideTabError();
+            if (currentTab === 'auto-apply') {
+                showTab('preferences', true);
+            } else if (currentTab === 'personal-info') {
+                showTab('auto-apply', true);
+            }
+        }
+
+        function markTabCompleted(tabName) {
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            btn.classList.add('completed');
+        }
+
+        function validateAndSave() {
+            hideTabError();
+            if (!validatePersonalInfo()) return;
+
+            completedTabs['personal-info'] = true;
+            markTabCompleted('personal-info');
+            saveSettings();
         }
 
         // Toast
@@ -1561,6 +1739,35 @@
 
             // Load resumes for base resume dropdown
             await loadResumes();
+
+            // Check which tabs are already completed based on existing data
+            checkTabCompletion();
+        }
+
+        function checkTabCompletion() {
+            // Check Preferences tab
+            const resumeEmail = document.querySelector('[name="resume_email"]')?.value;
+            const baseResume = document.getElementById('base-resume-select')?.value;
+            if (resumeEmail && baseResume) {
+                completedTabs.preferences = true;
+                markTabCompleted('preferences');
+            }
+
+            // Check Auto Apply tab
+            const experienceLevel = document.querySelector('[name="experience_level"]')?.value;
+            if (jobTitles.length > 0 && experienceLevel) {
+                completedTabs['auto-apply'] = true;
+                markTabCompleted('auto-apply');
+            }
+
+            // Check Personal Info tab
+            const fullName = document.querySelector('[name="full_name"]')?.value;
+            const email = document.querySelector('[name="email"]')?.value;
+            const phone = document.querySelector('[name="phone"]')?.value;
+            if (fullName && email && phone) {
+                completedTabs['personal-info'] = true;
+                markTabCompleted('personal-info');
+            }
         }
 
         // Save settings
