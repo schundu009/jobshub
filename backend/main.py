@@ -1,5 +1,6 @@
 """
-JobTrails API - Main Application Entry Point
+Cariara API - Main Application Entry Point
+Version: 2.1.0 - With onboarding support
 
 Security features:
 - CORS restricted to configured origins
