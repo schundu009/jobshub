@@ -39,7 +39,7 @@ class YouComScraper(HTTPScraper):
             success=True,
             jobs=all_jobs,
             jobs_found=len(all_jobs),
-            error=None
+            error_message=None
         )
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
