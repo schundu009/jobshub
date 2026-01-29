@@ -711,10 +711,14 @@
 
             const tag = document.createElement('span');
             tag.className = 'tag';
-            tag.dataset.value = value;
+            tag.setAttribute('data-value', value);
             tag.innerHTML = `<span class="tag-text">${value}</span><button type="button" class="remove-tag" aria-label="Remove">&times;</button>`;
             container.insertBefore(tag, input);
             input.value = '';
+
+            // Debug: confirm tag was added
+            console.log('Tag added:', value, 'data-value:', tag.getAttribute('data-value'));
+            alert('Tag added: ' + value);
         }
 
         function removeTag(button) {
