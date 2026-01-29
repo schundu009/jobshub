@@ -71,6 +71,8 @@ def _run_early_migrations():
         ("security_clearance", "VARCHAR(10)"),
         ("apply_mode", "VARCHAR(20) DEFAULT 'hybrid'"),
         ("excluded_companies", "JSON"),
+        ("onboarding_completed", "BOOLEAN DEFAULT FALSE"),
+        ("onboarding_completed_at", "TIMESTAMP"),
     ]
 
     try:
@@ -98,6 +100,20 @@ def _run_early_migrations():
                         print(f"Could not add {col_name}: {e}")
 
             conn.commit()
+
+            # One-time migration: Set onboarding_completed for users with resumes
+            try:
+                result = conn.execute(text("""
+                    UPDATE users SET onboarding_completed = true
+                    WHERE onboarding_completed IS NOT TRUE
+                    AND id IN (SELECT DISTINCT user_id FROM user_documents WHERE document_type = 'resume')
+                """))
+                if result.rowcount > 0:
+                    print(f"Marked {result.rowcount} users with resumes as onboarding completed")
+                conn.commit()
+            except Exception as e:
+                print(f"Onboarding migration note: {e}")
+
     except Exception as e:
         print(f"Early migration error: {e}")
 
