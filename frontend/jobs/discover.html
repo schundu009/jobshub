@@ -3722,30 +3722,76 @@
                 if (locationFilter) {
                     const loc = (node.data.location || '').toLowerCase();
                     if (locationFilter === 'united states') {
-                        if (!(loc.includes('united states') || loc.includes('usa') || loc.includes('us') ||
-                              loc.includes('new york') || loc.includes('san francisco') || loc.includes('seattle') ||
-                              loc.includes('austin') || loc.includes('boston') || loc.includes('los angeles') ||
-                              loc.includes('california') || loc.includes('texas') || loc.includes('washington') ||
-                              loc.includes('indiana') || loc.includes('chicago') || loc.includes('denver') ||
-                              loc.includes('atlanta') || loc.includes('miami') || loc.includes('phoenix') ||
-                              loc.includes(', ca') || loc.includes(', ny') || loc.includes(', tx') || loc.includes(', wa') ||
-                              loc.includes(', in') || loc.includes(', il') || loc.includes(', co') || loc.includes(', ga') ||
-                              loc.includes(', fl') || loc.includes(', az') || loc.includes(', ma') || loc.includes(', or') ||
-                              loc.includes(', nc') || loc.includes(', pa') || loc.includes(', oh') || loc.includes(', mi'))) {
+                        // US cities
+                        const usCities = ['new york', 'san francisco', 'seattle', 'austin', 'boston',
+                            'los angeles', 'chicago', 'denver', 'atlanta', 'miami', 'phoenix',
+                            'portland', 'dallas', 'houston', 'san diego', 'san jose', 'palo alto',
+                            'mountain view', 'menlo park', 'cupertino', 'redwood city', 'sunnyvale',
+                            'santa clara', 'oakland', 'berkeley', 'irvine', 'pasadena', 'santa monica',
+                            'las vegas', 'salt lake', 'minneapolis', 'detroit', 'pittsburgh', 'philadelphia',
+                            'baltimore', 'washington dc', 'raleigh', 'durham', 'charlotte', 'nashville',
+                            'columbus', 'indianapolis', 'milwaukee', 'kansas city', 'st louis', 'tampa',
+                            'orlando', 'jacksonville', 'richmond', 'arlington', 'brooklyn', 'manhattan'];
+                        // US states (full names)
+                        const usStates = ['california', 'texas', 'florida', 'illinois', 'georgia',
+                            'colorado', 'arizona', 'massachusetts', 'oregon', 'north carolina',
+                            'pennsylvania', 'ohio', 'michigan', 'virginia', 'maryland', 'new jersey',
+                            'connecticut', 'minnesota', 'tennessee', 'missouri', 'wisconsin', 'utah',
+                            'nevada', 'kentucky', 'alabama', 'south carolina'];
+                        // US state codes - must be at end or followed by space/comma
+                        const usStateCodePattern = /,\s*(ca|ny|tx|wa|fl|il|ga|co|az|ma|or|nc|pa|oh|mi|va|md|nj|ct|mn|tn|mo|wi|ut|nv|ky|al|sc)(\s|$|,)/i;
+
+                        // Check for non-US countries first (exclusion)
+                        const nonUSCountries = ['india', 'bangalore', 'bengaluru', 'mumbai', 'hyderabad', 'chennai', 'pune',
+                            'france', 'paris', 'germany', 'berlin', 'munich', 'uk', 'united kingdom', 'london', 'manchester',
+                            'canada', 'toronto', 'vancouver', 'montreal', 'australia', 'sydney', 'melbourne',
+                            'singapore', 'japan', 'tokyo', 'china', 'beijing', 'shanghai', 'brazil', 'sao paulo',
+                            'mexico', 'ireland', 'dublin', 'spain', 'madrid', 'barcelona', 'italy', 'milan', 'rome',
+                            'poland', 'warsaw', 'netherlands', 'amsterdam', 'sweden', 'stockholm', 'israel', 'tel aviv'];
+
+                        if (nonUSCountries.some(place => loc.includes(place))) {
+                            return false;
+                        }
+
+                        const isUS = loc.includes('united states') || loc.includes('usa') ||
+                            /\bus\b/.test(loc) || loc.includes(', us') ||
+                            usCities.some(city => loc.includes(city)) ||
+                            usStates.some(state => loc.includes(state)) ||
+                            usStateCodePattern.test(loc);
+
+                        if (!isUS) {
                             return false;
                         }
                     } else if (locationFilter === 'europe') {
-                        if (!(loc.includes('europe') || loc.includes('germany') || loc.includes('france') ||
-                              loc.includes('uk') || loc.includes('netherlands') || loc.includes('london') ||
-                              loc.includes('berlin') || loc.includes('paris') || loc.includes('amsterdam'))) {
+                        const europeLocations = ['europe', 'germany', 'france', 'uk', 'united kingdom',
+                            'netherlands', 'london', 'berlin', 'paris', 'amsterdam', 'dublin', 'ireland',
+                            'spain', 'madrid', 'barcelona', 'italy', 'milan', 'rome', 'poland', 'warsaw',
+                            'sweden', 'stockholm', 'norway', 'oslo', 'denmark', 'copenhagen', 'finland',
+                            'helsinki', 'portugal', 'lisbon', 'belgium', 'brussels', 'austria', 'vienna',
+                            'switzerland', 'zurich', 'czech', 'prague', 'romania', 'bucharest', 'hungary',
+                            'budapest', 'greece', 'athens', 'manchester', 'birmingham', 'edinburgh', 'glasgow'];
+                        if (!europeLocations.some(place => loc.includes(place))) {
                             return false;
                         }
                     } else if (locationFilter === 'india') {
-                        // Use word boundary to avoid matching "Indiana"
-                        if (!(/\bindia\b/.test(loc) || loc.includes('bangalore') || loc.includes('bengaluru') ||
-                              loc.includes('mumbai') || loc.includes('delhi') || loc.includes('hyderabad') ||
-                              loc.includes('chennai') || loc.includes('pune') || loc.includes('gurgaon') ||
-                              loc.includes('noida') || loc.includes('kolkata'))) {
+                        const indiaLocations = ['bangalore', 'bengaluru', 'mumbai', 'delhi', 'hyderabad',
+                            'chennai', 'pune', 'gurgaon', 'gurugram', 'noida', 'kolkata', 'ahmedabad',
+                            'jaipur', 'kochi', 'thiruvananthapuram', 'coimbatore'];
+                        // Use word boundary for "india" to avoid matching "Indiana"
+                        if (!(/\bindia\b/.test(loc) || indiaLocations.some(place => loc.includes(place)))) {
+                            return false;
+                        }
+                    } else if (locationFilter === 'canada') {
+                        const canadaLocations = ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa',
+                            'calgary', 'edmonton', 'winnipeg', 'quebec', 'waterloo', 'ontario', 'british columbia'];
+                        if (!canadaLocations.some(place => loc.includes(place))) {
+                            return false;
+                        }
+                    } else if (locationFilter === 'uk') {
+                        const ukLocations = ['uk', 'united kingdom', 'london', 'manchester', 'birmingham',
+                            'edinburgh', 'glasgow', 'bristol', 'leeds', 'liverpool', 'cambridge', 'oxford',
+                            'england', 'scotland', 'wales'];
+                        if (!ukLocations.some(place => loc.includes(place))) {
                             return false;
                         }
                     } else if (!loc.includes(locationFilter)) {

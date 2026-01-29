@@ -630,31 +630,24 @@
         // Helper function to get tags from DOM
         function getTagsFromContainer(containerId) {
             const container = document.getElementById(containerId);
-            console.log('Container:', containerId, container);
             if (!container) return [];
 
-            const tagElements = container.querySelectorAll('.tag');
-            console.log('Found tag elements:', tagElements.length);
-
             const tags = [];
-            tagElements.forEach((tag, i) => {
+            container.querySelectorAll('.tag').forEach(tag => {
                 // Try data-value first
-                let value = tag.dataset.value;
-                console.log(`Tag ${i} data-value:`, value);
+                let value = tag.dataset.value || tag.getAttribute('data-value');
 
                 // Fallback: get text from .tag-text span
                 if (!value) {
                     const textSpan = tag.querySelector('.tag-text');
                     if (textSpan) {
                         value = textSpan.textContent.trim();
-                        console.log(`Tag ${i} from .tag-text:`, value);
                     }
                 }
 
                 // Fallback: get first text node
                 if (!value) {
                     value = tag.firstChild?.textContent?.trim();
-                    console.log(`Tag ${i} from firstChild:`, value);
                 }
 
                 if (value && !tags.includes(value)) {
@@ -662,7 +655,6 @@
                 }
             });
 
-            console.log('Final tags array:', tags);
             return tags;
         }
 
@@ -715,10 +707,6 @@
             tag.innerHTML = `<span class="tag-text">${value}</span><button type="button" class="remove-tag" aria-label="Remove">&times;</button>`;
             container.insertBefore(tag, input);
             input.value = '';
-
-            // Debug: confirm tag was added
-            console.log('Tag added:', value, 'data-value:', tag.getAttribute('data-value'));
-            alert('Tag added: ' + value);
         }
 
         function removeTag(button) {
@@ -764,19 +752,9 @@
         document.getElementById('step3-back').addEventListener('click', () => goToStep(2));
 
         document.getElementById('step3-submit').addEventListener('click', async () => {
-            // Debug: show container HTML
-            const container = document.getElementById('job-titles-container');
-            console.log('Container innerHTML:', container?.innerHTML);
-
-            // Get tags directly from DOM - no sync needed
+            // Get tags directly from DOM
             const jobTitles = getTagsFromContainer('job-titles-container');
             const preferredCities = getTagsFromContainer('preferred-cities-container');
-
-            console.log('Job titles from DOM:', jobTitles);
-            console.log('Preferred cities from DOM:', preferredCities);
-
-            // Show debug alert for troubleshooting
-            alert('Debug - Found ' + jobTitles.length + ' job titles: ' + JSON.stringify(jobTitles));
 
             if (jobTitles.length === 0) {
                 showError('Please add at least one desired job title.');
