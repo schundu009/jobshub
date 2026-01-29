@@ -46,8 +46,10 @@ class RedisService:
         if self._pool is None:
             self._pool = redis.ConnectionPool.from_url(
                 self.redis_url,
-                max_connections=20,
+                max_connections=10,
                 decode_responses=True,
+                socket_timeout=5,
+                socket_connect_timeout=5,
             )
         return self._pool
 
@@ -62,7 +64,7 @@ class RedisService:
         """Check if Redis is available."""
         try:
             return self.client.ping()
-        except redis.ConnectionError:
+        except Exception:
             return False
 
     # =========================================================================

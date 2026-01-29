@@ -41,10 +41,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://chundu@localhost:5432/jobtrails"
 
     # Connection pool settings
-    db_pool_size: int = 10
-    db_max_overflow: int = 20
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
     db_pool_timeout: int = 30
-    db_pool_recycle: int = 1800
+    db_pool_recycle: int = 300  # Recycle connections every 5 minutes
 
     # ==========================================================================
     # REDIS
