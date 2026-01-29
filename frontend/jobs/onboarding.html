@@ -641,7 +641,12 @@
 
         function addTag(input, container, tagsArray, maxTags) {
             const value = input.value.trim().replace(/,/g, '');
-            if (!value || tagsArray.length >= maxTags || tagsArray.includes(value)) {
+            if (!value || tagsArray.length >= maxTags) {
+                input.value = '';
+                return;
+            }
+            // Check for duplicates (case-insensitive)
+            if (tagsArray.some(t => t.toLowerCase() === value.toLowerCase())) {
                 input.value = '';
                 return;
             }
@@ -649,20 +654,42 @@
             tagsArray.push(value);
             const tag = document.createElement('span');
             tag.className = 'tag';
-            tag.innerHTML = `${value}<button class="remove-tag" onclick="removeTag(this, '${value}')">&times;</button>`;
+            tag.dataset.value = value;
+            tag.innerHTML = `${value}<button type="button" class="remove-tag">&times;</button>`;
             container.insertBefore(tag, input);
             input.value = '';
         }
 
-        window.removeTag = function(btn, value) {
-            const containerId = btn.closest('.tags-container').id;
-            const tagsArray = containerId.includes('job-titles') ? jobTitles : preferredCities;
-            const index = tagsArray.indexOf(value);
-            if (index > -1) {
-                tagsArray.splice(index, 1);
+        // Use event delegation for remove buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-tag')) {
+                const tag = e.target.parentElement;
+                const value = tag.dataset.value;
+                const containerId = tag.closest('.tags-container').id;
+                const tagsArray = containerId.includes('job-titles') ? jobTitles : preferredCities;
+                const index = tagsArray.findIndex(t => t === value);
+                if (index > -1) {
+                    tagsArray.splice(index, 1);
+                }
+                tag.remove();
             }
-            btn.parentElement.remove();
-        };
+        });
+
+        // Sync DOM tags to array (for cases where DOM and array get out of sync)
+        function syncTagsFromDOM(containerId, tagsArray) {
+            tagsArray.length = 0; // Clear array
+            const container = document.getElementById(containerId);
+            container.querySelectorAll('.tag').forEach(tag => {
+                const value = tag.dataset.value || tag.textContent.replace('×', '').trim();
+                if (value && !tagsArray.includes(value)) {
+                    tagsArray.push(value);
+                    // Ensure data-value is set
+                    if (!tag.dataset.value) {
+                        tag.dataset.value = value;
+                    }
+                }
+            });
+        }
 
         // Step navigation handlers
         document.getElementById('step1-next').addEventListener('click', () => {
@@ -691,8 +718,12 @@
         document.getElementById('step3-back').addEventListener('click', () => goToStep(2));
 
         document.getElementById('step3-submit').addEventListener('click', async () => {
+            // Sync DOM tags to arrays in case they got out of sync
+            syncTagsFromDOM('job-titles-container', jobTitles);
+            syncTagsFromDOM('preferred-cities-container', preferredCities);
+
             if (jobTitles.length === 0) {
-                showError('Please add at least one job title.');
+                showError('Please add at least one desired job title.');
                 return;
             }
 
