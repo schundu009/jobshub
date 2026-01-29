@@ -1598,6 +1598,10 @@
                 });
                 if (r.ok) {
                     toast('Settings saved successfully');
+                    // Redirect to discover page after saving
+                    setTimeout(() => {
+                        window.location.href = 'discover.html';
+                    }, 1000);
                 } else if (r.status === 401) {
                     window.location.href = 'login.html';
                 } else {
