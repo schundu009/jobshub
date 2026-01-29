@@ -1086,6 +1086,72 @@
             box-shadow: 0 0 0 3px var(--accent-blue-muted);
         }
 
+        /* Multi-select dropdown styles */
+        .multi-select-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .multi-select-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 140px;
+            background-image: none;
+            padding-right: 14px;
+        }
+
+        .multi-select-toggle svg {
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .multi-select-dropdown.open .multi-select-toggle svg {
+            transform: rotate(180deg);
+        }
+
+        .multi-select-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+        }
+
+        .multi-select-dropdown.open .multi-select-menu {
+            display: block;
+        }
+
+        .multi-select-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: background 0.15s;
+        }
+
+        .multi-select-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .multi-select-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
         .btn {
             padding: 12px 20px;
             border: none;
@@ -2264,12 +2330,26 @@
                 <option value="canada">Canada</option>
                 <option value="india">India</option>
             </select>
-            <select class="filter-select" id="work-type-filter">
-                <option value="" selected>All Work Types</option>
-                <option value="remote">Remote</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="onsite">Onsite</option>
-            </select>
+            <div class="multi-select-dropdown" id="work-type-dropdown">
+                <button type="button" class="filter-select multi-select-toggle" id="work-type-toggle">
+                    <span id="work-type-label">All Work Types</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="multi-select-menu" id="work-type-menu">
+                    <label class="multi-select-item">
+                        <input type="checkbox" value="remote" class="work-type-checkbox">
+                        <span>Remote</span>
+                    </label>
+                    <label class="multi-select-item">
+                        <input type="checkbox" value="hybrid" class="work-type-checkbox">
+                        <span>Hybrid</span>
+                    </label>
+                    <label class="multi-select-item">
+                        <input type="checkbox" value="onsite" class="work-type-checkbox">
+                        <span>Onsite</span>
+                    </label>
+                </div>
+            </div>
             <select class="filter-select" id="time-range-filter">
                 <option value="6">Last 6 hours</option>
                 <option value="12">Last 12 hours</option>
@@ -2784,9 +2864,49 @@
             return null;
         }
 
-        function formatSalary(salary) {
+        function formatSalary(salary, jobLocation = '') {
             if (!salary) return null;
-            const fmt = (n) => '$' + Math.round(n / 1000) + 'K';
+            // Detect currency based on job location
+            const location = (jobLocation || '').toLowerCase();
+            let currency = 'USD';
+            let locale = navigator.language || 'en-US';
+
+            if (location.includes('uk') || location.includes('united kingdom') || location.includes('london') || location.includes('england')) {
+                currency = 'GBP';
+                locale = 'en-GB';
+            } else if (location.includes('canada') || location.includes('toronto') || location.includes('vancouver')) {
+                currency = 'CAD';
+                locale = 'en-CA';
+            } else if (location.includes('australia') || location.includes('sydney') || location.includes('melbourne')) {
+                currency = 'AUD';
+                locale = 'en-AU';
+            } else if (location.includes('india') || location.includes('bangalore') || location.includes('mumbai') || location.includes('hyderabad')) {
+                currency = 'INR';
+                locale = 'en-IN';
+            } else if (location.includes('germany') || location.includes('berlin') || location.includes('munich')) {
+                currency = 'EUR';
+                locale = 'de-DE';
+            } else if (location.includes('france') || location.includes('paris')) {
+                currency = 'EUR';
+                locale = 'fr-FR';
+            }
+
+            const fmt = (n) => {
+                if (n >= 1000) {
+                    return new Intl.NumberFormat(locale, {
+                        style: 'currency',
+                        currency: currency,
+                        maximumFractionDigits: 0,
+                        notation: 'compact'
+                    }).format(n);
+                }
+                return new Intl.NumberFormat(locale, {
+                    style: 'currency',
+                    currency: currency,
+                    maximumFractionDigits: 0
+                }).format(n);
+            };
+
             if (salary.max) {
                 return `${fmt(salary.min)} - ${fmt(salary.max)}`;
             }
@@ -3048,10 +3168,7 @@
             if (savedLocation) {
                 document.getElementById('location-filter').value = savedLocation;
             }
-            const savedWorkType = localStorage.getItem('preferredWorkType');
-            if (savedWorkType) {
-                document.getElementById('work-type-filter').value = savedWorkType;
-            }
+            // Work type preferences are restored in the multi-select event listener
             const savedSalaryMin = localStorage.getItem('preferredSalaryMin');
             if (savedSalaryMin) {
                 document.getElementById('salary-min-filter').value = savedSalaryMin;
@@ -3169,12 +3286,56 @@
                 applyFilters();
                 updateActiveFilters();
             });
-            document.getElementById('work-type-filter').addEventListener('change', (e) => {
-                if (e.target.value) localStorage.setItem('preferredWorkType', e.target.value);
-                else localStorage.removeItem('preferredWorkType');
-                applyFilters();
-                updateActiveFilters();
+            // Multi-select work type dropdown
+            const workTypeDropdown = document.getElementById('work-type-dropdown');
+            const workTypeToggle = document.getElementById('work-type-toggle');
+            const workTypeLabel = document.getElementById('work-type-label');
+            const workTypeCheckboxes = document.querySelectorAll('.work-type-checkbox');
+
+            workTypeToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                workTypeDropdown.classList.toggle('open');
             });
+
+            document.addEventListener('click', (e) => {
+                if (!workTypeDropdown.contains(e.target)) {
+                    workTypeDropdown.classList.remove('open');
+                }
+            });
+
+            workTypeCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const selected = Array.from(workTypeCheckboxes).filter(c => c.checked).map(c => c.value);
+                    if (selected.length === 0) {
+                        workTypeLabel.textContent = 'All Work Types';
+                        localStorage.removeItem('preferredWorkTypes');
+                    } else if (selected.length === 1) {
+                        workTypeLabel.textContent = selected[0].charAt(0).toUpperCase() + selected[0].slice(1);
+                        localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
+                    } else {
+                        workTypeLabel.textContent = `${selected.length} types`;
+                        localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
+                    }
+                    applyFilters();
+                    updateActiveFilters();
+                });
+            });
+
+            // Restore saved work types
+            const savedWorkTypes = localStorage.getItem('preferredWorkTypes');
+            if (savedWorkTypes) {
+                try {
+                    const types = JSON.parse(savedWorkTypes);
+                    workTypeCheckboxes.forEach(cb => {
+                        cb.checked = types.includes(cb.value);
+                    });
+                    if (types.length === 1) {
+                        workTypeLabel.textContent = types[0].charAt(0).toUpperCase() + types[0].slice(1);
+                    } else if (types.length > 1) {
+                        workTypeLabel.textContent = `${types.length} types`;
+                    }
+                } catch (e) {}
+            }
             document.getElementById('salary-min-filter').addEventListener('change', (e) => {
                 if (e.target.value) localStorage.setItem('preferredSalaryMin', e.target.value);
                 else localStorage.removeItem('preferredSalaryMin');
@@ -3215,14 +3376,25 @@
                 locationFilter.classList.remove('active');
             }
 
-            // Check work type filter
-            const workTypeFilter = document.getElementById('work-type-filter');
-            if (workTypeFilter.value) {
-                const workTypeText = workTypeFilter.options[workTypeFilter.selectedIndex].text;
-                tags.push({ text: `Work Type: ${workTypeText}`, clear: () => { workTypeFilter.value = ''; applyFilters(); updateActiveFilters(); } });
-                workTypeFilter.classList.add('active');
+            // Check work type filter (multi-select)
+            const workTypeCheckboxes = document.querySelectorAll('.work-type-checkbox:checked');
+            const workTypeDropdown = document.getElementById('work-type-dropdown');
+            if (workTypeCheckboxes.length > 0) {
+                const selectedTypes = Array.from(workTypeCheckboxes).map(c => c.value.charAt(0).toUpperCase() + c.value.slice(1));
+                const workTypeText = selectedTypes.join(', ');
+                tags.push({
+                    text: `Work Type: ${workTypeText}`,
+                    clear: () => {
+                        document.querySelectorAll('.work-type-checkbox').forEach(c => c.checked = false);
+                        document.getElementById('work-type-label').textContent = 'All Work Types';
+                        localStorage.removeItem('preferredWorkTypes');
+                        applyFilters();
+                        updateActiveFilters();
+                    }
+                });
+                workTypeDropdown.classList.add('active');
             } else {
-                workTypeFilter.classList.remove('active');
+                workTypeDropdown.classList.remove('active');
             }
 
             // Check time filter (only show if not default 72h)
@@ -3323,7 +3495,10 @@
         function clearAllFilters() {
             // Reset all filters to defaults
             document.getElementById('location-filter').value = '';
-            document.getElementById('work-type-filter').value = '';
+            // Clear work type checkboxes
+            document.querySelectorAll('.work-type-checkbox').forEach(c => c.checked = false);
+            document.getElementById('work-type-label').textContent = 'All Work Types';
+            localStorage.removeItem('preferredWorkTypes');
             document.getElementById('time-range-filter').value = '72';
             document.getElementById('salary-min-filter').value = '';
             document.getElementById('salary-max-filter').value = '';
@@ -3470,7 +3645,7 @@
                     tech_stack: extractTechStack(job.job_description),
                     relevance_score: relevance.score,
                     is_relevant: relevance.isRelevant,
-                    salary_display: formatSalary(salary),
+                    salary_display: formatSalary(salary, job.location),
                     salary_min_val: salary?.min || 0,
                     job_type: detectJobType(job)
                 };
@@ -3499,7 +3674,7 @@
             if (!gridApi) return;
 
             const locationFilter = document.getElementById('location-filter').value.toLowerCase();
-            const workTypeFilter = document.getElementById('work-type-filter').value.toLowerCase();
+            const selectedWorkTypes = Array.from(document.querySelectorAll('.work-type-checkbox:checked')).map(c => c.value);
             const salaryMinFilter = parseInt(document.getElementById('salary-min-filter').value) || 0;
             const salaryMaxFilter = parseInt(document.getElementById('salary-max-filter').value) || 0;
             const matchMinFilter = parseInt(document.getElementById('match-filter').value) || 0;
@@ -3508,7 +3683,7 @@
             const excludeNoDesc = document.getElementById('exclude-no-desc').checked;
 
             gridApi.setGridOption('isExternalFilterPresent', () => {
-                return !!(locationFilter || workTypeFilter || salaryMinFilter || salaryMaxFilter || matchMinFilter || excludeGovt || excludeCitizenship || excludeNoDesc || selectedCompanies.size > 0);
+                return !!(locationFilter || selectedWorkTypes.length > 0 || salaryMinFilter || salaryMaxFilter || matchMinFilter || excludeGovt || excludeCitizenship || excludeNoDesc || selectedCompanies.size > 0);
             });
 
             gridApi.setGridOption('doesExternalFilterPass', (node) => {
@@ -3572,10 +3747,10 @@
                     }
                 }
 
-                // Work type filter (remote/hybrid/onsite)
-                if (workTypeFilter) {
+                // Work type filter (remote/hybrid/onsite) - multi-select
+                if (selectedWorkTypes.length > 0) {
                     const detectedType = detectJobType(node.data);
-                    if (workTypeFilter !== detectedType) {
+                    if (!selectedWorkTypes.includes(detectedType)) {
                         return false;
                     }
                 }
@@ -3652,7 +3827,7 @@
                         tech_stack: extractTechStack(job.job_description),
                         relevance_score: relevance.score,
                         is_relevant: relevance.isRelevant,
-                        salary_display: formatSalary(salary),
+                        salary_display: formatSalary(salary, job.location),
                         salary_min_val: salary?.min || 0,
                         job_type: detectJobType(job)
                     };

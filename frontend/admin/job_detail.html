@@ -2194,58 +2194,62 @@
             showToast(message, type);
         }
 
-        // Check auth before loading - redirect if not logged in
-        if (!isAuthenticated()) {
-            window.location.href = '../jobs/login.html';
-        }
+        // Auth check is now handled on the discover page (main entry point)
 
         const jobId = getUrlParam('id');
         let currentJob = null;
 
-        // API request with timeout
-        async function apiRequestWithTimeout(endpoint, timeout = 10000) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
+        // API request with timeout and auto-retry
+        async function apiRequestWithTimeout(endpoint, timeout = 30000, maxRetries = 3) {
+            let lastError;
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-            try {
-                const token = getAccessToken();
-                const response = await fetch(`${API_BASE}${endpoint}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
+                try {
+                    const token = getAccessToken();
+                    const response = await fetch(`${API_BASE}${endpoint}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
 
-                if (response.status === 401) {
-                    // Try to refresh token
-                    const refreshed = await refreshAccessToken();
-                    if (refreshed) {
-                        const newToken = getAccessToken();
-                        const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${newToken}`
-                            }
-                        });
-                        if (!retryResponse.ok) throw new Error('Request failed');
-                        return retryResponse.json();
-                    } else {
-                        handleLogout();
-                        return null;
+                    if (response.status === 401) {
+                        const refreshed = await refreshAccessToken();
+                        if (refreshed) {
+                            const newToken = getAccessToken();
+                            const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${newToken}`
+                                }
+                            });
+                            if (!retryResponse.ok) throw new Error('Request failed');
+                            return retryResponse.json();
+                        } else {
+                            handleLogout();
+                            return null;
+                        }
+                    }
+
+                    if (!response.ok) throw new Error('Request failed');
+                    return response.json();
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    lastError = error;
+                    if (error.name === 'AbortError') {
+                        lastError = new Error('Request timed out');
+                    }
+                    if (attempt < maxRetries) {
+                        await new Promise(r => setTimeout(r, 1000 * attempt));
+                        continue;
                     }
                 }
-
-                if (!response.ok) throw new Error('Request failed');
-                return response.json();
-            } catch (error) {
-                clearTimeout(timeoutId);
-                if (error.name === 'AbortError') {
-                    throw new Error('Request timed out');
-                }
-                throw error;
             }
+            throw lastError;
         }
 
         async function loadJobDetail() {
@@ -2253,6 +2257,12 @@
                 window.location.href = '../jobs/discover.html';
                 return;
             }
+            document.getElementById('job-content').innerHTML = `
+                <div class="empty-state">
+                    <div class="spinner" style="width:24px;height:24px;border:3px solid var(--border-color);border-top-color:var(--accent-blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>
+                    <p style="color:var(--text-muted);">Loading job details...</p>
+                </div>
+            `;
             try {
                 currentJob = await apiRequestWithTimeout(`/jobs/${jobId}`);
                 if (currentJob) {
