@@ -2457,7 +2457,30 @@
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
     <script src="../js/app.js"></script>
     <script>
-        // Authentication removed - will be implemented separately for user portal
+        // Check onboarding status - redirect if not completed
+        (async function checkOnboardingGuard() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                const isProduction = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com';
+                const API_BASE = isProduction ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
+                const response = await fetch(`${API_BASE}/api/users/onboarding-status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const status = await response.json();
+                    if (!status.onboarding_completed) {
+                        window.location.href = 'onboarding.html';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to check onboarding status:', e);
+            }
+        })();
 
         // Theme switch functions
         function setTheme(theme) {

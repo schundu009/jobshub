@@ -426,6 +426,29 @@
         const API_BASE = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com'
             ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
 
+        // Check onboarding status - redirect if not completed
+        (async function checkOnboardingGuard() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/api/users/onboarding-status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const status = await response.json();
+                    if (!status.onboarding_completed) {
+                        window.location.href = 'onboarding.html';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to check onboarding status:', e);
+            }
+        })();
+
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
             localStorage.setItem('jobtrails-theme', t);

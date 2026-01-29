@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Complete Your Profile</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/theme.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+        }
+
+        /* Header */
+        .onboarding-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .onboarding-header .logo { height: 32px; width: auto; }
+        .logout-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .logout-btn svg { width: 16px; height: 16px; }
+
+        /* Main Container */
+        .onboarding-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 24px;
+            max-width: 700px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .progress-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .step-indicator {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+            position: relative;
+        }
+        .step-indicator::after {
+            content: '';
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            width: calc(100% + 8px);
+            height: 2px;
+            background: var(--border-color);
+            transform: translateY(-50%);
+        }
+        .progress-step:last-child .step-indicator::after { display: none; }
+        .progress-step.active .step-indicator {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+        .progress-step.completed .step-indicator {
+            background: #22c55e;
+            border-color: #22c55e;
+            color: white;
+        }
+        .progress-step.completed .step-indicator::after { background: #22c55e; }
+        .step-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .progress-step.active .step-label { color: var(--text-primary); font-weight: 500; }
+        .progress-step.completed .step-label { color: #22c55e; }
+
+        /* Step Content */
+        .step-content {
+            width: 100%;
+            display: none;
+        }
+        .step-content.active { display: block; }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .step-description {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        /* Form Elements */
+        .form-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-row:last-child { margin-bottom: 0; }
+
+        .form-group {
+            flex: 1;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .form-group label .required { color: #ef4444; }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* File Upload */
+        .file-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: var(--bg-tertiary);
+            position: relative;
+        }
+        .file-upload-area:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .file-upload-area.has-file {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.05);
+        }
+        .file-upload-area svg { width: 48px; height: 48px; color: var(--accent-blue); margin-bottom: 12px; }
+        .file-upload-area.has-file svg { color: #22c55e; }
+        .file-upload-area h3 { font-size: 16px; margin-bottom: 8px; }
+        .file-upload-area p { color: var(--text-muted); font-size: 13px; }
+        .file-upload-area small { color: var(--text-muted); font-size: 12px; }
+        .file-upload-area input {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid #22c55e;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .uploaded-file .file-icon {
+            width: 40px; height: 40px;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .uploaded-file .file-icon svg { width: 20px; height: 20px; color: #22c55e; }
+        .uploaded-file .file-info { flex: 1; }
+        .uploaded-file .file-name { font-weight: 500; font-size: 14px; }
+        .uploaded-file .file-size { font-size: 12px; color: var(--text-muted); }
+        .uploaded-file .remove-btn {
+            padding: 6px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .uploaded-file .remove-btn:hover { color: #ef4444; }
+
+        /* Tags Input */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 48px;
+            align-items: center;
+        }
+        .tags-container:focus-within { border-color: var(--accent-blue); }
+        .tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            opacity: 0.8;
+        }
+        .tag-remove:hover { opacity: 1; }
+        .tag-remove svg { width: 14px; height: 14px; }
+        .tags-input {
+            flex: 1;
+            min-width: 120px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .tag-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+        /* Option Buttons */
+        .option-group {
+            display: flex;
+            gap: 10px;
+        }
+        .option-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+        .option-btn:hover { border-color: var(--accent-blue); }
+        .option-btn.selected {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Cover Letter Section */
+        .optional-section {
+            background: var(--bg-tertiary);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+        .optional-label {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* Buttons */
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 32px;
+            gap: 16px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .btn-primary {
+            background: var(--accent-blue);
+            border: none;
+            color: white;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: #22c55e;
+            border: none;
+            color: white;
+        }
+        .btn-success:hover { opacity: 0.9; }
+        .btn svg { width: 18px; height: 18px; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: #22c55e; color: white; }
+        .toast.error { background: #ef4444; color: white; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .onboarding-container { padding: 24px 16px; }
+            .form-row { flex-direction: column; gap: 16px; }
+            .form-section { padding: 16px; }
+            .step-title { font-size: 20px; }
+            .button-row { flex-direction: column-reverse; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="onboarding-header">
+        <img src="../images/logo-full.svg" alt="Cariara" class="logo">
+        <button class="logout-btn" onclick="logout()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            Sign Out
+        </button>
+    </header>
+
+    <div class="onboarding-container">
+        <!-- Progress Steps -->
+        <div class="progress-steps">
+            <div class="progress-step active" data-step="1">
+                <div class="step-indicator">1</div>
+                <div class="step-label">Resume</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-indicator">2</div>
+                <div class="step-label">Personal Info</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-indicator">3</div>
+                <div class="step-label">Preferences</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Resume Upload -->
+        <div class="step-content active" id="step-1">
+            <h2 class="step-title">Upload Your Resume</h2>
+            <p class="step-description">Your resume helps us match you with the best opportunities and auto-fill applications.</p>
+
+            <div class="form-section">
+                <div class="file-upload-area" id="resume-upload-area">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <h3>Drop your resume here</h3>
+                    <p>or click to browse</p>
+                    <small>PDF, DOC, DOCX, TXT, RTF (Max 5MB)</small>
+                    <input type="file" id="resume-input" accept=".pdf,.doc,.docx,.txt,.rtf">
+                </div>
+                <div id="uploaded-resume" class="uploaded-file" style="display:none;">
+                    <div class="file-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name" id="resume-filename">resume.pdf</div>
+                        <div class="file-size" id="resume-filesize">245 KB</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeResume()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="optional-section">
+                <span class="optional-label">Optional</span>
+                <div class="file-upload-area" id="cover-letter-upload-area" style="padding:24px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:32px;height:32px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    <p style="margin-top:8px;">Upload a cover letter template</p>
+                    <input type="file" id="cover-letter-input" accept=".pdf,.doc,.docx,.txt,.rtf">
+                </div>
+                <div id="uploaded-cover-letter" class="uploaded-file" style="display:none;margin-top:12px;">
+                    <div class="file-icon" style="background:rgba(59,130,246,0.15);">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent-blue);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name" id="cl-filename">cover_letter.pdf</div>
+                        <div class="file-size" id="cl-filesize">120 KB</div>
+                    </div>
+                    <button class="remove-btn" onclick="removeCoverLetter()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <div></div>
+                <button class="btn btn-primary" onclick="goToStep(2)" id="step1-next" disabled>
+                    Continue
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Personal Info -->
+        <div class="step-content" id="step-2">
+            <h2 class="step-title">Personal Information</h2>
+            <p class="step-description">This information is used to auto-fill job applications on your behalf.</p>
+
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name <span class="required">*</span></label>
+                        <input type="text" id="full_name" placeholder="John Doe">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="john@example.com" readonly style="opacity:0.7;">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <input type="tel" id="phone" placeholder="(555) 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>LinkedIn URL</label>
+                        <input type="url" id="linkedin_url" placeholder="https://linkedin.com/in/yourprofile">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Address</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Street Address</label>
+                        <input type="text" id="address_line1" placeholder="123 Main St">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>City <span class="required">*</span></label>
+                        <input type="text" id="city" placeholder="San Francisco">
+                    </div>
+                    <div class="form-group">
+                        <label>State <span class="required">*</span></label>
+                        <input type="text" id="state" placeholder="CA">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Zip Code</label>
+                        <input type="text" id="postal_code" placeholder="94102">
+                    </div>
+                    <div class="form-group">
+                        <label>Country <span class="required">*</span></label>
+                        <select id="address_country">
+                            <option value="">Select country...</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                            <option value="IN">India</option>
+                            <option value="AU">Australia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="goToStep(1)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Back
+                </button>
+                <button class="btn btn-primary" onclick="goToStep(3)" id="step2-next">
+                    Continue
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Preferences -->
+        <div class="step-content" id="step-3">
+            <h2 class="step-title">Job Preferences</h2>
+            <p class="step-description">Help us find and apply to the right jobs for you.</p>
+
+            <div class="form-section">
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>Desired Job Titles <span class="required">*</span></label>
+                    <div class="tags-container" id="job-titles-container">
+                        <input type="text" class="tags-input" id="job-titles-input" placeholder="Type and press Enter...">
+                    </div>
+                    <div class="tag-hint">Add up to 5 job titles (e.g., Software Engineer, Product Manager)</div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Experience Level <span class="required">*</span></label>
+                        <select id="experience_level">
+                            <option value="">Select level...</option>
+                            <option value="entry">Entry Level (0-2 years)</option>
+                            <option value="mid">Mid Level (3-5 years)</option>
+                            <option value="senior">Senior Level (6-10 years)</option>
+                            <option value="lead">Lead/Principal (10+ years)</option>
+                            <option value="executive">Executive/Director</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Industry Preference</label>
+                        <select id="industry">
+                            <option value="">Open to All</option>
+                            <option value="tech">Technology</option>
+                            <option value="finance">Finance</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="retail">Retail</option>
+                            <option value="manufacturing">Manufacturing</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Minimum Salary</label>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span>$</span>
+                            <input type="number" id="minimum_salary" placeholder="150000" style="flex:1;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Work Authorization</h3>
+
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>Authorized to work in the US? <span class="required">*</span></label>
+                    <div class="option-group" id="us-auth-options">
+                        <button type="button" class="option-btn" data-value="yes">Yes</button>
+                        <button type="button" class="option-btn" data-value="no">No</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Do you require visa sponsorship? <span class="required">*</span></label>
+                    <div class="option-group" id="sponsorship-options">
+                        <button type="button" class="option-btn" data-value="yes">Yes</button>
+                        <button type="button" class="option-btn" data-value="no">No</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-secondary" onclick="goToStep(2)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Back
+                </button>
+                <button class="btn btn-success" onclick="completeOnboarding()" id="complete-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Complete Setup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const isProduction = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com';
+        const API_BASE = isProduction ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
+
+        let currentStep = 1;
+        let resumeUploaded = false;
+        let jobTitles = [];
+        let settings = {};
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return token;
+        }
+
+        async function authFetch(url, opts = {}) {
+            let token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
+            try {
+                let r = await fetch(url, opts);
+                if (r.status === 401) {
+                    // Try refresh
+                    const rt = localStorage.getItem('refresh_token');
+                    if (rt) {
+                        const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ refresh_token: rt })
+                        });
+                        if (refreshRes.ok) {
+                            const data = await refreshRes.json();
+                            localStorage.setItem('access_token', data.access_token);
+                            localStorage.setItem('refresh_token', data.refresh_token);
+                            opts.headers['Authorization'] = `Bearer ${data.access_token}`;
+                            r = await fetch(url, opts);
+                        } else {
+                            logout();
+                            return null;
+                        }
+                    } else {
+                        logout();
+                        return null;
+                    }
+                }
+                return r;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        function toast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Step Navigation
+        function goToStep(step) {
+            // Validate before proceeding
+            if (step > currentStep) {
+                if (currentStep === 1 && !resumeUploaded) {
+                    toast('Please upload your resume first', 'error');
+                    return;
+                }
+                if (currentStep === 2) {
+                    savePersonalInfo();
+                }
+            }
+
+            currentStep = step;
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${step}`).classList.add('active');
+
+            document.querySelectorAll('.progress-step').forEach(el => {
+                const s = parseInt(el.dataset.step);
+                el.classList.remove('active', 'completed');
+                if (s < step) el.classList.add('completed');
+                if (s === step) el.classList.add('active');
+            });
+        }
+
+        // File Upload - Resume
+        async function uploadResume(file) {
+            if (!checkAuth()) return;
+            if (file.size > 5 * 1024 * 1024) {
+                toast('File too large (max 5MB)', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/documents?document_type=resume`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!r) return;
+                if (r.ok) {
+                    resumeUploaded = true;
+                    document.getElementById('resume-filename').textContent = file.name;
+                    document.getElementById('resume-filesize').textContent = formatFileSize(file.size);
+                    document.getElementById('uploaded-resume').style.display = 'flex';
+                    document.getElementById('resume-upload-area').classList.add('has-file');
+                    document.getElementById('step1-next').disabled = false;
+                    toast('Resume uploaded');
+                } else {
+                    const e = await r.json();
+                    toast(e.detail || 'Upload failed', 'error');
+                }
+            } catch (e) {
+                toast('Upload error', 'error');
+            }
+        }
+
+        function removeResume() {
+            resumeUploaded = false;
+            document.getElementById('uploaded-resume').style.display = 'none';
+            document.getElementById('resume-upload-area').classList.remove('has-file');
+            document.getElementById('step1-next').disabled = true;
+            document.getElementById('resume-input').value = '';
+        }
+
+        // File Upload - Cover Letter
+        async function uploadCoverLetter(file) {
+            if (!checkAuth()) return;
+            if (file.size > 5 * 1024 * 1024) {
+                toast('File too large (max 5MB)', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/documents?document_type=cover_letter`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!r) return;
+                if (r.ok) {
+                    document.getElementById('cl-filename').textContent = file.name;
+                    document.getElementById('cl-filesize').textContent = formatFileSize(file.size);
+                    document.getElementById('uploaded-cover-letter').style.display = 'flex';
+                    document.getElementById('cover-letter-upload-area').style.display = 'none';
+                    toast('Cover letter uploaded');
+                } else {
+                    const e = await r.json();
+                    toast(e.detail || 'Upload failed', 'error');
+                }
+            } catch (e) {
+                toast('Upload error', 'error');
+            }
+        }
+
+        function removeCoverLetter() {
+            document.getElementById('uploaded-cover-letter').style.display = 'none';
+            document.getElementById('cover-letter-upload-area').style.display = 'block';
+            document.getElementById('cover-letter-input').value = '';
+        }
+
+        // Tags Input
+        function setupTagsInput() {
+            const input = document.getElementById('job-titles-input');
+            const container = document.getElementById('job-titles-container');
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && input.value.trim()) {
+                    e.preventDefault();
+                    if (jobTitles.length < 5) {
+                        jobTitles.push(input.value.trim());
+                        input.value = '';
+                        renderTags();
+                    } else {
+                        toast('Maximum 5 job titles', 'error');
+                    }
+                }
+            });
+        }
+
+        function renderTags() {
+            const container = document.getElementById('job-titles-container');
+            const input = document.getElementById('job-titles-input');
+
+            container.querySelectorAll('.tag').forEach(t => t.remove());
+            jobTitles.forEach((tag, i) => {
+                const el = document.createElement('span');
+                el.className = 'tag';
+                el.innerHTML = `${tag}<button class="tag-remove" onclick="removeTag(${i})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
+                container.insertBefore(el, input);
+            });
+        }
+
+        function removeTag(index) {
+            jobTitles.splice(index, 1);
+            renderTags();
+        }
+
+        // Option Buttons
+        function setupOptionGroups() {
+            ['us-auth-options', 'sponsorship-options'].forEach(groupId => {
+                const group = document.getElementById(groupId);
+                if (!group) return;
+                group.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                    });
+                });
+            });
+        }
+
+        // Save Personal Info
+        async function savePersonalInfo() {
+            settings.full_name = document.getElementById('full_name').value;
+            settings.phone = document.getElementById('phone').value;
+            settings.linkedin_url = document.getElementById('linkedin_url').value;
+            settings.address_line1 = document.getElementById('address_line1').value;
+            settings.city = document.getElementById('city').value;
+            settings.state = document.getElementById('state').value;
+            settings.postal_code = document.getElementById('postal_code').value;
+            settings.address_country = document.getElementById('address_country').value;
+
+            // Save to backend
+            await saveSettings();
+        }
+
+        // Save Settings
+        async function saveSettings() {
+            if (!checkAuth()) return;
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                // Don't show toast here, just save silently
+            } catch (e) {
+                console.error('Failed to save settings:', e);
+            }
+        }
+
+        // Complete Onboarding
+        async function completeOnboarding() {
+            if (!checkAuth()) return;
+
+            // Gather Step 3 data
+            settings.job_titles = jobTitles;
+            settings.experience_level = document.getElementById('experience_level').value;
+            settings.industry = document.getElementById('industry').value;
+            settings.minimum_salary = document.getElementById('minimum_salary').value ? parseInt(document.getElementById('minimum_salary').value) : null;
+
+            const usAuth = document.querySelector('#us-auth-options .option-btn.selected');
+            const sponsorship = document.querySelector('#sponsorship-options .option-btn.selected');
+            settings.us_authorized = usAuth ? usAuth.dataset.value : null;
+            settings.requires_sponsorship = sponsorship ? sponsorship.dataset.value : null;
+
+            // Save settings first
+            await saveSettings();
+
+            // Complete onboarding
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/onboarding/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!r) return;
+                if (r.ok) {
+                    toast('Setup complete! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'discover.html';
+                    }, 1500);
+                } else {
+                    const e = await r.json();
+                    toast(e.detail || 'Failed to complete setup', 'error');
+                }
+            } catch (e) {
+                toast('Error completing setup', 'error');
+            }
+        }
+
+        // Load existing data
+        async function loadExistingData() {
+            if (!checkAuth()) return;
+
+            // Check onboarding status first
+            try {
+                const statusRes = await authFetch(`${API_BASE}/api/users/onboarding-status`);
+                if (statusRes && statusRes.ok) {
+                    const status = await statusRes.json();
+                    if (status.onboarding_completed) {
+                        // Already completed, redirect to discover
+                        window.location.href = 'discover.html';
+                        return;
+                    }
+                    resumeUploaded = status.has_resume;
+                    if (resumeUploaded) {
+                        document.getElementById('step1-next').disabled = false;
+                    }
+                }
+            } catch (e) {}
+
+            // Load settings
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/settings`);
+                if (r && r.ok) {
+                    settings = await r.json();
+
+                    // Populate fields
+                    if (settings.full_name) document.getElementById('full_name').value = settings.full_name;
+                    if (settings.email) document.getElementById('email').value = settings.email;
+                    if (settings.phone) document.getElementById('phone').value = settings.phone;
+                    if (settings.linkedin_url) document.getElementById('linkedin_url').value = settings.linkedin_url;
+                    if (settings.address_line1) document.getElementById('address_line1').value = settings.address_line1;
+                    if (settings.city) document.getElementById('city').value = settings.city;
+                    if (settings.state) document.getElementById('state').value = settings.state;
+                    if (settings.postal_code) document.getElementById('postal_code').value = settings.postal_code;
+                    if (settings.address_country) document.getElementById('address_country').value = settings.address_country;
+                    if (settings.experience_level) document.getElementById('experience_level').value = settings.experience_level;
+                    if (settings.industry) document.getElementById('industry').value = settings.industry;
+                    if (settings.minimum_salary) document.getElementById('minimum_salary').value = settings.minimum_salary;
+
+                    if (settings.job_titles) {
+                        jobTitles = settings.job_titles;
+                        renderTags();
+                    }
+
+                    // Set option buttons
+                    if (settings.us_authorized) {
+                        document.querySelector(`#us-auth-options .option-btn[data-value="${settings.us_authorized}"]`)?.classList.add('selected');
+                    }
+                    if (settings.requires_sponsorship) {
+                        document.querySelector(`#sponsorship-options .option-btn[data-value="${settings.requires_sponsorship}"]`)?.classList.add('selected');
+                    }
+                }
+            } catch (e) {}
+
+            // Load uploaded documents
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/documents?type=resume`);
+                if (r && r.ok) {
+                    const docs = await r.json();
+                    if (docs.length > 0) {
+                        resumeUploaded = true;
+                        document.getElementById('resume-filename').textContent = docs[0].filename;
+                        document.getElementById('resume-filesize').textContent = formatFileSize(docs[0].file_size);
+                        document.getElementById('uploaded-resume').style.display = 'flex';
+                        document.getElementById('resume-upload-area').classList.add('has-file');
+                        document.getElementById('step1-next').disabled = false;
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/documents?type=cover_letter`);
+                if (r && r.ok) {
+                    const docs = await r.json();
+                    if (docs.length > 0) {
+                        document.getElementById('cl-filename').textContent = docs[0].filename;
+                        document.getElementById('cl-filesize').textContent = formatFileSize(docs[0].file_size);
+                        document.getElementById('uploaded-cover-letter').style.display = 'flex';
+                        document.getElementById('cover-letter-upload-area').style.display = 'none';
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadExistingData();
+            setupTagsInput();
+            setupOptionGroups();
+
+            // Resume upload
+            const resumeArea = document.getElementById('resume-upload-area');
+            const resumeInput = document.getElementById('resume-input');
+            resumeArea.addEventListener('dragover', e => {
+                e.preventDefault();
+                resumeArea.style.borderColor = 'var(--accent-blue)';
+            });
+            resumeArea.addEventListener('dragleave', () => resumeArea.style.borderColor = '');
+            resumeArea.addEventListener('drop', e => {
+                e.preventDefault();
+                resumeArea.style.borderColor = '';
+                if (e.dataTransfer.files.length > 0) uploadResume(e.dataTransfer.files[0]);
+            });
+            resumeInput.addEventListener('change', () => {
+                if (resumeInput.files.length > 0) uploadResume(resumeInput.files[0]);
+            });
+
+            // Cover letter upload
+            const clArea = document.getElementById('cover-letter-upload-area');
+            const clInput = document.getElementById('cover-letter-input');
+            clArea.addEventListener('dragover', e => {
+                e.preventDefault();
+                clArea.style.borderColor = 'var(--accent-blue)';
+            });
+            clArea.addEventListener('dragleave', () => clArea.style.borderColor = '');
+            clArea.addEventListener('drop', e => {
+                e.preventDefault();
+                clArea.style.borderColor = '';
+                if (e.dataTransfer.files.length > 0) uploadCoverLetter(e.dataTransfer.files[0]);
+            });
+            clInput.addEventListener('change', () => {
+                if (clInput.files.length > 0) uploadCoverLetter(clInput.files[0]);
+            });
+        });
+    </script>
+</body>
+</html>

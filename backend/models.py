@@ -165,6 +165,7 @@ class User(Base):
     excluded_companies = Column(JSON, default=list)  # Companies to exclude from auto-apply
 
     is_active = Column(Boolean, default=True)
+    onboarding_completed = Column(Boolean, default=False)  # True after user completes initial setup
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 

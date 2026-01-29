@@ -352,6 +352,131 @@ def update_user_settings(
     # Pydantic v2 uses model_dump instead of dict
     update_fields = settings.model_dump(exclude_unset=True)
 
+
+# ============== Onboarding Endpoints ==============
+
+@router.get("/onboarding-status")
+def get_onboarding_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Check if user has completed onboarding.
+    Returns the status and what's missing if not complete.
+    """
+    # Check if user has uploaded a resume
+    has_resume = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == "resume"
+    ).first() is not None
+
+    # Check required personal info fields
+    personal_info_complete = all([
+        current_user.full_name or current_user.name,
+        current_user.phone,
+        current_user.city,
+        current_user.state,
+        current_user.address_country or current_user.country
+    ])
+
+    # Check required auto-apply/preferences fields
+    preferences_complete = all([
+        current_user.job_titles and len(current_user.job_titles) > 0,
+        current_user.experience_level,
+        current_user.us_authorized,
+        current_user.requires_sponsorship
+    ])
+
+    # Build missing items list
+    missing_items = []
+    if not has_resume:
+        missing_items.append("resume")
+    if not personal_info_complete:
+        missing_items.append("personal_info")
+    if not preferences_complete:
+        missing_items.append("preferences")
+
+    # Check if all requirements are met
+    is_complete = has_resume and personal_info_complete and preferences_complete
+
+    return {
+        "onboarding_completed": current_user.onboarding_completed or False,
+        "requirements_met": is_complete,
+        "has_resume": has_resume,
+        "personal_info_complete": personal_info_complete,
+        "preferences_complete": preferences_complete,
+        "missing_items": missing_items,
+        "can_complete": is_complete
+    }
+
+
+@router.post("/onboarding/complete")
+def complete_onboarding(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark onboarding as complete.
+    Validates that all required fields are filled before completing.
+    """
+    # Check if user has uploaded a resume
+    has_resume = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == "resume"
+    ).first() is not None
+
+    if not has_resume:
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a resume before completing onboarding"
+        )
+
+    # Check required personal info fields
+    missing_personal = []
+    if not (current_user.full_name or current_user.name):
+        missing_personal.append("Full Name")
+    if not current_user.phone:
+        missing_personal.append("Phone Number")
+    if not current_user.city:
+        missing_personal.append("City")
+    if not current_user.state:
+        missing_personal.append("State")
+    if not (current_user.address_country or current_user.country):
+        missing_personal.append("Country")
+
+    if missing_personal:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Please fill in the following personal info: {', '.join(missing_personal)}"
+        )
+
+    # Check required auto-apply/preferences fields
+    missing_preferences = []
+    if not current_user.job_titles or len(current_user.job_titles) == 0:
+        missing_preferences.append("Desired Job Titles")
+    if not current_user.experience_level:
+        missing_preferences.append("Experience Level")
+    if not current_user.us_authorized:
+        missing_preferences.append("Work Authorization (US)")
+    if not current_user.requires_sponsorship:
+        missing_preferences.append("Visa Sponsorship Required")
+
+    if missing_preferences:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Please fill in the following preferences: {', '.join(missing_preferences)}"
+        )
+
+    # Mark onboarding as complete
+    user = db.query(User).filter(User.id == current_user.id).first()
+    user.onboarding_completed = True
+    db.commit()
+
+    return {
+        "message": "Onboarding completed successfully",
+        "onboarding_completed": True
+    }
+
     # Get fresh user from DB to ensure we're updating the right record
     user = db.query(User).filter(User.id == current_user.id).first()
     if not user:

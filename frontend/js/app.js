@@ -44,6 +44,44 @@ function requireAuth() {
     return true;
 }
 
+/**
+ * Require onboarding completion - redirects to onboarding if not completed.
+ * Call this after requireAuth() on pages that require onboarding to be completed.
+ * Excludes: onboarding.html, login.html, register.html
+ */
+async function requireOnboarding() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    // Skip check for pages that don't require onboarding
+    const excludedPages = ['onboarding.html', 'login.html', 'register.html'];
+    if (excludedPages.includes(currentPage)) {
+        return true;
+    }
+
+    // Skip check for admin pages
+    if (window.location.pathname.includes('/admin/')) {
+        return true;
+    }
+
+    const token = getAccessToken();
+    if (!token) return false;
+
+    try {
+        const response = await fetch(`${API_BASE}/users/onboarding-status`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const status = await response.json();
+            if (!status.onboarding_completed) {
+                window.location.href = 'onboarding.html';
+                return false;
+            }
+        }
+    } catch (e) {
+        console.error('Failed to check onboarding status:', e);
+    }
+    return true;
+}
+
 function logout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -351,3 +389,4 @@ window.getCurrentUser = getCurrentUser;
 window.logout = logout;
 window.renderUserMenu = renderUserMenu;
 window.requireAuth = requireAuth;
+window.requireOnboarding = requireOnboarding;

@@ -258,8 +258,32 @@
     <script>
         const isProduction = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com';
         const API_BASE = isProduction ? 'https://cariara-production.up.railway.app' : 'http://localhost:8000';
-        // Job seeker portal always redirects to discover.html
+        // Job seeker portal always redirects to discover.html (or onboarding if not completed)
         const DEFAULT_REDIRECT = 'discover.html';
+
+        // Check onboarding status and redirect accordingly
+        async function checkOnboardingAndRedirect(token, isAdmin) {
+            if (isAdmin) {
+                window.location.href = '../admin/index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/users/onboarding-status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const status = await response.json();
+                    if (!status.onboarding_completed) {
+                        window.location.href = 'onboarding.html';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to check onboarding status:', e);
+            }
+            window.location.href = DEFAULT_REDIRECT;
+        }
 
         function handleOAuthCallback() {
             const hash = window.location.hash.substring(1);
@@ -285,9 +309,9 @@
                 };
                 localStorage.setItem('user', JSON.stringify(user));
                 history.replaceState(null, '', window.location.pathname);
-                // Redirect based on role - admins go to admin portal
+                // Check onboarding status before redirecting
                 const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
-                window.location.href = isAdmin ? '../admin/index.html' : DEFAULT_REDIRECT;
+                checkOnboardingAndRedirect(accessToken, isAdmin);
                 return true;
             }
             return false;
@@ -341,10 +365,10 @@
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('token', data.access_token); // For compatibility with app.js
                 localStorage.setItem('user', JSON.stringify(data.user));
-                // Redirect based on role - admins go to admin portal
+                // Check onboarding status before redirecting
                 const userRole = data.user?.role || 'job_seeker';
                 const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
-                window.location.href = isAdmin ? '../admin/index.html' : DEFAULT_REDIRECT;
+                await checkOnboardingAndRedirect(data.access_token, isAdmin);
             } catch (error) {
                 showError(error.message);
                 btn.disabled = false;
