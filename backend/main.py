@@ -752,6 +752,8 @@ app.add_middleware(
     secret_key=app_settings.jwt_secret_key,
     session_cookie="jobtrails_session",
     max_age=3600,  # 1 hour
+    https_only=app_settings.is_production,  # Secure cookies in production
+    same_site="lax",  # Allow OAuth redirects to include session cookie
 )
 
 # Only add API key auth if configured
