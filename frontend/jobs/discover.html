@@ -3292,49 +3292,53 @@
             const workTypeLabel = document.getElementById('work-type-label');
             const workTypeCheckboxes = document.querySelectorAll('.work-type-checkbox');
 
-            workTypeToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                workTypeDropdown.classList.toggle('open');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!workTypeDropdown.contains(e.target)) {
-                    workTypeDropdown.classList.remove('open');
-                }
-            });
-
-            workTypeCheckboxes.forEach(cb => {
-                cb.addEventListener('change', () => {
-                    const selected = Array.from(workTypeCheckboxes).filter(c => c.checked).map(c => c.value);
-                    if (selected.length === 0) {
-                        workTypeLabel.textContent = 'All Work Types';
-                        localStorage.removeItem('preferredWorkTypes');
-                    } else if (selected.length === 1) {
-                        workTypeLabel.textContent = selected[0].charAt(0).toUpperCase() + selected[0].slice(1);
-                        localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
-                    } else {
-                        workTypeLabel.textContent = `${selected.length} types`;
-                        localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
-                    }
-                    applyFilters();
-                    updateActiveFilters();
+            if (workTypeToggle && workTypeDropdown) {
+                workTypeToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    workTypeDropdown.classList.toggle('open');
                 });
-            });
 
-            // Restore saved work types
-            const savedWorkTypes = localStorage.getItem('preferredWorkTypes');
-            if (savedWorkTypes) {
-                try {
-                    const types = JSON.parse(savedWorkTypes);
-                    workTypeCheckboxes.forEach(cb => {
-                        cb.checked = types.includes(cb.value);
-                    });
-                    if (types.length === 1) {
-                        workTypeLabel.textContent = types[0].charAt(0).toUpperCase() + types[0].slice(1);
-                    } else if (types.length > 1) {
-                        workTypeLabel.textContent = `${types.length} types`;
+                document.addEventListener('click', (e) => {
+                    if (!workTypeDropdown.contains(e.target)) {
+                        workTypeDropdown.classList.remove('open');
                     }
-                } catch (e) {}
+                });
+            }
+
+            if (workTypeCheckboxes.length > 0) {
+                workTypeCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        const selected = Array.from(workTypeCheckboxes).filter(c => c.checked).map(c => c.value);
+                        if (selected.length === 0) {
+                            if (workTypeLabel) workTypeLabel.textContent = 'All Work Types';
+                            localStorage.removeItem('preferredWorkTypes');
+                        } else if (selected.length === 1) {
+                            if (workTypeLabel) workTypeLabel.textContent = selected[0].charAt(0).toUpperCase() + selected[0].slice(1);
+                            localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
+                        } else {
+                            if (workTypeLabel) workTypeLabel.textContent = `${selected.length} types`;
+                            localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
+                        }
+                        applyFilters();
+                        updateActiveFilters();
+                    });
+                });
+
+                // Restore saved work types
+                const savedWorkTypes = localStorage.getItem('preferredWorkTypes');
+                if (savedWorkTypes) {
+                    try {
+                        const types = JSON.parse(savedWorkTypes);
+                        workTypeCheckboxes.forEach(cb => {
+                            cb.checked = types.includes(cb.value);
+                        });
+                        if (types.length === 1 && workTypeLabel) {
+                            workTypeLabel.textContent = types[0].charAt(0).toUpperCase() + types[0].slice(1);
+                        } else if (types.length > 1 && workTypeLabel) {
+                            workTypeLabel.textContent = `${types.length} types`;
+                        }
+                    } catch (e) {}
+                }
             }
             document.getElementById('salary-min-filter').addEventListener('change', (e) => {
                 if (e.target.value) localStorage.setItem('preferredSalaryMin', e.target.value);
@@ -3377,24 +3381,25 @@
             }
 
             // Check work type filter (multi-select)
-            const workTypeCheckboxes = document.querySelectorAll('.work-type-checkbox:checked');
-            const workTypeDropdown = document.getElementById('work-type-dropdown');
-            if (workTypeCheckboxes.length > 0) {
-                const selectedTypes = Array.from(workTypeCheckboxes).map(c => c.value.charAt(0).toUpperCase() + c.value.slice(1));
+            const workTypeCheckedBoxes = document.querySelectorAll('.work-type-checkbox:checked');
+            const workTypeDropdownEl = document.getElementById('work-type-dropdown');
+            if (workTypeCheckedBoxes && workTypeCheckedBoxes.length > 0) {
+                const selectedTypes = Array.from(workTypeCheckedBoxes).map(c => c.value.charAt(0).toUpperCase() + c.value.slice(1));
                 const workTypeText = selectedTypes.join(', ');
                 tags.push({
                     text: `Work Type: ${workTypeText}`,
                     clear: () => {
                         document.querySelectorAll('.work-type-checkbox').forEach(c => c.checked = false);
-                        document.getElementById('work-type-label').textContent = 'All Work Types';
+                        const label = document.getElementById('work-type-label');
+                        if (label) label.textContent = 'All Work Types';
                         localStorage.removeItem('preferredWorkTypes');
                         applyFilters();
                         updateActiveFilters();
                     }
                 });
-                workTypeDropdown.classList.add('active');
+                if (workTypeDropdownEl) workTypeDropdownEl.classList.add('active');
             } else {
-                workTypeDropdown.classList.remove('active');
+                if (workTypeDropdownEl) workTypeDropdownEl.classList.remove('active');
             }
 
             // Check time filter (only show if not default 72h)
@@ -3497,7 +3502,8 @@
             document.getElementById('location-filter').value = '';
             // Clear work type checkboxes
             document.querySelectorAll('.work-type-checkbox').forEach(c => c.checked = false);
-            document.getElementById('work-type-label').textContent = 'All Work Types';
+            const wtLabel = document.getElementById('work-type-label');
+            if (wtLabel) wtLabel.textContent = 'All Work Types';
             localStorage.removeItem('preferredWorkTypes');
             document.getElementById('time-range-filter').value = '72';
             document.getElementById('salary-min-filter').value = '';
