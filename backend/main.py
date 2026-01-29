@@ -9,6 +9,7 @@ Security features:
 - Rate limiting
 - No-cache headers for API responses
 """
+print("=== main.py starting to load ===")
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,6 +32,7 @@ from services.redis_service import redis_service
 
 # Observability
 from observability import setup_logging, get_logger, metrics, MetricsMiddleware, ObservabilityMiddleware
+print("=== All imports completed ===")
 
 # Set up structured logging based on environment
 setup_logging(
