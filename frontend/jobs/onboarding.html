@@ -262,12 +262,21 @@
             border: none;
             color: inherit;
             cursor: pointer;
-            padding: 0;
-            font-size: 14px;
+            padding: 0 4px;
+            font-size: 16px;
+            line-height: 1;
             opacity: 0.7;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            min-height: 20px;
         }
         .tag .remove-tag:hover {
             opacity: 1;
+        }
+        .tag .tag-text {
+            display: inline;
         }
         .tag-input {
             flex: 1;
@@ -490,8 +499,6 @@
         let currentStep = 1;
         let resumeUploaded = false;
         let coverLetterUploaded = false;
-        const jobTitles = [];
-        const preferredCities = [];
 
         // Step navigation
         function goToStep(step) {
@@ -620,88 +627,86 @@
             }
         }
 
-        // Tags input handling
-        function setupTagsInput(containerId, inputId, tagsArray, maxTags = 5) {
+        // Helper function to get tags from DOM
+        function getTagsFromContainer(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return [];
+            const tags = [];
+            container.querySelectorAll('.tag').forEach(tag => {
+                const value = tag.dataset.value;
+                if (value && !tags.includes(value)) {
+                    tags.push(value);
+                }
+            });
+            return tags;
+        }
+
+        // Tags input handling - simplified, no array sync needed
+        function setupTagsInput(containerId, inputId, maxTags = 5) {
             const container = document.getElementById(containerId);
             const input = document.getElementById(inputId);
 
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ',') {
                     e.preventDefault();
-                    addTag(input, container, tagsArray, maxTags);
+                    addTagToContainer(containerId, inputId, maxTags);
                 }
             });
 
             input.addEventListener('blur', () => {
                 if (input.value.trim()) {
-                    addTag(input, container, tagsArray, maxTags);
+                    addTagToContainer(containerId, inputId, maxTags);
                 }
             });
         }
 
-        function addTag(input, container, tagsArray, maxTags) {
+        function addTagToContainer(containerId, inputId, maxTags) {
+            const container = document.getElementById(containerId);
+            const input = document.getElementById(inputId);
             const value = input.value.trim().replace(/,/g, '');
-            if (!value || tagsArray.length >= maxTags) {
-                input.value = '';
-                return;
-            }
-            // Check for duplicates (case-insensitive)
-            if (tagsArray.some(t => t.toLowerCase() === value.toLowerCase())) {
+
+            if (!value) {
                 input.value = '';
                 return;
             }
 
-            tagsArray.push(value);
+            // Get existing tags from DOM
+            const existingTags = getTagsFromContainer(containerId);
+
+            if (existingTags.length >= maxTags) {
+                input.value = '';
+                return;
+            }
+
+            // Check for duplicates (case-insensitive)
+            if (existingTags.some(t => t.toLowerCase() === value.toLowerCase())) {
+                input.value = '';
+                return;
+            }
+
             const tag = document.createElement('span');
             tag.className = 'tag';
             tag.dataset.value = value;
-            tag.innerHTML = `${value}<button type="button" class="remove-tag">&times;</button>`;
+            tag.innerHTML = `<span class="tag-text">${value}</span><button type="button" class="remove-tag" aria-label="Remove">&times;</button>`;
             container.insertBefore(tag, input);
             input.value = '';
+        }
+
+        function removeTag(button) {
+            const tag = button.closest('.tag');
+            if (tag) {
+                tag.remove();
+            }
         }
 
         // Use event delegation for remove buttons
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('remove-tag')) {
-                const tag = e.target.parentElement;
-                const value = tag.dataset.value;
-                const containerId = tag.closest('.tags-container').id;
-                const tagsArray = containerId.includes('job-titles') ? jobTitles : preferredCities;
-                const index = tagsArray.findIndex(t => t === value);
-                if (index > -1) {
-                    tagsArray.splice(index, 1);
-                }
-                tag.remove();
+                e.preventDefault();
+                e.stopPropagation();
+                removeTag(e.target);
             }
         });
-
-        // Sync DOM tags to array (for cases where DOM and array get out of sync)
-        function syncTagsFromDOM(containerId, tagsArray) {
-            tagsArray.length = 0; // Clear array
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.querySelectorAll('.tag').forEach(tag => {
-                // Get value from data attribute or parse from text content
-                let value = tag.dataset.value;
-                if (!value) {
-                    // Remove the × button text and any whitespace
-                    const btn = tag.querySelector('.remove-tag, button');
-                    if (btn) btn.remove();
-                    value = tag.textContent.trim();
-                    // Recreate the button
-                    const newBtn = document.createElement('button');
-                    newBtn.type = 'button';
-                    newBtn.className = 'remove-tag';
-                    newBtn.innerHTML = '&times;';
-                    tag.appendChild(newBtn);
-                    tag.dataset.value = value;
-                }
-                if (value && !tagsArray.includes(value)) {
-                    tagsArray.push(value);
-                }
-            });
-            console.log('Synced tags:', tagsArray);
-        }
 
         // Step navigation handlers
         document.getElementById('step1-next').addEventListener('click', () => {
@@ -730,27 +735,16 @@
         document.getElementById('step3-back').addEventListener('click', () => goToStep(2));
 
         document.getElementById('step3-submit').addEventListener('click', async () => {
-            // Sync DOM tags to arrays in case they got out of sync
-            syncTagsFromDOM('job-titles-container', jobTitles);
-            syncTagsFromDOM('preferred-cities-container', preferredCities);
+            // Get tags directly from DOM - no sync needed
+            const jobTitles = getTagsFromContainer('job-titles-container');
+            const preferredCities = getTagsFromContainer('preferred-cities-container');
 
-            // Double-check by counting DOM elements
-            const visibleJobTags = document.querySelectorAll('#job-titles-container .tag').length;
-            console.log('Job titles array:', jobTitles, 'Visible tags:', visibleJobTags);
+            console.log('Job titles from DOM:', jobTitles);
+            console.log('Preferred cities from DOM:', preferredCities);
 
-            if (jobTitles.length === 0 && visibleJobTags === 0) {
+            if (jobTitles.length === 0) {
                 showError('Please add at least one desired job title.');
                 return;
-            }
-
-            // If we have visible tags but empty array, use DOM values
-            if (jobTitles.length === 0 && visibleJobTags > 0) {
-                document.querySelectorAll('#job-titles-container .tag').forEach(tag => {
-                    const btn = tag.querySelector('button');
-                    const text = btn ? tag.textContent.replace(btn.textContent, '').trim() : tag.textContent.trim();
-                    if (text) jobTitles.push(text);
-                });
-                console.log('Recovered job titles from DOM:', jobTitles);
             }
 
             const experienceLevel = document.getElementById('experience-level').value;
@@ -815,8 +809,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             setupUploadArea('resume-upload-area', 'resume-input', 'resume-file-name', 'resume');
             setupUploadArea('cover-letter-upload-area', 'cover-letter-input', 'cover-letter-file-name', 'cover_letter');
-            setupTagsInput('job-titles-container', 'job-titles-input', jobTitles, 5);
-            setupTagsInput('preferred-cities-container', 'preferred-cities-input', preferredCities, 10);
+            setupTagsInput('job-titles-container', 'job-titles-input', 5);
+            setupTagsInput('preferred-cities-container', 'preferred-cities-input', 10);
             checkOnboardingStatus();
         });
     </script>
