@@ -596,7 +596,8 @@
 
         async function loadJobs() {
             try {
-                const response = await apiRequest('/jobs?active_only=true&all=true&limit=50000');
+                // Load jobs with reasonable limit for faster initial load
+                const response = await apiRequest('/jobs?active_only=true&all=true&limit=2000');
                 allJobs = Array.isArray(response) ? response : (response.jobs || []);
                 updateStats();
                 populateCompanyFilter();
