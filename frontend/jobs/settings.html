@@ -1437,14 +1437,16 @@
                 if (isValid) {
                     completedTabs.preferences = true;
                     markTabCompleted('preferences');
-                    showTab('auto-apply', true);
+                    // Save current tab and check where to go next
+                    saveCurrentTabAndNavigate('auto-apply');
                 }
             } else if (currentTab === 'auto-apply') {
                 isValid = validateAutoApply();
                 if (isValid) {
                     completedTabs['auto-apply'] = true;
                     markTabCompleted('auto-apply');
-                    showTab('personal-info', true);
+                    // Save current tab and check where to go next
+                    saveCurrentTabAndNavigate('personal-info');
                 }
             }
         }
@@ -1463,13 +1465,106 @@
             btn.classList.add('completed');
         }
 
+        // Save current tab settings and navigate intelligently
+        async function saveCurrentTabAndNavigate(suggestedNextTab) {
+            // Gather and save settings
+            document.querySelectorAll('[name]').forEach(el => {
+                if (el.type === 'checkbox') {
+                    settings[el.name] = el.checked;
+                } else {
+                    settings[el.name] = el.value || null;
+                }
+            });
+            settings.job_titles = jobTitles;
+            settings.preferred_cities = cities;
+            settings.excluded_companies = excludedCompanies;
+            if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
+                settings.work_type = selectedWorkTypes.length === 0 ? null : 'all';
+            } else {
+                settings.work_type = selectedWorkTypes.join(',');
+            }
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const r = await fetch(`${API_BASE}/api/users/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (r.ok) {
+                    toast('Settings saved');
+                    // Check if all tabs are complete
+                    if (allTabsComplete()) {
+                        toast('All settings complete! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = 'discover.html';
+                        }, 1000);
+                    } else {
+                        // Go to next incomplete tab
+                        const nextIncomplete = findNextIncompleteTab();
+                        if (nextIncomplete) {
+                            showTab(nextIncomplete, true);
+                        } else {
+                            showTab(suggestedNextTab, true);
+                        }
+                    }
+                } else if (r.status === 401) {
+                    window.location.href = 'login.html';
+                } else {
+                    toast('Failed to save', 'error');
+                }
+            } catch (e) {
+                toast('Error saving', 'error');
+            }
+        }
+
+        function allTabsComplete() {
+            // Re-check all validations
+            const prefsOk = validatePreferencesQuiet();
+            const autoApplyOk = validateAutoApplyQuiet();
+            const personalOk = validatePersonalInfoQuiet();
+            return prefsOk && autoApplyOk && personalOk;
+        }
+
+        function findNextIncompleteTab() {
+            if (!validatePreferencesQuiet()) return 'preferences';
+            if (!validateAutoApplyQuiet()) return 'auto-apply';
+            if (!validatePersonalInfoQuiet()) return 'personal-info';
+            return null;
+        }
+
+        // Quiet validators (don't show errors, just return boolean)
+        function validatePreferencesQuiet() {
+            const resumeEmail = document.getElementById('resume_email')?.value?.trim();
+            const baseResume = document.getElementById('base-resume-select')?.value;
+            return !!(resumeEmail && baseResume);
+        }
+
+        function validateAutoApplyQuiet() {
+            const experienceLevel = document.getElementById('experience_level')?.value;
+            return !!(jobTitles.length > 0 && experienceLevel);
+        }
+
+        function validatePersonalInfoQuiet() {
+            const fullName = document.getElementById('full_name')?.value?.trim();
+            const email = document.getElementById('personal_email')?.value?.trim();
+            const phone = document.getElementById('phone')?.value?.trim();
+            return !!(fullName && email && phone);
+        }
+
         function validateAndSave() {
             hideTabError();
             if (!validatePersonalInfo()) return;
 
             completedTabs['personal-info'] = true;
             markTabCompleted('personal-info');
-            saveSettings();
+
+            // Check if all tabs are complete and save
+            saveCurrentTabAndNavigate(null);
         }
 
         // Toast
@@ -1770,7 +1865,7 @@
             }
         }
 
-        // Save settings
+        // Save settings - now uses smart navigation
         async function saveSettings() {
             // Gather all form data
             document.querySelectorAll('[name]').forEach(el => {
@@ -1804,11 +1899,20 @@
                     body: JSON.stringify(settings)
                 });
                 if (r.ok) {
-                    toast('Settings saved successfully');
-                    // Redirect to discover page after saving
-                    setTimeout(() => {
-                        window.location.href = 'discover.html';
-                    }, 1000);
+                    // Check if all tabs are complete
+                    if (allTabsComplete()) {
+                        toast('All settings saved! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = 'discover.html';
+                        }, 1000);
+                    } else {
+                        // Find next incomplete tab and go there
+                        const nextIncomplete = findNextIncompleteTab();
+                        if (nextIncomplete) {
+                            toast('Settings saved. Please complete remaining fields.');
+                            showTab(nextIncomplete, true);
+                        }
+                    }
                 } else if (r.status === 401) {
                     window.location.href = 'login.html';
                 } else {
