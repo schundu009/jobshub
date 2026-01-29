@@ -7,6 +7,7 @@ Provides request/response logging with timing, correlation IDs, and error tracki
 import time
 import uuid
 import logging
+import os
 from typing import Callable, Optional
 
 from fastapi import Request, Response
@@ -193,6 +194,3 @@ class SentryMiddleware:
                 raise
         else:
             await self.app(scope, receive, send)
-
-
-import os
