@@ -173,9 +173,9 @@ class OnboardingComplete(BaseModel):
     linkedin_url: Optional[str] = Field(None, max_length=500)
 
     # Step 3: Auto Apply Preferences
-    job_titles: List[str] = Field(..., min_items=1, max_items=5)
+    job_titles: List[str] = Field(..., min_length=1, max_length=5)
     experience_level: str = Field(..., max_length=50)
-    preferred_cities: Optional[List[str]] = Field(default_factory=list)
+    preferred_cities: Optional[List[str]] = Field(default=None)
 
 
 @router.post("/complete-onboarding")
