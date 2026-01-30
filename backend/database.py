@@ -42,12 +42,22 @@ def get_engine():
         )
 
 
-# Create engine
-engine = get_engine()
+# Create engine with error handling
+try:
+    engine = get_engine()
+    print(f"Database engine created: {settings.database_url.split('@')[-1] if '@' in settings.database_url else 'local'}")
+except Exception as e:
+    print(f"WARNING: Failed to create database engine: {e}")
+    # Create a minimal engine that will fail gracefully on first use
+    engine = None
 
 
 def _run_early_migrations():
     """Run critical migrations before models are loaded."""
+    if engine is None:
+        print("Skipping early migrations - no database connection")
+        return
+
     from sqlalchemy import text
 
     new_columns = [
