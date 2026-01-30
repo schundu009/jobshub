@@ -353,6 +353,54 @@ def submit_application(
     }
 
 
+@router.post("/skip/{job_id}")
+def skip_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Skip a job from the auto-apply queue.
+
+    Creates a submission record with status 'skipped' to track that
+    the user has seen and declined this job.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Check for existing submission
+    existing = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.job_id == job_id,
+        ApplicationSubmission.user_id == current_user.id
+    ).first()
+
+    if existing:
+        if existing.status == 'skipped':
+            return {"message": "Job already skipped", "status": "skipped"}
+        raise HTTPException(
+            status_code=400,
+            detail=f"Job already has status: {existing.status}"
+        )
+
+    # Create a skipped submission record
+    submission = ApplicationSubmission(
+        job_id=job_id,
+        user_id=current_user.id,
+        status="skipped",
+        ats_type=get_ats_type_from_url(job.job_url) if job.job_url else None,
+        application_url=job.job_url,
+    )
+    db.add(submission)
+    db.commit()
+
+    return {
+        "message": "Job skipped",
+        "submission_id": submission.id,
+        "status": "skipped",
+    }
+
+
 @router.post("/bulk-submit")
 def bulk_submit_applications(
     request: BulkSubmitRequest,
@@ -454,16 +502,21 @@ def list_submissions(
         results.append({
             "id": s.id,
             "job_id": s.job_id,
-            "job_title": job.title if job else "Unknown",
+            "title": job.title if job else "Unknown",
+            "job_title": job.title if job else "Unknown",  # Keep for backward compatibility
             "company_name": company.name if company else "Unknown",
+            "location": job.location if job else None,
             "status": s.status,
             "ats_type": s.ats_type,
+            "source": s.ats_type,  # Alias for frontend
             "application_url": s.application_url,
             "confirmation_id": s.ats_confirmation_id,
             "error_message": s.error_message,
-            "queued_at": s.queued_at,
-            "started_at": s.started_at,
-            "completed_at": s.completed_at,
+            "created_at": s.created_at.isoformat() if s.created_at else None,
+            "queued_at": s.queued_at.isoformat() if s.queued_at else None,
+            "started_at": s.started_at.isoformat() if s.started_at else None,
+            "completed_at": s.completed_at.isoformat() if s.completed_at else None,
+            "applied_at": s.completed_at.isoformat() if s.completed_at else (s.created_at.isoformat() if s.created_at else None),
         })
 
     return {

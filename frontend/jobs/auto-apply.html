@@ -692,6 +692,25 @@
             }
         }
 
+        // Format date helper
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            if (days === 0) {
+                return 'Today at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            } else if (days === 1) {
+                return 'Yesterday';
+            } else if (days < 7) {
+                return days + ' days ago';
+            } else {
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+        }
+
         // Toast
         function toast(msg, type = 'success') {
             const t = document.getElementById('toast');
@@ -742,10 +761,16 @@
                 `;
             } else if (type === 'applied') {
                 const statusClass = job.status === 'success' ? 'success' : 'failed';
+                const appliedDate = job.applied_at || job.completed_at || job.created_at;
+                const formattedDate = appliedDate ? formatDate(appliedDate) : '';
                 actions = `
-                    <div class="job-actions" style="justify-content: space-between;">
+                    <div class="job-actions" style="justify-content: space-between; align-items: center;">
                         <span class="status-badge ${statusClass}">${job.status === 'success' ? 'Applied' : 'Failed'}</span>
-                        <span style="color: var(--text-muted); font-size: 12px;">${job.applied_at || ''}</span>
+                        <div style="text-align: right;">
+                            <div style="color: var(--text-muted); font-size: 12px;">${formattedDate}</div>
+                            ${job.confirmation_id ? `<div style="color: var(--text-muted); font-size: 11px;">Conf: ${job.confirmation_id}</div>` : ''}
+                            ${job.error_message ? `<div style="color: #ef4444; font-size: 11px;">${job.error_message}</div>` : ''}
+                        </div>
                     </div>
                 `;
             }
