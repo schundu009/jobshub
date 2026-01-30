@@ -3887,7 +3887,7 @@
 
             try {
                 const timeRangeHours = document.getElementById('time-range-filter').value || 72;
-                const url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true`;
+                const url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true&limit=500`;
 
                 const response = await apiRequest(url);
                 allJobs = Array.isArray(response) ? response : (response.jobs || []);
