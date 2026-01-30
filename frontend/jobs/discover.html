@@ -961,6 +961,51 @@
             font-size: 13px;
         }
 
+        /* Active Roles Banner */
+        .roles-banner {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .roles-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .roles-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .roles-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .role-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--accent-purple);
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+        }
+        .roles-edit-link {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--accent-purple);
+            text-decoration: none;
+        }
+        .roles-edit-link:hover {
+            text-decoration: underline;
+        }
+
         /* Header - Premium */
         .discover-header {
             display: flex;
@@ -2312,6 +2357,15 @@
             </div>
         </div>
 
+        <!-- Active Roles Banner -->
+        <div id="roles-banner" class="roles-banner" style="display:none;">
+            <div class="roles-banner-content">
+                <span class="roles-label">Filtering for:</span>
+                <div id="roles-chips" class="roles-chips"></div>
+                <a href="select-roles.html" class="roles-edit-link">Change Roles</a>
+            </div>
+        </div>
+
         <!-- Controls Bar -->
         <div class="controls-bar">
             <div class="search-box">
@@ -2635,6 +2689,38 @@
                 dropdown.classList.remove('show');
             }
         });
+
+        // Initialize roles banner
+        function initRolesBanner() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const jobRoles = user.job_roles || [];
+            const banner = document.getElementById('roles-banner');
+            const chipsContainer = document.getElementById('roles-chips');
+
+            if (jobRoles.length > 0 && banner && chipsContainer) {
+                // Role name mapping
+                const roleNames = {
+                    'devops': 'DevOps',
+                    'sre': 'SRE',
+                    'cloud_architect': 'Cloud Architect',
+                    'platform': 'Platform',
+                    'backend': 'Backend',
+                    'fullstack': 'Full Stack',
+                    'data': 'Data',
+                    'ml': 'ML/AI',
+                    'security': 'Security',
+                    'frontend': 'Frontend',
+                    'mobile': 'Mobile'
+                };
+
+                chipsContainer.innerHTML = jobRoles.map(role =>
+                    `<span class="role-chip">${roleNames[role] || role}</span>`
+                ).join('');
+                banner.style.display = 'block';
+            } else if (banner) {
+                banner.style.display = 'none';
+            }
+        }
 
         // Initialize user menu
         function initUserMenu() {
@@ -3177,6 +3263,9 @@
             } catch (error) {
                 console.error('Failed to check onboarding status:', error);
             }
+
+            // Initialize roles banner
+            initRolesBanner();
 
             const gridDiv = document.querySelector('#jobsGrid');
             agGrid.createGrid(gridDiv, gridOptions);
@@ -3852,15 +3941,21 @@
             try {
                 const timeRangeHours = document.getElementById('time-range-filter').value || 72;
 
-                // Build URL based on role selection
-                // With role: Use backend filtering (faster, fewer jobs)
-                // Without role: Load all jobs (limit 200 for performance)
+                // Get user's saved roles from localStorage
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const savedRoles = user.job_roles || [];
+
+                // Build URL based on user's saved roles
+                // Priority: saved roles from profile > no filtering
                 let url;
-                if (currentRole) {
-                    // Backend filters by role - returns only relevant jobs, pre-scored
-                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&role=${currentRole}&min_score=20&limit=150`;
+                if (savedRoles.length > 0) {
+                    // Use user's saved roles (comma-separated) - NO LIMIT since roles filter aggressively
+                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&roles=${savedRoles.join(',')}&min_score=20`;
+                } else if (currentRole) {
+                    // Fallback to legacy UI-selected role
+                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&role=${currentRole}&min_score=20`;
                 } else {
-                    // No role - load recent jobs with limit
+                    // No roles configured - show recent jobs with limit
                     url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true&limit=200`;
                 }
 

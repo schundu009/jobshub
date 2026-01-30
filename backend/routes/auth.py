@@ -91,6 +91,8 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
             role=user.role,
             is_email_verified=user.is_email_verified,
             onboarding_completed=user.onboarding_completed or False,
+            job_roles=user.job_roles or [],
+            roles_confirmed_at=user.roles_confirmed_at,
             created_at=user.created_at,
         )
     )
@@ -249,6 +251,8 @@ def get_me(current_user: User = Depends(get_current_user)):
         role=current_user.role,
         is_email_verified=current_user.is_email_verified or False,
         onboarding_completed=current_user.onboarding_completed or False,
+        job_roles=current_user.job_roles or [],
+        roles_confirmed_at=current_user.roles_confirmed_at,
         created_at=current_user.created_at,
     )
 
@@ -282,6 +286,8 @@ def update_me(
         role=current_user.role,
         is_email_verified=current_user.is_email_verified or False,
         onboarding_completed=current_user.onboarding_completed or False,
+        job_roles=current_user.job_roles or [],
+        roles_confirmed_at=current_user.roles_confirmed_at,
         created_at=current_user.created_at,
     )
 

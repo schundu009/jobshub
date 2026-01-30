@@ -453,3 +453,81 @@ Output the complete rewritten resume in a clean, professional format. Do not inc
     )
 
     return response.choices[0].message.content
+
+
+def detect_roles_from_resume(resume_text: str) -> list:
+    """
+    Analyze a resume and detect suitable job roles with confidence scores.
+
+    Returns a list of roles with confidence:
+    [{"role": "devops", "name": "DevOps Engineer", "confidence": 0.92, "reason": "..."}, ...]
+    """
+    import json
+    openai_client = get_client()
+
+    # Available roles with descriptions for AI context
+    available_roles = [
+        {"slug": "devops", "name": "DevOps Engineer", "keywords": "kubernetes, docker, terraform, CI/CD, AWS, GCP, Azure, infrastructure, automation, ansible, jenkins"},
+        {"slug": "sre", "name": "Site Reliability Engineer", "keywords": "SRE, reliability, monitoring, observability, incident response, SLOs, SLAs, on-call, prometheus, grafana"},
+        {"slug": "cloud_architect", "name": "Cloud/Infrastructure Architect", "keywords": "cloud architecture, AWS, GCP, Azure, infrastructure design, networking, security, scalability, enterprise"},
+        {"slug": "platform", "name": "Platform Engineer", "keywords": "platform engineering, developer experience, internal tools, kubernetes, service mesh, gitops"},
+        {"slug": "backend", "name": "Backend Engineer", "keywords": "backend, API, databases, microservices, python, java, golang, nodejs, distributed systems"},
+        {"slug": "fullstack", "name": "Full Stack Engineer", "keywords": "full stack, frontend, backend, react, nodejs, databases, APIs"},
+        {"slug": "data", "name": "Data Engineer", "keywords": "data engineering, ETL, data pipelines, spark, airflow, SQL, data warehouse, big data"},
+        {"slug": "ml", "name": "ML/AI Engineer", "keywords": "machine learning, AI, deep learning, tensorflow, pytorch, NLP, computer vision, MLOps"},
+        {"slug": "security", "name": "Security Engineer", "keywords": "security, cybersecurity, penetration testing, SIEM, compliance, cloud security, DevSecOps"},
+        {"slug": "frontend", "name": "Frontend Engineer", "keywords": "frontend, react, angular, vue, javascript, typescript, CSS, UI/UX"},
+        {"slug": "mobile", "name": "Mobile Engineer", "keywords": "mobile, iOS, Android, Swift, Kotlin, React Native, Flutter"},
+    ]
+
+    roles_json = json.dumps(available_roles, indent=2)
+
+    prompt = f"""Analyze this resume and determine which job roles are the best fit for this candidate.
+
+AVAILABLE ROLES:
+{roles_json}
+
+RESUME:
+{resume_text}
+
+INSTRUCTIONS:
+1. Analyze the candidate's skills, experience, and job history
+2. Match against the available roles
+3. Assign a confidence score (0.0 to 1.0) for each matching role
+4. Only include roles with confidence >= 0.3
+5. Provide a brief reason for each match
+
+OUTPUT FORMAT (JSON only, no other text):
+[
+  {{"role": "devops", "name": "DevOps Engineer", "confidence": 0.92, "reason": "8 years Kubernetes, Terraform, AWS experience"}},
+  {{"role": "sre", "name": "Site Reliability Engineer", "confidence": 0.85, "reason": "Strong monitoring and incident response background"}}
+]
+
+Return ONLY the JSON array, no other text or explanation."""
+
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are an expert technical recruiter who analyzes resumes to match candidates with suitable job roles. You output only valid JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+        max_tokens=1000
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    # Parse the JSON response
+    try:
+        # Remove markdown code blocks if present
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+        roles = json.loads(content)
+        # Sort by confidence descending
+        roles.sort(key=lambda x: x.get("confidence", 0), reverse=True)
+        return roles
+    except json.JSONDecodeError:
+        # Fallback: return empty list if parsing fails
+        return []

@@ -278,18 +278,24 @@
                 localStorage.setItem('token', accessToken); // For compatibility with app.js
                 const userRole = params.get('user_role') || 'user';
                 const onboardingCompleted = params.get('onboarding_completed') === 'true';
+                const rolesConfirmed = params.get('roles_confirmed') === 'true';
+                const jobRoles = params.get('job_roles') ? params.get('job_roles').split(',') : [];
                 const user = {
                     id: params.get('user_id'),
                     email: params.get('user_email'),
                     name: decodeURIComponent(params.get('user_name') || ''),
                     role: userRole,
                     onboarding_completed: onboardingCompleted,
+                    roles_confirmed: rolesConfirmed,
+                    job_roles: jobRoles,
                 };
                 localStorage.setItem('user', JSON.stringify(user));
                 history.replaceState(null, '', window.location.pathname);
-                // Jobs portal always stays in jobs portal - redirect to discover or onboarding
+                // Jobs portal redirect flow: onboarding -> role selection -> discover
                 if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
+                } else if (!rolesConfirmed && jobRoles.length === 0) {
+                    window.location.href = 'select-roles.html';
                 } else {
                     window.location.href = DEFAULT_REDIRECT;
                 }
@@ -346,10 +352,14 @@
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('token', data.access_token); // For compatibility with app.js
                 localStorage.setItem('user', JSON.stringify(data.user));
-                // Jobs portal always stays in jobs portal
+                // Jobs portal redirect flow: onboarding -> role selection -> discover
                 const onboardingCompleted = data.user?.onboarding_completed || false;
+                const rolesConfirmed = data.user?.roles_confirmed_at || data.user?.roles_confirmed || false;
+                const jobRoles = data.user?.job_roles || [];
                 if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
+                } else if (!rolesConfirmed && jobRoles.length === 0) {
+                    window.location.href = 'select-roles.html';
                 } else {
                     window.location.href = DEFAULT_REDIRECT;
                 }

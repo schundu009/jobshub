@@ -271,7 +271,8 @@ async def get_jobs(
     posted_within_hours: Optional[int] = Query(None, ge=1, description="Only show jobs posted within this many hours (e.g., 720 = 30 days). If not set, shows all."),
 
     # Role-aware filtering (THE KEY FEATURE)
-    role: Optional[str] = Query(None, description="Role profile slug (devops, backend, frontend, etc.)"),
+    role: Optional[str] = Query(None, description="Single role profile slug (devops, backend, etc.)"),
+    roles: Optional[str] = Query(None, description="Comma-separated role slugs (devops,sre,cloud_architect) - uses user's saved roles if not provided"),
     all: bool = Query(False, description="Return ALL jobs without relevance filtering"),
     min_score: Optional[float] = Query(None, description="Minimum relevance score (0-100)"),
 
@@ -301,17 +302,30 @@ async def get_jobs(
     - no_cache: Bypass Redis cache
 
     EXAMPLE QUERIES:
-    - GET /api/jobs → Top 50 relevant jobs for user's role
-    - GET /api/jobs?role=devops → Preview relevance for DevOps role
+    - GET /api/jobs → Top 50 relevant jobs for user's saved roles
+    - GET /api/jobs?role=devops → Preview relevance for single role
+    - GET /api/jobs?roles=devops,sre,cloud_architect → Filter by multiple roles
     - GET /api/jobs?all=true → All jobs without filtering
     - GET /api/jobs?min_score=50 → Only highly relevant jobs
     """
+    # Determine which roles to use for filtering
+    # Priority: roles param > role param > user's saved job_roles > user's role_profile
+    user_roles_list = []
+    if roles:
+        user_roles_list = [r.strip() for r in roles.split(",") if r.strip()]
+    elif role:
+        user_roles_list = [role]
+    elif current_user and current_user.job_roles:
+        user_roles_list = current_user.job_roles
+    elif current_user and current_user.role_profile:
+        user_roles_list = [current_user.role_profile.slug]
+
     # Generate cache key for this query
-    user_role = role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
+    roles_key = ",".join(sorted(user_roles_list)) if user_roles_list else None
     cache_key = _get_cache_key(
         "jobs",
         status=status, source=source, active_only=active_only, company_id=company_id,
-        posted_within_hours=posted_within_hours, role=user_role, all_jobs=all,
+        posted_within_hours=posted_within_hours, roles=roles_key, all_jobs=all,
         min_score=min_score, limit=limit, offset=offset
     )
 
@@ -360,11 +374,15 @@ async def get_jobs(
         _cache_set(cache_key, result)
         return result
 
-    # Get role profile for relevance scoring
-    role_profile = get_role_profile_for_scoring(db, role, current_user)
+    # Get role profiles for relevance scoring (supports multiple roles)
+    role_profiles = []
+    for role_slug in user_roles_list:
+        profile = get_role_profile_for_scoring(db, role_slug, None)
+        if profile:
+            role_profiles.append(profile)
 
-    # If no role profile available, fall back to showing all jobs
-    if not role_profile:
+    # If no role profiles available, fall back to showing all jobs
+    if not role_profiles:
         total = query.count()
         q = query.order_by(Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
         if limit:
@@ -374,14 +392,15 @@ async def get_jobs(
             "jobs": [job_to_response(job, include_description=True) for job in jobs],
             "total": total,
             "relevance_filtering": False,
-            "role": None,
-            "message": "No role profile set. Showing all jobs. Set a role with ?role=devops or configure your user profile."
+            "roles": [],
+            "message": "No roles configured. Go to Settings to select your job roles, or use ?roles=devops,sre"
         }
         _cache_set(cache_key, result)
         return result
 
-    # Limit to most recent jobs for performance (relevance scoring is CPU-intensive)
-    MAX_JOBS_TO_SCORE = 200  # Reduced from 1000 for faster response
+    # With role filtering: load MORE jobs since we're filtering down
+    # No arbitrary limit - load all jobs within time range (caching makes this fast)
+    MAX_JOBS_TO_SCORE = 1000  # Increased since we filter aggressively
     try:
         all_jobs = query.order_by(
             Job.posted_date.desc().nullslast(),
@@ -398,18 +417,31 @@ async def get_jobs(
             "target_seniority": current_user.target_seniority
         }
 
-    # Score and filter jobs
-    threshold = role_profile.get("relevance_threshold", 30.0)
+    # Score jobs against ALL roles, take the best score
+    # This way a job matching ANY of user's roles will be included
+    min_threshold = min(p.get("relevance_threshold", 30.0) for p in role_profiles)
+    effective_min_score = min_score if min_score is not None else min_threshold
+
     scored_jobs = []
     try:
         for job in all_jobs:
-            result = compute_job_relevance(job, role_profile, user_prefs)
-            # Filter during scoring to avoid second pass
-            if min_score is not None:
-                if result.relevance_score >= min_score:
-                    scored_jobs.append((job, result))
-            elif result.is_relevant:
-                scored_jobs.append((job, result))
+            best_score = 0
+            best_result = None
+            best_role = None
+
+            # Score against each role profile
+            for profile in role_profiles:
+                result = compute_job_relevance(job, profile, user_prefs)
+                if result.relevance_score > best_score:
+                    best_score = result.relevance_score
+                    best_result = result
+                    best_role = profile.get("slug", "unknown")
+
+            # Include if meets threshold for any role
+            if best_result and best_score >= effective_min_score:
+                # Tag with which role matched best
+                best_result.matched_role = best_role
+                scored_jobs.append((job, best_result))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Relevance scoring failed: {str(e)}")
 
@@ -424,14 +456,12 @@ async def get_jobs(
         scored_jobs = scored_jobs[offset:]
 
     # Build response
-    role_name = role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
-
     response = {
         "jobs": [job_to_response(job, rel, include_description=True) for job, rel in scored_jobs],
         "total": total_relevant,
         "relevance_filtering": True,
-        "role": role_name,
-        "threshold": threshold
+        "roles": user_roles_list,
+        "threshold": effective_min_score
     }
     _cache_set(cache_key, response)
     return response
