@@ -3216,6 +3216,19 @@
                 </div>
             `;
 
+            // Already Submitted check
+            if (data.already_submitted) {
+                html += `
+                    <div class="preflight-item">
+                        ${data.existing_submission_status === 'success' ? checkIcon(true) : warningIcon}
+                        <span class="item-label">Previous Submission</span>
+                        <span class="item-status ${data.existing_submission_status === 'success' ? 'pass' : 'warning'}">
+                            ${data.existing_submission_status === 'success' ? 'Applied' : data.existing_submission_status || 'Pending'}
+                        </span>
+                    </div>
+                `;
+            }
+
             document.getElementById('preflight-results').innerHTML = html;
 
             // Populate resume select
@@ -3236,8 +3249,8 @@
                 resumeSelect.appendChild(option);
             }
 
-            // Enable/disable submit button
-            const canSubmit = data.can_apply && !data.daily_limit_reached;
+            // Enable/disable submit button (can_apply already includes all checks)
+            const canSubmit = data.can_apply;
             document.getElementById('btn-submit-auto-apply').disabled = !canSubmit;
 
             // Show/hide options

@@ -313,10 +313,12 @@ def preflight_check(
         if config.last_reset_date == today:
             daily_limit_reached = config.applications_today >= config.daily_limit
 
-    # Check for existing submission
+    # Check for existing submission - only block for pending/submitting/success
+    # Allow re-application for failed or skipped jobs
     existing_submission = db.query(ApplicationSubmission).filter(
         ApplicationSubmission.job_id == job_id,
-        ApplicationSubmission.user_id == current_user.id
+        ApplicationSubmission.user_id == current_user.id,
+        ApplicationSubmission.status.in_(["pending", "submitting", "success"])
     ).first()
 
     # Get resumes for selection
@@ -400,11 +402,15 @@ def submit_application(
         ApplicationSubmission.user_id == current_user.id
     ).first()
 
-    if existing and existing.status in ["pending", "submitting", "success"]:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Application already {existing.status} for this job"
-        )
+    if existing:
+        if existing.status in ["pending", "submitting", "success"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Application already {existing.status} for this job"
+            )
+        # Delete failed/skipped submissions so we can create a fresh one
+        db.delete(existing)
+        db.commit()
 
     # Create submission record
     submission = ApplicationSubmission(
