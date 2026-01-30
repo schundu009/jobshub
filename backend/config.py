@@ -75,8 +75,13 @@ class Settings(BaseSettings):
     # ==========================================================================
     # AUTHENTICATION (Phase 2)
     # ==========================================================================
-    jwt_secret_key: str = "dev-secret-key-change-in-production"
+    secret_key: str = "dev-secret-key-change-in-production"
     jwt_algorithm: str = "HS256"
+
+    @property
+    def jwt_secret_key(self) -> str:
+        """Alias for secret_key for backward compatibility."""
+        return self.secret_key
     jwt_access_token_expire_minutes: int = 15
     jwt_refresh_token_expire_days: int = 7
 
