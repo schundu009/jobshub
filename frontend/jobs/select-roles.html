@@ -143,11 +143,6 @@
             border-color: var(--accent-purple);
             background: rgba(139, 92, 246, 0.1);
         }
-        .role-option input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
         .role-option .check-icon {
             position: absolute;
             top: 12px;
@@ -336,15 +331,19 @@
         function renderRoles() {
             const grid = document.getElementById('roles-grid');
             grid.innerHTML = AVAILABLE_ROLES.map(role => `
-                <label class="role-option" data-role="${role.slug}" onclick="toggleRole('${role.slug}')">
-                    <input type="checkbox" value="${role.slug}">
+                <div class="role-option" data-role="${role.slug}">
                     <div class="check-icon">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                     <div class="role-name">${role.name}</div>
                     <div class="role-desc">${role.description}</div>
-                </label>
+                </div>
             `).join('');
+
+            // Add click handlers after rendering
+            document.querySelectorAll('.role-option').forEach(el => {
+                el.addEventListener('click', () => toggleRole(el.dataset.role));
+            });
         }
 
         function toggleRole(slug) {
@@ -362,10 +361,8 @@
                 const role = el.dataset.role;
                 if (selectedRoles.has(role)) {
                     el.classList.add('selected');
-                    el.querySelector('input').checked = true;
                 } else {
                     el.classList.remove('selected');
-                    el.querySelector('input').checked = false;
                 }
             });
 
