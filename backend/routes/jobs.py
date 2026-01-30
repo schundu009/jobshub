@@ -37,7 +37,7 @@ try:
 except Exception:
     redis_service = None
 
-CACHE_TTL_JOBS = 900  # Cache job lists for 15 minutes
+CACHE_TTL_JOBS = 10800  # Cache job lists for 3 hours
 
 
 def _redis_available() -> bool:

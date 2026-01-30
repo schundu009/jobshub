@@ -3655,44 +3655,8 @@
         }
 
         function applyRoleFilter() {
-            if (!gridApi || allJobs.length === 0) {
-                loadJobs();
-                return;
-            }
-
-            const roleConfig = currentRole ? ROLE_KEYWORDS[currentRole] : null;
-
-            processedJobs = allJobs.map(job => {
-                const salary = extractSalary(job);
-                const relevance = computeRelevance(job, roleConfig);
-                return {
-                    ...job,
-                    tech_stack: extractTechStack(job.job_description),
-                    relevance_score: relevance.score,
-                    is_relevant: relevance.isRelevant,
-                    salary_display: formatSalary(salary, job.location),
-                    salary_min_val: salary?.min || 0,
-                    job_type: detectJobType(job)
-                };
-            });
-
-            let jobsToDisplay = processedJobs;
-            if (currentRole) {
-                jobsToDisplay = processedJobs.filter(j => j.is_relevant);
-                jobsToDisplay.sort((a, b) => b.relevance_score - a.relevance_score);
-            }
-
-            gridApi.setGridOption('rowData', jobsToDisplay);
-
-            if (currentRole) {
-                gridApi.applyColumnState({ state: [{ colId: 'relevance_score', sort: 'desc' }] });
-            } else {
-                gridApi.applyColumnState({ state: [{ colId: 'posted_date', sort: 'desc' }] });
-            }
-
-            buildCompanyChips();
-            applyFilters();
-            setTimeout(() => updateStats(allJobs.length, jobsToDisplay.length), 100);
+            // Role change requires fresh API call since backend now filters by role
+            loadJobs();
         }
 
         function applyFilters() {
@@ -3887,7 +3851,18 @@
 
             try {
                 const timeRangeHours = document.getElementById('time-range-filter').value || 72;
-                const url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true&limit=500`;
+
+                // Build URL based on role selection
+                // With role: Use backend filtering (faster, fewer jobs)
+                // Without role: Load all jobs (limit 200 for performance)
+                let url;
+                if (currentRole) {
+                    // Backend filters by role - returns only relevant jobs, pre-scored
+                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&role=${currentRole}&min_score=20&limit=150`;
+                } else {
+                    // No role - load recent jobs with limit
+                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true&limit=200`;
+                }
 
                 const response = await apiRequest(url);
                 allJobs = Array.isArray(response) ? response : (response.jobs || []);
@@ -3897,7 +3872,9 @@
 
                 processedJobs = allJobs.map(job => {
                     const salary = extractSalary(job);
-                    const relevance = computeRelevance(job, roleConfig);
+                    // Use backend score if available, otherwise compute locally
+                    const backendScore = job.relevance_score || job.score || 0;
+                    const relevance = backendScore > 0 ? { score: backendScore, isRelevant: true } : computeRelevance(job, roleConfig);
                     return {
                         ...job,
                         tech_stack: extractTechStack(job.job_description),
@@ -3909,9 +3886,10 @@
                     };
                 });
 
+                // Jobs already filtered by backend when role is set
                 let jobsToDisplay = processedJobs;
                 if (currentRole) {
-                    jobsToDisplay = processedJobs.filter(j => j.is_relevant);
+                    // Already filtered by backend, just sort
                     jobsToDisplay.sort((a, b) => b.relevance_score - a.relevance_score);
                 }
 
