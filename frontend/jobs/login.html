@@ -287,11 +287,8 @@
                 };
                 localStorage.setItem('user', JSON.stringify(user));
                 history.replaceState(null, '', window.location.pathname);
-                // Redirect based on role - admins go to admin portal
-                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
-                if (isAdmin) {
-                    window.location.href = '../admin/index.html';
-                } else if (!onboardingCompleted) {
+                // Jobs portal always stays in jobs portal - redirect to discover or onboarding
+                if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
                 } else {
                     window.location.href = DEFAULT_REDIRECT;
@@ -349,13 +346,9 @@
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('token', data.access_token); // For compatibility with app.js
                 localStorage.setItem('user', JSON.stringify(data.user));
-                // Redirect based on role - admins go to admin portal
-                const userRole = data.user?.role || 'job_seeker';
-                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(userRole);
+                // Jobs portal always stays in jobs portal
                 const onboardingCompleted = data.user?.onboarding_completed || false;
-                if (isAdmin) {
-                    window.location.href = '../admin/index.html';
-                } else if (!onboardingCompleted) {
+                if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
                 } else {
                     window.location.href = DEFAULT_REDIRECT;
