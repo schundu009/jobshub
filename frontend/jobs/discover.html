@@ -3968,7 +3968,8 @@
                 processedJobs = allJobs.map(job => {
                     const salary = extractSalary(job);
                     // Use backend score if available, otherwise compute locally
-                    const backendScore = job.relevance_score || job.score || 0;
+                    // Backend returns score as job.relevance.score (nested object)
+                    const backendScore = job.relevance?.score || job.relevance_score || job.score || 0;
                     const relevance = backendScore > 0 ? { score: backendScore, isRelevant: true } : computeRelevance(job, roleConfig);
                     return {
                         ...job,
