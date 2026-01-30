@@ -596,9 +596,32 @@
 
         async function loadJobs() {
             try {
-                // Load jobs with reasonable limit for faster initial load
-                const response = await apiRequest('/jobs?active_only=true&all=true&limit=5000');
-                allJobs = Array.isArray(response) ? response : (response.jobs || []);
+                // Show loading indicator
+                document.getElementById('jobs-table-body').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">Loading jobs... <span id="load-progress">0</span> loaded</td></tr>';
+
+                // Load jobs in batches for better performance
+                const batchSize = 5000;
+                let offset = 0;
+                allJobs = [];
+                let hasMore = true;
+
+                while (hasMore) {
+                    const response = await apiRequest(`/jobs?active_only=true&all=true&limit=${batchSize}&offset=${offset}`);
+                    const jobs = Array.isArray(response) ? response : (response.jobs || []);
+                    allJobs = allJobs.concat(jobs);
+
+                    // Update progress
+                    const progressEl = document.getElementById('load-progress');
+                    if (progressEl) progressEl.textContent = allJobs.length;
+
+                    // Check if there are more jobs
+                    hasMore = jobs.length === batchSize;
+                    offset += batchSize;
+
+                    // Safety limit to prevent infinite loop
+                    if (offset > 100000) break;
+                }
+
                 updateStats();
                 populateCompanyFilter();
                 filterJobs(); // Apply any active filters including URL params
