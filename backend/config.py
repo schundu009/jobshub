@@ -90,22 +90,22 @@ class Settings(BaseSettings):
     # OAUTH PROVIDERS
     # ==========================================================================
     # Google OAuth
-    google_client_id: str = ""
-    google_client_secret: str = ""
+    google_client_id: str = os.environ.get("GOOGLE_CLIENT_ID", "")
+    google_client_secret: str = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
     # LinkedIn OAuth
-    linkedin_client_id: str = ""
-    linkedin_client_secret: str = ""
+    linkedin_client_id: str = os.environ.get("LINKEDIN_CLIENT_ID", "")
+    linkedin_client_secret: str = os.environ.get("LINKEDIN_CLIENT_SECRET", "")
 
     # GitHub OAuth
-    github_client_id: str = ""
-    github_client_secret: str = ""
+    github_client_id: str = os.environ.get("GITHUB_CLIENT_ID", "")
+    github_client_secret: str = os.environ.get("GITHUB_CLIENT_SECRET", "")
 
     # OAuth redirect base (frontend URL)
-    oauth_redirect_base: str = "http://localhost:3000"
+    oauth_redirect_base: str = os.environ.get("OAUTH_REDIRECT_BASE", "http://localhost:3000")
 
     # Backend URL (for OAuth callbacks)
-    backend_url: str = "http://localhost:8000"
+    backend_url: str = os.environ.get("BACKEND_URL", "http://localhost:8000")
 
     # ==========================================================================
     # SCRAPER SETTINGS
@@ -127,7 +127,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
 
     # CORS
-    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    cors_origins: str = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 
     @property
     def cors_origins_list(self) -> List[str]:
@@ -137,14 +137,14 @@ class Settings(BaseSettings):
     # ==========================================================================
     # EXTERNAL SERVICES
     # ==========================================================================
-    openai_api_key: str = ""
-    sentry_dsn: str = ""
+    openai_api_key: str = os.environ.get("OPENAI_API_KEY", "")
+    sentry_dsn: str = os.environ.get("SENTRY_DSN", "")
 
     # ==========================================================================
     # ENVIRONMENT
     # ==========================================================================
-    env: str = "development"
-    debug: bool = True
+    env: str = os.environ.get("ENV", "development")
+    debug: bool = os.environ.get("DEBUG", "true").lower() == "true"
 
     @property
     def is_production(self) -> bool:
