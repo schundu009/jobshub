@@ -38,7 +38,8 @@ class Settings(BaseSettings):
     # ==========================================================================
     # DATABASE
     # ==========================================================================
-    database_url: str = "postgresql://chundu@localhost:5432/jobtrails"
+    # Read DATABASE_URL from environment first (Railway sets this)
+    database_url: str = os.environ.get("DATABASE_URL", "postgresql://chundu@localhost:5432/jobtrails")
 
     # Connection pool settings
     db_pool_size: int = 5
@@ -49,7 +50,7 @@ class Settings(BaseSettings):
     # ==========================================================================
     # REDIS
     # ==========================================================================
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
     # Cache TTLs (seconds)
     cache_ttl_default: int = 300
@@ -75,7 +76,7 @@ class Settings(BaseSettings):
     # ==========================================================================
     # AUTHENTICATION (Phase 2)
     # ==========================================================================
-    secret_key: str = "dev-secret-key-change-in-production"
+    secret_key: str = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
     jwt_algorithm: str = "HS256"
 
     @property
