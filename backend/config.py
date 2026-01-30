@@ -11,25 +11,12 @@ from pydantic import field_validator
 import os
 from pathlib import Path
 
-# Find .env file - check current dir, then parent dir
-def find_env_file():
-    """Find .env file in current or parent directory."""
-    current = Path(__file__).parent / ".env"
-    parent = Path(__file__).parent.parent / ".env"
-    if current.exists():
-        return str(current)
-    if parent.exists():
-        return str(parent)
-    return ".env"  # fallback
-
-ENV_FILE = find_env_file()
-
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE,
+        env_file=".env" if os.path.exists(".env") else None,
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
