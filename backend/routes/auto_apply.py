@@ -154,6 +154,30 @@ def update_auto_apply_config(
     return {"message": "Configuration updated successfully"}
 
 
+@router.post("/reset-daily-counter")
+def reset_daily_counter(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Reset the user's daily application counter to 0."""
+    config = db.query(AutoApplyConfig).filter(
+        AutoApplyConfig.user_id == current_user.id
+    ).first()
+
+    if not config:
+        return {"message": "No config found, nothing to reset", "applications_today": 0}
+
+    config.applications_today = 0
+    config.last_reset_date = date.today()
+    db.commit()
+
+    return {
+        "message": "Daily counter reset successfully",
+        "applications_today": 0,
+        "daily_limit": config.daily_limit
+    }
+
+
 @router.get("/preflight/{job_id}")
 def preflight_check(
     job_id: int,
