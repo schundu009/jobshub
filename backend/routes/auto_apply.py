@@ -178,6 +178,90 @@ def reset_daily_counter(
     }
 
 
+@router.post("/process-queue")
+def process_application_queue(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Manually trigger processing of pending applications."""
+    from tasks.auto_apply_tasks import submit_application as submit_task
+
+    # Get pending submissions for this user
+    pending = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.user_id == current_user.id,
+        ApplicationSubmission.status == "pending"
+    ).all()
+
+    if not pending:
+        return {"message": "No pending applications to process", "queued": 0}
+
+    queued_count = 0
+    for submission in pending:
+        try:
+            # Queue the Celery task
+            submit_task.delay(
+                job_id=submission.job_id,
+                user_id=current_user.id,
+                resume_id=submission.resume_id,
+                cover_letter_text=submission.cover_letter_text,
+                use_ai_cover_letter=False,
+            )
+            queued_count += 1
+        except Exception as e:
+            # Mark as failed if we can't queue
+            submission.status = "failed"
+            submission.error_message = f"Failed to queue: {str(e)}"
+            db.commit()
+
+    return {
+        "message": f"Queued {queued_count} applications for processing",
+        "queued": queued_count,
+        "total_pending": len(pending)
+    }
+
+
+@router.delete("/clear-queue")
+def clear_queue(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete all pending submissions for the current user."""
+    deleted = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.user_id == current_user.id,
+        ApplicationSubmission.status.in_(["pending", "failed", "skipped"])
+    ).delete(synchronize_session=False)
+    db.commit()
+
+    return {"message": f"Cleared {deleted} submissions from queue", "deleted": deleted}
+
+
+@router.delete("/submission/{submission_id}")
+def cancel_submission(
+    submission_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Cancel/delete a pending submission."""
+    submission = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.id == submission_id,
+        ApplicationSubmission.user_id == current_user.id
+    ).first()
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+
+    if submission.status not in ["pending", "failed", "skipped"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot cancel submission with status: {submission.status}"
+        )
+
+    db.delete(submission)
+    db.commit()
+
+    return {"message": "Submission cancelled", "id": submission_id}
+
+
 @router.get("/preflight/{job_id}")
 def preflight_check(
     job_id: int,
