@@ -25,6 +25,168 @@ from typing import Dict, Any, List
 
 ROLE_PROFILES: List[Dict[str, Any]] = [
     # ===========================================
+    # Site Reliability Engineering
+    # ===========================================
+    {
+        "slug": "sre",
+        "name": "Site Reliability Engineer",
+        "description": "Reliability, monitoring, observability, incident response, and production systems",
+        "title_patterns": {
+            "strong_match": [
+                "sre", "site reliability", "reliability engineer",
+                "production engineer", "infrastructure engineer",
+                "platform reliability", "systems reliability"
+            ],
+            "weak_match": [
+                "devops", "platform engineer", "systems engineer",
+                "operations engineer", "cloud engineer"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "data scientist", "ml engineer",
+                "sales", "marketing", "hr"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "sre", "site reliability", "reliability", "observability",
+                "monitoring", "alerting", "incident response", "on-call",
+                "prometheus", "grafana", "datadog", "splunk", "newrelic",
+                "slo", "sli", "sla", "error budget", "toil reduction"
+            ],
+            "medium": [
+                "kubernetes", "k8s", "docker", "terraform", "ansible",
+                "aws", "gcp", "azure", "cloud", "linux",
+                "python", "go", "golang", "bash", "automation"
+            ],
+            "low": [
+                "distributed systems", "high availability", "scaling",
+                "chaos engineering", "disaster recovery", "capacity planning",
+                "postmortem", "runbooks", "playbooks"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "vue", "swift", "kotlin", "ios sdk",
+            "android sdk", "flutter", "react native", "ui design",
+            "machine learning", "deep learning", "neural network",
+            "tableau", "power bi", "salesforce"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal"],
+            "acceptable": ["mid"],
+            "exclude": []
+        },
+        "relevance_threshold": 30.0
+    },
+
+    # ===========================================
+    # Cloud/Infrastructure Architect
+    # ===========================================
+    {
+        "slug": "cloud_architect",
+        "name": "Cloud/Infrastructure Architect",
+        "description": "Cloud architecture, infrastructure design, networking, and scalability",
+        "title_patterns": {
+            "strong_match": [
+                "cloud architect", "infrastructure architect", "solutions architect",
+                "platform architect", "systems architect", "technical architect",
+                "cloud infrastructure", "enterprise architect"
+            ],
+            "weak_match": [
+                "senior cloud engineer", "principal engineer", "staff engineer",
+                "infrastructure engineer", "devops architect"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "data scientist", "ml engineer",
+                "sales", "marketing", "hr"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "architect", "architecture", "cloud", "aws", "gcp", "azure",
+                "infrastructure", "scalability", "high availability",
+                "multi-cloud", "hybrid cloud", "cloud native",
+                "well-architected", "landing zone", "cloud strategy"
+            ],
+            "medium": [
+                "kubernetes", "terraform", "networking", "vpc", "security",
+                "cost optimization", "migration", "modernization",
+                "microservices", "serverless", "containers"
+            ],
+            "low": [
+                "design patterns", "best practices", "governance",
+                "compliance", "disaster recovery", "capacity planning",
+                "documentation", "technical leadership"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "vue", "swift", "kotlin", "ios sdk",
+            "android sdk", "flutter", "react native", "ui design",
+            "machine learning", "deep learning", "tableau", "power bi"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal", "architect"],
+            "acceptable": [],
+            "exclude": ["junior", "entry"]
+        },
+        "relevance_threshold": 30.0
+    },
+
+    # ===========================================
+    # Platform Engineering
+    # ===========================================
+    {
+        "slug": "platform",
+        "name": "Platform Engineer",
+        "description": "Developer platforms, internal tools, Kubernetes, and developer experience",
+        "title_patterns": {
+            "strong_match": [
+                "platform engineer", "platform developer", "developer platform",
+                "internal tools engineer", "developer experience", "devx",
+                "infrastructure platform", "cloud platform engineer"
+            ],
+            "weak_match": [
+                "devops", "sre", "infrastructure engineer", "systems engineer",
+                "tools engineer", "automation engineer"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "data scientist", "ml engineer",
+                "sales", "marketing"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "platform", "kubernetes", "k8s", "developer experience", "devx",
+                "internal developer platform", "idp", "backstage", "crossplane",
+                "gitops", "argocd", "flux", "helm", "operator"
+            ],
+            "medium": [
+                "terraform", "pulumi", "ci/cd", "docker", "containers",
+                "aws", "gcp", "azure", "service mesh", "istio",
+                "developer productivity", "self-service"
+            ],
+            "low": [
+                "automation", "tooling", "abstractions", "golden paths",
+                "templates", "scaffolding", "documentation",
+                "onboarding", "standards"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "vue", "swift", "kotlin", "ios sdk",
+            "android sdk", "flutter", "react native", "ui design",
+            "machine learning", "deep learning", "tableau", "power bi"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal"],
+            "acceptable": ["mid"],
+            "exclude": []
+        },
+        "relevance_threshold": 30.0
+    },
+
+    # ===========================================
     # DevOps / SRE / Platform
     # ===========================================
     {
