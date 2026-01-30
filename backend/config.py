@@ -154,8 +154,3 @@ def get_settings() -> Settings:
 
 # Global settings instance for backward compatibility
 settings = get_settings()
-
-# Debug: Print OAuth config status on startup
-print(f"OAuth Config - Google Client ID present: {bool(settings.google_client_id)}")
-print(f"OAuth Config - GitHub Client ID present: {bool(settings.github_client_id)}")
-print(f"OAuth Config - LinkedIn Client ID present: {bool(settings.linkedin_client_id)}")
