@@ -90,11 +90,11 @@ PUBLIC_ENDPOINTS = {
 
 # Rate limits per endpoint category
 RATE_LIMITS = {
-    "auth": {"limit": 10, "window": 60},       # 10 requests/minute for auth
-    "auth_login": {"limit": 5, "window": 60},  # 5 login attempts/minute
-    "api_read": {"limit": 300, "window": 60},  # 300 reads/minute
-    "api_write": {"limit": 150, "window": 60}, # 150 writes/minute (for auto-save)
-    "scraper": {"limit": 20, "window": 3600},  # 20 scraper triggers/hour
+    "auth": {"limit": 20, "window": 60},       # 20 requests/minute for auth
+    "auth_login": {"limit": 10, "window": 60}, # 10 login attempts/minute
+    "api_read": {"limit": 500, "window": 60},  # 500 reads/minute
+    "api_write": {"limit": 300, "window": 60}, # 300 writes/minute
+    "scraper": {"limit": 30, "window": 3600},  # 30 scraper triggers/hour
     "default": {"limit": RATE_LIMIT_REQUESTS, "window": RATE_LIMIT_WINDOW},
 }
 
