@@ -155,11 +155,11 @@ def get_onboarding_status(
     ).first() is not None
 
     return {
-        "onboarding_completed": getattr(current_user, 'onboarding_completed', False) or False,
-        "onboarding_completed_at": getattr(current_user, 'onboarding_completed_at', None),
+        "onboarding_completed": current_user.onboarding_completed or False,
+        "onboarding_completed_at": current_user.onboarding_completed_at,
         "has_resume": has_resume,
-        "has_personal_info": bool(getattr(current_user, 'first_name', None) and getattr(current_user, 'last_name', None) and getattr(current_user, 'phone', None)),
-        "has_job_preferences": bool(getattr(current_user, 'job_titles', None) and getattr(current_user, 'experience_level', None))
+        "has_personal_info": bool(current_user.first_name and current_user.last_name and current_user.phone),
+        "has_job_preferences": bool(current_user.job_titles and current_user.experience_level)
     }
 
 
@@ -1270,127 +1270,5 @@ def setup_admin_chundu(
         "email": user.email,
         "old_role": old_role,
         "new_role": "administrator"
-    }
-
-
-# ============== Job Roles Management Endpoints ==============
-
-AVAILABLE_ROLES = [
-    {"slug": "devops", "name": "DevOps Engineer", "description": "Infrastructure automation, CI/CD, cloud platforms"},
-    {"slug": "sre", "name": "Site Reliability Engineer", "description": "Reliability, monitoring, observability, incident response"},
-    {"slug": "cloud_architect", "name": "Cloud/Infrastructure Architect", "description": "Cloud architecture, networking, security, scalability"},
-    {"slug": "platform", "name": "Platform Engineer", "description": "Developer experience, internal tools, kubernetes"},
-    {"slug": "backend", "name": "Backend Engineer", "description": "APIs, databases, microservices, distributed systems"},
-    {"slug": "fullstack", "name": "Full Stack Engineer", "description": "Frontend and backend, react, nodejs, databases"},
-    {"slug": "data", "name": "Data Engineer", "description": "ETL, data pipelines, spark, data warehouse"},
-    {"slug": "ml", "name": "ML/AI Engineer", "description": "Machine learning, AI, deep learning, MLOps"},
-    {"slug": "security", "name": "Security Engineer", "description": "Cybersecurity, penetration testing, DevSecOps"},
-    {"slug": "frontend", "name": "Frontend Engineer", "description": "React, angular, vue, javascript, UI/UX"},
-    {"slug": "mobile", "name": "Mobile Engineer", "description": "iOS, Android, Swift, Kotlin, React Native"},
-]
-
-
-@router.get("/job-roles")
-def get_user_job_roles(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Get user's selected job roles and available roles.
-
-    Returns:
-    - selected_roles: User's currently selected role slugs
-    - detected_roles: AI-detected roles from resume (if available)
-    - available_roles: All available roles to choose from
-    - roles_confirmed: Whether user has confirmed their role selection
-    """
-    return {
-        "selected_roles": getattr(current_user, 'job_roles', []) or [],
-        "detected_roles": getattr(current_user, 'detected_roles', []) or [],
-        "available_roles": AVAILABLE_ROLES,
-        "roles_confirmed": getattr(current_user, 'roles_confirmed_at', None) is not None
-    }
-
-
-class JobRolesUpdate(BaseModel):
-    roles: List[str] = Field(..., min_length=1, max_length=5, description="List of role slugs (1-5 roles)")
-
-
-@router.post("/job-roles")
-def update_user_job_roles(
-    request: JobRolesUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Save user's selected job roles.
-
-    Validates that all roles are valid slugs and saves them.
-    Also marks roles as confirmed with timestamp.
-    """
-    from datetime import datetime
-
-    valid_slugs = {r["slug"] for r in AVAILABLE_ROLES}
-    invalid_roles = [r for r in request.roles if r not in valid_slugs]
-
-    if invalid_roles:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid role slugs: {invalid_roles}. Valid options: {list(valid_slugs)}"
-        )
-
-    current_user.job_roles = request.roles
-    current_user.roles_confirmed_at = datetime.utcnow()
-    db.commit()
-
-    return {
-        "message": "Job roles updated successfully",
-        "roles": request.roles,
-        "roles_confirmed": True
-    }
-
-
-@router.get("/detect-roles")
-def detect_roles_from_resume(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Analyze user's resume and detect suitable job roles using AI.
-
-    Returns roles with confidence scores and reasons.
-    Stores the detected roles in user profile for future reference.
-    """
-    from services.openai_service import detect_roles_from_resume as ai_detect_roles
-
-    # Get user's resume
-    resume = db.query(UserDocument).filter(
-        UserDocument.user_id == current_user.id,
-        UserDocument.document_type == "resume"
-    ).order_by(UserDocument.is_default.desc(), UserDocument.created_at.desc()).first()
-
-    if not resume or not resume.content_text:
-        raise HTTPException(
-            status_code=400,
-            detail="No resume found. Please upload a resume first."
-        )
-
-    # Detect roles using AI
-    try:
-        detected = ai_detect_roles(resume.content_text)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to analyze resume: {str(e)}"
-        )
-
-    # Save detected roles to user profile
-    current_user.detected_roles = detected
-    db.commit()
-
-    return {
-        "detected_roles": detected,
-        "resume_used": resume.filename,
-        "message": "Roles detected successfully. Review and confirm your selection."
     }
 

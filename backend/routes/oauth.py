@@ -109,10 +109,8 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     # URL encode the user name to handle special characters
     encoded_name = urllib.parse.quote(user.name or '')
 
-    # Get onboarding and roles status safely
-    onboarding_completed = "true" if getattr(user, 'onboarding_completed', False) else "false"
-    job_roles = getattr(user, 'job_roles', []) or []
-    roles_confirmed = "true" if getattr(user, 'roles_confirmed_at', None) else "false"
+    # Get onboarding status
+    onboarding_completed = "true" if user.onboarding_completed else "false"
 
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
@@ -124,8 +122,6 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
         f"&user_name={encoded_name}"
         f"&user_role={user.role or 'user'}"
         f"&onboarding_completed={onboarding_completed}"
-        f"&roles_confirmed={roles_confirmed}"
-        f"&job_roles={','.join(job_roles) if job_roles else ''}"
     )
     return RedirectResponse(url=redirect_url)
 

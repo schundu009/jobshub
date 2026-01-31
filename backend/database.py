@@ -81,9 +81,6 @@ def _run_early_migrations():
         ("security_clearance", "VARCHAR(10)"),
         ("apply_mode", "VARCHAR(20) DEFAULT 'hybrid'"),
         ("excluded_companies", "JSON"),
-        ("job_roles", "JSON"),
-        ("detected_roles", "JSON"),
-        ("roles_confirmed_at", "TIMESTAMP"),
         ("onboarding_completed", "BOOLEAN DEFAULT FALSE"),
         ("onboarding_completed_at", "TIMESTAMP"),
     ]

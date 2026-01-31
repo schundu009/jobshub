@@ -164,14 +164,6 @@ class User(Base):
     apply_mode = Column(String(20), default="hybrid")  # hybrid, auto, review
     excluded_companies = Column(JSON, default=list)  # Companies to exclude from auto-apply
 
-    # Smart Role-based Job Discovery
-    # User's selected job roles for filtering (e.g., ["devops", "sre", "cloud_architect"])
-    job_roles = Column(JSON, default=list)
-    # AI-detected roles from resume analysis with confidence: [{"role": "devops", "confidence": 0.92}, ...]
-    detected_roles = Column(JSON, default=list)
-    # Timestamp when user confirmed their role selection
-    roles_confirmed_at = Column(DateTime, nullable=True)
-
     # Onboarding tracking
     onboarding_completed = Column(Boolean, default=False, index=True)
     onboarding_completed_at = Column(DateTime, nullable=True)
