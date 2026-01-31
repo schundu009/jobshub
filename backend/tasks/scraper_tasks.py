@@ -183,50 +183,58 @@ def scrape_company_browser(self, company_slug: str) -> dict:
     Returns:
         Dict with scrape results
     """
+    # Check if enabled with a short-lived connection
     db = get_db()
     try:
-        # Check if enabled
         if not is_scraper_enabled(db, company_slug):
             logger.info(f"Scraper {company_slug} is disabled, skipping")
             return {"status": "skipped", "reason": "disabled"}
+    finally:
+        db.close()
 
-        # Get the scraper
-        rate_limiter = get_rate_limiter()
+    # Get the scraper
+    rate_limiter = get_rate_limiter()
 
-        # Import here to avoid circular imports
-        from services.browser_pool import get_browser_pool
+    # Import here to avoid circular imports
+    from services.browser_pool import get_browser_pool
 
-        async def run_with_browser():
-            browser_pool = await get_browser_pool()
-            scraper = get_scraper(
-                company_slug,
-                rate_limiter=rate_limiter,
-                browser_pool=browser_pool,
-            )
+    async def run_with_browser():
+        browser_pool = await get_browser_pool()
+        scraper = get_scraper(
+            company_slug,
+            rate_limiter=rate_limiter,
+            browser_pool=browser_pool,
+        )
 
-            if not scraper:
-                return None, "scraper_not_found"
+        if not scraper:
+            return None, "scraper_not_found"
 
-            if scraper.config.scraper_type != ScraperType.PLAYWRIGHT:
-                return None, "wrong_scraper_type"
+        if scraper.config.scraper_type != ScraperType.PLAYWRIGHT:
+            return None, "wrong_scraper_type"
 
-            return await scraper.run(), None
+        return await scraper.run(), None
 
+    try:
         result, error = asyncio.run(run_with_browser())
 
         if error:
             logger.error(f"Error for {company_slug}: {error}")
             return {"status": "error", "reason": error}
 
-        # Save jobs if successful
-        if result.success and result.jobs:
-            from services.scraper_service import save_scraped_jobs
-            jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-            result.jobs_new = jobs_new
-            result.jobs_updated = jobs_updated
+        # Get a FRESH database connection after browser operation
+        db = get_db()
+        try:
+            # Save jobs if successful
+            if result.success and result.jobs:
+                from services.scraper_service import save_scraped_jobs
+                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                result.jobs_new = jobs_new
+                result.jobs_updated = jobs_updated
 
-        # Record the run
-        record_scraper_run(db, company_slug, result, task_id=self.request.id)
+            # Record the run
+            record_scraper_run(db, company_slug, result, task_id=self.request.id)
+        finally:
+            db.close()
 
         return {
             "status": "success" if result.success else "failed",
@@ -246,11 +254,13 @@ def scrape_company_browser(self, company_slug: str) -> dict:
             started_at=datetime.utcnow(),
             completed_at=datetime.utcnow(),
         )
-        record_scraper_run(db, company_slug, result, task_id=self.request.id)
+        # Get fresh connection to record failure
+        db = get_db()
+        try:
+            record_scraper_run(db, company_slug, result, task_id=self.request.id)
+        finally:
+            db.close()
         raise self.retry(exc=e)
-
-    finally:
-        db.close()
 
 
 @celery_app.task
