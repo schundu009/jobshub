@@ -234,51 +234,124 @@ class WorkdayHybridMixin:
 
 
 # Company configurations: (slug, name, tenant, subdomain, job_site_path)
-# Full list of Workday companies - hybrid scraper will try API then Playwright
+# Verified Workday URLs - January 2025
 WORKDAY_COMPANIES = [
-    # Major tech/consulting (API works)
+    # Retail
     ("walmart", "Walmart", "walmart", "wd5", "WalmartExternal"),
     ("target", "Target", "target", "wd5", "targetcareers"),
+    ("homedepot", "Home Depot", "homedepot", "wd5", "CareerDepot"),
+    ("kohls", "Kohl's", "kohls", "wd5", "External"),
+    ("nordstrom", "Nordstrom", "nordstrom", "wd5", "External"),
+    ("gap", "Gap Inc.", "gap", "wd5", "External"),
+    ("lululemon", "Lululemon", "lululemon", "wd1", "External"),
+
+    # Tech & Media
     ("netflix", "Netflix", "netflix", "wd1", "Netflix"),
+    ("hp", "HP Inc.", "hp", "wd5", "External"),
+    ("westerndigital", "Western Digital", "westerndigital", "wd5", "External"),
+    ("motorolasolutions", "Motorola Solutions", "motorolasolutions", "wd5", "External"),
+    ("ebay", "eBay", "ebay", "wd5", "External"),
+    ("equinix", "Equinix", "equinix", "wd5", "External"),
+
+    # Consulting & Professional Services
     ("accenture", "Accenture", "accenture", "wd103", "AccentureCareers"),
     ("pwc", "PwC", "pwc", "wd3", "Global_Experienced_Careers"),
     ("deloitte", "Deloitte Ireland", "deloitteie", "wd3", "Experienced_Professionals"),
-    ("leidos", "Leidos", "leidos", "wd5", "External"),
-    ("pnc", "PNC Bank", "pnc", "wd5", "External"),
-    ("travelers", "Travelers", "travelers", "wd5", "External"),
-
-    # Fortune 500 / Enterprise (verified paths or Playwright fallback)
-    ("3m", "3M Company", "3m", "wd1", "Search"),  # Verified: 610 jobs
-    ("abbvie", "AbbVie Inc.", "abbvie", "wd5", "External"),
-    ("amgen", "Amgen Inc.", "amgen", "wd5", "External"),
-    ("att", "AT&T", "att", "wd5", "External"),
-    ("bankofamerica", "Bank of America", "bankofamerica", "wd1", "External"),
-    ("blackrock", "BlackRock", "blackrock", "wd1", "External"),
-    ("boozallen", "Booz Allen Hamilton", "boozallen", "wd1", "External"),
-    ("caterpillar", "Caterpillar", "caterpillar", "wd5", "External"),
-    ("chevron", "Chevron", "chevron", "wd5", "External"),
-    ("citi", "Citibank", "citi", "wd5", "External"),
     ("cognizant", "Cognizant", "cognizant", "wd1", "External"),
-    ("fedex", "FedEx", "fedex", "wd5", "External"),
-    ("ge", "General Electric", "ge", "wd5", "External"),
-    ("homedepot", "Home Depot", "homedepot", "wd5", "External"),
-    ("intuit", "Intuit", "intuit", "wd5", "External"),
-    ("lockheedmartin", "Lockheed Martin", "lockheedmartin", "wd5", "External"),
-    ("merck", "Merck", "merck", "wd5", "External"),
-    ("morganstanley", "Morgan Stanley", "morganstanley", "wd5", "External"),
-    ("northropgrumman", "Northrop Grumman", "northropgrumman", "wd5", "External"),
-    # Pfizer removed - uses custom careers site at pfizer.com/about/careers
-    ("southwest", "Southwest Airlines", "southwest", "wd5", "External"),
-    ("thermofisher", "Thermo Fisher", "thermofisher", "wd5", "External"),
-    ("wellsfargo", "Wells Fargo", "wellsfargo", "wd5", "External"),
-
-    # Additional enterprise companies
-    ("airbnb", "Airbnb", "airbnb", "wd5", "Airbnb"),
     ("capgemini", "Capgemini", "capgemini", "wd3", "External"),
-    ("siemens", "Siemens", "siemens", "wd1", "External"),
-    ("shell", "Shell", "shell", "wd3", "External"),
-    ("unilever", "Unilever", "unilever", "wd3", "External"),
+    ("dxc", "DXC Technology", "dxc", "wd1", "External"),
+    ("boozallen", "Booz Allen Hamilton", "boozallen", "wd1", "External"),
+    ("jll", "Jones Lang LaSalle", "jll", "wd1", "External"),
+
+    # Banking & Finance
+    ("wellsfargo", "Wells Fargo", "wf", "wd1", "WellsFargoJobs"),
+    ("bankofamerica", "Bank of America", "ghr", "wd1", "Lateral-US"),
+    ("morganstanley", "Morgan Stanley", "ms", "wd5", "External"),
+    ("citi", "Citibank", "citi", "wd5", "2"),
+    ("blackrock", "BlackRock", "blackrock", "wd1", "BlackRock_Professional"),
+    ("mastercard", "Mastercard", "mastercard", "wd1", "Campus"),
+    ("pnc", "PNC Bank", "pnc", "wd5", "External"),
+    ("schwab", "Charles Schwab", "schwab", "wd1", "External"),
+    ("discover", "Discover Financial", "discover", "wd5", "External"),
+    ("fifththird", "Fifth Third Bank", "fifththird", "wd5", "External"),
+    ("keybank", "KeyBank", "keybank", "wd5", "External"),
+    ("mtbank", "M&T Bank", "mtbank", "wd5", "External"),
+    ("regions", "Regions Bank", "regions", "wd5", "External"),
+    ("huntington", "Huntington Bank", "huntington", "wd5", "External"),
+    ("fiserv", "Fiserv", "fiserv", "wd5", "External"),
+    ("franklintempleton", "Franklin Templeton", "franklintempleton", "wd5", "External"),
+    ("freddiemac", "Freddie Mac", "freddiemac", "wd1", "External"),
+    ("fanniemae", "Fannie Mae", "fanniemae", "wd5", "External"),
+    ("mmc", "Marsh & McLennan", "mmc", "wd1", "External"),
+
+    # Insurance
+    ("travelers", "Travelers", "travelers", "wd5", "External"),
+    ("hartford", "Hartford Insurance", "hartford", "wd5", "External"),
+    ("humana", "Humana", "humana", "wd5", "External"),
+    ("prudential", "Prudential", "prudential", "wd5", "External"),
+    ("massmutual", "MassMutual", "massmutual", "wd5", "External"),
+
+    # Pharma & Healthcare
+    ("pfizer", "Pfizer", "pfizer", "wd1", "PfizerCareers"),
+    ("abbott", "Abbott", "abbott", "wd5", "abbottcareers"),
+    ("merck", "Merck", "merck", "wd5", "External"),
+    ("bms", "Bristol-Myers Squibb", "bms", "wd5", "External"),
+    ("amgen", "Amgen Inc.", "amgen", "wd5", "External"),
+    ("biogen", "Biogen", "biogen", "wd5", "External"),
+    ("thermofisher", "Thermo Fisher", "thermofisher", "wd5", "External"),
+    ("cardinalhealth", "Cardinal Health", "cardinalhealth", "wd1", "External"),
+    ("davita", "DaVita", "davita", "wd1", "External"),
+    ("optum", "Optum", "optum", "wd5", "External"),
+    ("walgreens", "Walgreens", "walgreens", "wd5", "External"),
+
+    # Defense & Aerospace
+    ("northropgrumman", "Northrop Grumman", "ngc", "wd1", "Northrop_Grumman_External_Site"),
+    ("rtx", "RTX Corporation", "globalhr", "wd5", "REC_RTX_Ext_Gateway"),
+    ("leidos", "Leidos", "leidos", "wd5", "External"),
+
+    # Energy & Industrial
+    ("chevron", "Chevron", "chevron", "wd5", "jobs"),
+    ("exxonmobil", "ExxonMobil", "exxonmobil", "wd5", "External"),
+    ("caterpillar", "Caterpillar", "caterpillar", "wd5", "External"),
+    ("ge", "General Electric", "ge", "wd5", "External"),
+    ("dupont", "DuPont", "dupont", "wd5", "External"),
+    ("dow", "Dow Chemical", "dow", "wd5", "External"),
+    ("appliedmaterials", "Applied Materials", "appliedmaterials", "wd5", "External"),
+    ("conocophillips", "ConocoPhillips", "conocophillips", "wd5", "External"),
+    ("marathon", "Marathon Petroleum", "marathon", "wd5", "External"),
+    ("3m", "3M Company", "3m", "wd1", "Search"),
+
+    # Consumer & Food
+    ("pg", "Procter & Gamble", "pg", "wd5", "External"),
+    ("kimberlyclark", "Kimberly-Clark", "kimberlyclark", "wd5", "External"),
+    ("tyson", "Tyson Foods", "tyson", "wd5", "External"),
+    ("chipotle", "Chipotle", "chipotle", "wd1", "External"),
+    ("mondelez", "Mondelez", "mondelez", "wd1", "External"),
+    ("smucker", "J.M. Smucker", "smucker", "wd1", "External"),
+    ("usfoods", "US Foods", "usfoods", "wd5", "External"),
+
+    # Transportation & Logistics
+    ("fedex", "FedEx", "fedex", "wd1", "FXE_External"),
+    ("southwest", "Southwest Airlines", "southwest", "wd5", "External"),
+    ("jbhunt", "J.B. Hunt", "jbhunt", "wd5", "External"),
+
+    # Telecom
+    ("att", "AT&T", "att", "wd5", "External"),
+
+    # Real Estate & Construction
+    ("lennar", "Lennar Homes", "lennar", "wd1", "External"),
+    ("tollbrothers", "Toll Brothers", "tollbrothers", "wd1", "External"),
+
+    # European/Global
     ("vodafone", "Vodafone", "vodafone", "wd3", "External"),
+    ("unilever", "Unilever", "unilever", "wd3", "External"),
+    ("siemens", "Siemens", "siemens", "wd1", "External"),
+    ("bosch", "Bosch", "bosch", "wd1", "External"),
+    ("philips", "Philips", "philips", "wd3", "External"),
+    ("shell", "Shell", "shell", "wd3", "External"),
+    ("bp", "BP", "bp", "wd1", "External"),
+    ("dhl", "DHL", "dhl", "wd3", "External"),
+    ("bae", "BAE Systems", "bae", "wd1", "External"),
 ]
 
 
