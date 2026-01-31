@@ -315,9 +315,9 @@ async def get_jobs(
         user_roles_list = [r.strip() for r in roles.split(",") if r.strip()]
     elif role:
         user_roles_list = [role]
-    elif current_user and current_user.job_roles:
+    elif current_user and getattr(current_user, 'job_roles', None):
         user_roles_list = current_user.job_roles
-    elif current_user and current_user.role_profile:
+    elif current_user and getattr(current_user, 'role_profile', None):
         user_roles_list = [current_user.role_profile.slug]
 
     # Generate cache key for this query
