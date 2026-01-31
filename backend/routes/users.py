@@ -155,11 +155,11 @@ def get_onboarding_status(
     ).first() is not None
 
     return {
-        "onboarding_completed": current_user.onboarding_completed or False,
-        "onboarding_completed_at": current_user.onboarding_completed_at,
+        "onboarding_completed": getattr(current_user, 'onboarding_completed', False) or False,
+        "onboarding_completed_at": getattr(current_user, 'onboarding_completed_at', None),
         "has_resume": has_resume,
-        "has_personal_info": bool(current_user.first_name and current_user.last_name and current_user.phone),
-        "has_job_preferences": bool(current_user.job_titles and current_user.experience_level)
+        "has_personal_info": bool(getattr(current_user, 'first_name', None) and getattr(current_user, 'last_name', None) and getattr(current_user, 'phone', None)),
+        "has_job_preferences": bool(getattr(current_user, 'job_titles', None) and getattr(current_user, 'experience_level', None))
     }
 
 
@@ -1305,10 +1305,10 @@ def get_user_job_roles(
     - roles_confirmed: Whether user has confirmed their role selection
     """
     return {
-        "selected_roles": current_user.job_roles or [],
-        "detected_roles": current_user.detected_roles or [],
+        "selected_roles": getattr(current_user, 'job_roles', []) or [],
+        "detected_roles": getattr(current_user, 'detected_roles', []) or [],
         "available_roles": AVAILABLE_ROLES,
-        "roles_confirmed": current_user.roles_confirmed_at is not None
+        "roles_confirmed": getattr(current_user, 'roles_confirmed_at', None) is not None
     }
 
 
