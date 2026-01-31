@@ -1,375 +1,96 @@
-"""Workday-based enterprise company scrapers using Playwright."""
-from scrapers.base import PlaywrightScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+"""Workday-based enterprise company scrapers using HTTP API."""
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
 from scrapers.registry import ScraperRegistry
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
-import asyncio
-import re
+from typing import List, Optional
+from datetime import datetime
 
 
-class WorkdayPlaywrightMixin:
-    """Mixin for Workday job board scraping using Playwright."""
+class WorkdayAPIMixin:
+    """Mixin for Workday job board scraping using HTTP API."""
 
     async def scrape(self) -> ScrapeResult:
-        """Scrape Workday careers using Playwright browser automation."""
+        """Scrape Workday careers using their JSON API."""
         all_jobs: List[ScrapedJob] = []
+        offset = 0
+        limit = 50
 
-        page = await self.get_page()
-        try:
-            # Navigate to the careers page
-            await page.goto(self.BASE_URL, wait_until="networkidle", timeout=30000)
+        while True:
+            payload = {"limit": limit, "offset": offset, "searchText": ""}
 
-            # Wait for job listings to load
             try:
-                await page.wait_for_selector('[data-automation-id="jobItem"], .css-19uc56f, section[data-automation-id="jobResults"]', timeout=15000)
-            except Exception:
-                self.logger.info(f"No job listings found on {self.BASE_URL}")
-                return ScrapeResult(success=True, jobs=[], jobs_found=0, error_message=None)
+                data = await self.fetch_json(self.API_URL, method="POST", json=payload)
+            except Exception as e:
+                self.logger.error(f"Error fetching jobs from {self.API_URL}: {e}")
+                if all_jobs:
+                    # Return what we have so far
+                    break
+                return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message=str(e))
 
-            # Scroll to load more jobs (Workday uses lazy loading)
-            for _ in range(5):
-                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                await asyncio.sleep(1)
+            if not data:
+                self.logger.warning(f"No data returned from {self.API_URL}")
+                break
 
-            # Extract job data from cards
-            job_cards = await page.query_selector_all('[data-automation-id="jobItem"], li[class*="css-"]')
+            jobs = data.get("jobPostings", [])
+            total = data.get("total", 0)
 
-            for card in job_cards:
-                job = await self._parse_job_card(card, page)
-                if job:
-                    all_jobs.append(job)
+            if not jobs:
+                if offset == 0:
+                    self.logger.info(f"No jobs found for {self.config.company_name}")
+                break
 
-            # Fetch job details (description, posted date, salary) for each job
-            jobs_to_fetch = all_jobs[:50]
-            for i, job in enumerate(jobs_to_fetch):
-                if job.job_url:
-                    try:
-                        details = await self._fetch_job_details(page, job.job_url)
-                        if details:
-                            if details.get('description'):
-                                job.job_description = details['description']
-                            if details.get('posted_date'):
-                                job.posted_date = details['posted_date']
-                            if details.get('salary_min'):
-                                job.salary_min = details['salary_min']
-                            if details.get('salary_max'):
-                                job.salary_max = details['salary_max']
-                        # Small delay to avoid rate limiting
-                        if i < len(jobs_to_fetch) - 1:
-                            await asyncio.sleep(0.5)
-                    except Exception as e:
-                        self.logger.debug(f"Error fetching details for {job.title}: {e}")
+            for job in jobs:
+                parsed = self.parse_job(job)
+                if parsed:
+                    all_jobs.append(parsed)
 
-            return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+            self.logger.debug(f"Fetched {len(jobs)} jobs (offset={offset}, total={total})")
 
-        except Exception as e:
-            self.logger.error(f"Error scraping {self.config.company_name}: {e}")
-            return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message=str(e))
-        finally:
-            await self.release_page(page)
+            if len(jobs) < limit:
+                break
+            offset += limit
+            if offset >= min(total, 1000):  # Cap at 1000 jobs
+                break
 
-    async def _fetch_job_details(self, page, job_url: str) -> Optional[Dict[str, Any]]:
-        """Fetch full job details (description, posted date, salary) from detail page."""
-        result = {
-            'description': None,
-            'posted_date': None,
-            'salary_min': None,
-            'salary_max': None
-        }
+        self.logger.info(f"Scraped {len(all_jobs)} jobs from {self.config.company_name}")
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
 
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        """Parse a job from Workday API response."""
         try:
-            await page.goto(job_url, wait_until="networkidle", timeout=20000)
+            title = raw.get("title", "")
+            if not title:
+                return None
 
-            # Wait for job content to load
-            await page.wait_for_selector('[data-automation-id="jobPostingDescription"], .job-description, [class*="jobDescription"]', timeout=10000)
+            # Extract job ID from bulletFields (usually first item)
+            bullet_fields = raw.get("bulletFields", [])
+            job_id = bullet_fields[0] if bullet_fields else ""
 
-            # === Extract Job Description ===
-            description_selectors = [
-                '[data-automation-id="jobPostingDescription"]',
-                '.job-description',
-                '[class*="jobDescription"]',
-                '[data-automation-id="job-posting-description"]',
-                'div[class*="description"]'
-            ]
+            # Location
+            location = raw.get("locationsText", "")
 
-            for selector in description_selectors:
-                desc_el = await page.query_selector(selector)
-                if desc_el:
-                    description = await desc_el.inner_text()
-                    if description and len(description) > 50:
-                        result['description'] = description.strip()
-                        break
-
-            # === Extract Posted Date ===
-            posted_date = await self._extract_posted_date(page)
-            if posted_date:
-                result['posted_date'] = posted_date
-
-            # === Extract Salary ===
-            salary_min, salary_max = await self._extract_salary(page, result.get('description', ''))
-            if salary_min:
-                result['salary_min'] = salary_min
-            if salary_max:
-                result['salary_max'] = salary_max
-
-            return result
-        except Exception as e:
-            self.logger.debug(f"Error fetching details from {job_url}: {e}")
-            return result
-
-    async def _extract_posted_date(self, page) -> Optional[datetime]:
-        """Extract posted date from Workday job detail page."""
-        try:
-            # Try multiple selectors for posted date
-            date_selectors = [
-                '[data-automation-id="postedOn"]',
-                '[data-automation-id="posted-on"]',
-                'dd[data-automation-id="time"]',
-                '[class*="postedDate"]',
-                '[class*="posted-date"]',
-                'time[datetime]',
-            ]
-
-            for selector in date_selectors:
-                date_el = await page.query_selector(selector)
-                if date_el:
-                    # Check for datetime attribute first
-                    datetime_attr = await date_el.get_attribute('datetime')
-                    if datetime_attr:
-                        try:
-                            return datetime.fromisoformat(datetime_attr.replace('Z', '+00:00').split('+')[0])
-                        except:
-                            pass
-
-                    # Try text content
-                    date_text = await date_el.inner_text()
-                    if date_text:
-                        parsed = self._parse_relative_date(date_text.strip())
-                        if parsed:
-                            return parsed
-
-            # Try to find date in page content using regex
-            page_content = await page.content()
-
-            # Look for "Posted X days ago" pattern
-            relative_patterns = [
-                r'[Pp]osted\s+(\d+)\s+days?\s+ago',
-                r'[Pp]osted\s+(\d+)\s+hours?\s+ago',
-                r'[Pp]osted\s+today',
-                r'[Pp]osted\s+yesterday',
-            ]
-
-            for pattern in relative_patterns:
-                match = re.search(pattern, page_content)
-                if match:
-                    return self._parse_relative_date(match.group(0))
-
-            # Look for actual date formats
-            date_patterns = [
-                r'(\d{4}-\d{2}-\d{2})',  # 2024-01-15
-                r'(\d{1,2}/\d{1,2}/\d{4})',  # 1/15/2024
-                r'([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})',  # Jan 15, 2024
-            ]
-
-            for pattern in date_patterns:
-                match = re.search(pattern, page_content)
-                if match:
-                    date_str = match.group(1)
-                    for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%b %d, %Y']:
-                        try:
-                            return datetime.strptime(date_str, fmt)
-                        except:
-                            continue
-
-            return None
-        except Exception as e:
-            self.logger.debug(f"Error extracting posted date: {e}")
-            return None
-
-    def _parse_relative_date(self, text: str) -> Optional[datetime]:
-        """Parse relative date strings like 'Posted 3 days ago'."""
-        text = text.lower().strip()
-        now = datetime.now()
-
-        if 'today' in text:
-            return now
-        elif 'yesterday' in text:
-            return now - timedelta(days=1)
-
-        # "X days ago"
-        days_match = re.search(r'(\d+)\s*days?\s*ago', text)
-        if days_match:
-            days = int(days_match.group(1))
-            return now - timedelta(days=days)
-
-        # "X hours ago"
-        hours_match = re.search(r'(\d+)\s*hours?\s*ago', text)
-        if hours_match:
-            return now
-
-        # "X weeks ago"
-        weeks_match = re.search(r'(\d+)\s*weeks?\s*ago', text)
-        if weeks_match:
-            weeks = int(weeks_match.group(1))
-            return now - timedelta(weeks=weeks)
-
-        # "X months ago"
-        months_match = re.search(r'(\d+)\s*months?\s*ago', text)
-        if months_match:
-            months = int(months_match.group(1))
-            return now - timedelta(days=months * 30)
-
-        return None
-
-    async def _extract_salary(self, page, description: str = '') -> tuple:
-        """Extract salary range from Workday job detail page."""
-        salary_min = None
-        salary_max = None
-
-        try:
-            # Try selectors for salary section
-            salary_selectors = [
-                '[data-automation-id="compensation"]',
-                '[data-automation-id="salary"]',
-                '[class*="salary"]',
-                '[class*="compensation"]',
-                '[class*="pay-range"]',
-            ]
-
-            salary_text = ""
-            for selector in salary_selectors:
-                salary_el = await page.query_selector(selector)
-                if salary_el:
-                    salary_text = await salary_el.inner_text()
-                    if salary_text and '$' in salary_text:
-                        break
-
-            # If not found in specific element, search in description
-            if not salary_text and description:
-                salary_text = description
-
-            # If still not found, get full page text
-            if not salary_text or '$' not in salary_text:
-                page_text = await page.inner_text('body')
-                # Look for salary section
-                salary_match = re.search(r'(?:salary|compensation|pay)[:\s]*([^\n]{10,100}\$[^\n]{0,100})', page_text, re.IGNORECASE)
-                if salary_match:
-                    salary_text = salary_match.group(1)
-
-            # Parse salary from text
-            if salary_text:
-                salary_min, salary_max = self._parse_salary_text(salary_text)
-
-        except Exception as e:
-            self.logger.debug(f"Error extracting salary: {e}")
-
-        return salary_min, salary_max
-
-    def _parse_salary_text(self, text: str) -> tuple:
-        """Parse salary range from text."""
-        if not text:
-            return None, None
-
-        # Normalize text - remove commas but preserve structure
-        text_clean = text.replace(',', '').replace('—', '-').replace('–', '-')
-
-        # Salary patterns (order matters - more specific first)
-        patterns = [
-            # 152000 USD - 218500 USD (NVIDIA format)
-            r'(\d{5,})\s*USD\s*[-–—]\s*(\d{5,})\s*USD',
-            # $320000-$405000 USD or $128880-245160 USD
-            r'\$\s*(\d+)(?:\.\d{2})?\s*[-–—]\s*\$?\s*(\d+)(?:\.\d{2})?\s*(?:USD|per year|annually)?',
-            # $150K - $200K
-            r'\$\s*(\d+)\s*[kK]\s*[-–—]\s*\$?\s*(\d+)\s*[kK]',
-            # $150000 to $200000
-            r'\$\s*(\d+)\s+to\s+\$?\s*(\d+)',
-            # USD 150000 - 200000
-            r'USD\s*(\d+)\s*[-–—]\s*(\d+)',
-            # base salary range is X - Y
-            r'base\s+salary\s+range\s+is\s+(\d{5,})\s*[-–—]\s*(\d{5,})',
-            # Single salary: $150000 or 150000 USD
-            r'\$\s*(\d{5,})',
-            r'(\d{5,})\s*USD',
-        ]
-
-        for pattern in patterns:
-            match = re.search(pattern, text_clean, re.IGNORECASE)
-            if match:
-                groups = match.groups()
-                min_str = groups[0]
-                max_str = groups[1] if len(groups) > 1 else None
-
-                # Handle K notation (check the matched text itself)
-                matched_text = match.group(0).lower()
-                if 'k' in matched_text:
-                    min_val = int(min_str) * 1000
-                    max_val = int(max_str) * 1000 if max_str else None
-                else:
-                    min_val = int(min_str)
-                    max_val = int(max_str) if max_str else None
-
-                # Validate reasonable salary range (30k - 2M for tech)
-                if 30000 <= min_val <= 2000000:
-                    if max_val:
-                        if max_val >= min_val and max_val <= 2000000:
-                            return min_val, max_val
-                        elif max_val < min_val:
-                            return max_val, min_val  # Swap if reversed
-                    else:
-                        return min_val, None
-
-        return None, None
-
-    async def _parse_job_card(self, card, page) -> Optional[ScrapedJob]:
-        """Parse a Workday job card element."""
-        try:
-            # Get job title
-            title_el = await card.query_selector('a[data-automation-id="jobTitle"], h3 a, a[class*="css-"]')
-            title = await title_el.text_content() if title_el else ""
-
-            # Get job URL
-            href = await title_el.get_attribute("href") if title_el else ""
-            if href and not href.startswith("http"):
-                # Build full URL from base
-                base = self.BASE_URL.split('.com')[0] + '.com'
-                job_url = f"{base}{href}"
-            else:
-                job_url = href or ""
-
-            # Extract job ID from URL
-            job_id = ""
-            if "/job/" in job_url:
-                job_id = job_url.split("/job/")[-1].split("/")[0].split("?")[0]
-
-            # Get location
-            location_el = await card.query_selector('[data-automation-id="locations"], dd[class*="css-"], span[class*="location"]')
-            location = await location_el.text_content() if location_el else ""
-
-            # Get posted date if available
-            posted_el = await card.query_selector('[data-automation-id="postedOn"], time')
-            posted_text = await posted_el.text_content() if posted_el else ""
+            # Posted date
+            posted_on = raw.get("postedOn", "")
             posted_date = None
-            if posted_text:
+            if posted_on:
                 try:
-                    posted_date = datetime.strptime(posted_text.strip(), "%Y-%m-%d")
+                    posted_date = datetime.strptime(posted_on, "%Y-%m-%d")
                 except:
                     pass
 
-            if title:
-                return ScrapedJob(
-                    title=title.strip(),
-                    location=location.strip() if location else "",
-                    job_url=job_url,
-                    external_job_id=job_id,
-                    posted_date=posted_date,
-                )
-        except Exception as e:
-            self.logger.debug(f"Error parsing job card: {e}")
-        return None
+            # Build job URL from external path
+            external_path = raw.get("externalPath", "")
+            job_url = f"{self.BASE_URL}{external_path}" if external_path else ""
 
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        """Not used for Playwright scraper."""
-        return None
+            return ScrapedJob(
+                title=title.strip(),
+                location=location.strip() if location else "",
+                job_url=job_url,
+                external_job_id=job_id,
+                posted_date=posted_date,
+            )
+        except Exception as e:
+            self.logger.debug(f"Error parsing job: {e}")
+            return None
 
 
 # Company configurations: (slug, name, tenant, subdomain, job_site_path)
@@ -545,20 +266,21 @@ WORKDAY_COMPANIES = [
 
 
 def create_workday_scraper(slug: str, name: str, tenant: str, subdomain: str, job_site_path: str):
-    """Factory function to create Workday scraper classes using Playwright."""
+    """Factory function to create Workday scraper classes using HTTP API."""
     base_url = f"https://{tenant}.{subdomain}.myworkdayjobs.com/{job_site_path}"
+    api_url = f"https://{tenant}.{subdomain}.myworkdayjobs.com/wday/cxs/{tenant}/{job_site_path}/jobs"
 
-    class WorkdayScraper(WorkdayPlaywrightMixin, PlaywrightScraper):
+    class WorkdayScraper(WorkdayAPIMixin, HTTPScraper):
         config = ScraperConfig(
             company_slug=slug,
             company_name=name,
             careers_url=base_url,
-            scraper_type=ScraperType.PLAYWRIGHT,
-            rate_limit=10,
-            max_pages=10,
-            page_timeout=45,
+            scraper_type=ScraperType.HTTP,
+            rate_limit=30,
+            max_pages=20,
         )
         BASE_URL = base_url
+        API_URL = api_url
 
     WorkdayScraper.__name__ = f"{slug.title().replace(' ', '')}Scraper"
     WorkdayScraper.__qualname__ = WorkdayScraper.__name__
