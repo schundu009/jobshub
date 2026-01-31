@@ -57,9 +57,9 @@ class BrowserPool:
             max_pages_per_context: Max pages per context (default: BROWSER_MAX_PAGES)
             headless: Run in headless mode (default: BROWSER_HEADLESS)
         """
-        self.size = size or settings.BROWSER_POOL_SIZE
-        self.max_pages = max_pages_per_context or settings.BROWSER_MAX_PAGES_PER_CONTEXT
-        self.headless = headless if headless is not None else settings.BROWSER_HEADLESS
+        self.size = size or settings.browser_pool_size
+        self.max_pages = max_pages_per_context or settings.browser_max_pages_per_context
+        self.headless = headless if headless is not None else settings.browser_headless
 
         self._playwright = None
         self._browser: Optional[Browser] = None
