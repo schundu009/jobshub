@@ -247,8 +247,8 @@ WORKDAY_COMPANIES = [
     ("pnc", "PNC Bank", "pnc", "wd5", "External"),
     ("travelers", "Travelers", "travelers", "wd5", "External"),
 
-    # Fortune 500 / Enterprise companies (may need Playwright fallback)
-    ("3m", "3M Company", "3m", "wd1", "External"),
+    # Fortune 500 / Enterprise (verified paths or Playwright fallback)
+    ("3m", "3M Company", "3m", "wd1", "Search"),  # Verified: 610 jobs
     ("abbvie", "AbbVie Inc.", "abbvie", "wd5", "External"),
     ("amgen", "Amgen Inc.", "amgen", "wd5", "External"),
     ("att", "AT&T", "att", "wd5", "External"),
@@ -267,7 +267,7 @@ WORKDAY_COMPANIES = [
     ("merck", "Merck", "merck", "wd5", "External"),
     ("morganstanley", "Morgan Stanley", "morganstanley", "wd5", "External"),
     ("northropgrumman", "Northrop Grumman", "northropgrumman", "wd5", "External"),
-    ("pfizer", "Pfizer", "pfizer", "wd5", "External"),
+    # Pfizer removed - uses custom careers site at pfizer.com/about/careers
     ("southwest", "Southwest Airlines", "southwest", "wd5", "External"),
     ("thermofisher", "Thermo Fisher", "thermofisher", "wd5", "External"),
     ("wellsfargo", "Wells Fargo", "wellsfargo", "wd5", "External"),
