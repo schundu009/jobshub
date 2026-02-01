@@ -3,7 +3,7 @@ Pydantic schemas for authentication endpoints.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, field_validator
 import re
 
@@ -55,6 +55,8 @@ class UserResponse(BaseModel):
     role: str
     is_email_verified: bool
     onboarding_completed: bool = False
+    job_roles: Optional[List[str]] = None
+    roles_confirmed_at: Optional[datetime] = None
     created_at: datetime
 
     class Config:

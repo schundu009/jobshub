@@ -97,6 +97,7 @@ def get_or_create_oauth_user(
 def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
     """Create redirect to frontend with tokens in URL fragment."""
     import urllib.parse
+    import json
     access_token, _ = create_access_token(user.id, user.email, user.role)
     refresh_token, _ = create_refresh_token(user.id)
 
@@ -112,6 +113,12 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     # Get onboarding status
     onboarding_completed = "true" if user.onboarding_completed else "false"
 
+    # Get roles confirmation status
+    roles_confirmed = "true" if user.roles_confirmed_at else "false"
+
+    # Encode job_roles as JSON string (URL encoded)
+    job_roles_json = urllib.parse.quote(json.dumps(user.job_roles or []))
+
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
         f"{settings.oauth_redirect_base}{login_path}"
@@ -122,6 +129,8 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
         f"&user_name={encoded_name}"
         f"&user_role={user.role or 'user'}"
         f"&onboarding_completed={onboarding_completed}"
+        f"&roles_confirmed={roles_confirmed}"
+        f"&job_roles={job_roles_json}"
     )
     return RedirectResponse(url=redirect_url)
 

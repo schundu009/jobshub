@@ -280,7 +280,16 @@
                 const userRole = params.get('user_role') || 'user';
                 const onboardingCompleted = params.get('onboarding_completed') === 'true';
                 const rolesConfirmed = params.get('roles_confirmed') === 'true';
-                const jobRoles = params.get('job_roles') ? params.get('job_roles').split(',') : [];
+                // job_roles comes as URL-encoded JSON from OAuth callback
+                let jobRoles = [];
+                try {
+                    const jobRolesParam = params.get('job_roles');
+                    if (jobRolesParam) {
+                        jobRoles = JSON.parse(decodeURIComponent(jobRolesParam));
+                    }
+                } catch (e) {
+                    console.log('Failed to parse job_roles, using empty array');
+                }
                 const user = {
                     id: params.get('user_id'),
                     email: params.get('user_email'),
