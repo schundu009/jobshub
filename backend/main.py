@@ -726,9 +726,24 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup
-    create_tables()
-    run_migrations()
+    # Startup - run migrations in background to not block health checks
+    import threading
+
+    def run_startup_migrations():
+        try:
+            create_tables()
+            run_migrations()
+            logger.info("Startup migrations completed")
+        except Exception as e:
+            logger.error(f"Startup migrations failed: {e}")
+
+    # Run migrations in background thread so health checks pass immediately
+    if not os.environ.get("SKIP_MIGRATIONS"):
+        migration_thread = threading.Thread(target=run_startup_migrations, daemon=True)
+        migration_thread.start()
+    else:
+        logger.info("Skipping migrations (SKIP_MIGRATIONS=true)")
+
     yield
     # Shutdown (cleanup if needed)
 

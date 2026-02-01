@@ -257,7 +257,6 @@
         <div class="roles-card">
             <div class="roles-header">
                 <h1>Select Your Job Roles</h1>
-                <p>Choose the roles you're interested in. We'll show you relevant jobs only.</p>
             </div>
 
             <div class="error-message" id="error-message"></div>
@@ -265,7 +264,6 @@
             <div class="detect-section">
                 <div class="detect-text">
                     <h3>Auto-Detect from Resume</h3>
-                    <p>Analyze your resume to suggest matching roles</p>
                 </div>
                 <button class="detect-btn" id="detect-btn" onclick="detectRoles()">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
@@ -295,17 +293,17 @@
     <script src="../js/app.js"></script>
     <script>
         const AVAILABLE_ROLES = [
-            { slug: "devops", name: "DevOps Engineer", description: "Infrastructure automation, CI/CD, cloud platforms" },
-            { slug: "sre", name: "Site Reliability Engineer", description: "Reliability, monitoring, observability, incident response" },
-            { slug: "cloud_architect", name: "Cloud/Infrastructure Architect", description: "Cloud architecture, networking, security, scalability" },
-            { slug: "platform", name: "Platform Engineer", description: "Developer experience, internal tools, kubernetes" },
-            { slug: "backend", name: "Backend Engineer", description: "APIs, databases, microservices, distributed systems" },
-            { slug: "fullstack", name: "Full Stack Engineer", description: "Frontend and backend, react, nodejs, databases" },
-            { slug: "data", name: "Data Engineer", description: "ETL, data pipelines, spark, data warehouse" },
-            { slug: "ml", name: "ML/AI Engineer", description: "Machine learning, AI, deep learning, MLOps" },
-            { slug: "security", name: "Security Engineer", description: "Cybersecurity, penetration testing, DevSecOps" },
-            { slug: "frontend", name: "Frontend Engineer", description: "React, angular, vue, javascript, UI/UX" },
-            { slug: "mobile", name: "Mobile Engineer", description: "iOS, Android, Swift, Kotlin, React Native" },
+            { slug: "devops", name: "DevOps Engineer" },
+            { slug: "sre", name: "Site Reliability Engineer" },
+            { slug: "cloud_architect", name: "Cloud/Infrastructure Architect" },
+            { slug: "platform", name: "Platform Engineer" },
+            { slug: "backend", name: "Backend Engineer" },
+            { slug: "fullstack", name: "Full Stack Engineer" },
+            { slug: "data", name: "Data Engineer" },
+            { slug: "ml", name: "ML/AI Engineer" },
+            { slug: "security", name: "Security Engineer" },
+            { slug: "frontend", name: "Frontend Engineer" },
+            { slug: "mobile", name: "Mobile Engineer" },
         ];
 
         let selectedRoles = new Set();
@@ -346,7 +344,6 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                     <div class="role-name">${role.name}</div>
-                    <div class="role-desc">${role.description}</div>
                 </div>
             `).join('');
 
