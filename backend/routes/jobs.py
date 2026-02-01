@@ -416,6 +416,9 @@ async def get_jobs(
             "target_seniority": current_user.target_seniority
         }
 
+    # Get threshold from first profile (or default)
+    threshold = role_profiles[0].get("relevance_threshold", 30.0) if role_profiles else 30.0
+
     # Score and filter jobs - use BEST score across all selected roles
     scored_jobs = []
     try:
