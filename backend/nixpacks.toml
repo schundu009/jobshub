@@ -2,12 +2,12 @@
 # Ensures Playwright browser dependencies are installed
 
 [phases.setup]
-nixPkgs = ["...", "chromium", "nss", "alsa-lib", "at-spi2-atk", "gtk3", "libdrm", "mesa"]
+nixPkgs = ["...", "python311", "python311Packages.pip", "chromium", "nss", "alsa-lib", "at-spi2-atk", "gtk3", "libdrm", "mesa"]
 
 [phases.install]
 cmds = [
-    "pip install --upgrade pip",
-    "pip install -r requirements.txt",
+    "python -m pip install --upgrade pip",
+    "python -m pip install -r requirements.txt",
     "playwright install chromium --with-deps"
 ]
 
