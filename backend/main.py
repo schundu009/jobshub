@@ -412,6 +412,9 @@ def run_migrations():
         ("security_clearance", "VARCHAR(10)"),
         ("apply_mode", "VARCHAR(20) DEFAULT 'hybrid'"),
         ("excluded_companies", "JSON"),
+        # Job role selection
+        ("job_roles", "JSON"),
+        ("roles_confirmed_at", "TIMESTAMP"),
     ]
 
     with engine.connect() as conn:

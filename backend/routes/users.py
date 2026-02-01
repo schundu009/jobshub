@@ -140,6 +140,59 @@ class RoleProfileUpdate(BaseModel):
         return v
 
 
+# ============== Job Roles Endpoints ==============
+
+class JobRolesUpdate(BaseModel):
+    """Schema for updating user's selected job roles."""
+    roles: List[str] = Field(..., min_length=1, max_length=5)
+
+
+@router.get("/job-roles")
+def get_job_roles(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's selected and detected job roles."""
+    return {
+        "selected_roles": current_user.job_roles or [],
+        "detected_roles": [],  # TODO: implement AI detection
+        "roles_confirmed": current_user.roles_confirmed_at is not None
+    }
+
+
+@router.post("/job-roles")
+def save_job_roles(
+    data: JobRolesUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Save user's selected job roles."""
+    # Validate roles against available options
+    valid_roles = {"devops", "sre", "cloud_architect", "platform", "backend",
+                   "fullstack", "data", "ml", "security", "frontend", "mobile"}
+
+    for role in data.roles:
+        if role not in valid_roles:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid role: {role}. Valid roles: {', '.join(valid_roles)}"
+            )
+
+    # Get fresh user from DB
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.job_roles = data.roles
+    user.roles_confirmed_at = datetime.now()
+    db.commit()
+
+    return {
+        "message": "Job roles saved successfully",
+        "roles": data.roles
+    }
+
+
 # ============== Onboarding Endpoints ==============
 
 @router.get("/onboarding-status")
