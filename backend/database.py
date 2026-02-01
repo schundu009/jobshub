@@ -128,8 +128,13 @@ def _run_early_migrations():
         print(f"Early migration error: {e}")
 
 
-# Run migrations before models load
-_run_early_migrations()
+# Run migrations before models load (skip if SKIP_MIGRATIONS env var is set)
+import os
+if not os.environ.get("SKIP_EARLY_MIGRATIONS"):
+    try:
+        _run_early_migrations()
+    except Exception as e:
+        print(f"Early migrations skipped due to error: {e}")
 
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
