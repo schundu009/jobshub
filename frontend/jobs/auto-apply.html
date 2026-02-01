@@ -527,7 +527,7 @@
                 </button>
                 <button id="process-queue-btn" class="btn btn-primary" onclick="processQueue()" style="display:none;">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Process Queue
+                    Process All
                 </button>
                 <a href="settings.html" class="btn btn-secondary">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -610,8 +610,9 @@
     </main>
 
     <script>
-        const API_BASE = window.location.hostname === 'cariara.com' || window.location.hostname === 'www.cariara.com'
-            ? 'https://cariara-backend.up.railway.app' : 'http://localhost:8000';
+        const API_BASE = window.location.hostname === 'localhost'
+            ? 'http://localhost:8000'
+            : 'https://cariara-backend.up.railway.app';
 
         // Theme
         function setTheme(t) {
@@ -749,13 +750,17 @@
                 const queuedDate = job.created_at ? formatDate(job.created_at) : '';
                 actions = `
                     <div class="job-actions">
+                        <button class="btn btn-approve" onclick="processNow(${job.id})" title="Submit application now" id="process-btn-${job.id}">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Apply Now
+                        </button>
                         <button class="btn btn-skip" onclick="cancelSubmission(${job.id})" title="Remove from queue">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             Cancel
                         </button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-                        Queued ${queuedDate} • Status: Waiting to process
+                        Queued ${queuedDate} • Click "Apply Now" to submit
                     </div>
                 `;
             } else if (type === 'progress') {
@@ -982,31 +987,83 @@
             }
         }
 
+        // Process a single submission immediately
+        async function processNow(submissionId) {
+            const btn = document.getElementById(`process-btn-${submissionId}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:4px;"></div> Applying...';
+            }
+
+            // Update UI to show processing
+            const card = document.querySelector(`[data-job-id="${submissionId}"]`);
+            if (card) {
+                card.querySelector('.job-actions').innerHTML = `
+                    <div class="progress-indicator">
+                        <div class="spinner"></div>
+                        <span>Submitting application... This may take 30-60 seconds.</span>
+                    </div>
+                `;
+            }
+
+            try {
+                const r = await authFetch(`${API_BASE}/api/auto-apply/process-now/${submissionId}`, {
+                    method: 'POST'
+                });
+                const data = await r.json().catch(() => ({}));
+
+                if (r && r.ok && data.success) {
+                    toast(`Application submitted successfully! ${data.confirmation_id ? 'Confirmation: ' + data.confirmation_id : ''}`);
+                } else {
+                    toast(data.error || data.message || 'Failed to submit application', 'error');
+                }
+                loadSubmissions();
+            } catch (e) {
+                toast('Error submitting application: ' + e.message, 'error');
+                loadSubmissions();
+            }
+        }
+
+        // Process all pending submissions (batch)
         async function processQueue() {
             const btn = document.getElementById('process-queue-btn');
+            const count = queueJobs.length;
+            if (count === 0) {
+                toast('No applications to process');
+                return;
+            }
+
+            if (!confirm(`This will submit ${count} application(s). Each may take 30-60 seconds. Continue?`)) {
+                return;
+            }
+
             if (btn) {
                 btn.disabled = true;
                 btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;margin-right:8px;"></div> Processing...';
             }
+
             try {
-                const r = await authFetch(`${API_BASE}/api/auto-apply/process-queue`, {
+                // Use the new process-all endpoint that processes synchronously
+                const r = await authFetch(`${API_BASE}/api/auto-apply/process-all?limit=5`, {
                     method: 'POST'
                 });
+
                 if (r && r.ok) {
                     const data = await r.json();
-                    toast(data.message);
-                    setTimeout(loadSubmissions, 2000); // Refresh after delay
+                    toast(`${data.successful || 0} of ${data.processed || 0} applications submitted successfully`);
+                    loadSubmissions();
                 } else {
                     const err = await r.json().catch(() => ({}));
                     toast(err.detail || 'Failed to process queue', 'error');
                 }
             } catch (e) {
-                toast('Error processing queue', 'error');
+                toast('Error processing queue: ' + e.message, 'error');
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Process Queue';
+                    btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Process All';
                 }
+                loadSubmissions();
             }
         }
 

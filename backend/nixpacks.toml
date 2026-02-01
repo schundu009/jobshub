@@ -1,0 +1,15 @@
+# Nixpacks configuration for Railway deployment
+# Ensures Playwright browser dependencies are installed
+
+[phases.setup]
+nixPkgs = ["...", "chromium", "libnss3", "libxss1", "libasound2", "libatk-bridge2.0-0", "libgtk-3-0", "libdrm2", "libgbm1"]
+
+[phases.install]
+cmds = [
+    "pip install --upgrade pip",
+    "pip install -r requirements.txt",
+    "playwright install chromium --with-deps"
+]
+
+[start]
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"

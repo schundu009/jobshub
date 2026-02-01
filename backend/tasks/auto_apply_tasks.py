@@ -331,7 +331,7 @@ async def _run_application_submission(
 
     This is an async function that runs in an event loop.
     """
-    from scrapers.browser_pool import BrowserPool
+    from services.browser_pool import BrowserPool
 
     # Get browser pool
     browser_pool = BrowserPool()

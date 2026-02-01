@@ -64,6 +64,7 @@ class SubmitApplicationRequest(BaseModel):
     resume_id: Optional[int] = None
     cover_letter_text: Optional[str] = None
     use_ai_cover_letter: bool = False
+    process_immediately: bool = False  # Process now instead of queuing to Celery
 
 
 class BulkSubmitRequest(BaseModel):
@@ -184,8 +185,6 @@ def process_application_queue(
     db: Session = Depends(get_db)
 ):
     """Manually trigger processing of pending applications."""
-    from tasks.auto_apply_tasks import submit_application as submit_task
-
     # Get pending submissions for this user
     pending = db.query(ApplicationSubmission).filter(
         ApplicationSubmission.user_id == current_user.id,
@@ -198,15 +197,21 @@ def process_application_queue(
     queued_count = 0
     for submission in pending:
         try:
-            # Queue the Celery task
-            submit_task.delay(
-                job_id=submission.job_id,
-                user_id=current_user.id,
-                resume_id=submission.resume_id,
-                cover_letter_text=submission.cover_letter_text,
-                use_ai_cover_letter=False,
-            )
-            queued_count += 1
+            # Try Celery first, fall back to direct processing note
+            try:
+                from tasks.auto_apply_tasks import submit_application as submit_task
+                submit_task.delay(
+                    job_id=submission.job_id,
+                    user_id=current_user.id,
+                    resume_id=submission.resume_id,
+                    cover_letter_text=submission.cover_letter_text,
+                    use_ai_cover_letter=False,
+                )
+                queued_count += 1
+            except Exception as celery_error:
+                # Celery not available - mark for manual processing
+                submission.error_message = f"Celery unavailable. Use /process-now endpoint. Error: {str(celery_error)}"
+                db.commit()
         except Exception as e:
             # Mark as failed if we can't queue
             submission.status = "failed"
@@ -216,7 +221,374 @@ def process_application_queue(
     return {
         "message": f"Queued {queued_count} applications for processing",
         "queued": queued_count,
-        "total_pending": len(pending)
+        "total_pending": len(pending),
+        "note": "If Celery workers are not running, use POST /api/auto-apply/process-now/{submission_id} to process directly"
+    }
+
+
+@router.post("/process-now/{submission_id}")
+async def process_submission_now(
+    submission_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Process a single submission immediately without Celery.
+
+    This endpoint runs the browser automation synchronously, so it may take 30-60 seconds.
+    Use this when Celery workers are not available.
+    """
+    import asyncio
+    from services.auto_apply.utils import get_ats_type_from_url
+
+    # Get the submission
+    submission = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.id == submission_id,
+        ApplicationSubmission.user_id == current_user.id
+    ).first()
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Submission not found")
+
+    if submission.status not in ["pending", "failed"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot process submission with status: {submission.status}"
+        )
+
+    # Get the job
+    job = db.query(Job).filter(Job.id == submission.job_id).first()
+    if not job:
+        submission.status = "failed"
+        submission.error_message = "Job not found"
+        submission.completed_at = datetime.utcnow()
+        db.commit()
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Update status to submitting
+    submission.status = "submitting"
+    submission.started_at = datetime.utcnow()
+    submission.error_message = None  # Clear previous error
+    db.commit()
+
+    try:
+        # Run the submission process
+        result = await _process_submission_async(
+            submission=submission,
+            job=job,
+            user=current_user,
+            db=db
+        )
+
+        return {
+            "success": result["success"],
+            "submission_id": submission_id,
+            "status": submission.status,
+            "confirmation_id": result.get("confirmation_id"),
+            "error": result.get("error"),
+            "message": "Application submitted successfully" if result["success"] else f"Application failed: {result.get('error')}"
+        }
+
+    except Exception as e:
+        submission.status = "failed"
+        submission.error_message = str(e)
+        submission.completed_at = datetime.utcnow()
+        db.commit()
+
+        return {
+            "success": False,
+            "submission_id": submission_id,
+            "status": "failed",
+            "error": str(e),
+            "message": f"Application failed: {str(e)}"
+        }
+
+
+async def _process_submission_async(
+    submission: ApplicationSubmission,
+    job: Job,
+    user: User,
+    db: Session
+) -> dict:
+    """
+    Process a submission using browser automation.
+
+    This is the core logic extracted from the Celery task.
+    """
+    import os
+    import tempfile
+    from services.auto_apply.utils import get_ats_type_from_url, is_supported_ats
+    from services.auto_apply.base import ApplicantProfile
+    from models import Company, AutoApplyConfig, ApplicationAnswer, UserDocument
+
+    # Check ATS support
+    if not job.job_url:
+        submission.status = "failed"
+        submission.error_message = "Job has no URL"
+        submission.completed_at = datetime.utcnow()
+        db.commit()
+        return {"success": False, "error": "Job has no URL"}
+
+    ats_type = get_ats_type_from_url(job.job_url)
+    if not ats_type or not is_supported_ats(job.job_url):
+        submission.status = "failed"
+        submission.error_message = f"Unsupported ATS type: {ats_type or 'unknown'}"
+        submission.completed_at = datetime.utcnow()
+        db.commit()
+        return {"success": False, "error": f"Unsupported ATS: {ats_type}"}
+
+    submission.ats_type = ats_type
+    submission.application_url = job.job_url
+    db.commit()
+
+    # Get resume path
+    resume_path = _get_resume_path_sync(user.id, submission.resume_id, db)
+    if not resume_path:
+        submission.status = "failed"
+        submission.error_message = "No resume found. Please upload a resume first."
+        submission.completed_at = datetime.utcnow()
+        db.commit()
+        return {"success": False, "error": "No resume found"}
+
+    # Build applicant profile
+    custom_answers = {}
+    answers = db.query(ApplicationAnswer).filter(
+        ApplicationAnswer.user_id == user.id,
+        ApplicationAnswer.is_active == True
+    ).all()
+    for answer in answers:
+        custom_answers[answer.question_pattern] = answer.answer_text
+
+    profile = ApplicantProfile(
+        first_name=user.first_name or "",
+        last_name=user.last_name or "",
+        email=user.email,
+        phone=user.phone or "",
+        address_line1=user.address_line1,
+        address_line2=user.address_line2,
+        city=user.city,
+        state=user.state,
+        postal_code=user.postal_code,
+        country=user.address_country or user.country,
+        us_authorized=user.us_authorized,
+        requires_sponsorship=user.requires_sponsorship,
+        linkedin_url=user.linkedin_url,
+        github_url=user.github_url,
+        portfolio_url=user.portfolio_url,
+        gender=user.gender,
+        ethnicity=user.ethnicity,
+        veteran_status=user.veteran_status,
+        disability_status=user.disability_status,
+        custom_answers=custom_answers,
+    )
+
+    # Get Workday credentials if needed
+    workday_email = None
+    workday_password = None
+    if ats_type == "workday":
+        config = db.query(AutoApplyConfig).filter(
+            AutoApplyConfig.user_id == user.id
+        ).first()
+        if config and config.workday_email:
+            workday_email = config.workday_email
+            if config.workday_password_encrypted:
+                try:
+                    from services.encryption import decrypt_password
+                    workday_password = decrypt_password(config.workday_password_encrypted)
+                except Exception:
+                    pass
+
+    # Run the browser automation
+    try:
+        from services.browser_pool import BrowserPool
+
+        browser_pool = BrowserPool()
+        await browser_pool.start()
+
+        try:
+            # Get the appropriate applicant handler
+            if ats_type == "greenhouse":
+                from services.auto_apply.greenhouse import GreenhouseApplicant
+                applicant = GreenhouseApplicant(browser_pool=browser_pool)
+            elif ats_type == "lever":
+                from services.auto_apply.lever import LeverApplicant
+                applicant = LeverApplicant(browser_pool=browser_pool)
+            elif ats_type == "workday":
+                from services.auto_apply.workday import WorkdayApplicant
+                applicant = WorkdayApplicant(
+                    browser_pool=browser_pool,
+                    workday_email=workday_email,
+                    workday_password=workday_password,
+                )
+            else:
+                submission.status = "failed"
+                submission.error_message = f"Unsupported ATS type: {ats_type}"
+                submission.completed_at = datetime.utcnow()
+                db.commit()
+                return {"success": False, "error": f"Unsupported ATS: {ats_type}"}
+
+            # Submit the application
+            result = await applicant.submit_application(
+                job_id=job.id,
+                user_id=user.id,
+                application_url=job.job_url,
+                profile=profile,
+                resume_path=resume_path,
+                cover_letter_text=submission.cover_letter_text,
+            )
+
+            # Update submission record
+            if result.success:
+                submission.status = "success"
+                submission.ats_confirmation_id = result.confirmation_id
+                submission.confirmation_screenshot = result.screenshot_path
+            else:
+                submission.status = "failed"
+                submission.error_message = result.error_message
+                submission.confirmation_screenshot = result.screenshot_path
+                submission.retry_count = (submission.retry_count or 0) + 1
+
+            submission.completed_at = datetime.utcnow()
+            db.commit()
+
+            return {
+                "success": result.success,
+                "confirmation_id": result.confirmation_id,
+                "error": result.error_message,
+            }
+
+        finally:
+            await browser_pool.stop()
+
+    except Exception as e:
+        submission.status = "failed"
+        submission.error_message = f"Browser automation error: {str(e)}"
+        submission.completed_at = datetime.utcnow()
+        db.commit()
+        return {"success": False, "error": str(e)}
+
+
+def _get_resume_path_sync(user_id: int, resume_id: Optional[int], db: Session) -> Optional[str]:
+    """Get the file path for a user's resume."""
+    import os
+    import tempfile
+
+    if resume_id:
+        doc = db.query(UserDocument).filter(
+            UserDocument.id == resume_id,
+            UserDocument.user_id == user_id
+        ).first()
+    else:
+        # Get default resume
+        doc = db.query(UserDocument).filter(
+            UserDocument.user_id == user_id,
+            UserDocument.document_type == "resume",
+            UserDocument.is_default == True
+        ).first()
+
+        if not doc:
+            # Get any resume
+            doc = db.query(UserDocument).filter(
+                UserDocument.user_id == user_id,
+                UserDocument.document_type == "resume"
+            ).first()
+
+    if doc and doc.file_path and os.path.exists(doc.file_path):
+        return doc.file_path
+
+    # If no file path, try to create a temp file from content_text
+    if doc and doc.content_text:
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, f"resume_{user_id}_{doc.id}.txt")
+        with open(temp_path, 'w') as f:
+            f.write(doc.content_text)
+        return temp_path
+
+    return None
+
+
+@router.post("/process-all")
+async def process_all_pending(
+    limit: int = Query(5, ge=1, le=20, description="Max submissions to process"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Process all pending submissions for the current user.
+
+    This processes submissions one by one without Celery.
+    Use this when Celery workers are not available.
+
+    Note: This may take a long time (30-60 seconds per submission).
+    """
+    # Get pending submissions
+    pending = db.query(ApplicationSubmission).filter(
+        ApplicationSubmission.user_id == current_user.id,
+        ApplicationSubmission.status == "pending"
+    ).order_by(ApplicationSubmission.queued_at).limit(limit).all()
+
+    if not pending:
+        return {
+            "message": "No pending applications to process",
+            "processed": 0,
+            "results": []
+        }
+
+    results = []
+    for submission in pending:
+        job = db.query(Job).filter(Job.id == submission.job_id).first()
+        if not job:
+            submission.status = "failed"
+            submission.error_message = "Job not found"
+            submission.completed_at = datetime.utcnow()
+            db.commit()
+            results.append({
+                "submission_id": submission.id,
+                "job_id": submission.job_id,
+                "success": False,
+                "error": "Job not found"
+            })
+            continue
+
+        try:
+            result = await _process_submission_async(
+                submission=submission,
+                job=job,
+                user=current_user,
+                db=db
+            )
+            results.append({
+                "submission_id": submission.id,
+                "job_id": submission.job_id,
+                "job_title": job.title,
+                "success": result["success"],
+                "confirmation_id": result.get("confirmation_id"),
+                "error": result.get("error"),
+                "status": submission.status
+            })
+        except Exception as e:
+            submission.status = "failed"
+            submission.error_message = str(e)
+            submission.completed_at = datetime.utcnow()
+            db.commit()
+            results.append({
+                "submission_id": submission.id,
+                "job_id": submission.job_id,
+                "job_title": job.title,
+                "success": False,
+                "error": str(e),
+                "status": "failed"
+            })
+
+    successful = sum(1 for r in results if r["success"])
+    failed = len(results) - successful
+
+    return {
+        "message": f"Processed {len(results)} applications: {successful} successful, {failed} failed",
+        "processed": len(results),
+        "successful": successful,
+        "failed": failed,
+        "results": results
     }
 
 
@@ -370,7 +742,7 @@ def preflight_check(
 # ============== Submission Endpoints ==============
 
 @router.post("/submit/{job_id}")
-def submit_application(
+async def submit_application(
     job_id: int,
     request: SubmitApplicationRequest,
     current_user: User = Depends(get_current_user),
@@ -379,7 +751,8 @@ def submit_application(
     """
     Queue a job application for submission.
 
-    The application will be processed by a background task.
+    If process_immediately=True, the application will be processed right away.
+    Otherwise, it will be queued for background processing (requires Celery workers).
     """
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
@@ -426,21 +799,60 @@ def submit_application(
     db.commit()
     db.refresh(submission)
 
-    # Queue the Celery task
-    from tasks.auto_apply_tasks import submit_application as submit_task
-    submit_task.delay(
-        job_id=job_id,
-        user_id=current_user.id,
-        resume_id=request.resume_id,
-        cover_letter_text=request.cover_letter_text,
-        use_ai_cover_letter=request.use_ai_cover_letter,
-    )
+    # Process immediately if requested (bypasses Celery)
+    if request.process_immediately:
+        try:
+            result = await _process_submission_async(
+                submission=submission,
+                job=job,
+                user=current_user,
+                db=db
+            )
+            return {
+                "message": "Application submitted" if result["success"] else f"Application failed: {result.get('error')}",
+                "submission_id": submission.id,
+                "status": submission.status,
+                "success": result["success"],
+                "confirmation_id": result.get("confirmation_id"),
+                "error": result.get("error"),
+            }
+        except Exception as e:
+            submission.status = "failed"
+            submission.error_message = str(e)
+            submission.completed_at = datetime.utcnow()
+            db.commit()
+            return {
+                "message": f"Application failed: {str(e)}",
+                "submission_id": submission.id,
+                "status": "failed",
+                "success": False,
+                "error": str(e),
+            }
 
-    return {
-        "message": "Application queued for submission",
-        "submission_id": submission.id,
-        "status": "pending",
-    }
+    # Queue the Celery task (fallback to note if Celery unavailable)
+    try:
+        from tasks.auto_apply_tasks import submit_application as submit_task
+        submit_task.delay(
+            job_id=job_id,
+            user_id=current_user.id,
+            resume_id=request.resume_id,
+            cover_letter_text=request.cover_letter_text,
+            use_ai_cover_letter=request.use_ai_cover_letter,
+        )
+        return {
+            "message": "Application queued for submission",
+            "submission_id": submission.id,
+            "status": "pending",
+        }
+    except Exception as celery_error:
+        # Celery not available - return submission ID so user can process manually
+        return {
+            "message": "Application created but Celery workers unavailable. Use process_immediately=true or call /process-now endpoint.",
+            "submission_id": submission.id,
+            "status": "pending",
+            "celery_error": str(celery_error),
+            "hint": f"POST /api/auto-apply/process-now/{submission.id} to process immediately"
+        }
 
 
 @router.post("/skip/{job_id}")
