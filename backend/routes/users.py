@@ -212,7 +212,9 @@ def get_onboarding_status(
         "onboarding_completed_at": current_user.onboarding_completed_at,
         "has_resume": has_resume,
         "has_personal_info": bool(current_user.first_name and current_user.last_name and current_user.phone),
-        "has_job_preferences": bool(current_user.job_titles and current_user.experience_level)
+        "has_job_preferences": bool(current_user.job_titles and current_user.experience_level),
+        "roles_confirmed": current_user.roles_confirmed_at is not None,
+        "job_roles": current_user.job_roles or []
     }
 
 

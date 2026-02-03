@@ -255,7 +255,7 @@ WORKDAY_COMPANIES = [
     ("hp", "HP Inc.", "hp", "wd5", "External"),
     ("westerndigital", "Western Digital", "westerndigital", "wd5", "External"),
     ("motorolasolutions", "Motorola Solutions", "motorolasolutions", "wd5", "External"),
-    ("ebay", "eBay", "ebay", "wd5", "External"),
+    ("ebay", "eBay", "ebay", "wd5", "apply"),
     ("equinix", "Equinix", "equinix", "wd5", "External"),
 
     # Consulting & Professional Services
