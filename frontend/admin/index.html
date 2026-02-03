@@ -508,10 +508,10 @@
 
         async function checkSystemHealth() {
             try {
-                const response = await fetch(API_BASE.replace('/api', '') + '/health');
+                const response = await fetch(API_BASE.replace('/api', '') + '/health/redis');
                 const data = await response.json();
 
-                document.getElementById('redis-status').innerHTML = data.services?.redis === 'healthy'
+                document.getElementById('redis-status').innerHTML = data.status === 'healthy'
                     ? '<span style="color: #22c55e;">● Healthy</span>'
                     : '<span style="color: #ef4444;">● Unhealthy</span>';
 
