@@ -270,6 +270,7 @@
         let currentJob = null;
         let userResumes = [];
         let userCoverLetters = [];
+        let preflightData = null; // ATS support check data
 
         async function loadJob() {
             if (!jobId) {
@@ -278,13 +279,15 @@
             }
 
             try {
-                // Load job details and user documents in parallel
-                const [job, documents] = await Promise.all([
+                // Load job details, user documents, and preflight check in parallel
+                const [job, documents, preflight] = await Promise.all([
                     apiRequest(`/jobs/${jobId}`),
-                    apiRequest('/users/documents').catch(() => [])
+                    apiRequest('/users/documents').catch(() => []),
+                    apiRequest(`/auto-apply/preflight/${jobId}`).catch(() => null)
                 ]);
 
                 currentJob = job;
+                preflightData = preflight;
 
                 // Separate resumes and cover letters
                 userResumes = (documents || []).filter(d => d.document_type === 'resume');
@@ -298,11 +301,12 @@
         }
 
         function renderJob(job) {
-            const location = job.location || 'Location not specified';
-            const department = job.department || '';
-            const postedDate = job.posted_date ? formatRelativeDate(job.posted_date) : '';
-            const salary = formatSalary(job.salary_min, job.salary_max);
-            const companyName = job.company?.name || job.company_name || 'Company';
+            try {
+                const location = job.location || 'Location not specified';
+                const department = job.department || '';
+                const postedDate = job.posted_date ? formatRelativeDate(job.posted_date) : '';
+                const salary = formatSalary(job.salary_min, job.salary_max);
+                const companyName = job.company?.name || job.company_name || 'Company';
 
             // Build resume options
             let resumeOptions = '<option value="">Use default resume</option>';
@@ -353,43 +357,9 @@
                     <h3>
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Quick Apply
+                        ${preflightData?.ats_type ? `<span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:8px;">(${String(preflightData.ats_type).charAt(0).toUpperCase() + String(preflightData.ats_type).slice(1)})</span>` : ''}
                     </h3>
-                    <div class="apply-options">
-                        <div class="apply-option-row">
-                            <label>Resume:</label>
-                            <select id="resume-select">
-                                ${resumeOptions}
-                            </select>
-                            <a href="documents.html" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                Upload
-                            </a>
-                        </div>
-                        <div class="apply-option-row">
-                            <label>Cover Letter:</label>
-                            <select id="cover-letter-select">
-                                ${coverLetterOptions}
-                            </select>
-                        </div>
-                        <div class="checkbox-row">
-                            <input type="checkbox" id="use-ats-resume" checked>
-                            <label for="use-ats-resume">Use ATS-optimized resume format</label>
-                        </div>
-                    </div>
-                    <div class="apply-actions">
-                        <button class="btn btn-primary" id="auto-apply-btn" onclick="autoApply()">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            Auto Apply Now
-                        </button>
-                        <button class="btn btn-queue" onclick="addToQueue()">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                            Add to Queue
-                        </button>
-                        ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-secondary">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                            Apply Manually
-                        </a>` : ''}
-                    </div>
+                    ${renderAutoApplySection(resumeOptions, coverLetterOptions, job)}
                 </div>
 
                 <div class="job-description">
@@ -399,6 +369,111 @@
                     </div>
                 </div>
             `;
+            } catch (err) {
+                console.error('Error rendering job:', err);
+                document.getElementById('job-content').innerHTML = `
+                    <div class="error">
+                        Error rendering job details. Please refresh the page.
+                        <br><br>
+                        ${job?.job_url ? `<a href="${job.job_url}" target="_blank" class="btn btn-primary">View Original Job Posting</a>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function renderAutoApplySection(resumeOptions, coverLetterOptions, job) {
+            try {
+                // Check if auto-apply is supported for this job's ATS
+                const atsSupported = preflightData?.ats_supported || false;
+                const atsType = preflightData?.ats_type || null;
+                const alreadySubmitted = preflightData?.already_submitted || false;
+                const existingStatus = preflightData?.existing_submission_status || null;
+
+                // If already submitted
+                if (alreadySubmitted && existingStatus === 'success') {
+                return `
+                    <div style="padding: 20px; text-align: center; color: #22c55e;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:48px;height:48px;margin-bottom:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p style="font-weight:600;font-size:16px;margin-bottom:8px;">Application Submitted!</p>
+                        <p style="color:var(--text-secondary);font-size:14px;">You've already applied to this job.</p>
+                    </div>
+                `;
+            }
+
+                // If ATS not supported (and we know the ATS type)
+                if (!atsSupported && atsType) {
+                    const supportedAts = 'Greenhouse, Lever, and Workday';
+                    const atsName = String(atsType).charAt(0).toUpperCase() + String(atsType).slice(1);
+                    return `
+                        <div style="padding: 16px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; margin-bottom: 16px;">
+                            <p style="color: #f59e0b; font-weight: 500; margin-bottom: 8px;">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:middle;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                Auto-apply not available for ${atsName}
+                            </p>
+                        <p style="color: var(--text-secondary); font-size: 13px;">
+                            Auto-apply currently supports ${supportedAts}. Please apply manually using the link below.
+                        </p>
+                    </div>
+                    <div class="apply-actions">
+                        ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-primary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            Apply Manually
+                        </a>` : '<p style="color:var(--text-muted);">No application URL available</p>'}
+                    </div>
+                `;
+            }
+
+            // ATS supported - show full auto-apply form
+            return `
+                <div class="apply-options">
+                    <div class="apply-option-row">
+                        <label>Resume:</label>
+                        <select id="resume-select">
+                            ${resumeOptions}
+                        </select>
+                        <a href="documents.html" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Upload
+                        </a>
+                    </div>
+                    <div class="apply-option-row">
+                        <label>Cover Letter:</label>
+                        <select id="cover-letter-select">
+                            ${coverLetterOptions}
+                        </select>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="use-ats-resume" checked>
+                        <label for="use-ats-resume">Use ATS-optimized resume format</label>
+                    </div>
+                </div>
+                <div class="apply-actions">
+                    <button class="btn btn-primary" id="auto-apply-btn" onclick="autoApply()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Auto Apply Now
+                    </button>
+                    <button class="btn btn-queue" id="queue-btn" onclick="addToQueue()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Add to Queue
+                    </button>
+                    ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-secondary">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Apply Manually
+                    </a>` : ''}
+                </div>
+            `;
+            } catch (err) {
+                console.error('Error rendering auto-apply section:', err);
+                // Fallback to manual apply
+                return `
+                    <div class="apply-actions">
+                        ${job && job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-primary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            Apply Now
+                        </a>` : '<p style="color:var(--text-muted);">No application URL available</p>'}
+                    </div>
+                `;
+            }
         }
 
         function escapeHtml(text) {
@@ -463,9 +538,8 @@
 
                 await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
                     resume_id: resumeId ? parseInt(resumeId) : null,
-                    cover_letter_id: coverLetterId ? parseInt(coverLetterId) : null,
                     use_ai_cover_letter: useAiCoverLetter,
-                    use_ats_format: useAtsResume
+                    process_immediately: true  // Process now instead of queuing
                 });
 
                 showToast('Application submitted successfully!', 'success');
@@ -480,16 +554,44 @@
         }
 
         async function addToQueue() {
+            const btn = document.getElementById('queue-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner"></div> Adding...';
+            }
+
             try {
                 if (!getAccessToken()) {
                     window.location.href = 'login.html';
                     return;
                 }
 
-                await apiRequest('/auto-apply/queue', 'POST', { job_id: parseInt(jobId) });
+                const resumeId = document.getElementById('resume-select')?.value || null;
+                const coverLetterOption = document.getElementById('cover-letter-select')?.value;
+
+                let useAiCoverLetter = false;
+                if (coverLetterOption === 'ai') {
+                    useAiCoverLetter = true;
+                }
+
+                // Use /submit endpoint with process_immediately: false to queue
+                await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
+                    resume_id: resumeId ? parseInt(resumeId) : null,
+                    use_ai_cover_letter: useAiCoverLetter,
+                    process_immediately: false  // Queue for later processing
+                });
+
                 showToast('Job added to apply queue!', 'success');
+                if (btn) {
+                    btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Queued!';
+                    btn.style.background = '#8b5cf6';
+                }
             } catch (error) {
                 showToast(error.message || 'Failed to add to queue', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Add to Queue';
+                }
             }
         }
 
