@@ -897,7 +897,7 @@
                 card.querySelector('.job-actions').innerHTML = `
                     <div class="progress-indicator">
                         <div class="spinner"></div>
-                        <span>Submitting application...</span>
+                        <span>Queuing application...</span>
                     </div>
                 `;
             }
@@ -909,19 +909,30 @@
                     body: JSON.stringify({
                         resume_id: null,
                         cover_letter_text: null,
-                        use_ai_cover_letter: true
+                        use_ai_cover_letter: true,
+                        process_immediately: false  // Queue for worker processing
                     })
                 });
                 if (r && r.ok) {
-                    toast('Application submitted!');
+                    const data = await r.json().catch(() => ({}));
+                    if (data.celery_error) {
+                        toast('Application queued! Worker may be restarting - check back shortly.', 'success');
+                    } else {
+                        toast('Application queued for processing!', 'success');
+                    }
                     loadSubmissions();
                 } else {
                     const errorData = await r.json().catch(() => ({}));
-                    toast(errorData.detail || 'Failed to submit application', 'error');
+                    // Check for Playwright-specific errors
+                    if (errorData.detail && errorData.detail.includes('Playwright')) {
+                        toast('System updating - please try again in a few minutes', 'error');
+                    } else {
+                        toast(errorData.detail || 'Failed to queue application', 'error');
+                    }
                     loadSubmissions();
                 }
             } catch (e) {
-                toast('Error submitting application', 'error');
+                toast('Error queuing application', 'error');
                 loadSubmissions();
             }
         }
@@ -1100,7 +1111,28 @@
         }
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const token = getToken();
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Check role selection
+            try {
+                const r = await authFetch(`${API_BASE}/api/users/onboarding-status`);
+                if (r && r.ok) {
+                    const status = await r.json();
+                    if (!status.roles_confirmed) {
+                        window.location.href = 'select-roles.html';
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to check status:', e);
+            }
+
             setupMobileMenu();
             initUserMenu();
             loadSubmissions();
