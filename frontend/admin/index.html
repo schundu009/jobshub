@@ -424,11 +424,6 @@
     <script src="../js/app.js"></script>
     <script src="../js/admin-sidebar.js"></script>
     <script>
-        // Initialize admin layout with sidebar
-        document.addEventListener('DOMContentLoaded', function() {
-            initAdminLayout('dashboard', 'Dashboard');
-        });
-
         async function loadDashboard() {
             try {
                 const summary = await apiRequest('/analytics/summary');
@@ -548,11 +543,20 @@
             }
         }
 
-        // Initialize
-        if (checkAdminAccess()) {
-            loadDashboard();
+        // Initialize everything after DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize admin layout first
+            initAdminLayout('dashboard', 'Dashboard');
+
+            // Check admin access
+            if (!checkAdminAccess()) {
+                return;
+            }
+
+            // Load dashboard data
+            await loadDashboard();
             checkSystemHealth();
-        }
+        });
     </script>
 </body>
 </html>

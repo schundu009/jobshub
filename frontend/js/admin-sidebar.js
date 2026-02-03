@@ -171,31 +171,45 @@ document.addEventListener('click', (e) => {
 });
 
 function initAdminLayout(pageId, pageTitle, breadcrumb = null) {
-    // Remove existing header if present
-    const existingHeader = document.querySelector('header');
-    if (existingHeader) {
-        existingHeader.remove();
-    }
+    try {
+        // Remove existing header if present
+        const existingHeader = document.querySelector('header');
+        if (existingHeader) {
+            existingHeader.remove();
+        }
 
-    // Remove existing main and wrap content
-    const existingMain = document.querySelector('main');
-    const mainContent = existingMain ? existingMain.innerHTML : '';
+        // Remove existing main and wrap content
+        const existingMain = document.querySelector('main');
+        const mainContent = existingMain ? existingMain.innerHTML : '<p>Loading...</p>';
 
-    // Create new layout structure
-    const layoutHtml = `
-        <div class="admin-layout">
-            ${renderAdminSidebar(pageId)}
-            <div class="admin-main">
-                ${renderAdminTopbar(pageTitle, breadcrumb)}
-                <div class="admin-content">
-                    ${mainContent}
+        // Create new layout structure
+        const layoutHtml = `
+            <div class="admin-layout">
+                ${renderAdminSidebar(pageId)}
+                <div class="admin-main">
+                    ${renderAdminTopbar(pageTitle, breadcrumb)}
+                    <div class="admin-content">
+                        ${mainContent}
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
-    // Replace body content (keeping scripts)
-    const scripts = document.body.querySelectorAll('script');
-    document.body.innerHTML = layoutHtml;
-    scripts.forEach(script => document.body.appendChild(script.cloneNode(true)));
+        // Replace body content (keeping scripts)
+        const scripts = document.body.querySelectorAll('script');
+        document.body.innerHTML = layoutHtml;
+        scripts.forEach(script => document.body.appendChild(script.cloneNode(true)));
+    } catch (error) {
+        console.error('Failed to initialize admin layout:', error);
+        // Don't leave the page blank - show an error message
+        if (!document.querySelector('.admin-layout')) {
+            document.body.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #ef4444;">
+                    <h2>Error loading admin page</h2>
+                    <p>${error.message}</p>
+                    <button onclick="window.location.reload()" style="padding: 10px 20px; cursor: pointer;">Reload Page</button>
+                </div>
+            `;
+        }
+    }
 }

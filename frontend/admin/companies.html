@@ -84,11 +84,6 @@
     <script src="../js/app.js"></script>
     <script src="../js/admin-sidebar.js"></script>
     <script>
-        // Initialize admin layout
-        document.addEventListener('DOMContentLoaded', function() {
-            initAdminLayout('companies', 'Companies');
-        });
-
         let allCompanies = [];
 
         async function loadCompanies() {
@@ -208,9 +203,22 @@
             }
         });
 
-        document.getElementById('search-input').addEventListener('input', filterCompanies);
+        // Initialize everything after DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize admin layout first
+            initAdminLayout('companies', 'Companies');
 
-        loadCompanies();
+            // Check authentication
+            if (!requireAuth()) {
+                return;
+            }
+
+            // Set up event listeners
+            document.getElementById('search-input').addEventListener('input', filterCompanies);
+
+            // Load companies data
+            await loadCompanies();
+        });
     </script>
 </body>
 </html>

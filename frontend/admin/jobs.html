@@ -415,11 +415,6 @@
     <script src="../js/app.js"></script>
     <script src="../js/admin-sidebar.js"></script>
     <script>
-        // Initialize admin layout
-        document.addEventListener('DOMContentLoaded', function() {
-            initAdminLayout('jobs', 'Jobs Management');
-        });
-
         let allJobs = [];
         let allSources = [];
         let timeFilterDays = 0;
@@ -595,9 +590,19 @@
         }
 
         async function loadJobs() {
+            const tableBody = document.getElementById('jobs-table-body');
+            const statTotal = document.getElementById('stat-total');
+
+            // Ensure elements exist
+            if (!tableBody) {
+                console.error('jobs-table-body not found');
+                return;
+            }
+
             try {
                 // Show loading indicator
-                document.getElementById('jobs-table-body').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">Loading jobs... <span id="load-progress">0</span> loaded</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">Loading jobs... <span id="load-progress">0</span> loaded</td></tr>';
+                if (statTotal) statTotal.textContent = '...';
 
                 // Load jobs in batches for better performance
                 const batchSize = 5000;
@@ -612,7 +617,10 @@
 
                     // Update progress
                     const progressEl = document.getElementById('load-progress');
-                    if (progressEl) progressEl.textContent = allJobs.length;
+                    if (progressEl) progressEl.textContent = allJobs.length.toLocaleString();
+
+                    // Also update stats as we load
+                    updateStats();
 
                     // Check if there are more jobs
                     hasMore = jobs.length === batchSize;
@@ -627,14 +635,22 @@
                 filterJobs(); // Apply any active filters including URL params
             } catch (error) {
                 console.error('Failed to load jobs:', error);
-                document.getElementById('jobs-table-body').innerHTML = '<tr><td colspan="7" class="alert alert-error">Failed to load jobs</td></tr>';
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="alert alert-error">Failed to load jobs: ' + error.message + '</td></tr>';
+                }
+                // Still update stats to show 0 if failed
+                updateStats();
             }
         }
 
         function updateStats() {
-            document.getElementById('stat-total').textContent = allJobs.length;
-            document.getElementById('stat-wishlist').textContent = allJobs.filter(j => j.status === 'wishlist').length;
-            document.getElementById('stat-applied').textContent = allJobs.filter(j => j.status === 'applied').length;
+            const statTotal = document.getElementById('stat-total');
+            const statWishlist = document.getElementById('stat-wishlist');
+            const statApplied = document.getElementById('stat-applied');
+
+            if (statTotal) statTotal.textContent = allJobs.length.toLocaleString();
+            if (statWishlist) statWishlist.textContent = allJobs.filter(j => j.status === 'wishlist').length.toLocaleString();
+            if (statApplied) statApplied.textContent = allJobs.filter(j => j.status === 'applied').length.toLocaleString();
         }
 
         function populateCompanyFilter() {
@@ -777,14 +793,18 @@
         }
 
         async function loadSources() {
+            const statCompanies = document.getElementById('stat-companies');
+
             try {
+                if (statCompanies) statCompanies.textContent = '...';
+
                 const [ingestSources, scraperStatus] = await Promise.all([
                     apiRequest('/ingest/sources'),
                     apiRequest('/scrapers/status')
                 ]);
 
                 const sourceMap = new Map();
-                ingestSources.forEach(s => {
+                (ingestSources || []).forEach(s => {
                     sourceMap.set(s.company_name?.toLowerCase(), {
                         company_name: s.company_name,
                         ats_type: s.ats_type,
@@ -793,7 +813,7 @@
                     });
                 });
 
-                scraperStatus.forEach(s => {
+                (scraperStatus || []).forEach(s => {
                     const key = s.company_name?.toLowerCase();
                     const existing = sourceMap.get(key);
                     const scraperJobs = s.active_jobs || 0;
@@ -809,10 +829,11 @@
                 });
 
                 allSources = Array.from(sourceMap.values());
-                document.getElementById('stat-companies').textContent = allSources.length;
+                if (statCompanies) statCompanies.textContent = allSources.length.toLocaleString();
                 renderSources();
             } catch (error) {
                 console.error('Failed to load sources:', error);
+                if (statCompanies) statCompanies.textContent = '0';
             }
         }
 
@@ -820,9 +841,14 @@
             const container = document.getElementById('companies-grid');
             const countSpan = document.getElementById('companies-count');
 
+            if (!container) {
+                console.error('companies-grid not found');
+                return;
+            }
+
             if (allSources.length === 0) {
                 container.innerHTML = '<div class="empty-companies" style="width: 100%;">No companies tracked yet.</div>';
-                countSpan.textContent = '0';
+                if (countSpan) countSpan.textContent = '0';
                 return;
             }
 
@@ -847,7 +873,7 @@
             container.innerHTML = html;
 
             const withJobs = allSources.filter(s => (s.job_count || 0) > 0).length;
-            countSpan.textContent = `${withJobs}/${allSources.length}`;
+            if (countSpan) countSpan.textContent = `${withJobs}/${allSources.length}`;
         }
 
         async function refreshAllWithStatus() {
@@ -868,20 +894,36 @@
             }
         }
 
-        document.getElementById('status-filter').addEventListener('change', filterJobs);
-        document.getElementById('source-filter').addEventListener('change', filterJobs);
-        document.getElementById('company-filter').addEventListener('change', filterJobs);
-        document.getElementById('type-filter').addEventListener('change', filterJobs);
-        document.getElementById('search-input').addEventListener('input', filterJobs);
-        document.getElementById('career-url').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') ingestJobs();
-        });
+        // Initialize everything after DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize admin layout first
+            initAdminLayout('jobs', 'Jobs Management');
 
-        // Apply URL filters before loading jobs
-        applyUrlFilters();
-        loadJobTypeCounts();
-        loadJobs();
-        loadSources();
+            // Check authentication - admin pages require login
+            if (!requireAuth()) {
+                return;
+            }
+
+            // Set up event listeners
+            document.getElementById('status-filter').addEventListener('change', filterJobs);
+            document.getElementById('source-filter').addEventListener('change', filterJobs);
+            document.getElementById('company-filter').addEventListener('change', filterJobs);
+            document.getElementById('type-filter').addEventListener('change', filterJobs);
+            document.getElementById('search-input').addEventListener('input', filterJobs);
+            document.getElementById('career-url').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') ingestJobs();
+            });
+
+            // Apply URL filters before loading jobs
+            applyUrlFilters();
+
+            // Load data
+            await Promise.all([
+                loadJobTypeCounts(),
+                loadJobs(),
+                loadSources()
+            ]);
+        });
     </script>
 </body>
 </html>

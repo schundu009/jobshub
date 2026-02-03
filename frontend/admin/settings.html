@@ -210,14 +210,19 @@
     <script src="../js/admin-sidebar.js"></script>
     <script>
         // Initialize admin layout and page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             initAdminLayout('settings', 'Settings');
+
+            // Check authentication
+            if (!requireAuth()) {
+                return;
+            }
 
             // Initialize after layout is ready
             document.getElementById('api-key-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') saveApiKey();
             });
-            checkApiKeyStatus();
+            await checkApiKeyStatus();
             if (currentBatchJobId) checkBatchStatus(true);
         });
 

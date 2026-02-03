@@ -4,6 +4,27 @@ const BACKEND_URL = isProduction ? 'https://cariara-backend.up.railway.app' : 'h
 const API_BASE = `${BACKEND_URL}/api`;
 const AUTH_BASE = `${BACKEND_URL}/auth`;
 
+// Global error handler to prevent black screens
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error('Global error:', message, 'at', source, lineno, colno);
+    // Show error to user if page appears blank
+    if (document.body && document.body.innerHTML.trim() === '') {
+        document.body.innerHTML = `
+            <div style="padding: 40px; text-align: center; font-family: system-ui, sans-serif;">
+                <h2 style="color: #ef4444;">Something went wrong</h2>
+                <p style="color: #666;">${message}</p>
+                <button onclick="window.location.reload()" style="padding: 10px 20px; cursor: pointer; margin-top: 16px;">Reload Page</button>
+            </div>
+        `;
+    }
+    return false;
+};
+
+// Handle unhandled promise rejections
+window.onunhandledrejection = function(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+};
+
 // =============================================================================
 // AUTHENTICATION
 // =============================================================================
