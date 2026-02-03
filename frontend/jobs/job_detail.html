@@ -163,10 +163,6 @@
     <script src="../js/app.js"></script>
     <script src="../js/sidebar.js"></script>
     <script>
-        const API_BASE = window.location.hostname === 'localhost'
-            ? 'http://localhost:8000/api'
-            : 'https://cariara-backend.up.railway.app/api';
-
         const urlParams = new URLSearchParams(window.location.search);
         const jobId = urlParams.get('id');
 
@@ -177,15 +173,11 @@
             }
 
             try {
-                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-                const response = await fetch(`${API_BASE}/jobs/${jobId}`, {
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-                });
-
-                if (!response.ok) throw new Error('Job not found');
-                const job = await response.json();
+                // Use apiRequest from app.js which handles authentication and token refresh
+                const job = await apiRequest(`/jobs/${jobId}`);
                 renderJob(job);
             } catch (error) {
+                console.error('Error loading job:', error);
                 document.getElementById('job-content').innerHTML = `<div class="error">Failed to load job: ${error.message}</div>`;
             }
         }
@@ -262,37 +254,22 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        async function addToQueue(jobId) {
+        async function addToQueue(jobIdToAdd) {
             try {
-                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-                if (!token) {
+                if (!getAccessToken()) {
                     window.location.href = 'login.html';
                     return;
                 }
 
-                const response = await fetch(`${API_BASE}/auto-apply/queue`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ job_id: jobId })
-                });
-
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.detail || 'Failed to add to queue');
-                }
-
+                await apiRequest('/auto-apply/queue', 'POST', { job_id: jobIdToAdd });
                 showToast('Job added to apply queue!', 'success');
             } catch (error) {
-                showToast(error.message, 'error');
+                showToast(error.message || 'Failed to add to queue', 'error');
             }
         }
 
-        // Check authentication
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-        if (!token) {
+        // Check authentication using app.js helper
+        if (!getAccessToken()) {
             window.location.href = 'login.html';
         } else {
             loadJob();
