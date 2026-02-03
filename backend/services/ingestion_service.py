@@ -209,8 +209,8 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
     - Workday:
         - https://{company}.wd{number}.myworkdayjobs.com/{site}
     """
-    url = url.lower().strip()
-    original_url = url  # Keep original for Workday (case-sensitive site names)
+    original_url = url.strip()  # Keep original for Workday (case-sensitive site names)
+    url = original_url.lower()
 
     # Greenhouse patterns
     greenhouse_patterns = [
@@ -292,18 +292,19 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
 
     # Workday patterns - URLs like: nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
     # Also handle URLs without site name: salesforce.wd12.myworkdayjobs.com/
-    workday_pattern_full = r'([a-z0-9_-]+)\.wd(\d+)\.myworkdayjobs\.com/([a-z0-9_-]+)'
-    match = re.search(workday_pattern_full, url, re.IGNORECASE)
+    # Note: Site name is case-sensitive in Workday API, so extract from original_url
+    workday_pattern_full = r'([a-z0-9_-]+)\.wd(\d+)\.myworkdayjobs\.com/([a-zA-Z0-9_-]+)'
+    match = re.search(workday_pattern_full, original_url, re.IGNORECASE)
     if match:
         company = match.group(1).lower()
         wd_number = match.group(2)
-        site = match.group(3)
+        site = match.group(3)  # Keep original case for site name
         # Store as company:wd_number:site
         return ('workday', f"{company}:wd{wd_number}:{site}")
 
     # Workday pattern without site name - try to discover it
     workday_pattern_base = r'([a-z0-9_-]+)\.wd(\d+)\.myworkdayjobs\.com/?$'
-    match = re.search(workday_pattern_base, url, re.IGNORECASE)
+    match = re.search(workday_pattern_base, original_url, re.IGNORECASE)
     if match:
         company = match.group(1).lower()
         wd_number = match.group(2)
