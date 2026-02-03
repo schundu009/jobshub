@@ -3253,9 +3253,17 @@
             // Require authentication - redirect to login if not logged in
             if (!requireAuth()) return;
 
-            // Check if onboarding is completed
+            // Check role selection and onboarding status
             try {
                 const status = await apiRequest('/users/onboarding-status');
+
+                // First check role selection
+                if (!status.roles_confirmed) {
+                    window.location.href = 'select-roles.html';
+                    return;
+                }
+
+                // Then check onboarding
                 if (!status.onboarding_completed) {
                     window.location.href = 'onboarding.html';
                     return;
@@ -3271,24 +3279,7 @@
             agGrid.createGrid(gridDiv, gridOptions);
             setupEventListeners();
 
-            // Load saved preferences
-            const savedLocation = localStorage.getItem('preferredLocation');
-            if (savedLocation) {
-                document.getElementById('location-filter').value = savedLocation;
-            }
-            // Work type preferences are restored in the multi-select event listener
-            const savedSalaryMin = localStorage.getItem('preferredSalaryMin');
-            if (savedSalaryMin) {
-                document.getElementById('salary-min-filter').value = savedSalaryMin;
-            }
-            const savedSalaryMax = localStorage.getItem('preferredSalaryMax');
-            if (savedSalaryMax) {
-                document.getElementById('salary-max-filter').value = savedSalaryMax;
-            }
-            const savedMatchMin = localStorage.getItem('preferredMatchMin');
-            if (savedMatchMin) {
-                document.getElementById('match-filter').value = savedMatchMin;
-            }
+            // Filters reset on page load - no persistence
         });
 
         function setupEventListeners() {
@@ -3387,10 +3378,8 @@
                 }, 300);
             });
 
-            // Filters
+            // Filters - no persistence, reset on page reload
             document.getElementById('location-filter').addEventListener('change', (e) => {
-                if (e.target.value) localStorage.setItem('preferredLocation', e.target.value);
-                else localStorage.removeItem('preferredLocation');
                 applyFilters();
                 updateActiveFilters();
             });
@@ -3419,50 +3408,25 @@
                         const selected = Array.from(workTypeCheckboxes).filter(c => c.checked).map(c => c.value);
                         if (selected.length === 0) {
                             if (workTypeLabel) workTypeLabel.textContent = 'All Work Types';
-                            localStorage.removeItem('preferredWorkTypes');
                         } else if (selected.length === 1) {
                             if (workTypeLabel) workTypeLabel.textContent = selected[0].charAt(0).toUpperCase() + selected[0].slice(1);
-                            localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
                         } else {
                             if (workTypeLabel) workTypeLabel.textContent = `${selected.length} types`;
-                            localStorage.setItem('preferredWorkTypes', JSON.stringify(selected));
                         }
                         applyFilters();
                         updateActiveFilters();
                     });
                 });
-
-                // Restore saved work types
-                const savedWorkTypes = localStorage.getItem('preferredWorkTypes');
-                if (savedWorkTypes) {
-                    try {
-                        const types = JSON.parse(savedWorkTypes);
-                        workTypeCheckboxes.forEach(cb => {
-                            cb.checked = types.includes(cb.value);
-                        });
-                        if (types.length === 1 && workTypeLabel) {
-                            workTypeLabel.textContent = types[0].charAt(0).toUpperCase() + types[0].slice(1);
-                        } else if (types.length > 1 && workTypeLabel) {
-                            workTypeLabel.textContent = `${types.length} types`;
-                        }
-                    } catch (e) {}
-                }
             }
             document.getElementById('salary-min-filter').addEventListener('change', (e) => {
-                if (e.target.value) localStorage.setItem('preferredSalaryMin', e.target.value);
-                else localStorage.removeItem('preferredSalaryMin');
                 applyFilters();
                 updateActiveFilters();
             });
             document.getElementById('salary-max-filter').addEventListener('change', (e) => {
-                if (e.target.value) localStorage.setItem('preferredSalaryMax', e.target.value);
-                else localStorage.removeItem('preferredSalaryMax');
                 applyFilters();
                 updateActiveFilters();
             });
             document.getElementById('match-filter').addEventListener('change', (e) => {
-                if (e.target.value) localStorage.setItem('preferredMatchMin', e.target.value);
-                else localStorage.removeItem('preferredMatchMin');
                 applyFilters();
                 updateActiveFilters();
             });
