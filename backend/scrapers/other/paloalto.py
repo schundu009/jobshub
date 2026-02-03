@@ -19,7 +19,7 @@ class PaloAltoNetworksScraper(HTTPScraper):
         max_pages=50,
     )
 
-    API_URL = "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/External/jobs"
+    API_URL = "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/panwexternalcareers/jobs"
 
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
@@ -77,7 +77,7 @@ class PaloAltoNetworksScraper(HTTPScraper):
                         pass
 
             job_path = raw.get("externalPath", "")
-            job_url = f"https://paloaltonetworks.wd5.myworkdayjobs.com/en-US/External{job_path}"
+            job_url = f"https://paloaltonetworks.wd5.myworkdayjobs.com/en-US/panwexternalcareers{job_path}"
 
             return ScrapedJob(
                 title=title,
