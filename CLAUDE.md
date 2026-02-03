@@ -2,6 +2,20 @@
 
 A personal job application tracking system built with FastAPI backend and vanilla HTML/CSS/JS frontend.
 
+## CRITICAL: Always Deploy to Production
+
+**This project runs on Railway (backend) and Vercel (frontend) - NOT localhost.**
+
+After making code changes:
+```bash
+git add -A && git commit -m "Your message" && git push origin main
+```
+
+Railway and Vercel will auto-deploy from the `main` branch. Never test on localhost URLs - always verify on production:
+- **Frontend**: https://cariara.vercel.app (or your Vercel URL)
+- **Backend**: https://cariara-backend.up.railway.app
+- **Admin**: https://cariara.vercel.app/admin/
+
 ## CRITICAL: Service Health Discipline
 
 **ALWAYS verify services are running after ANY code change:**
