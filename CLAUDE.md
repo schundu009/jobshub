@@ -115,6 +115,30 @@ jobportal/
 - **ScraperRun** - Scraper execution history
 - **ScraperConfigDB** - Per-scraper configuration and health metrics
 
+## Auto-Apply Feature
+
+### Supported ATS Types
+Auto-apply only works with these ATS platforms:
+- **Greenhouse** (boards.greenhouse.io)
+- **Lever** (jobs.lever.co)
+- **Workday** (myworkdayjobs.com)
+
+**NOT supported**: Ashby, iCIMS, Taleo, BrassRing, Jobvite, SmartRecruiters
+
+For unsupported ATS types, the job detail page shows a "Apply Manually" button instead.
+
+### Auto-Apply Endpoints
+| Endpoint | Purpose |
+|----------|---------|
+| `/api/auto-apply/preflight/{job_id}` | Check if auto-apply is available |
+| `/api/auto-apply/submit/{job_id}` | Submit application (immediate or queued) |
+| `/api/auto-apply/submissions` | List user's application submissions |
+| `/api/auto-apply/config` | Get/update auto-apply settings |
+
+### Submit Options
+- `process_immediately: true` - Apply now using browser automation
+- `process_immediately: false` - Queue for Celery worker (requires Worker service)
+
 ## Key API Endpoints
 
 | Endpoint | Purpose |
