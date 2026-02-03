@@ -1,4 +1,4 @@
-"""Remaining company scrapers - Greenhouse, Lever, Ashby APIs."""
+"""Remaining company scrapers - Greenhouse, Lever, Ashby, SmartRecruiters APIs."""
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
 from scrapers.registry import ScraperRegistry
 from typing import List, Optional
@@ -55,6 +55,76 @@ class AshbyMixin:
                 title=raw.get("title", ""), location=raw.get("location", "Remote"),
                 job_url=raw.get("jobUrl", ""), external_job_id=str(raw.get("id", "")),
                 department=raw.get("department", ""), posted_date=posted
+            )
+        except:
+            return None
+
+
+class LeverMixin:
+    async def scrape(self) -> ScrapeResult:
+        all_jobs: List[ScrapedJob] = []
+        data = await self.fetch_json(self.API_URL)
+        if not data:
+            return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data")
+        for job in data:  # Lever returns a list directly
+            if parsed := self.parse_job(job):
+                all_jobs.append(parsed)
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        try:
+            categories = raw.get("categories", {})
+            location = categories.get("location", "")
+            department = categories.get("department", "") or categories.get("team", "")
+            created = raw.get("createdAt")
+            posted = datetime.fromtimestamp(created / 1000) if created else None
+            return ScrapedJob(
+                title=raw.get("text", ""), location=location,
+                job_url=raw.get("hostedUrl", ""), external_job_id=raw.get("id", ""),
+                department=department, posted_date=posted
+            )
+        except:
+            return None
+
+
+class SmartRecruitersMixin:
+    async def scrape(self) -> ScrapeResult:
+        all_jobs: List[ScrapedJob] = []
+        offset = 0
+        limit = 100
+        while True:
+            data = await self.fetch_json(self.API_URL, params={"offset": offset, "limit": limit})
+            if not data:
+                break
+            jobs = data.get("content", [])
+            if not jobs:
+                break
+            for job in jobs:
+                if parsed := self.parse_job(job):
+                    all_jobs.append(parsed)
+            total = data.get("totalFound", 0)
+            if len(jobs) < limit or offset + limit >= total:
+                break
+            offset += limit
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        try:
+            loc = raw.get("location", {})
+            city, region = loc.get("city", ""), loc.get("region", "")
+            location = ", ".join([p for p in [city, region] if p]) or loc.get("country", "")
+            if loc.get("remote"):
+                location = f"{location} (Remote)" if location else "Remote"
+            dept = raw.get("department", {})
+            released = raw.get("releasedDate", "")
+            posted = datetime.fromisoformat(released.replace("Z", "+00:00")) if released else None
+            job_id = raw.get("id", "")
+            return ScrapedJob(
+                title=raw.get("name", ""), location=location,
+                job_url=f"https://jobs.smartrecruiters.com/{self.COMPANY_ID}/{job_id}",
+                external_job_id=raw.get("refNumber", "") or job_id,
+                department=dept.get("label", "") if isinstance(dept, dict) else "",
+                posted_date=posted
             )
         except:
             return None
@@ -222,3 +292,20 @@ class RelaceScraper(AshbyMixin, HTTPScraper):
 class ResendScraper(AshbyMixin, HTTPScraper):
     config = ScraperConfig(company_slug="resend", company_name="Resend", careers_url="https://resend.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://api.ashbyhq.com/posting-api/job-board/resend"
+
+
+# SmartRecruiters Scrapers
+# API: https://api.smartrecruiters.com/v1/companies/{COMPANY_ID}/postings
+@ScraperRegistry.register(category="custom")
+class IntuitiveSurgicalScraper(SmartRecruitersMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="intuitivesurgical", company_name="Intuitive Surgical", careers_url="https://careers.intuitive.com/en/jobs/", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=50)
+    API_URL = "https://api.smartrecruiters.com/v1/companies/Intuitive/postings"
+    COMPANY_ID = "Intuitive"
+
+
+# Lever Scrapers
+# API: https://api.lever.co/v0/postings/{company}?mode=json
+@ScraperRegistry.register(category="custom")
+class RoScraper(LeverMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="ro", company_name="Ro", careers_url="https://jobs.lever.co/ro", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://api.lever.co/v0/postings/ro?mode=json"
