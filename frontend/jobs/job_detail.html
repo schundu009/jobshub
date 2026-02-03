@@ -536,15 +536,20 @@
                     coverLetterId = coverLetterOption;
                 }
 
-                await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
+                const result = await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
                     resume_id: resumeId ? parseInt(resumeId) : null,
                     use_ai_cover_letter: useAiCoverLetter,
-                    process_immediately: true  // Process now instead of queuing
+                    process_immediately: false  // Queue for worker to process (more reliable)
                 });
 
-                showToast('Application submitted successfully!', 'success');
-                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Applied!';
-                btn.style.background = '#22c55e';
+                // Check response for next steps
+                if (result.celery_error) {
+                    showToast('Application queued! Processing may be delayed - check Auto Apply page for status.', 'success');
+                } else {
+                    showToast('Application queued for processing! Check Auto Apply page for status.', 'success');
+                }
+                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Queued!';
+                btn.style.background = '#8b5cf6';
 
             } catch (error) {
                 showToast(error.message || 'Failed to submit application', 'error');
