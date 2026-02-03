@@ -608,12 +608,28 @@
             }
         }
 
-        // Check authentication
-        if (!getAccessToken()) {
-            window.location.href = 'login.html';
-        } else {
+        // Check authentication and role selection
+        async function init() {
+            if (!getAccessToken()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Check role selection
+            try {
+                const status = await apiRequest('/users/onboarding-status');
+                if (!status.roles_confirmed) {
+                    window.location.href = 'select-roles.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to check status:', error);
+            }
+
             loadJob();
         }
+
+        init();
     </script>
 </body>
 </html>
