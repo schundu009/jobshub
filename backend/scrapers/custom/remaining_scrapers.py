@@ -81,10 +81,6 @@ class AnyscaleScraper(AshbyMixin, HTTPScraper):
     config = ScraperConfig(company_slug="anyscale", company_name="Anyscale", careers_url="https://jobs.ashbyhq.com/anyscale", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://api.ashbyhq.com/posting-api/job-board/anyscale"
 
-# Broadcom moved to Workday - disabled for now (needs WorkdayHybridMixin from enterprise scrapers)
-# @ScraperRegistry.register(category="custom")
-# class BroadcomScraper - URL: https://broadcom.wd1.myworkdayjobs.com/External_Career
-
 @ScraperRegistry.register(category="custom")
 class CharacterAIScraper(AshbyMixin, HTTPScraper):
     config = ScraperConfig(company_slug="characterai", company_name="Character AI", careers_url="https://jobs.ashbyhq.com/character", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)

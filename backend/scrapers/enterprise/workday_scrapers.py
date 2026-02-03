@@ -250,6 +250,7 @@ WORKDAY_COMPANIES = [
     ("lululemon", "Lululemon", "lululemon", "wd1", "External"),
 
     # Tech & Media
+    ("broadcom", "Broadcom", "broadcom", "wd1", "External_Career"),
     ("netflix", "Netflix", "netflix", "wd1", "Netflix"),
     ("hp", "HP Inc.", "hp", "wd5", "External"),
     ("westerndigital", "Western Digital", "westerndigital", "wd5", "External"),
