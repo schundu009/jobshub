@@ -481,6 +481,7 @@ def get_user_settings(
         # Auto Apply
         "employment_status": current_user.employment_status,
         "job_titles": current_user.job_titles or [],
+        "job_roles": current_user.job_roles or [],  # Include for fallback/suggestions
         "experience_level": current_user.experience_level,
         "minimum_salary": current_user.min_salary,
         "industry": current_user.industry,

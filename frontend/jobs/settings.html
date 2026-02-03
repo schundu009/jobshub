@@ -1395,15 +1395,16 @@
         }
 
         function validateAutoApply() {
+            // Allow proceeding without job titles (just show warning)
             if (jobTitles.length === 0) {
-                showTabError('Please add at least one desired job title.');
-                return false;
+                // Show warning but allow proceeding
+                const proceed = confirm('No job titles added. Auto-apply features will be limited. Continue anyway?');
+                if (!proceed) {
+                    showTabError('Please add at least one desired job title for better job matching.');
+                    return false;
+                }
             }
-            const experienceLevel = document.getElementById('experience_level').value;
-            if (!experienceLevel) {
-                showTabError('Please select your experience level.');
-                return false;
-            }
+            // Experience level is optional too
             return true;
         }
 
@@ -1767,11 +1768,14 @@
                 }
             });
 
-            // Populate tags
-            if (settings.job_titles) {
+            // Populate tags - use job_roles as fallback if job_titles is empty
+            if (settings.job_titles && settings.job_titles.length > 0) {
                 jobTitles = settings.job_titles;
-                setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            } else if (settings.job_roles && settings.job_roles.length > 0) {
+                // Use job_roles as default job titles
+                jobTitles = settings.job_roles.slice(0, 5);
             }
+            setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
             if (settings.preferred_cities) {
                 cities = settings.preferred_cities;
                 setupTagsInput('cities-input', 'cities-container', cities, 10);
