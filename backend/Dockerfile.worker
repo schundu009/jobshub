@@ -6,8 +6,9 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Playwright with system dependencies
-RUN playwright install --with-deps chromium
+# Install Playwright browsers with all dependencies
+# Install both chromium and chromium-headless-shell for headless mode
+RUN playwright install --with-deps chromium chromium-headless-shell
 
 # Copy backend application code
 COPY backend/ .
