@@ -31,8 +31,15 @@ def get_engine():
         )
     else:
         # PostgreSQL configuration with connection pooling
+        # For Railway internal connections, disable SSL to avoid SSL errors
+        db_url = settings.database_url
+        if 'railway.internal' in db_url and '?' not in db_url:
+            db_url = f"{db_url}?sslmode=disable"
+        elif 'railway.internal' in db_url and 'sslmode' not in db_url:
+            db_url = f"{db_url}&sslmode=disable"
+
         return create_engine(
-            settings.database_url,
+            db_url,
             poolclass=QueuePool,
             pool_size=settings.db_pool_size,
             max_overflow=settings.db_max_overflow,
