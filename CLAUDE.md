@@ -2,19 +2,28 @@
 
 A personal job application tracking system built with FastAPI backend and vanilla HTML/CSS/JS frontend.
 
-## CRITICAL: Always Deploy to Production
+## CRITICAL: MANDATORY DEPLOYMENT AFTER EVERY CHANGE
 
-**This project runs on Railway (backend) and Vercel (frontend) - NOT localhost.**
+**This is a PRODUCTION project. ALL changes MUST be deployed immediately.**
 
-After making code changes:
+### Deployment is NON-NEGOTIABLE
+
+After ANY code change, you MUST:
 ```bash
 git add -A && git commit -m "Your message" && git push origin main
 ```
 
-Railway and Vercel will auto-deploy from the `main` branch. Never test on localhost URLs - always verify on production:
-- **Frontend**: https://cariara.vercel.app (or your Vercel URL)
-- **Backend**: https://cariara-backend.up.railway.app
-- **Admin**: https://cariara.vercel.app/admin/
+**DO NOT** consider a task complete until changes are committed and pushed.
+
+### Production URLs (ALWAYS verify here, NOT localhost)
+- **Frontend**: https://www.cariara.com/jobs/
+- **Backend API**: https://cariara-backend.up.railway.app
+- **Admin Portal**: https://www.cariara.com/admin/
+
+### Auto-Deploy Pipeline
+- Railway auto-deploys backend from `main` branch
+- Vercel auto-deploys frontend from `main` branch
+- Changes typically reflect within 1-2 minutes after push
 
 ## CRITICAL: Service Health Discipline
 
