@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Job Details</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px;
+            max-width: 900px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        .back-link svg { width: 16px; height: 16px; }
+        .job-header {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .job-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .job-company {
+            font-size: 16px;
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+        }
+        .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .job-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+        .job-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); }
+        .btn svg { width: 18px; height: 18px; }
+        .job-description {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .job-description h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        .job-description-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+        .job-description-content p { margin-bottom: 12px; }
+        .job-description-content ul, .job-description-content ol {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        .job-description-content li { margin-bottom: 6px; }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+        .error {
+            text-align: center;
+            padding: 60px;
+            color: var(--accent-red);
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            z-index: 1000;
+        }
+        .toast.success { border-color: #22c55e; }
+        .toast.error { border-color: #ef4444; }
+        .toast.show { display: block; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <a href="discover.html" class="back-link">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Back to Jobs
+        </a>
+
+        <div id="job-content">
+            <div class="loading">Loading job details...</div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="../js/app.js"></script>
+    <script src="../js/sidebar.js"></script>
+    <script>
+        const API_BASE = window.location.hostname === 'localhost'
+            ? 'http://localhost:8000/api'
+            : 'https://cariara-backend.up.railway.app/api';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('id');
+
+        async function loadJob() {
+            if (!jobId) {
+                document.getElementById('job-content').innerHTML = '<div class="error">No job ID provided</div>';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+                const response = await fetch(`${API_BASE}/jobs/${jobId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+
+                if (!response.ok) throw new Error('Job not found');
+                const job = await response.json();
+                renderJob(job);
+            } catch (error) {
+                document.getElementById('job-content').innerHTML = `<div class="error">Failed to load job: ${error.message}</div>`;
+            }
+        }
+
+        function renderJob(job) {
+            const location = job.location || 'Location not specified';
+            const department = job.department || '';
+            const postedDate = job.posted_date ? new Date(job.posted_date).toLocaleDateString() : '';
+            const salary = formatSalary(job.salary_min, job.salary_max);
+
+            document.getElementById('job-content').innerHTML = `
+                <div class="job-header">
+                    <h1 class="job-title">${escapeHtml(job.title)}</h1>
+                    <div class="job-company">${escapeHtml(job.company?.name || job.company_name || 'Company')}</div>
+                    <div class="job-meta">
+                        <div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            ${escapeHtml(location)}
+                        </div>
+                        ${department ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            ${escapeHtml(department)}
+                        </div>` : ''}
+                        ${salary ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            ${salary}
+                        </div>` : ''}
+                        ${postedDate ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Posted ${postedDate}
+                        </div>` : ''}
+                    </div>
+                    <div class="job-actions">
+                        <button class="btn btn-primary" onclick="addToQueue(${job.id})">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            Add to Apply Queue
+                        </button>
+                        ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-secondary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            View Original
+                        </a>` : ''}
+                    </div>
+                </div>
+
+                <div class="job-description">
+                    <h3>Job Description</h3>
+                    <div class="job-description-content">
+                        ${job.job_description || job.ai_summary || '<p>No description available.</p>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatSalary(min, max) {
+            if (!min && !max) return '';
+            const fmt = (n) => '$' + n.toLocaleString();
+            if (min && max) return `${fmt(min)} - ${fmt(max)}`;
+            if (min) return `From ${fmt(min)}`;
+            if (max) return `Up to ${fmt(max)}`;
+            return '';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function addToQueue(jobId) {
+            try {
+                const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/auto-apply/queue`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ job_id: jobId })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Failed to add to queue');
+                }
+
+                showToast('Job added to apply queue!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Check authentication
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        } else {
+            loadJob();
+        }
+    </script>
+</body>
+</html>
