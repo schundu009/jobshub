@@ -4,9 +4,9 @@
 [phases.setup]
 nixPkgs = ["...", "chromium", "nss", "alsa-lib", "at-spi2-atk", "gtk3", "libdrm", "mesa"]
 
-# Install Playwright browsers during build (not start)
-[phases.install]
-cmds = ["pip install -r requirements.txt", "playwright install chromium --with-deps"]
+# Install Playwright browsers after pip install completes
+[phases.build]
+cmds = ["playwright install chromium --with-deps"]
 
 [start]
 cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
