@@ -273,29 +273,37 @@
         let preflightData = null; // ATS support check data
 
         async function loadJob() {
+            console.log('[JobDetail] Starting loadJob, jobId:', jobId);
             if (!jobId) {
                 document.getElementById('job-content').innerHTML = '<div class="error">No job ID provided</div>';
                 return;
             }
 
             try {
-                // Load job details, user documents, and preflight check in parallel
-                const [job, documents, preflight] = await Promise.all([
-                    apiRequest(`/jobs/${jobId}`),
-                    apiRequest('/users/documents').catch(() => []),
-                    apiRequest(`/auto-apply/preflight/${jobId}`).catch(() => null)
-                ]);
+                console.log('[JobDetail] Fetching job data...');
+                // Load job details first, then documents/preflight
+                const job = await apiRequest(`/jobs/${jobId}`);
+                console.log('[JobDetail] Job loaded:', job?.title);
 
                 currentJob = job;
+
+                // These are optional - don't block on them
+                const [documents, preflight] = await Promise.all([
+                    apiRequest('/users/documents').catch(e => { console.log('[JobDetail] Documents fetch failed:', e.message); return []; }),
+                    apiRequest(`/auto-apply/preflight/${jobId}`).catch(e => { console.log('[JobDetail] Preflight failed:', e.message); return null; })
+                ]);
+
                 preflightData = preflight;
 
                 // Separate resumes and cover letters
                 userResumes = (documents || []).filter(d => d.document_type === 'resume');
                 userCoverLetters = (documents || []).filter(d => d.document_type === 'cover_letter');
 
+                console.log('[JobDetail] Rendering job...');
                 renderJob(job);
+                console.log('[JobDetail] Job rendered successfully');
             } catch (error) {
-                console.error('Error loading job:', error);
+                console.error('[JobDetail] Error loading job:', error);
                 document.getElementById('job-content').innerHTML = `<div class="error">Failed to load job: ${error.message}</div>`;
             }
         }
