@@ -281,7 +281,7 @@
                 // Load job details and user documents in parallel
                 const [job, documents] = await Promise.all([
                     apiRequest(`/jobs/${jobId}`),
-                    apiRequest('/documents').catch(() => [])
+                    apiRequest('/users/documents').catch(() => [])
                 ]);
 
                 currentJob = job;
