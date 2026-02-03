@@ -304,7 +304,7 @@
                 // Jobs portal redirect flow: onboarding -> role selection -> discover
                 if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
-                } else if (!rolesConfirmed && jobRoles.length === 0) {
+                } else if (!rolesConfirmed) {
                     window.location.href = 'select-roles.html';
                 } else {
                     window.location.href = DEFAULT_REDIRECT;
@@ -365,10 +365,9 @@
                 // Jobs portal redirect flow: onboarding -> role selection -> discover
                 const onboardingCompleted = data.user?.onboarding_completed || false;
                 const rolesConfirmed = data.user?.roles_confirmed_at || data.user?.roles_confirmed || false;
-                const jobRoles = data.user?.job_roles || [];
                 if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
-                } else if (!rolesConfirmed && jobRoles.length === 0) {
+                } else if (!rolesConfirmed) {
                     window.location.href = 'select-roles.html';
                 } else {
                     window.location.href = DEFAULT_REDIRECT;
