@@ -21,7 +21,10 @@
             flex: 1;
             margin-left: 220px;
             padding: 24px;
-            max-width: 900px;
+            max-width: 1000px;
+        }
+        @media (max-width: 768px) {
+            .main-content { margin-left: 0; padding: 16px; }
         }
         .back-link {
             display: inline-flex;
@@ -64,10 +67,60 @@
             gap: 6px;
         }
         .job-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
-        .job-actions {
+        .job-meta-item.salary { color: #22c55e; font-weight: 600; }
+
+        /* Apply Section */
+        .apply-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .apply-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .apply-section h3 svg { width: 20px; height: 20px; color: var(--accent-blue); }
+        .apply-options {
+            display: grid;
+            gap: 16px;
+        }
+        .apply-option-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .apply-option-row label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 100px;
+        }
+        .apply-option-row select {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .apply-option-row select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        .apply-actions {
             display: flex;
             gap: 12px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         .btn {
             padding: 12px 24px;
@@ -80,20 +133,45 @@
             align-items: center;
             gap: 8px;
             transition: all 0.2s;
-        }
-        .btn-primary {
-            background: var(--gradient-primary);
-            color: white;
             border: none;
         }
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
         .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
         }
         .btn-secondary:hover { background: var(--bg-hover); }
+        .btn-queue {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        .btn-queue:hover { opacity: 0.9; }
         .btn svg { width: 18px; height: 18px; }
+
+        /* Checkbox style */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-blue);
+        }
+        .checkbox-row label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
         .job-description {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -140,9 +218,32 @@
             display: none;
             z-index: 1000;
         }
-        .toast.success { border-color: #22c55e; }
-        .toast.error { border-color: #ef4444; }
+        .toast.success { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .toast.error { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
         .toast.show { display: block; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.applied { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .status-badge.queued { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .status-badge.new { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -166,6 +267,9 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const jobId = urlParams.get('id');
+        let currentJob = null;
+        let userResumes = [];
+        let userCoverLetters = [];
 
         async function loadJob() {
             if (!jobId) {
@@ -174,8 +278,18 @@
             }
 
             try {
-                // Use apiRequest from app.js which handles authentication and token refresh
-                const job = await apiRequest(`/jobs/${jobId}`);
+                // Load job details and user documents in parallel
+                const [job, documents] = await Promise.all([
+                    apiRequest(`/jobs/${jobId}`),
+                    apiRequest('/documents').catch(() => [])
+                ]);
+
+                currentJob = job;
+
+                // Separate resumes and cover letters
+                userResumes = (documents || []).filter(d => d.document_type === 'resume');
+                userCoverLetters = (documents || []).filter(d => d.document_type === 'cover_letter');
+
                 renderJob(job);
             } catch (error) {
                 console.error('Error loading job:', error);
@@ -186,13 +300,31 @@
         function renderJob(job) {
             const location = job.location || 'Location not specified';
             const department = job.department || '';
-            const postedDate = job.posted_date ? new Date(job.posted_date).toLocaleDateString() : '';
+            const postedDate = job.posted_date ? formatRelativeDate(job.posted_date) : '';
             const salary = formatSalary(job.salary_min, job.salary_max);
+            const companyName = job.company?.name || job.company_name || 'Company';
+
+            // Build resume options
+            let resumeOptions = '<option value="">Use default resume</option>';
+            userResumes.forEach(r => {
+                const label = r.filename || r.name || `Resume ${r.id}`;
+                resumeOptions += `<option value="${r.id}">${escapeHtml(label)}</option>`;
+            });
+            if (userResumes.length === 0) {
+                resumeOptions = '<option value="">No resumes uploaded</option>';
+            }
+
+            // Build cover letter options
+            let coverLetterOptions = '<option value="ai">Generate with AI</option><option value="none">No cover letter</option>';
+            userCoverLetters.forEach(cl => {
+                const label = cl.filename || cl.name || `Cover Letter ${cl.id}`;
+                coverLetterOptions += `<option value="${cl.id}">${escapeHtml(label)}</option>`;
+            });
 
             document.getElementById('job-content').innerHTML = `
                 <div class="job-header">
                     <h1 class="job-title">${escapeHtml(job.title)}</h1>
-                    <div class="job-company">${escapeHtml(job.company?.name || job.company_name || 'Company')}</div>
+                    <div class="job-company">${escapeHtml(companyName)}</div>
                     <div class="job-meta">
                         <div class="job-meta-item">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -202,23 +334,60 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                             ${escapeHtml(department)}
                         </div>` : ''}
-                        ${salary ? `<div class="job-meta-item">
+                        ${salary ? `<div class="job-meta-item salary">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             ${salary}
                         </div>` : ''}
                         ${postedDate ? `<div class="job-meta-item">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            Posted ${postedDate}
+                            ${postedDate}
+                        </div>` : ''}
+                        ${job.job_url ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                            <a href="${escapeHtml(job.job_url)}" target="_blank" style="color: var(--accent-blue);">View Original Posting</a>
                         </div>` : ''}
                     </div>
-                    <div class="job-actions">
-                        <button class="btn btn-primary" onclick="addToQueue(${job.id})">
+                </div>
+
+                <div class="apply-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Quick Apply
+                    </h3>
+                    <div class="apply-options">
+                        <div class="apply-option-row">
+                            <label>Resume:</label>
+                            <select id="resume-select">
+                                ${resumeOptions}
+                            </select>
+                            <a href="documents.html" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Upload
+                            </a>
+                        </div>
+                        <div class="apply-option-row">
+                            <label>Cover Letter:</label>
+                            <select id="cover-letter-select">
+                                ${coverLetterOptions}
+                            </select>
+                        </div>
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="use-ats-resume" checked>
+                            <label for="use-ats-resume">Use ATS-optimized resume format</label>
+                        </div>
+                    </div>
+                    <div class="apply-actions">
+                        <button class="btn btn-primary" id="auto-apply-btn" onclick="autoApply()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Auto Apply Now
+                        </button>
+                        <button class="btn btn-queue" onclick="addToQueue()">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                            Add to Apply Queue
+                            Add to Queue
                         </button>
                         ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-secondary">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                            View Original
+                            Apply Manually
                         </a>` : ''}
                     </div>
                 </div>
@@ -242,34 +411,89 @@
         function formatSalary(min, max) {
             if (!min && !max) return '';
             const fmt = (n) => '$' + n.toLocaleString();
-            if (min && max) return `${fmt(min)} - ${fmt(max)}`;
-            if (min) return `From ${fmt(min)}`;
-            if (max) return `Up to ${fmt(max)}`;
+            if (min && max) return `${fmt(min)} - ${fmt(max)}/yr`;
+            if (min) return `From ${fmt(min)}/yr`;
+            if (max) return `Up to ${fmt(max)}/yr`;
             return '';
+        }
+
+        function formatRelativeDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return 'Posted today';
+            if (diffDays === 1) return 'Posted yesterday';
+            if (diffDays < 7) return `Posted ${diffDays} days ago`;
+            if (diffDays < 30) return `Posted ${Math.floor(diffDays / 7)} weeks ago`;
+            return `Posted ${date.toLocaleDateString()}`;
         }
 
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = `toast ${type} show`;
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
-        async function addToQueue(jobIdToAdd) {
+        async function autoApply() {
+            const btn = document.getElementById('auto-apply-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Submitting...';
+
             try {
                 if (!getAccessToken()) {
                     window.location.href = 'login.html';
                     return;
                 }
 
-                await apiRequest('/auto-apply/queue', 'POST', { job_id: jobIdToAdd });
+                const resumeId = document.getElementById('resume-select').value || null;
+                const coverLetterOption = document.getElementById('cover-letter-select').value;
+                const useAtsResume = document.getElementById('use-ats-resume').checked;
+
+                let coverLetterId = null;
+                let useAiCoverLetter = false;
+
+                if (coverLetterOption === 'ai') {
+                    useAiCoverLetter = true;
+                } else if (coverLetterOption !== 'none') {
+                    coverLetterId = coverLetterOption;
+                }
+
+                await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
+                    resume_id: resumeId ? parseInt(resumeId) : null,
+                    cover_letter_id: coverLetterId ? parseInt(coverLetterId) : null,
+                    use_ai_cover_letter: useAiCoverLetter,
+                    use_ats_format: useAtsResume
+                });
+
+                showToast('Application submitted successfully!', 'success');
+                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Applied!';
+                btn.style.background = '#22c55e';
+
+            } catch (error) {
+                showToast(error.message || 'Failed to submit application', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Auto Apply Now';
+            }
+        }
+
+        async function addToQueue() {
+            try {
+                if (!getAccessToken()) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                await apiRequest('/auto-apply/queue', 'POST', { job_id: parseInt(jobId) });
                 showToast('Job added to apply queue!', 'success');
             } catch (error) {
                 showToast(error.message || 'Failed to add to queue', 'error');
             }
         }
 
-        // Check authentication using app.js helper
+        // Check authentication
         if (!getAccessToken()) {
             window.location.href = 'login.html';
         } else {
