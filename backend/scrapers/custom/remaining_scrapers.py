@@ -77,19 +77,18 @@ class AgilentScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/agilenttechnologies/jobs"
 
 @ScraperRegistry.register(category="custom")
-class AnyscaleScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="anyscale", company_name="Anyscale", careers_url="https://anyscale.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/anyscale/jobs"
+class AnyscaleScraper(AshbyMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="anyscale", company_name="Anyscale", careers_url="https://jobs.ashbyhq.com/anyscale", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/anyscale"
+
+# Broadcom moved to Workday - disabled for now (needs WorkdayHybridMixin from enterprise scrapers)
+# @ScraperRegistry.register(category="custom")
+# class BroadcomScraper - URL: https://broadcom.wd1.myworkdayjobs.com/External_Career
 
 @ScraperRegistry.register(category="custom")
-class BroadcomScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="broadcom", company_name="Broadcom", careers_url="https://broadcom.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/broadcom/jobs"
-
-@ScraperRegistry.register(category="custom")
-class CharacterAIScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="characterai", company_name="Character AI", careers_url="https://character.ai/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/character/jobs"
+class CharacterAIScraper(AshbyMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="characterai", company_name="Character AI", careers_url="https://jobs.ashbyhq.com/character", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/character"
 
 @ScraperRegistry.register(category="custom")
 class CircleCIScraper(GreenhouseMixin, HTTPScraper):

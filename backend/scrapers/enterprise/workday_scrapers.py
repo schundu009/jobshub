@@ -15,6 +15,10 @@ class WorkdayHybridMixin:
     companies have API protections. For those, we use Playwright browser automation.
     """
 
+
+# Alias for backwards compatibility
+WorkdayPlaywrightMixin = WorkdayHybridMixin
+
     async def scrape(self) -> ScrapeResult:
         """Try HTTP API first, fall back to Playwright if needed."""
         # First try the fast HTTP API approach
