@@ -133,13 +133,124 @@ Configured in `backend/database.py`:
 DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, 'jobtrails.db')}"
 ```
 
-## Common Issues
+## Common Issues & Fixes
 
-### Counts showing 0
+### Railway Deployment
+
+#### OAuth redirect_uri_mismatch
+- **Cause**: `BACKEND_URL` env var doesn't match actual Railway URL
+- **Fix**: Ensure `BACKEND_URL=https://cariara-backend.up.railway.app` (not `cariara-backend-production`)
+
+#### Jobs not saving to database (SSL errors)
+- **Cause**: Railway internal PostgreSQL connections failing with SSL errors
+- **Fix**: In `database.py`, add `sslmode=disable` for Railway internal connections:
+```python
+if 'railway.internal' in db_url and '?' not in db_url:
+    db_url = f"{db_url}?sslmode=disable"
+```
+
+#### Worker not running / Scrapers not scheduling
+- **Symptoms**: No new jobs since a specific date, Beat is running but Worker is down
+- **Check**: Railway dashboard → Worker service logs
+- **Fix**: Redeploy Worker service
+
+#### Playwright browser not found
+- **Error**: `chromium_headless_shell` not installed
+- **Fix**: In `Dockerfile.worker`:
+```dockerfile
+RUN playwright install --with-deps chromium chromium-headless-shell
+```
+
+### Scraper Issues
+
+#### Workday URL case sensitivity
+- **Cause**: Site names like `External_Career` get lowercased to `external_career`
+- **Fix**: In `ingestion_service.py`, extract site name from original URL before lowercasing
+
+#### Company moved to different ATS
+- **Symptoms**: 404 errors for specific companies
+- **Common migrations**:
+  - Anyscale: Greenhouse → Ashby (`https://api.ashbyhq.com/posting-api/job-board/anyscale`)
+  - Character AI: Greenhouse → Ashby (`https://api.ashbyhq.com/posting-api/job-board/character`)
+- **Fix**: Update scraper to use new ATS API
+
+#### WorkdayPlaywrightMixin import error
+- **Fix**: Add alias in `workday_scrapers.py`:
+```python
+WorkdayPlaywrightMixin = WorkdayHybridMixin
+```
+
+### Frontend Issues
+
+#### "Loading job details..." stuck
+- **Cause**: Using raw `fetch` instead of `apiRequest` helper
+- **Fix**: Use `apiRequest('/jobs/${jobId}')` from `app.js` which handles auth & token refresh
+
+#### Job description as single paragraph
+- **Cause**: Plain text newlines ignored in HTML
+- **Fix**: Add CSS `white-space: pre-line` to `.job-description-content`
+
+#### Wrong job_detail.html routing
+- **Cause**: Links pointing to `/admin/job_detail.html` instead of `/jobs/job_detail.html`
+- **Fix**: Update href in discover.html to use correct path
+
+#### Redis showing unhealthy on dashboard
+- **Cause**: Using wrong health endpoint
+- **Fix**: Use `/health/redis` endpoint instead of `/health`
+
+### Database Issues
+
+#### Counts showing 0
 - Check that `company_id` foreign key is set on Job records
 - Verify the SQLAlchemy relationship is loading correctly
 - Query the database directly: `SELECT company_id, COUNT(*) FROM jobs GROUP BY company_id`
 
-### Empty tables
+#### Empty tables
 - Ensure data was properly migrated/imported
 - Check for filtering issues in the API or frontend
+
+#### Password reset on Railway
+```python
+import bcrypt
+from sqlalchemy import create_engine, text
+engine = create_engine("postgresql://postgres:PASSWORD@HOST:PORT/railway")
+hashed = bcrypt.hashpw("newpassword".encode(), bcrypt.gensalt()).decode()
+with engine.connect() as conn:
+    conn.execute(text("UPDATE users SET hashed_password = :pwd WHERE email = :email"),
+                 {"pwd": hashed, "email": "user@example.com"})
+    conn.commit()
+```
+
+## Railway Services
+
+| Service | Purpose | Key Files |
+|---------|---------|-----------|
+| Backend | FastAPI API server | `Dockerfile`, `main.py` |
+| Worker | Celery task worker | `Dockerfile.worker`, `celery_app.py` |
+| Beat | Celery scheduler | `Dockerfile.beat`, `celery_app.py` |
+| Redis | Task queue broker | Railway managed |
+| PostgreSQL | Database | Railway managed |
+
+## Adding New Scrapers
+
+### Greenhouse
+```python
+@ScraperRegistry.register(category="custom")
+class CompanyScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="company", company_name="Company", ...)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/company/jobs"
+```
+
+### Ashby
+```python
+@ScraperRegistry.register(category="custom")
+class CompanyScraper(AshbyMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="company", company_name="Company", ...)
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/company"
+```
+
+### Workday
+Add to `WORKDAY_COMPANIES` in `workday_scrapers.py`:
+```python
+("company", "Company Name", "company", "wd1", "External_Career_Site"),
+```
