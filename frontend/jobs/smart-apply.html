@@ -191,7 +191,7 @@
         // Production URL for Railway deployment, falls back to localhost for development
         const AUTOAPPLY_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5001'
-            : 'https://cariara-autoapply.up.railway.app';
+            : 'https://cariara-autoapply-production.up.railway.app';
         let connected = false;
 
         document.addEventListener('DOMContentLoaded', async function() {
