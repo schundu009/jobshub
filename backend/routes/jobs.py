@@ -14,7 +14,7 @@ Overrides:
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, not_, func
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 from typing import Optional, List
 import re
@@ -38,6 +38,49 @@ except Exception:
     redis_service = None
 
 CACHE_TTL_JOBS = 300  # Cache job lists for 5 minutes (scoring is expensive)
+
+
+def _apply_title_filter(query, role_profiles: List[dict]):
+    """
+    Apply database-level title filtering based on role profile patterns.
+
+    This dramatically reduces the number of jobs to score by filtering
+    at the SQL level using ILIKE patterns.
+    """
+    if not role_profiles:
+        return query
+
+    # Collect all patterns from all role profiles
+    include_patterns = []
+    exclude_patterns = []
+
+    for profile in role_profiles:
+        title_config = profile.get("title_patterns", {})
+        # Include strong and weak match patterns
+        include_patterns.extend(title_config.get("strong_match", []))
+        include_patterns.extend(title_config.get("weak_match", []))
+        # Collect exclude patterns
+        exclude_patterns.extend(title_config.get("exclude", []))
+
+    # Build SQL ILIKE conditions for inclusion
+    include_conditions = []
+    for pattern in include_patterns:
+        # Convert to SQL ILIKE pattern (case-insensitive, partial match)
+        include_conditions.append(func.lower(Job.title).contains(pattern.lower()))
+
+    # Build SQL NOT ILIKE conditions for exclusion
+    exclude_conditions = []
+    for pattern in exclude_patterns:
+        exclude_conditions.append(func.lower(Job.title).contains(pattern.lower()))
+
+    # Apply filters: must match at least one include pattern, and not match any exclude pattern
+    if include_conditions:
+        query = query.filter(or_(*include_conditions))
+
+    if exclude_conditions:
+        query = query.filter(not_(or_(*exclude_conditions)))
+
+    return query
 
 
 def _redis_available() -> bool:
@@ -398,14 +441,17 @@ async def get_jobs(
         _cache_set(cache_key, result)
         return result
 
-    # Limit to most recent jobs for performance (relevance scoring is CPU-intensive)
-    # Increased from 200 to 2000 to include older jobs (e.g., Zoom jobs from 24 days ago)
-    MAX_JOBS_TO_SCORE = 2000
+    # Apply database-level title filtering based on role patterns
+    # This dramatically reduces the number of jobs to score
+    query = _apply_title_filter(query, role_profiles)
+
+    # After title filtering, get all matching jobs (no arbitrary limit)
+    # The title filter typically reduces 26K jobs to a few thousand
     try:
         all_jobs = query.order_by(
             Job.posted_date.desc().nullslast(),
             Job.created_at.desc()
-        ).limit(MAX_JOBS_TO_SCORE).all()
+        ).all()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
 
@@ -417,8 +463,9 @@ async def get_jobs(
             "target_seniority": current_user.target_seniority
         }
 
-    # Get threshold from first profile (or default)
-    threshold = role_profiles[0].get("relevance_threshold", 30.0) if role_profiles else 30.0
+    # Get threshold - use min_score if provided, otherwise default to 70 for quality filtering
+    effective_min_score = min_score if min_score is not None else 70.0
+    threshold = effective_min_score
 
     # Score and filter jobs - use BEST score across all selected roles
     scored_jobs = []
@@ -433,13 +480,8 @@ async def get_jobs(
                     best_score = result.relevance_score
                     best_result = result
 
-            if best_result:
-                # Filter based on min_score or relevance
-                if min_score is not None:
-                    if best_result.relevance_score >= min_score:
-                        scored_jobs.append((job, best_result))
-                elif best_result.is_relevant:
-                    scored_jobs.append((job, best_result))
+            if best_result and best_result.relevance_score >= effective_min_score:
+                scored_jobs.append((job, best_result))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Relevance scoring failed: {str(e)}")
 
