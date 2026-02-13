@@ -1381,16 +1381,12 @@
 
         function validatePreferences() {
             const resumeEmail = document.getElementById('resume_email').value.trim();
-            const baseResume = document.getElementById('base-resume-select').value;
 
             if (!resumeEmail) {
                 showTabError('Please enter your resume email.');
                 return false;
             }
-            if (!baseResume) {
-                showTabError('Please select a base resume. If you don\'t have one, upload it in the Resumes section first.');
-                return false;
-            }
+            // Base resume is optional - user can add it later
             return true;
         }
 
@@ -1540,8 +1536,8 @@
         // Quiet validators (don't show errors, just return boolean)
         function validatePreferencesQuiet() {
             const resumeEmail = document.getElementById('resume_email')?.value?.trim();
-            const baseResume = document.getElementById('base-resume-select')?.value;
-            return !!(resumeEmail && baseResume);
+            // Base resume is optional
+            return !!resumeEmail;
         }
 
         function validateAutoApplyQuiet() {
@@ -1843,10 +1839,9 @@
         }
 
         function checkTabCompletion() {
-            // Check Preferences tab
+            // Check Preferences tab - only require resume email, base resume is optional
             const resumeEmail = document.querySelector('[name="resume_email"]')?.value;
-            const baseResume = document.getElementById('base-resume-select')?.value;
-            if (resumeEmail && baseResume) {
+            if (resumeEmail) {
                 completedTabs.preferences = true;
                 markTabCompleted('preferences');
             }
