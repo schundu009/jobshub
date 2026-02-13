@@ -16,9 +16,6 @@ class WorkdayHybridMixin:
     """
 
 
-# Alias for backwards compatibility
-WorkdayPlaywrightMixin = WorkdayHybridMixin
-
     async def scrape(self) -> ScrapeResult:
         """Try HTTP API first, fall back to Playwright if needed."""
         # First try the fast HTTP API approach
@@ -235,6 +232,10 @@ WorkdayPlaywrightMixin = WorkdayHybridMixin
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         """Required by base class but we use custom methods."""
         return self._parse_api_job(raw)
+
+
+# Alias for backwards compatibility
+WorkdayPlaywrightMixin = WorkdayHybridMixin
 
 
 # Company configurations: (slug, name, tenant, subdomain, job_site_path)
