@@ -134,6 +134,24 @@
             font-size: 11px;
             color: var(--text-secondary);
         }
+        .company-chip .refresh-btn-mini {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .company-chip .refresh-btn-mini:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .company-chip .refresh-btn-mini:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         .time-filter {
             display: flex;
@@ -871,9 +889,10 @@
                 const companyName = source.company_name || 'Unknown';
                 const slug = source.company_slug || `src-${idx}`;
                 html += `
-                    <div class="company-chip"${dimStyle} onclick="filterByCompany('${companyName.replace(/'/g, "\\'")}')">
-                        <span class="name">${companyName}</span>
+                    <div class="company-chip"${dimStyle}>
+                        <span class="name" onclick="filterByCompany('${companyName.replace(/'/g, "\\'")}')">${companyName}</span>
                         <span class="count">${source.job_count || 0}</span>
+                        ${slug && slug !== `src-${idx}` ? `<button class="refresh-btn-mini" onclick="event.stopPropagation(); runScraper('${slug}')" title="Run scraper">↻</button>` : ''}
                     </div>
                 `;
             });
@@ -898,6 +917,29 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Refresh All';
+            }
+        }
+
+        async function runScraper(slug) {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            try {
+                const response = await apiRequest(`/scrapers/${slug}/run-sync`, 'POST');
+                if (response.status === 'success') {
+                    showAlert(`${slug}: Found ${response.jobs_found} jobs (${response.jobs_new} new, ${response.jobs_updated} updated)`);
+                    loadJobs();
+                    loadSources();
+                } else {
+                    showAlert(`${slug}: ${response.error || 'Failed'}`, 'error');
+                }
+            } catch (error) {
+                showAlert(`Error running ${slug}: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         }
 
