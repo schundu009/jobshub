@@ -5,7 +5,7 @@
 
 const JOBS_NAV_ITEMS = [
     { id: 'discover', label: 'Jobs', href: 'discover.html', icon: 'search' },
-    { id: 'smart-apply', label: 'Smart Apply', href: 'smart-apply.html', icon: 'lightning' },
+    { id: 'autoapply', label: 'AutoApply', href: 'autoapply.html', icon: 'lightning' },
     { id: 'contacts', label: 'Contacts', href: 'contacts.html', icon: 'users' },
     { id: 'analytics', label: 'Analytics', href: 'analytics.html', icon: 'chart' },
     { id: 'settings', label: 'Settings', href: 'settings.html', icon: 'settings' },
