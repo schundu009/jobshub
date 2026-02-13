@@ -1603,6 +1603,7 @@
                         tagsArray.push(input.value.trim());
                         input.value = '';
                         renderTags();
+                        triggerAutoSave(); // Auto-save when tag added
                     } else {
                         toast(`Maximum ${maxTags} items allowed`, 'error');
                     }
@@ -1623,6 +1624,7 @@
                 excludedCompanies.splice(index, 1);
                 setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
             }
+            triggerAutoSave(); // Auto-save when tag removed
         };
 
         // Option buttons (single select)
@@ -1871,8 +1873,46 @@
             }
         }
 
+        // Auto-save with debounce
+        let autoSaveTimeout = null;
+        let isSaving = false;
+
+        function triggerAutoSave() {
+            if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveSettings(true); // true = silent auto-save
+            }, 1500); // Save 1.5 seconds after last change
+        }
+
+        function showSaveIndicator(message = 'Saving...') {
+            let indicator = document.getElementById('auto-save-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'auto-save-indicator';
+                indicator.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--accent-purple);color:white;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;transition:opacity 0.3s;';
+                document.body.appendChild(indicator);
+            }
+            indicator.textContent = message;
+            indicator.style.opacity = '1';
+        }
+
+        function hideSaveIndicator() {
+            const indicator = document.getElementById('auto-save-indicator');
+            if (indicator) {
+                indicator.style.opacity = '0';
+                setTimeout(() => indicator.remove(), 300);
+            }
+        }
+
         // Save settings - now uses smart navigation
-        async function saveSettings() {
+        async function saveSettings(silent = false) {
+            if (isSaving) return; // Prevent concurrent saves
+            isSaving = true;
+
+            if (silent) {
+                showSaveIndicator('Saving...');
+            }
+
             // Gather all form data
             document.querySelectorAll('[name]').forEach(el => {
                 if (el.type === 'checkbox') {
@@ -1905,27 +1945,46 @@
                     body: JSON.stringify(settings)
                 });
                 if (r.ok) {
-                    // Check if all tabs are complete
-                    if (allTabsComplete()) {
-                        toast('All settings saved! Redirecting...');
-                        setTimeout(() => {
-                            window.location.href = 'discover.html';
-                        }, 1000);
+                    if (silent) {
+                        // Auto-save: just show saved indicator
+                        showSaveIndicator('Saved!');
+                        setTimeout(hideSaveIndicator, 1500);
+                        checkTabCompletion(); // Update tab completion status
                     } else {
-                        // Find next incomplete tab and go there
-                        const nextIncomplete = findNextIncompleteTab();
-                        if (nextIncomplete) {
-                            toast('Settings saved. Please complete remaining fields.');
-                            showTab(nextIncomplete, true);
+                        // Manual save: check if all tabs are complete
+                        if (allTabsComplete()) {
+                            toast('All settings saved! Redirecting...');
+                            setTimeout(() => {
+                                window.location.href = 'discover.html';
+                            }, 1000);
+                        } else {
+                            // Find next incomplete tab and go there
+                            const nextIncomplete = findNextIncompleteTab();
+                            if (nextIncomplete) {
+                                toast('Settings saved. Please complete remaining fields.');
+                                showTab(nextIncomplete, true);
+                            }
                         }
                     }
                 } else if (r.status === 401) {
                     window.location.href = 'login.html';
                 } else {
-                    toast('Failed to save settings', 'error');
+                    if (silent) {
+                        showSaveIndicator('Save failed');
+                        setTimeout(hideSaveIndicator, 2000);
+                    } else {
+                        toast('Failed to save settings', 'error');
+                    }
                 }
             } catch (e) {
-                toast('Error saving settings', 'error');
+                if (silent) {
+                    showSaveIndicator('Save error');
+                    setTimeout(hideSaveIndicator, 2000);
+                } else {
+                    toast('Error saving settings', 'error');
+                }
+            } finally {
+                isSaving = false;
             }
         }
 
@@ -2000,6 +2059,24 @@
 
             // Load settings (will also load resumes and detect country)
             await loadSettings();
+
+            // Setup auto-save on all form field changes
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.addEventListener('change', triggerAutoSave);
+                if (el.type === 'text' || el.type === 'email' || el.type === 'tel' || el.type === 'number' || el.tagName === 'TEXTAREA') {
+                    el.addEventListener('input', triggerAutoSave);
+                }
+            });
+
+            // Auto-save when option buttons are clicked
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => setTimeout(triggerAutoSave, 100));
+            });
+
+            // Auto-save when mode cards are clicked
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.addEventListener('click', () => setTimeout(triggerAutoSave, 100));
+            });
         });
     </script>
 
