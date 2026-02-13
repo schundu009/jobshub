@@ -188,7 +188,10 @@
     <script src="../js/app.js"></script>
     <script src="../js/jobs-sidebar.js"></script>
     <script>
-        const AUTOAPPLY_URL = 'http://localhost:5001';
+        // Production URL for Railway deployment, falls back to localhost for development
+        const AUTOAPPLY_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5001'
+            : 'https://cariara-autoapply.up.railway.app';
         let connected = false;
 
         document.addEventListener('DOMContentLoaded', async function() {
@@ -236,11 +239,12 @@
                 }, 3000);
 
             } catch (err) {
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                 loading.innerHTML = `
                     <div class="connection-error">
-                        <h3>Smart Apply Not Running</h3>
-                        <p>The Smart Apply service needs to be started.</p>
-                        <code>cd /Users/chundu/autoapply && python app.py</code>
+                        <h3>Smart Apply Not Available</h3>
+                        <p>${isLocal ? 'The Smart Apply service needs to be started locally.' : 'The Smart Apply service is currently unavailable.'}</p>
+                        ${isLocal ? '<code>cd /Users/chundu/autoapply && python app.py</code>' : '<p>Please try again in a few moments.</p>'}
                         <button class="btn-retry" onclick="checkConnection()">Retry Connection</button>
                     </div>
                 `;
