@@ -838,7 +838,7 @@ def health_check():
     """Health check endpoint - must respond quickly for Railway."""
     # Return immediately without checking external services
     # This ensures Railway health checks pass even if Redis/DB are slow
-    return {"status": "healthy", "version": "2.1.1"}
+    return {"status": "healthy", "version": "2.1.2"}
 
 
 @app.get("/health/redis")
