@@ -44,7 +44,15 @@ ROLE_PROFILES: List[Dict[str, Any]] = [
             "exclude": [
                 "frontend", "mobile engineer", "ios engineer", "android engineer",
                 "ui/ux", "product designer", "graphic designer", "data scientist",
-                "machine learning", "ml engineer", "sales", "marketing", "hr"
+                "machine learning", "ml engineer", "sales", "marketing", "hr",
+                "accountant", "accounting", "product manager", "production manager",
+                "electrical engineer", "mechanical engineer", "civil engineer",
+                "hardware engineer", "recruiter", "talent", "people operations",
+                "finance", "legal", "counsel", "attorney", "paralegal",
+                "customer success", "customer support", "support engineer",
+                "solutions engineer", "solutions architect", "sales engineer",
+                "business analyst", "business development", "account manager",
+                "project manager", "program manager", "scrum master"
             ]
         },
         "positive_keywords": {
@@ -71,10 +79,186 @@ ROLE_PROFILES: List[Dict[str, Any]] = [
             "android sdk", "flutter", "react native", "ui design",
             "ux research", "figma", "sketch", "photoshop",
             "machine learning", "deep learning", "neural network",
-            "tableau", "power bi", "salesforce"
+            "tableau", "power bi", "salesforce", "accounting",
+            "financial reporting", "gaap", "tax", "audit",
+            "electrical design", "circuit", "pcb", "mechanical design",
+            "cad", "solidworks", "manufacturing", "supply chain"
         ],
         "seniority_config": {
             "preferred": ["senior", "staff", "lead", "principal"],
+            "acceptable": ["mid"],
+            "exclude": []
+        },
+        "relevance_threshold": 35.0
+    },
+
+    # ===========================================
+    # SRE (Site Reliability Engineering)
+    # ===========================================
+    {
+        "slug": "sre",
+        "name": "Site Reliability Engineer",
+        "description": "System reliability, incident management, SLOs/SLIs, and production operations",
+        "title_patterns": {
+            "strong_match": [
+                "sre", "site reliability", "reliability engineer",
+                "production engineer", "infrastructure engineer",
+                "platform reliability", "systems reliability"
+            ],
+            "weak_match": [
+                "devops", "platform engineer", "systems engineer",
+                "operations engineer", "cloud engineer"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "graphic designer", "data scientist",
+                "machine learning", "ml engineer", "sales", "marketing", "hr",
+                "accountant", "accounting", "product manager", "production manager",
+                "electrical engineer", "mechanical engineer", "civil engineer",
+                "hardware engineer", "recruiter", "talent", "people operations",
+                "finance", "legal", "counsel", "attorney", "paralegal",
+                "customer success", "customer support", "solutions engineer",
+                "business analyst", "business development", "account manager",
+                "project manager", "program manager", "scrum master"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "sre", "site reliability", "slo", "sli", "error budget",
+                "incident management", "on-call", "postmortem", "blameless",
+                "kubernetes", "k8s", "prometheus", "grafana", "observability",
+                "toil reduction", "automation", "reliability"
+            ],
+            "medium": [
+                "docker", "terraform", "ansible", "aws", "gcp", "azure",
+                "linux", "distributed systems", "scalability", "performance",
+                "monitoring", "alerting", "pagerduty", "datadog"
+            ],
+            "low": [
+                "python", "go", "bash", "scripting", "ci/cd",
+                "high availability", "disaster recovery", "capacity planning"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "vue", "swift", "kotlin", "ios sdk",
+            "android sdk", "flutter", "ui design", "ux research",
+            "machine learning", "deep learning", "salesforce", "tableau"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal"],
+            "acceptable": ["mid"],
+            "exclude": []
+        },
+        "relevance_threshold": 30.0
+    },
+
+    # ===========================================
+    # Platform Engineering
+    # ===========================================
+    {
+        "slug": "platform",
+        "name": "Platform Engineer",
+        "description": "Internal developer platforms, tooling, and infrastructure abstraction",
+        "title_patterns": {
+            "strong_match": [
+                "platform engineer", "platform developer", "developer platform",
+                "internal tools", "infrastructure engineer", "devex engineer",
+                "developer experience", "platform architect"
+            ],
+            "weak_match": [
+                "devops", "sre", "systems engineer", "tooling engineer",
+                "build engineer", "release engineer"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "graphic designer", "data scientist",
+                "machine learning", "ml engineer", "sales", "marketing", "hr",
+                "accountant", "accounting", "product manager", "production manager",
+                "electrical engineer", "mechanical engineer", "civil engineer",
+                "hardware engineer", "recruiter", "talent", "people operations",
+                "finance", "legal", "counsel", "attorney", "paralegal",
+                "customer success", "customer support", "solutions engineer",
+                "business analyst", "business development", "account manager",
+                "project manager", "program manager", "scrum master"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "platform", "internal developer", "developer experience", "devex",
+                "kubernetes", "k8s", "infrastructure as code", "terraform",
+                "ci/cd", "github actions", "gitlab ci", "jenkins",
+                "service mesh", "istio", "backstage"
+            ],
+            "medium": [
+                "docker", "container", "aws", "gcp", "azure", "cloud",
+                "automation", "self-service", "golden path", "paved road",
+                "helm", "argocd", "gitops"
+            ],
+            "low": [
+                "python", "go", "typescript", "api", "sdk",
+                "documentation", "developer productivity"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "vue", "swift", "kotlin", "ios sdk",
+            "android sdk", "flutter", "ui design", "ux research",
+            "machine learning", "deep learning", "salesforce", "tableau"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal"],
+            "acceptable": ["mid"],
+            "exclude": []
+        },
+        "relevance_threshold": 30.0
+    },
+
+    # ===========================================
+    # Cloud Architect
+    # ===========================================
+    {
+        "slug": "cloud_architect",
+        "name": "Cloud Architect",
+        "description": "Cloud infrastructure design, multi-cloud strategy, and enterprise architecture",
+        "title_patterns": {
+            "strong_match": [
+                "cloud architect", "solutions architect", "infrastructure architect",
+                "enterprise architect", "cloud engineer", "aws architect",
+                "azure architect", "gcp architect"
+            ],
+            "weak_match": [
+                "platform architect", "systems architect", "devops architect",
+                "technical architect"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "data scientist", "ml engineer",
+                "accountant", "product manager", "electrical engineer",
+                "recruiter", "finance", "legal", "customer success",
+                "business analyst", "project manager", "scrum master"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "aws", "azure", "gcp", "cloud architecture", "multi-cloud",
+                "well-architected", "landing zone", "cloud migration",
+                "infrastructure design", "enterprise architecture"
+            ],
+            "medium": [
+                "terraform", "cloudformation", "arm templates", "pulumi",
+                "kubernetes", "serverless", "lambda", "cost optimization",
+                "security architecture", "networking"
+            ],
+            "low": [
+                "python", "go", "documentation", "diagrams",
+                "stakeholder management", "technical leadership"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "frontend", "mobile", "ios", "android",
+            "machine learning", "data science", "salesforce"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal", "director"],
             "acceptable": ["mid"],
             "exclude": []
         },
