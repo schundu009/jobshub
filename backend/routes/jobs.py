@@ -399,7 +399,8 @@ async def get_jobs(
         return result
 
     # Limit to most recent jobs for performance (relevance scoring is CPU-intensive)
-    MAX_JOBS_TO_SCORE = 200  # Reduced from 1000 for faster response
+    # Increased from 200 to 2000 to include older jobs (e.g., Zoom jobs from 24 days ago)
+    MAX_JOBS_TO_SCORE = 2000
     try:
         all_jobs = query.order_by(
             Job.posted_date.desc().nullslast(),
