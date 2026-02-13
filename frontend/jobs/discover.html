@@ -3905,6 +3905,11 @@
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 const savedRoles = user.job_roles || [];
 
+                // Debug logging
+                console.log('[JobFilter] User from localStorage:', user);
+                console.log('[JobFilter] Saved roles:', savedRoles);
+                console.log('[JobFilter] Current role (legacy):', currentRole);
+
                 // Build URL based on user's saved roles
                 // Priority: saved roles from profile > no filtering
                 let url;
@@ -3919,7 +3924,10 @@
                     url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true&limit=200`;
                 }
 
+                console.log('[JobFilter] API URL:', url);
+
                 const response = await apiRequest(url);
+                console.log('[JobFilter] API response - total:', response.total, 'jobs:', response.jobs?.length);
                 allJobs = Array.isArray(response) ? response : (response.jobs || []);
                 const totalFromResponse = response.total || allJobs.length;
 
