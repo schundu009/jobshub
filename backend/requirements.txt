@@ -27,7 +27,7 @@ bcrypt>=4.0.0
 
 # Scraper dependencies
 aiohttp>=3.9.0
-playwright>=1.40.0
+playwright==1.50.0
 beautifulsoup4>=4.12.0
 lxml>=5.0.0
 
@@ -51,4 +51,4 @@ itsdangerous>=2.1.0
 # Force rebuild Mon Jan 20 21:00:00 PST 2026 - add doc libs
 email-validator>=2.0.0
 authlib>=1.2.0
-# Deploy trigger: 1769171638
+# Deploy trigger: 1770960248 - Pin Playwright for browser compatibility
