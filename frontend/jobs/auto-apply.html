@@ -548,11 +548,11 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="stat-applied">0</div>
-                <div class="stat-label">Applied Today</div>
+                <div class="stat-label">Submitted Today</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="stat-total">0</div>
-                <div class="stat-label">Total Applied</div>
+                <div class="stat-label">Total Successful</div>
             </div>
         </div>
 
@@ -837,10 +837,18 @@
         // Update UI
         function updateUI() {
             // Update stats
+            const successfulJobs = appliedJobs.filter(j => j.status === 'success');
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const submittedToday = successfulJobs.filter(j => {
+                const date = new Date(j.completed_at || j.applied_at || j.created_at);
+                return date >= todayStart;
+            }).length;
+
             document.getElementById('stat-queue').textContent = queueJobs.length;
             document.getElementById('stat-progress').textContent = progressJobs.length;
-            document.getElementById('stat-applied').textContent = appliedJobs.filter(j => j.status === 'success').length;
-            document.getElementById('stat-total').textContent = appliedJobs.length;
+            document.getElementById('stat-applied').textContent = submittedToday;
+            document.getElementById('stat-total').textContent = successfulJobs.length;
 
             // Update tab counts
             document.getElementById('queue-count').textContent = queueJobs.length;

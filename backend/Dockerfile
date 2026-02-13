@@ -37,8 +37,8 @@ RUN playwright install chromium
 # Copy application code
 COPY . .
 
-# Expose port
+# Expose port (Railway provides PORT env var)
 EXPOSE 8000
 
-# Start the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start the application - use PORT env var for Railway, default to 8000
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -418,6 +418,7 @@
         let allJobs = [];
         let allSources = [];
         let timeFilterDays = 0;
+        let totalJobsCount = 0; // Store actual total from API
 
         // Job type patterns for client-side filtering
         const JOB_TYPE_PATTERNS = {
@@ -615,6 +616,11 @@
                     const jobs = Array.isArray(response) ? response : (response.jobs || []);
                     allJobs = allJobs.concat(jobs);
 
+                    // Store total from first response (this is the actual count from DB)
+                    if (offset === 0 && response.total !== undefined) {
+                        totalJobsCount = response.total;
+                    }
+
                     // Update progress
                     const progressEl = document.getElementById('load-progress');
                     if (progressEl) progressEl.textContent = allJobs.length.toLocaleString();
@@ -648,7 +654,8 @@
             const statWishlist = document.getElementById('stat-wishlist');
             const statApplied = document.getElementById('stat-applied');
 
-            if (statTotal) statTotal.textContent = allJobs.length.toLocaleString();
+            // Use totalJobsCount from API for accurate count, fallback to loaded length
+            if (statTotal) statTotal.textContent = (totalJobsCount || allJobs.length).toLocaleString();
             if (statWishlist) statWishlist.textContent = allJobs.filter(j => j.status === 'wishlist').length.toLocaleString();
             if (statApplied) statApplied.textContent = allJobs.filter(j => j.status === 'applied').length.toLocaleString();
         }
