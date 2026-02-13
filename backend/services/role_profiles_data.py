@@ -52,14 +52,16 @@ ROLE_PROFILES: List[Dict[str, Any]] = [
                 "customer success", "customer support", "support engineer",
                 "solutions engineer", "solutions architect", "sales engineer",
                 "business analyst", "business development", "account manager",
-                "project manager", "program manager", "scrum master"
+                "project manager", "program manager", "scrum master",
+                "fp&a", "financial planning", "financial analyst", "controller",
+                "treasury", "tax manager", "audit manager", "compliance manager"
             ]
         },
         "positive_keywords": {
             "high": [
                 "kubernetes", "k8s", "docker", "terraform", "ansible",
                 "ci/cd", "jenkins", "gitlab ci", "github actions",
-                "aws", "gcp", "azure", "cloud", "infrastructure as code",
+                "aws", "gcp", "azure", "infrastructure as code",
                 "prometheus", "grafana", "datadog", "observability"
             ],
             "medium": [
@@ -119,7 +121,9 @@ ROLE_PROFILES: List[Dict[str, Any]] = [
                 "finance", "legal", "counsel", "attorney", "paralegal",
                 "customer success", "customer support", "solutions engineer",
                 "business analyst", "business development", "account manager",
-                "project manager", "program manager", "scrum master"
+                "project manager", "program manager", "scrum master",
+                "fp&a", "financial planning", "financial analyst", "controller",
+                "treasury", "tax manager", "audit manager", "compliance manager"
             ]
         },
         "positive_keywords": {
@@ -179,7 +183,9 @@ ROLE_PROFILES: List[Dict[str, Any]] = [
                 "finance", "legal", "counsel", "attorney", "paralegal",
                 "customer success", "customer support", "solutions engineer",
                 "business analyst", "business development", "account manager",
-                "project manager", "program manager", "scrum master"
+                "project manager", "program manager", "scrum master",
+                "fp&a", "financial planning", "financial analyst", "controller",
+                "treasury", "tax manager", "audit manager", "compliance manager"
             ]
         },
         "positive_keywords": {
