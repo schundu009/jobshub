@@ -230,6 +230,14 @@ SLOW_COMPANIES = [
 ]
 
 
+def is_slow_company(company_name: str) -> bool:
+    """Check if a company is considered slow (substring match)."""
+    if not company_name:
+        return False
+    name_lower = company_name.lower()
+    return any(slow in name_lower for slow in SLOW_COMPANIES)
+
+
 def ingest_from_source_with_timeout(source: IngestionSource, db: Session, timeout: int = SOURCE_TIMEOUT_SECONDS) -> dict:
     """
     Wrapper that runs ingest_from_source with a timeout.
@@ -854,14 +862,12 @@ def start_batch_refresh_async(
     if exclude_slow:
         filtered_sources = [
             s for s in all_sources
-            if s.company_name and s.company_name.lower() not in SLOW_COMPANIES
-            and s.ats_type != 'workday'  # Workday is always slow
+            if not is_slow_company(s.company_name) and s.ats_type != 'workday'
         ]
     elif slow_only:
         filtered_sources = [
             s for s in all_sources
-            if (s.company_name and s.company_name.lower() in SLOW_COMPANIES)
-            or s.ats_type == 'workday'
+            if is_slow_company(s.company_name) or s.ats_type == 'workday'
         ]
     else:
         filtered_sources = all_sources
