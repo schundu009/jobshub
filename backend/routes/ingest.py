@@ -1326,6 +1326,52 @@ def get_sources_stats(
     }
 
 
+@router.put("/sources/{source_id}")
+def update_ingestion_source(
+    source_id: int,
+    company_name: Optional[str] = None,
+    ats_type: Optional[str] = None,
+    ats_company_slug: Optional[str] = None,
+    career_page_url: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update an ingestion source configuration.
+    Useful for fixing ATS configurations (e.g., CrowdStrike Workday slug).
+    """
+    source = db.query(IngestionSource).filter(IngestionSource.id == source_id).first()
+    if not source:
+        raise HTTPException(status_code=404, detail=f"Source {source_id} not found")
+
+    if company_name is not None:
+        source.company_name = company_name
+    if ats_type is not None:
+        source.ats_type = ats_type
+    if ats_company_slug is not None:
+        source.ats_company_slug = ats_company_slug
+        # Clear error message when slug is updated
+        source.error_message = None
+    if career_page_url is not None:
+        source.career_page_url = career_page_url
+    if is_active is not None:
+        source.is_active = is_active
+
+    db.commit()
+    db.refresh(source)
+
+    return {
+        "id": source.id,
+        "company_name": source.company_name,
+        "ats_type": source.ats_type,
+        "ats_company_slug": source.ats_company_slug,
+        "career_page_url": source.career_page_url,
+        "is_active": source.is_active,
+        "message": "Source updated successfully"
+    }
+
+
 @router.delete("/sources/{source_id}")
 def delete_ingestion_source(
     source_id: int,

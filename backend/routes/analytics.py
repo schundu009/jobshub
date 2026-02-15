@@ -368,7 +368,9 @@ async def cleanup_duplicates(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Find and remove duplicate jobs (same company_id + external_job_id).
+    Find and remove duplicate jobs using multiple criteria:
+    1. Same company_id + external_job_id (primary method)
+    2. Same job_url (secondary method for jobs without external_job_id)
 
     Admin-only endpoint. Keeps the oldest job record and deletes newer duplicates.
     Use dry_run=true to preview before deleting.
@@ -377,15 +379,16 @@ async def cleanup_duplicates(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    # Find duplicates: jobs with same company_id and external_job_id
-    # We'll keep the one with the lowest id (oldest)
-    duplicates_query = text("""
+    duplicate_ids = set()
+
+    # Method 1: Find duplicates by company_id + external_job_id
+    duplicates_by_external_id = text("""
         SELECT j.id
         FROM jobs j
         INNER JOIN (
             SELECT company_id, external_job_id, MIN(id) as min_id
             FROM jobs
-            WHERE external_job_id IS NOT NULL
+            WHERE external_job_id IS NOT NULL AND external_job_id != ''
             GROUP BY company_id, external_job_id
             HAVING COUNT(*) > 1
         ) dups ON j.company_id = dups.company_id
@@ -393,8 +396,29 @@ async def cleanup_duplicates(
               AND j.id > dups.min_id
     """)
 
-    result = db.execute(duplicates_query)
-    duplicate_ids = [row[0] for row in result.fetchall()]
+    result1 = db.execute(duplicates_by_external_id)
+    for row in result1.fetchall():
+        duplicate_ids.add(row[0])
+
+    # Method 2: Find duplicates by job_url (for jobs without external_job_id)
+    duplicates_by_url = text("""
+        SELECT j.id
+        FROM jobs j
+        INNER JOIN (
+            SELECT job_url, MIN(id) as min_id
+            FROM jobs
+            WHERE job_url IS NOT NULL AND job_url != ''
+            GROUP BY job_url
+            HAVING COUNT(*) > 1
+        ) dups ON j.job_url = dups.job_url
+              AND j.id > dups.min_id
+    """)
+
+    result2 = db.execute(duplicates_by_url)
+    for row in result2.fetchall():
+        duplicate_ids.add(row[0])
+
+    duplicate_ids = list(duplicate_ids)
 
     response = {
         "dry_run": dry_run,
