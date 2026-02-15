@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from models import Company, Job
 from scrapers.base import ScrapedJob
@@ -142,7 +143,16 @@ def save_scraped_jobs(
                     date_found=datetime.utcnow().date(),
                 )
                 db.add(job)
-                jobs_new += 1
+                # Flush to catch duplicate key violations early
+                try:
+                    db.flush()
+                    jobs_new += 1
+                except IntegrityError:
+                    # Duplicate key - another concurrent process inserted this job
+                    db.rollback()
+                    logger.debug(f"Duplicate job skipped: {scraped_job.title} ({external_id})")
+                    jobs_updated += 1  # Count as update since job exists
+                    continue
 
         except Exception as e:
             logger.error(f"Error saving job '{scraped_job.title}': {e}")
