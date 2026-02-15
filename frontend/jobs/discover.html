@@ -1977,6 +1977,7 @@
         .ag-theme-alpine .ag-row {
             border-bottom: 1px solid var(--border-color) !important;
             transition: all 0.15s ease;
+            cursor: pointer;
         }
 
         /* Cell styling */
@@ -3441,7 +3442,6 @@
         // Cell Renderers
         function roleCellRenderer(params) {
             const job = params.data;
-            const jobId = job.id;
             const title = params.value || 'Unknown';
             const company = job.company_name || 'Unknown';
             const location = job.location || '';
@@ -3453,8 +3453,9 @@
             if (salary) metaParts.push(salary);
             const metaLine = metaParts.join(' • ');
 
+            // No link - row click will show details in panel
             return `<div class="role-cell" style="display:flex;flex-direction:column;gap:2px;padding:4px 0;">
-                <div class="role-title"><a href="job_detail.html?id=${jobId}" style="color:var(--text-primary);font-weight:500;font-size:13px;text-decoration:none;line-height:1.3;">${title}</a></div>
+                <div class="role-title" style="color:var(--text-primary);font-weight:500;font-size:13px;line-height:1.3;">${title}</div>
                 <div style="color:var(--text-muted);font-size:11px;line-height:1.3;">${metaLine}</div>
             </div>`;
         }
@@ -3535,15 +3536,15 @@
         function actionsCellRenderer(params) {
             const jobUrl = params.data.job_url;
             const jobId = params.data.id;
-            const linkStyle = 'color:var(--text-secondary);font-size:11px;text-decoration:underline;';
+            const linkStyle = 'color:var(--text-secondary);font-size:11px;text-decoration:underline;cursor:pointer;';
             if (jobUrl) {
-                return `<div style="display:flex;gap:12px;">
-                    <a href="${jobUrl}" target="_blank" style="${linkStyle}">Apply</a>
-                    <a href="job_detail.html?id=${jobId}" style="${linkStyle}">Details</a>
+                return `<div style="display:flex;gap:12px;" onclick="event.stopPropagation()">
+                    <a href="${jobUrl}" target="_blank" style="${linkStyle}" onclick="event.stopPropagation()">Apply</a>
+                    <a href="job_detail.html?id=${jobId}" style="${linkStyle}" onclick="event.stopPropagation()">Details</a>
                 </div>`;
             }
-            return `<div>
-                <a href="job_detail.html?id=${jobId}" style="${linkStyle}">View</a>
+            return `<div onclick="event.stopPropagation()">
+                <a href="job_detail.html?id=${jobId}" style="${linkStyle}" onclick="event.stopPropagation()">View</a>
             </div>`;
         }
 
