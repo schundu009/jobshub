@@ -626,6 +626,10 @@
                 currentCompany.textContent = '';
                 document.getElementById('batch-progress-text').textContent = 'Batch completed successfully';
                 showBatchSummary(status);
+                // Clear the job ID so refresh doesn't re-fetch logs
+                currentBatchJobId = null;
+                localStorage.removeItem('currentBatchJobId');
+                stopLogStream();
             } else if (status.status === 'stopped' || status.status === 'failed') {
                 setBatchButtonsState(false);
                 indicator.style.background = status.status === 'stopped' ? '#fbbf24' : '#ef4444';
@@ -633,6 +637,10 @@
                 statusText.textContent = status.status === 'stopped' ? 'Stopped' : 'Failed';
                 currentCompany.textContent = status.error || '';
                 showBatchSummary(status);
+                // Clear the job ID so refresh doesn't re-fetch logs
+                currentBatchJobId = null;
+                localStorage.removeItem('currentBatchJobId');
+                stopLogStream();
             }
         }
 
@@ -694,6 +702,10 @@
             logSince = 0;
             logCount = 0;
             document.getElementById('log-count').textContent = '0 entries';
+            // Clear localStorage so logs don't re-appear on refresh
+            currentBatchJobId = null;
+            localStorage.removeItem('currentBatchJobId');
+            stopLogStream();
         }
 
         // Database Maintenance Functions

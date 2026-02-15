@@ -1155,6 +1155,164 @@ def fetch_adp_jobs(company_slug: str) -> list:
     return jobs
 
 
+def _fetch_eightfold_job_description(job_url: str, max_retries: int = 2) -> str:
+    """
+    Fetch the job description from an individual Eightfold job page.
+
+    Eightfold embeds job data as JSON in the page, typically in:
+    - __NEXT_DATA__ script tag (Next.js)
+    - JSON-LD structured data
+    - Direct API response embedded in page
+
+    Args:
+        job_url: The full URL to the job posting
+        max_retries: Number of retries on failure
+
+    Returns:
+        The job description text, or empty string if not found
+    """
+    if not job_url:
+        return ''
+
+    for attempt in range(max_retries + 1):
+        try:
+            request = urllib.request.Request(
+                job_url,
+                headers={
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                }
+            )
+            with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+                html_content = response.read().decode('utf-8', errors='ignore')
+
+            description = ''
+
+            # Method 1: Try to find __NEXT_DATA__ JSON (Next.js pages)
+            next_data_match = re.search(
+                r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>',
+                html_content,
+                re.DOTALL | re.IGNORECASE
+            )
+            if next_data_match:
+                try:
+                    next_data = json.loads(next_data_match.group(1))
+                    # Navigate through typical Eightfold structure
+                    props = next_data.get('props', {})
+                    page_props = props.get('pageProps', {})
+
+                    # Try different paths where description might be
+                    job_data = page_props.get('job', {}) or page_props.get('jobData', {}) or page_props.get('position', {})
+
+                    if job_data:
+                        # Common description field names
+                        for field in ['description', 'jobDescription', 'job_description', 'content', 'fullDescription']:
+                            if field in job_data and job_data[field]:
+                                description = job_data[field]
+                                break
+
+                        # Also check nested structures
+                        if not description:
+                            details = job_data.get('details', {}) or job_data.get('jobDetails', {})
+                            for field in ['description', 'jobDescription', 'content']:
+                                if field in details and details[field]:
+                                    description = details[field]
+                                    break
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    pass
+
+            # Method 2: Try JSON-LD structured data
+            if not description:
+                jsonld_match = re.search(
+                    r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>',
+                    html_content,
+                    re.DOTALL | re.IGNORECASE
+                )
+                if jsonld_match:
+                    try:
+                        jsonld_data = json.loads(jsonld_match.group(1))
+                        # Handle array of JSON-LD objects
+                        if isinstance(jsonld_data, list):
+                            for item in jsonld_data:
+                                if item.get('@type') == 'JobPosting':
+                                    description = item.get('description', '')
+                                    break
+                        elif jsonld_data.get('@type') == 'JobPosting':
+                            description = jsonld_data.get('description', '')
+                    except (json.JSONDecodeError, KeyError, TypeError):
+                        pass
+
+            # Method 3: Try to find embedded Eightfold job data
+            if not description:
+                # Eightfold sometimes embeds data in window.__PRELOADED_STATE__ or similar
+                preload_match = re.search(
+                    r'window\.__(?:PRELOADED_STATE__|INITIAL_STATE__|REDUX_STATE__)__\s*=\s*({.*?});?\s*</script>',
+                    html_content,
+                    re.DOTALL
+                )
+                if preload_match:
+                    try:
+                        preload_data = json.loads(preload_match.group(1))
+                        # Search for description in the preloaded state
+                        def find_description(obj, depth=0):
+                            if depth > 5:  # Limit recursion
+                                return None
+                            if isinstance(obj, dict):
+                                for key in ['description', 'jobDescription', 'job_description']:
+                                    if key in obj and isinstance(obj[key], str) and len(obj[key]) > 100:
+                                        return obj[key]
+                                for value in obj.values():
+                                    result = find_description(value, depth + 1)
+                                    if result:
+                                        return result
+                            elif isinstance(obj, list):
+                                for item in obj[:10]:  # Limit list iteration
+                                    result = find_description(item, depth + 1)
+                                    if result:
+                                        return result
+                            return None
+                        description = find_description(preload_data) or ''
+                    except (json.JSONDecodeError, KeyError, TypeError):
+                        pass
+
+            # Method 4: Parse HTML content directly - look for common description containers
+            if not description:
+                desc_patterns = [
+                    r'<div[^>]*class="[^"]*(?:job-description|jobDescription|description-content|job-content)[^"]*"[^>]*>(.*?)</div>',
+                    r'<section[^>]*class="[^"]*(?:job-description|description)[^"]*"[^>]*>(.*?)</section>',
+                    r'<div[^>]*data-testid="[^"]*description[^"]*"[^>]*>(.*?)</div>',
+                ]
+                for pattern in desc_patterns:
+                    match = re.search(pattern, html_content, re.DOTALL | re.IGNORECASE)
+                    if match and len(match.group(1)) > 100:
+                        description = match.group(1)
+                        break
+
+            # Clean up the description
+            if description:
+                description = html_to_text(description)
+                # Truncate if too long
+                if len(description) > 10000:
+                    description = description[:10000] + '...'
+                return description.strip()
+
+            return ''
+
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as e:
+            if attempt < max_retries:
+                import time
+                time.sleep(0.5 * (attempt + 1))  # Exponential backoff
+                continue
+            logger.warning(f"Failed to fetch Eightfold job description from {job_url}: {e}")
+            return ''
+        except Exception as e:
+            logger.warning(f"Error parsing Eightfold job page {job_url}: {e}")
+            return ''
+
+    return ''
+
+
 def fetch_eightfold_jobs(company_slug: str) -> list:
     """
     Fetch jobs from Eightfold AI career sites by parsing the sitemap.
@@ -1286,18 +1444,48 @@ def fetch_eightfold_jobs(company_slug: str) -> list:
         # Truncate fields to fit database column limits
         title = title.strip()[:255] if title else ''
         location = location.strip()[:255] if location else None
-        job_url = job_url[:500] if job_url else None
+        job_url_truncated = job_url[:500] if job_url else None
 
         normalized_job = {
             'title': title,
             'location': location,
-            'job_url': job_url,
-            'job_description': '',  # Would need to fetch individual pages for full description
+            'job_url': job_url_truncated,
+            'job_description': '',  # Will be populated below
             'source': 'eightfold',
             'external_job_id': external_job_id[:255] if external_job_id else None,
             'posted_date': lastmod.split('T')[0] if lastmod else None,
         }
         jobs.append(normalized_job)
+
+    # Fetch job descriptions from individual pages
+    # Use rate limiting to avoid overwhelming the server
+    import time
+    total_jobs = len(jobs)
+    fetched_descriptions = 0
+
+    logger.info(f"Fetching descriptions for {total_jobs} Eightfold jobs from {base_host}")
+
+    for idx, job in enumerate(jobs):
+        job_url = job.get('job_url')
+        if job_url:
+            try:
+                description = _fetch_eightfold_job_description(job_url)
+                if description:
+                    job['job_description'] = description
+                    fetched_descriptions += 1
+            except Exception as e:
+                logger.warning(f"Error fetching description for job {idx + 1}/{total_jobs}: {e}")
+
+            # Rate limiting: pause between requests (200ms)
+            # Skip delay for last job
+            if idx < total_jobs - 1:
+                time.sleep(0.2)
+
+            # Log progress every 10 jobs
+            if (idx + 1) % 10 == 0:
+                logger.info(f"Eightfold description fetch progress: {idx + 1}/{total_jobs}")
+
+    logger.info(f"Fetched {fetched_descriptions}/{total_jobs} Eightfold job descriptions")
 
     return jobs
 
