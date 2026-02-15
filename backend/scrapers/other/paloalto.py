@@ -1,5 +1,6 @@
 """Palo Alto Networks job scraper - uses Workday API."""
 
+import asyncio
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
 from scrapers.registry import ScraperRegistry
 from typing import List, Optional
@@ -20,6 +21,17 @@ class PaloAltoNetworksScraper(HTTPScraper):
     )
 
     API_URL = "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/panwexternalcareers/jobs"
+    DETAIL_BASE = "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/panwexternalcareers"
+
+    async def fetch_job_details(self, external_path: str) -> dict:
+        """Fetch full job details from Workday API."""
+        if not external_path:
+            return {}
+        try:
+            detail_url = f"{self.DETAIL_BASE}{external_path}"
+            return await self.fetch_json(detail_url) or {}
+        except Exception:
+            return {}
 
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
@@ -43,7 +55,7 @@ class PaloAltoNetworksScraper(HTTPScraper):
                 break
 
             for job in job_postings:
-                parsed = self.parse_job(job)
+                parsed = await self.parse_job(job)
                 if parsed:
                     all_jobs.append(parsed)
 
@@ -59,15 +71,33 @@ class PaloAltoNetworksScraper(HTTPScraper):
             error_message=None
         )
 
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+    async def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
             title = raw.get("title", "")
             external_id = raw.get("bulletFields", [""])[0] if raw.get("bulletFields") else ""
             location = raw.get("locationsText", "")
             posted_on = raw.get("postedOn", "")
+            job_path = raw.get("externalPath", "")
+
+            # Fetch full job details for description
+            job_description = ""
+            department = ""
+            details = await self.fetch_job_details(job_path)
+            if details:
+                job_info = details.get("jobPostingInfo", {})
+                desc_html = job_info.get("jobDescription", "")
+                if desc_html:
+                    # Simple HTML to text conversion
+                    import re
+                    job_description = re.sub(r'<[^>]+>', ' ', desc_html)
+                    job_description = re.sub(r'\s+', ' ', job_description).strip()
+                department = job_info.get("jobCategory", "")
+                # Get proper date from details
+                if not posted_on or 'ago' in posted_on.lower():
+                    posted_on = job_info.get("startDate") or job_info.get("postedOn", "")
 
             posted_date = None
-            if posted_on:
+            if posted_on and '-' in posted_on:
                 try:
                     posted_date = datetime.strptime(posted_on, "%Y-%m-%dT%H:%M:%S.%f%z")
                 except:
@@ -76,16 +106,18 @@ class PaloAltoNetworksScraper(HTTPScraper):
                     except:
                         pass
 
-            job_path = raw.get("externalPath", "")
             job_url = f"https://paloaltonetworks.wd5.myworkdayjobs.com/en-US/panwexternalcareers{job_path}"
+
+            # Rate limiting between job detail fetches
+            await asyncio.sleep(0.1)
 
             return ScrapedJob(
                 title=title,
                 location=location,
                 job_url=job_url,
                 external_job_id=external_id or job_path,
-                job_description="",
-                department="",
+                job_description=job_description[:10000] if job_description else "",
+                department=department,
                 posted_date=posted_date,
             )
         except Exception as e:

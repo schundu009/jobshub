@@ -552,6 +552,52 @@ def fetch_ashby_jobs(company_slug: str) -> list:
     return jobs
 
 
+def _fetch_smartrecruiters_job_description(job_ref_url: str) -> tuple:
+    """
+    Fetch full job description from an individual SmartRecruiters job page.
+    Returns tuple of (description, posted_date).
+    """
+    try:
+        request = urllib.request.Request(
+            job_ref_url,
+            headers={'User-Agent': 'JobTrails/1.0'}
+        )
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            data = json.loads(response.read().decode('utf-8'))
+
+        # Extract description from jobAd.sections
+        job_ad = data.get('jobAd', {})
+        sections = job_ad.get('sections', {})
+
+        # Combine all relevant sections
+        description_parts = []
+
+        # Job description
+        job_desc = sections.get('jobDescription', {})
+        if job_desc.get('text'):
+            description_parts.append(job_desc['text'])
+
+        # Qualifications
+        quals = sections.get('qualifications', {})
+        if quals.get('text'):
+            description_parts.append('\n\nQualifications:\n' + quals['text'])
+
+        # Additional information
+        additional = sections.get('additionalInformation', {})
+        if additional.get('text'):
+            description_parts.append('\n\nAdditional Information:\n' + additional['text'])
+
+        description = ''.join(description_parts)
+        description = html_to_text(description)
+
+        # Get posted date
+        posted_date = data.get('releasedDate')
+
+        return description[:10000] if description else '', posted_date
+    except Exception:
+        return '', None
+
+
 def fetch_smartrecruiters_jobs(company_slug: str) -> list:
     """
     Fetch jobs from SmartRecruiters public API.
@@ -587,25 +633,35 @@ def fetch_smartrecruiters_jobs(company_slug: str) -> list:
             location_parts.append(location_data['country'])
         location = ', '.join(location_parts) if location_parts else None
 
-        # SmartRecruiters doesn't include full description in list, just use what we have
-        description = job_data.get('customField', [])
-        desc_text = ''
-        for field in description:
-            if field.get('fieldLabel') == 'Description':
-                desc_text = field.get('valueField', '')
-                break
+        job_ref = job_data.get('ref', '')
+        job_url = job_ref or f"https://jobs.smartrecruiters.com/{company_slug}/{job_data.get('id', '')}"
 
-        job_url = job_data.get('ref', '') or f"https://jobs.smartrecruiters.com/{company_slug}/{job_data.get('id', '')}"
+        # Get posted date from list response
+        posted_date = job_data.get('releasedDate')
 
         normalized_job = {
             'title': job_data.get('name', 'Untitled'),
             'location': location,
             'job_url': job_url,
-            'job_description': desc_text,
+            'job_description': '',
             'source': 'smartrecruiters',
             'external_job_id': str(job_data.get('id', '')),
+            'posted_date': posted_date,
+            '_ref_url': job_ref,  # Store for later fetching
         }
         jobs.append(normalized_job)
+
+    # Fetch full descriptions for each job
+    for idx, job in enumerate(jobs):
+        ref_url = job.pop('_ref_url', '')
+        if ref_url:
+            description, rel_date = _fetch_smartrecruiters_job_description(ref_url)
+            if description:
+                job['job_description'] = description
+            if rel_date and not job.get('posted_date'):
+                job['posted_date'] = rel_date
+            # Rate limiting
+            time.sleep(0.2)
 
     return jobs
 
@@ -838,8 +894,13 @@ def fetch_workday_jobs(company_slug: str) -> list:
                     if desc_html:
                         job_description = html_to_text(desc_html)
                     # Get posted date from details if not in list
-                    if not posted_date:
-                        posted_date = job_info.get('postedOn') or job_info.get('startDate')
+                    # Note: postedOn often contains relative text like "Posted 2 Days Ago"
+                    # so prefer startDate which is in proper date format
+                    if not posted_date or 'ago' in str(posted_date).lower():
+                        detail_date = job_info.get('startDate') or job_info.get('postedOn', '')
+                        # Only use if it looks like a date (contains digit and dash)
+                        if detail_date and '-' in str(detail_date) and any(c.isdigit() for c in str(detail_date)):
+                            posted_date = detail_date
                     # Get department/category
                     department = job_info.get('jobCategory')
 
