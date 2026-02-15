@@ -206,6 +206,31 @@
         </div>
 
         <div class="settings-section">
+            <h3>Scraper Settings</h3>
+            <p>Configure how job scrapers fetch and filter jobs from ATS sources.</p>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px;">
+                    Maximum Job Age Filter
+                </label>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 12px 0;">
+                    Only fetch jobs posted within this time period. Older jobs will be skipped to save time and resources.
+                </p>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="max-job-age" style="padding: 10px 15px; background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-primary); font-size: 14px; min-width: 150px;">
+                        <option value="7">Last 7 days</option>
+                        <option value="14">Last 14 days</option>
+                        <option value="30">Last 30 days</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="saveJobAgeFilter()">
+                        Save
+                    </button>
+                    <span id="job-age-status" style="font-size: 13px; color: var(--text-muted);"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
             <h3>Database Maintenance</h3>
             <p>Clean up old jobs and manage database health.</p>
 
@@ -261,8 +286,46 @@
                 if (e.key === 'Enter') saveApiKey();
             });
             await checkApiKeyStatus();
+            await loadJobAgeFilter();
             if (currentBatchJobId) checkBatchStatus(true);
         });
+
+        // Job Age Filter Functions
+        async function loadJobAgeFilter() {
+            try {
+                const response = await apiRequest('/settings/job-age-filter');
+                const select = document.getElementById('max-job-age');
+                select.value = response.max_job_age_days;
+                document.getElementById('job-age-status').textContent = '';
+            } catch (error) {
+                console.error('Failed to load job age filter:', error);
+            }
+        }
+
+        async function saveJobAgeFilter() {
+            const select = document.getElementById('max-job-age');
+            const statusSpan = document.getElementById('job-age-status');
+            const days = parseInt(select.value);
+
+            statusSpan.textContent = 'Saving...';
+            statusSpan.style.color = 'var(--text-muted)';
+
+            try {
+                await apiRequest('/settings/job-age-filter', 'POST', { days });
+                statusSpan.textContent = '✓ Saved';
+                statusSpan.style.color = '#4ade80';
+                showAlert(`Job age filter updated to ${days} days`);
+
+                // Clear success message after 3 seconds
+                setTimeout(() => {
+                    statusSpan.textContent = '';
+                }, 3000);
+            } catch (error) {
+                statusSpan.textContent = '✗ Failed';
+                statusSpan.style.color = '#f87171';
+                showAlert('Failed to save: ' + error.message, 'error');
+            }
+        }
 
         async function checkApiKeyStatus() {
             const statusDiv = document.getElementById('api-key-status');

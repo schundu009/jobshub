@@ -23,10 +23,11 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 from database import get_db
-from models import Job, Company, IngestionSource, User
+from models import Job, Company, IngestionSource, User, AppSetting
 from services import ingestion_service
 from utils.security import validate_url_ssrf_safe
 from middleware.auth import get_current_user
+from routes.settings import get_max_job_age_days
 
 router = APIRouter(prefix="/api/ingest", tags=["ingestion"])
 
@@ -263,7 +264,7 @@ def ingest_from_source_with_timeout(source: IngestionSource, db: Session, timeou
 def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = False) -> dict:
     """
     Ingest jobs from a single source.
-    Only ingests jobs posted within the last 30 days.
+    Only ingests jobs posted within the configured max job age (default 30 days).
     Returns dict with results.
     """
     result = {
@@ -275,8 +276,9 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
         "error": None
     }
 
-    # Cutoff date for job freshness (30 days ago)
-    cutoff_date = datetime.utcnow() - timedelta(days=30)
+    # Get configurable max job age from settings
+    max_job_age_days = get_max_job_age_days(db)
+    cutoff_date = datetime.utcnow() - timedelta(days=max_job_age_days)
 
     # Update last_checked_at
     source.last_checked_at = datetime.utcnow()
@@ -331,7 +333,7 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
             external_id = job_data['external_job_id']
             posted_date = parse_posted_date(job_data.get('posted_date'))
 
-            # Skip jobs older than 30 days
+            # Skip jobs older than max_job_age_days (configurable in settings)
             if posted_date and posted_date < cutoff_date:
                 result["jobs_skipped_old"] += 1
                 continue
@@ -397,7 +399,7 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
                 job.is_active = False
                 result["jobs_deactivated"] += 1
 
-        # Also deactivate jobs older than 30 days from this company
+        # Also deactivate jobs older than max_job_age_days from this company
         old_jobs = db.query(Job).filter(
             Job.company_id == company.id,
             Job.is_active == True,

@@ -565,3 +565,20 @@ class ApplicationSubmission(Base):
     job = relationship("Job")
     user = relationship("User")
     resume = relationship("UserDocument")
+
+
+# ============== Application Settings ==============
+
+class AppSetting(Base):
+    """
+    Stores application-wide configuration settings.
+    Key-value pairs for dynamic configuration without redeployment.
+    """
+    __tablename__ = "app_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(100), unique=True, nullable=False, index=True)
+    value = Column(String(500), nullable=False)
+    description = Column(String(255), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

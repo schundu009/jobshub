@@ -11,12 +11,12 @@ Security notes:
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 import os
 import logging
 
 from database import get_db
-from models import User
+from models import User, AppSetting
 from middleware.auth import get_current_user
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
@@ -189,4 +189,92 @@ def get_security_settings(current_user: User = Depends(get_current_user)):
         "api_key_source": "environment" if os.environ.get('OPENAI_API_KEY') else ("session" if _api_key_cache else "none"),
         "ssl_verification": os.getenv("DISABLE_SSL_VERIFY", "false").lower() != "true",
         "debug_mode": os.getenv("DEBUG", "false").lower() == "true",
+    }
+
+
+# ============== Job Age Filter Settings ==============
+
+# Default max job age in days
+DEFAULT_MAX_JOB_AGE_DAYS = 30
+
+# Valid options for max job age
+VALID_JOB_AGE_OPTIONS = [7, 14, 30]
+
+
+class MaxJobAgeRequest(BaseModel):
+    days: Literal[7, 14, 30] = Field(..., description="Maximum job age in days (7, 14, or 30)")
+
+
+def get_max_job_age_days(db: Session) -> int:
+    """
+    Get the configured max job age setting from database.
+    Falls back to DEFAULT_MAX_JOB_AGE_DAYS if not set.
+    """
+    setting = db.query(AppSetting).filter(AppSetting.key == "max_job_age_days").first()
+    if setting:
+        try:
+            return int(setting.value)
+        except ValueError:
+            return DEFAULT_MAX_JOB_AGE_DAYS
+    return DEFAULT_MAX_JOB_AGE_DAYS
+
+
+@router.get("/job-age-filter")
+def get_job_age_filter(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get the current max job age filter setting.
+    Jobs older than this will be skipped during scraping.
+    """
+    current_days = get_max_job_age_days(db)
+    return {
+        "max_job_age_days": current_days,
+        "valid_options": VALID_JOB_AGE_OPTIONS,
+        "description": f"Only fetch jobs posted within the last {current_days} days"
+    }
+
+
+@router.post("/job-age-filter")
+def set_job_age_filter(
+    request: MaxJobAgeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Set the max job age filter. Admin only.
+    Jobs older than this will be skipped during scraping to save resources.
+    """
+    # Admin check
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # Validate the value
+    if request.days not in VALID_JOB_AGE_OPTIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid value. Must be one of: {VALID_JOB_AGE_OPTIONS}"
+        )
+
+    # Get or create the setting
+    setting = db.query(AppSetting).filter(AppSetting.key == "max_job_age_days").first()
+
+    if setting:
+        setting.value = str(request.days)
+    else:
+        setting = AppSetting(
+            key="max_job_age_days",
+            value=str(request.days),
+            description="Maximum age (in days) for jobs to fetch from ATS sources"
+        )
+        db.add(setting)
+
+    db.commit()
+
+    logger.info(f"Max job age filter set to {request.days} days by user {current_user.email}")
+
+    return {
+        "message": f"Job age filter updated to {request.days} days",
+        "max_job_age_days": request.days
     }
