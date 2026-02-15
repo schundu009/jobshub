@@ -418,6 +418,27 @@ async def cleanup_duplicates(
     for row in result2.fetchall():
         duplicate_ids.add(row[0])
 
+    # Method 3: Find duplicates by title + company_id + location
+    # This catches cases where same job is posted multiple times with different URLs/IDs
+    duplicates_by_title = text("""
+        SELECT j.id
+        FROM jobs j
+        INNER JOIN (
+            SELECT company_id, title, location, MIN(id) as min_id
+            FROM jobs
+            WHERE title IS NOT NULL AND title != ''
+            GROUP BY company_id, title, location
+            HAVING COUNT(*) > 1
+        ) dups ON j.company_id = dups.company_id
+              AND j.title = dups.title
+              AND (j.location = dups.location OR (j.location IS NULL AND dups.location IS NULL))
+              AND j.id > dups.min_id
+    """)
+
+    result3 = db.execute(duplicates_by_title)
+    for row in result3.fetchall():
+        duplicate_ids.add(row[0])
+
     duplicate_ids = list(duplicate_ids)
 
     response = {
