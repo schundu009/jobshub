@@ -11,6 +11,7 @@ Security features:
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import func, or_
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime, date, timedelta
@@ -1691,3 +1692,96 @@ async def refetch_single_job_description(
             }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching description: {str(e)}")
+
+
+@router.post("/fetch-all-descriptions")
+async def fetch_all_missing_descriptions(
+    background_tasks: BackgroundTasks,
+    batch_size: int = 200,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Fetch descriptions for ALL jobs with missing descriptions.
+    Runs in background and processes all active jobs from last 30 days.
+    """
+    from datetime import datetime, timedelta
+
+    cutoff = datetime.utcnow() - timedelta(days=30)
+
+    # Count jobs with missing descriptions
+    jobs_to_update = db.query(Job).filter(
+        Job.is_active == True,
+        Job.job_url.isnot(None),
+        Job.job_url != '',
+        Job.created_at >= cutoff,
+        or_(
+            Job.job_description.is_(None),
+            Job.job_description == '',
+            Job.job_description == 'No description available.',
+            func.length(Job.job_description) < 100
+        )
+    ).limit(batch_size).all()
+
+    total_count = len(jobs_to_update)
+
+    if total_count == 0:
+        return {
+            "message": "No jobs with missing descriptions found",
+            "jobs_found": 0
+        }
+
+    job_ids = [j.id for j in jobs_to_update]
+
+    def process_all_jobs():
+        import time
+        from database import SessionLocal
+        db_session = SessionLocal()
+        updated = 0
+        failed = 0
+
+        try:
+            for idx, job_id in enumerate(job_ids):
+                job = db_session.query(Job).get(job_id)
+                if not job or not job.job_url:
+                    failed += 1
+                    continue
+
+                try:
+                    # Try generic fetch first
+                    description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+                    # If that fails, try ATS-specific methods
+                    if not description or len(description) < 100:
+                        if 'eightfold.ai' in job.job_url:
+                            description = ingestion_service._fetch_eightfold_job_description(job.job_url)
+                        elif 'smartrecruiters.com' in job.job_url:
+                            description = ingestion_service._fetch_smartrecruiters_job_description(job.job_url)
+
+                    if description and len(description) > 100:
+                        job.job_description = description[:15000]
+                        job.updated_at = datetime.utcnow()
+                        db_session.commit()
+                        updated += 1
+                    else:
+                        failed += 1
+
+                    # Rate limiting
+                    time.sleep(0.5)
+
+                except Exception as e:
+                    logger.error(f"Error fetching description for job {job_id}: {e}")
+                    failed += 1
+                    db_session.rollback()
+
+        finally:
+            db_session.close()
+            logger.info(f"Description fetch complete: {updated} updated, {failed} failed out of {len(job_ids)}")
+
+    background_tasks.add_task(process_all_jobs)
+
+    return {
+        "message": f"Started fetching descriptions for {total_count} jobs in background",
+        "jobs_queued": total_count,
+        "mode": "background"
+    }
