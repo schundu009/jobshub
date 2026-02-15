@@ -1717,6 +1717,109 @@ def _fetch_eightfold_job_description(job_url: str, max_retries: int = 2) -> str:
     return ''
 
 
+async def _fetch_eightfold_description_playwright(job_url: str, timeout: int = 30000) -> str:
+    """
+    Fetch Eightfold job description using Playwright browser.
+
+    This is needed because Eightfold pages are JavaScript-rendered and
+    the job description is loaded dynamically.
+
+    Args:
+        job_url: The full URL to the job posting
+        timeout: Page load timeout in milliseconds
+
+    Returns:
+        The job description HTML, or empty string if not found
+    """
+    if not job_url:
+        return ''
+
+    try:
+        from playwright.async_api import async_playwright
+
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--disable-dev-shm-usage', '--no-sandbox']
+            )
+
+            try:
+                context = await browser.new_context(
+                    user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+                )
+                page = await context.new_page()
+
+                await page.goto(job_url, wait_until='networkidle', timeout=timeout)
+
+                # Wait for job description to load
+                await page.wait_for_timeout(2000)
+
+                # Try multiple selectors for job description
+                selectors = [
+                    '[data-testid="job-description"]',
+                    '.job-description',
+                    '.position-job-description',
+                    '[class*="JobDescription"]',
+                    '[class*="job-description"]',
+                    '.careers-job-description',
+                    'article',
+                    '.content-wrapper',
+                ]
+
+                description = ''
+                for selector in selectors:
+                    try:
+                        element = await page.query_selector(selector)
+                        if element:
+                            description = await element.inner_html()
+                            if description and len(description) > 200:
+                                break
+                    except:
+                        continue
+
+                # Fallback: get main content area
+                if not description or len(description) < 200:
+                    try:
+                        main = await page.query_selector('main')
+                        if main:
+                            description = await main.inner_html()
+                    except:
+                        pass
+
+                if description:
+                    return sanitize_html(description)[:15000]
+
+                return ''
+
+            finally:
+                await browser.close()
+
+    except ImportError:
+        logger.warning("Playwright not available for Eightfold description fetch")
+        return ''
+    except Exception as e:
+        logger.error(f"Playwright error fetching Eightfold description: {e}")
+        return ''
+
+
+def fetch_eightfold_description_sync(job_url: str) -> str:
+    """
+    Synchronous wrapper for Playwright-based Eightfold description fetch.
+    """
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    try:
+        return loop.run_until_complete(_fetch_eightfold_description_playwright(job_url))
+    except Exception as e:
+        logger.error(f"Error in sync Eightfold fetch: {e}")
+        return ''
+
+
 def fetch_eightfold_jobs(company_slug: str) -> list:
     """
     Fetch jobs from Eightfold AI career sites by parsing the sitemap.

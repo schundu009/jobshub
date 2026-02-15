@@ -1772,15 +1772,26 @@ async def fetch_all_missing_descriptions(
                     continue
 
                 try:
-                    # Try generic fetch first
-                    description = ingestion_service.fetch_job_description_from_url(job.job_url)
+                    description = ''
 
-                    # If that fails, try ATS-specific methods
-                    if not description or len(description) < 100:
-                        if 'eightfold.ai' in job.job_url:
+                    # For Eightfold URLs, try Playwright first (JS-rendered pages)
+                    if 'eightfold.ai' in job.job_url:
+                        try:
+                            description = ingestion_service.fetch_eightfold_description_sync(job.job_url)
+                        except Exception as e:
+                            logger.warning(f"Playwright fetch failed for {job.job_url}: {e}")
+
+                        # Fallback to HTTP method
+                        if not description or len(description) < 100:
                             description = ingestion_service._fetch_eightfold_job_description(job.job_url)
-                        elif 'smartrecruiters.com' in job.job_url:
-                            description = ingestion_service._fetch_smartrecruiters_job_description(job.job_url)
+                    else:
+                        # Try generic fetch for other URLs
+                        description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+                        # If that fails, try ATS-specific methods
+                        if not description or len(description) < 100:
+                            if 'smartrecruiters.com' in job.job_url:
+                                description = ingestion_service._fetch_smartrecruiters_job_description(job.job_url)
 
                     if description and len(description) > 100:
                         job.job_description = description[:15000]
@@ -1790,8 +1801,8 @@ async def fetch_all_missing_descriptions(
                     else:
                         fetch_progress["failed"] += 1
 
-                    # Rate limiting
-                    time.sleep(0.3)
+                    # Rate limiting (longer for Playwright)
+                    time.sleep(0.5 if 'eightfold.ai' in job.job_url else 0.3)
 
                 except Exception as e:
                     logger.error(f"Error fetching description for job {job_id}: {e}")
