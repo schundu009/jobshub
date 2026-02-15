@@ -297,10 +297,13 @@ async def cleanup_old_jobs(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Delete jobs older than the specified number of days.
+    Delete jobs where posted_date is older than the specified number of days.
 
     Admin-only endpoint. Related records (interviews, notes, documents) are also deleted.
     Use dry_run=true to preview before deleting.
+
+    Filters by posted_date (when job was posted on company site), falling back to
+    created_at for jobs without posted_date.
     """
     # Admin check
     if current_user.role != "admin":
@@ -308,8 +311,18 @@ async def cleanup_old_jobs(
 
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-    # Get jobs to delete
-    jobs_query = db.query(Job).filter(Job.created_at < cutoff_date)
+    # Get jobs to delete - filter by posted_date (when job was posted)
+    # For jobs without posted_date, fall back to created_at
+    from sqlalchemy import or_, and_
+
+    jobs_query = db.query(Job).filter(
+        or_(
+            # Jobs with posted_date older than cutoff
+            and_(Job.posted_date.isnot(None), Job.posted_date < cutoff_date),
+            # Jobs without posted_date, use created_at as fallback
+            and_(Job.posted_date.is_(None), Job.created_at < cutoff_date)
+        )
+    )
     jobs_to_delete = jobs_query.all()
     job_ids = [job.id for job in jobs_to_delete]
 
@@ -317,6 +330,8 @@ async def cleanup_old_jobs(
         "cutoff_date": cutoff_date.isoformat(),
         "dry_run": dry_run,
         "jobs_count": len(job_ids),
+        "jobs_with_posted_date": sum(1 for j in jobs_to_delete if j.posted_date),
+        "jobs_without_posted_date": sum(1 for j in jobs_to_delete if not j.posted_date),
         "interviews_count": 0,
         "notes_count": 0,
         "documents_count": 0,
