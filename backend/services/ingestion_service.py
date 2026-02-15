@@ -1717,7 +1717,7 @@ def _fetch_eightfold_job_description(job_url: str, max_retries: int = 2) -> str:
     return ''
 
 
-async def _fetch_eightfold_description_playwright(job_url: str, timeout: int = 30000) -> str:
+async def _fetch_eightfold_description_playwright(job_url: str, timeout: int = 45000) -> str:
     """
     Fetch Eightfold job description using Playwright browser.
 
@@ -1729,7 +1729,7 @@ async def _fetch_eightfold_description_playwright(job_url: str, timeout: int = 3
         timeout: Page load timeout in milliseconds
 
     Returns:
-        The job description HTML, or empty string if not found
+        The job description text, or empty string if not found
     """
     if not job_url:
         return ''
@@ -1740,55 +1740,86 @@ async def _fetch_eightfold_description_playwright(job_url: str, timeout: int = 3
         async with async_playwright() as p:
             browser = await p.chromium.launch(
                 headless=True,
-                args=['--disable-dev-shm-usage', '--no-sandbox']
+                args=['--disable-dev-shm-usage', '--no-sandbox', '--disable-gpu']
             )
 
             try:
                 context = await browser.new_context(
-                    user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+                    user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                 )
                 page = await context.new_page()
 
+                logger.info(f"Playwright: Loading {job_url}")
                 await page.goto(job_url, wait_until='networkidle', timeout=timeout)
 
-                # Wait for job description to load
-                await page.wait_for_timeout(2000)
-
-                # Try multiple selectors for job description
-                selectors = [
-                    '[data-testid="job-description"]',
-                    '.job-description',
-                    '.position-job-description',
-                    '[class*="JobDescription"]',
-                    '[class*="job-description"]',
-                    '.careers-job-description',
-                    'article',
-                    '.content-wrapper',
-                ]
+                # Wait for dynamic content to load
+                await page.wait_for_timeout(3000)
 
                 description = ''
-                for selector in selectors:
+
+                # Eightfold-specific selectors (tested and verified)
+                eightfold_selectors = [
+                    # NTT Data uses showInsightsWidget
+                    '[class*="showInsightsWidget"]',
+                    # PayPal uses page-container
+                    '[class*="page-container"]',
+                    # Generic Eightfold patterns
+                    '[class*="position-details"]',
+                    '[class*="positionDetails"]',
+                    '[class*="jdSection"]',
+                    '[class*="jobDescription"]',
+                ]
+
+                for selector in eightfold_selectors:
                     try:
                         element = await page.query_selector(selector)
                         if element:
-                            description = await element.inner_html()
-                            if description and len(description) > 200:
+                            text = await element.inner_text()
+                            if text and len(text) > 500:
+                                description = text
+                                logger.info(f"Playwright: Found JD using {selector} ({len(text)} chars)")
                                 break
-                    except:
+                    except Exception as e:
+                        logger.debug(f"Selector {selector} failed: {e}")
                         continue
 
-                # Fallback: get main content area
-                if not description or len(description) < 200:
+                # Fallback: search within main element for JD content
+                if not description or len(description) < 500:
                     try:
                         main = await page.query_selector('main')
                         if main:
-                            description = await main.inner_html()
-                    except:
-                        pass
+                            # Get all divs within main
+                            divs = await main.query_selector_all('div')
+                            for div in divs:
+                                text = await div.inner_text()
+                                if text and 1000 < len(text) < 15000:
+                                    text_lower = text.lower()
+                                    # Check for typical JD keywords
+                                    if any(kw in text_lower for kw in ['responsibilities', 'requirements', 'qualifications', 'experience']):
+                                        description = text
+                                        logger.info(f"Playwright: Found JD via content search ({len(text)} chars)")
+                                        break
+                    except Exception as e:
+                        logger.debug(f"Content search failed: {e}")
 
-                if description:
-                    return sanitize_html(description)[:15000]
+                # Last resort: get entire main content
+                if not description or len(description) < 500:
+                    try:
+                        main = await page.query_selector('main')
+                        if main:
+                            description = await main.inner_text()
+                            if description:
+                                logger.info(f"Playwright: Using main fallback ({len(description)} chars)")
+                    except Exception as e:
+                        logger.debug(f"Main fallback failed: {e}")
 
+                if description and len(description) > 100:
+                    # Clean up the description - remove excessive whitespace
+                    description = re.sub(r'\n{3,}', '\n\n', description)
+                    description = re.sub(r' {2,}', ' ', description)
+                    return description.strip()[:15000]
+
+                logger.warning(f"Playwright: No description found for {job_url}")
                 return ''
 
             finally:
@@ -1798,7 +1829,7 @@ async def _fetch_eightfold_description_playwright(job_url: str, timeout: int = 3
         logger.warning("Playwright not available for Eightfold description fetch")
         return ''
     except Exception as e:
-        logger.error(f"Playwright error fetching Eightfold description: {e}")
+        logger.error(f"Playwright error fetching Eightfold description from {job_url}: {e}")
         return ''
 
 
