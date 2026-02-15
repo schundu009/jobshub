@@ -2823,19 +2823,35 @@
             }
         };
 
-        // Govt/Clearance keywords - more precise to avoid false positives
+        // Govt/Clearance keywords - includes federal, defense, and clearance indicators
         const GOVT_CLEARANCE_KEYWORDS = [
+            // Clearance requirements
             'security clearance required', 'clearance required', 'active clearance',
             'ts/sci', 'top secret clearance', 'secret clearance', 'ts clearance',
             'must have clearance', 'must possess clearance', 'clearance is required',
-            'dod clearance', 'government clearance', 'sci clearance'
+            'dod clearance', 'government clearance', 'sci clearance', 'poly required',
+            'polygraph required', 'eligible for clearance',
+            // Federal/Government indicators
+            'federal government', 'federal agency', 'federal contract', 'federal client',
+            'government contract', 'government client', 'public sector',
+            'department of defense', 'department of homeland', 'department of energy',
+            'department of justice', 'department of state', 'department of veterans',
+            'dod contract', 'dhs contract', 'federal civilian', 'federal defense',
+            'gs-', 'usajobs', 'federal employee', 'government agency',
+            // Defense/Military
+            'defense contractor', 'military contract', 'armed forces', 'defense industry',
+            'national security', 'intelligence community', 'ic customer', 'dod customer',
+            'itar', 'export control', 'controlled unclassified'
         ];
 
         // Companies that primarily do government/defense work
         const GOVT_COMPANIES = [
             'lockheed martin', 'raytheon', 'northrop grumman', 'general dynamics',
             'bae systems', 'leidos', 'booz allen', 'saic', 'caci', 'l3harris',
-            'palantir defense', 'anduril'
+            'palantir defense', 'anduril', 'mantech', 'peraton', 'maxar',
+            'science applications', 'mitre', 'aerospace corporation', 'jpl',
+            'sandia', 'los alamos', 'lawrence livermore', 'oak ridge',
+            'battelle', 'draper', 'applied physics laboratory'
         ];
 
         const US_CITIZENSHIP_KEYWORDS = [
