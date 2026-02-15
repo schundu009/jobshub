@@ -132,7 +132,7 @@ COMPANIES = [
     # ===========================================
     # SECURITY
     # ===========================================
-    {"name": "CrowdStrike", "ats_type": "workday", "slug": "crowdstrike:wd5:External"},
+    {"name": "CrowdStrike", "ats_type": "greenhouse", "slug": "crowdstrike"},
     {"name": "Palo Alto Networks", "ats_type": "workday", "slug": "paloaltonetworks:wd5:External"},
     {"name": "Okta", "ats_type": "workday", "slug": "okta:wd5:Okta"},
     {"name": "Fortinet", "ats_type": "workday", "slug": "fortinet:wd5:External"},

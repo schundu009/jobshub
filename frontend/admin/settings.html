@@ -205,47 +205,51 @@
             </div>
         </div>
 
-        <!-- Modern AI-inspired toolbar -->
-        <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.1) 100%); border: 1px solid rgba(99,102,241,0.2); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
-                <!-- Fetch Jobs -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--text-secondary); font-size: 13px; white-space: nowrap;">Fetch</span>
-                    <select id="max-job-age" onchange="saveJobAgeFilter()" style="padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-primary); font-size: 12px; cursor: pointer; outline: none;">
-                        <option value="7">7d</option>
-                        <option value="14">14d</option>
-                        <option value="30">30d</option>
-                    </select>
-                    <span id="job-age-status" style="font-size: 11px; color: #4ade80;"></span>
+        <div class="settings-section">
+            <h3>Scraper & Cleanup</h3>
+
+            <div style="display: grid; gap: 16px;">
+                <!-- Job Age Filter -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <span style="color: var(--text-primary); font-size: 14px;">Fetch jobs from last</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <select id="max-job-age" style="padding: 8px 12px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;" onchange="saveJobAgeFilter()">
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30">30 days</option>
+                        </select>
+                        <span id="job-age-status" style="font-size: 12px; min-width: 20px;"></span>
+                    </div>
                 </div>
 
-                <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1);"></div>
-
-                <!-- Delete Old -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="color: var(--text-secondary); font-size: 13px; white-space: nowrap;">Delete ></span>
-                    <select id="cleanup-days" style="padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-primary); font-size: 12px; cursor: pointer; outline: none;">
-                        <option value="3">3d</option>
-                        <option value="7" selected>7d</option>
-                        <option value="14">14d</option>
-                        <option value="30">30d</option>
-                    </select>
-                    <button onclick="previewCleanup()" style="padding: 5px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-primary); font-size: 11px; cursor: pointer; transition: all 0.2s;">Preview</button>
-                    <button onclick="executeCleanup()" style="padding: 5px 12px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 20px; color: white; font-size: 11px; cursor: pointer; transition: all 0.2s;">Delete</button>
+                <!-- Delete Old Jobs -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <span style="color: var(--text-primary); font-size: 14px;">Delete jobs older than</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <select id="cleanup-days" style="padding: 8px 12px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
+                            <option value="3">3 days</option>
+                            <option value="7" selected>7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30">30 days</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="previewCleanup()" style="padding: 6px 12px; font-size: 12px;">Preview</button>
+                        <button class="btn btn-remove" onclick="executeCleanup()" style="padding: 6px 12px; font-size: 12px;">Delete</button>
+                    </div>
                 </div>
 
-                <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1);"></div>
-
-                <!-- Duplicates -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button onclick="cleanupDuplicates()" style="padding: 5px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; color: var(--text-primary); font-size: 11px; cursor: pointer; transition: all 0.2s;">Duplicates</button>
-                    <span id="duplicates-result" style="font-size: 11px; color: var(--text-muted);"></span>
+                <!-- Cleanup Result -->
+                <div id="cleanup-result" style="display: none; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div id="cleanup-result-content"></div>
                 </div>
-            </div>
 
-            <!-- Result panel -->
-            <div id="cleanup-result" style="display: none; margin-top: 12px; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 12px;">
-                <div id="cleanup-result-content" style="font-size: 13px;"></div>
+                <!-- Remove Duplicates -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <span style="color: var(--text-primary); font-size: 14px;">Remove duplicate jobs</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="duplicates-result" style="font-size: 12px; color: var(--text-muted);"></span>
+                        <button class="btn btn-secondary" onclick="cleanupDuplicates()" style="padding: 6px 12px; font-size: 12px;">Scan & Remove</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
