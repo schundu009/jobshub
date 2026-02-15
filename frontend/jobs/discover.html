@@ -574,6 +574,15 @@
                 display: block;
             }
 
+            .grid-detail-layout {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .job-detail-panel {
+                display: none;  /* Hide on mobile - use job detail page instead */
+            }
+
             .main-content {
                 margin-left: 0;
                 padding: 16px;
@@ -843,6 +852,15 @@
 
             .search-box input {
                 padding: 12px 14px 12px 40px;
+            }
+
+            .grid-detail-layout {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .job-detail-panel {
+                display: none;  /* Hide on mobile */
             }
 
             .grid-container {
@@ -1597,9 +1615,290 @@
             box-shadow: var(--shadow-sm);
         }
 
+        /* Split Layout for Grid and Detail Panel */
+        .grid-detail-layout {
+            display: flex;
+            gap: 16px;
+            height: calc(100vh - 350px);
+            min-height: 500px;
+        }
+
+        .grid-section {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Job Detail Panel */
+        .job-detail-panel {
+            width: 420px;
+            min-width: 380px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .job-detail-panel.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+        }
+
+        .detail-empty-state svg {
+            width: 64px;
+            height: 64px;
+            stroke: var(--text-muted);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .detail-empty-state p {
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .detail-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-elevated);
+        }
+
+        .detail-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-header .company {
+            font-size: 13px;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .detail-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .detail-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .detail-meta-item {
+            background: var(--bg-tertiary);
+            padding: 10px 12px;
+            border-radius: 8px;
+        }
+
+        .detail-meta-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .detail-meta-value {
+            font-size: 13px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .detail-section {
+            margin-bottom: 20px;
+        }
+
+        .detail-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tech-tag {
+            padding: 4px 10px;
+            background: var(--accent-blue-muted);
+            color: var(--accent-blue);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .detail-skills-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .detail-skills-table th {
+            text-align: left;
+            padding: 8px 10px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-skills-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .detail-skills-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .skill-match {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .skill-match.yes {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .skill-match.no {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .detail-match-score {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .match-score-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .match-score-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .match-score-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .match-score-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .detail-actions {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-actions .btn {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .detail-actions .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+        }
+
+        .detail-actions .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 1200px) {
+            .job-detail-panel {
+                width: 360px;
+                min-width: 320px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .grid-detail-layout {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .job-detail-panel {
+                width: 100%;
+                min-width: auto;
+                max-height: 400px;
+            }
+        }
+
         /* AG Grid Container - Premium Design */
         .grid-container {
-            height: calc(100vh - 350px);
+            height: 100%;
             min-height: 400px;
             width: 100%;
             border-radius: 16px;
@@ -2472,8 +2771,101 @@
         <!-- Company Chips (moved to sidebar) -->
         <div id="company-chips" class="company-chips" style="display: none;"></div>
 
-        <!-- AG Grid -->
-        <div id="jobsGrid" class="ag-theme-alpine grid-container"></div>
+        <!-- AG Grid with Detail Panel -->
+        <div class="grid-detail-layout">
+            <div class="grid-section">
+                <div id="jobsGrid" class="ag-theme-alpine grid-container"></div>
+            </div>
+            <div class="job-detail-panel empty" id="job-detail-panel">
+                <div class="detail-empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p>Select a job to view details</p>
+                </div>
+                <div class="detail-content-wrapper" style="display: none;">
+                    <div class="detail-header">
+                        <h3><span id="detail-title">-</span></h3>
+                        <span class="company" id="detail-company">-</span>
+                    </div>
+                    <div class="detail-content">
+                        <!-- Match Score -->
+                        <div class="detail-match-score">
+                            <div>
+                                <div class="match-score-value" id="detail-match-score">0%</div>
+                                <div class="match-score-label">Match Score</div>
+                            </div>
+                            <div class="match-score-bar">
+                                <div class="match-score-fill" id="detail-match-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Meta Info -->
+                        <div class="detail-meta">
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Location</div>
+                                <div class="detail-meta-value" id="detail-location">-</div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Salary</div>
+                                <div class="detail-meta-value" id="detail-salary">-</div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Type</div>
+                                <div class="detail-meta-value" id="detail-type">-</div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Remote</div>
+                                <div class="detail-meta-value" id="detail-remote">-</div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Level</div>
+                                <div class="detail-meta-value" id="detail-level">-</div>
+                            </div>
+                            <div class="detail-meta-item">
+                                <div class="detail-meta-label">Experience</div>
+                                <div class="detail-meta-value" id="detail-experience">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Tech Stack -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                Tech Stack
+                            </div>
+                            <div class="detail-tech-stack" id="detail-tech-stack">-</div>
+                        </div>
+
+                        <!-- Skills Match Analysis -->
+                        <div class="detail-section">
+                            <div class="detail-section-title">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                Skills Match Analysis
+                                <span style="margin-left: auto; font-size: 11px; color: var(--text-muted);">
+                                    <span id="detail-skills-matched">0</span>/<span id="detail-skills-total">0</span>
+                                </span>
+                            </div>
+                            <table class="detail-skills-table">
+                                <thead>
+                                    <tr>
+                                        <th>Skill/Technology</th>
+                                        <th>Category</th>
+                                        <th>Match</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detail-skills-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <a class="btn btn-secondary" id="detail-view-btn" href="#" target="_blank">View Job</a>
+                        <button class="btn btn-primary" id="detail-apply-btn">Smart Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Analytics Section -->
         <div class="section-divider" style="margin: 32px 0 24px; border-top: 1px solid var(--border-color);"></div>
@@ -3265,6 +3657,11 @@
             onSelectionChanged: (params) => {
                 const selectedRows = params.api.getSelectedRows();
                 updateBulkApplyBar(selectedRows);
+            },
+            onRowClicked: (params) => {
+                if (params.data) {
+                    showJobDetail(params.data);
+                }
             },
             getRowId: (params) => String(params.data.id)
         };
@@ -4140,6 +4537,154 @@
         }
 
         // Bulk Apply Functions
+        // Show job detail panel
+        let selectedJobId = null;
+
+        function showJobDetail(job) {
+            selectedJobId = job.id;
+            const panel = document.getElementById('job-detail-panel');
+            const emptyState = panel.querySelector('.detail-empty-state');
+            const contentWrapper = panel.querySelector('.detail-content-wrapper');
+
+            // Show content, hide empty state
+            panel.classList.remove('empty');
+            emptyState.style.display = 'none';
+            contentWrapper.style.display = 'flex';
+            contentWrapper.style.flexDirection = 'column';
+            contentWrapper.style.height = '100%';
+
+            // Populate header
+            document.getElementById('detail-title').textContent = job.title || 'Untitled';
+            document.getElementById('detail-company').textContent = job.company_name || '-';
+
+            // Match score
+            const score = Math.round(job.relevance_score || 0);
+            document.getElementById('detail-match-score').textContent = `${score}%`;
+            document.getElementById('detail-match-bar').style.width = `${score}%`;
+
+            // Meta info
+            document.getElementById('detail-location').textContent = job.location || '-';
+            document.getElementById('detail-salary').textContent = job.salary_display || '-';
+            document.getElementById('detail-type').textContent = job.employment_type || job.job_type || '-';
+            document.getElementById('detail-remote').textContent = job.job_type || '-';
+
+            // Detect level from title
+            const title = (job.title || '').toLowerCase();
+            let level = '-';
+            if (title.includes('staff') || title.includes('principal')) level = 'Staff';
+            else if (title.includes('senior') || title.includes('sr.') || title.includes('sr ')) level = 'Senior';
+            else if (title.includes('lead')) level = 'Lead';
+            else if (title.includes('junior') || title.includes('jr.') || title.includes('jr ')) level = 'Junior';
+            else if (title.includes('intern')) level = 'Intern';
+            document.getElementById('detail-level').textContent = level;
+
+            // Experience (extract from description if available)
+            const desc = (job.job_description || '').toLowerCase();
+            let experience = '-';
+            const expMatch = desc.match(/(\d+)\+?\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp)/);
+            if (expMatch) experience = `${expMatch[1]}+ years`;
+            document.getElementById('detail-experience').textContent = experience;
+
+            // Tech stack
+            const techStackContainer = document.getElementById('detail-tech-stack');
+            const techStack = job.tech_stack || extractTechStack(job.job_description);
+            if (techStack && techStack.length > 0) {
+                techStackContainer.innerHTML = techStack.slice(0, 15).map(tech =>
+                    `<span class="tech-tag">${tech}</span>`
+                ).join('');
+            } else {
+                techStackContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 12px;">No tech stack detected</span>';
+            }
+
+            // Skills analysis
+            populateSkillsAnalysis(job);
+
+            // Action buttons
+            document.getElementById('detail-view-btn').href = job.job_url || '#';
+            document.getElementById('detail-apply-btn').onclick = () => {
+                window.open(`/jobs/smart-apply.html?job_id=${job.id}`, '_blank');
+            };
+        }
+
+        function populateSkillsAnalysis(job) {
+            const tbody = document.getElementById('detail-skills-tbody');
+            const desc = (job.job_description || '').toLowerCase();
+            const title = (job.title || '').toLowerCase();
+            const text = title + ' ' + desc;
+
+            // Get user's skills from resume (simplified - in production this would come from user profile)
+            const userSkills = getUserSkillsFromStorage();
+
+            // Extract required skills from job
+            const extractedSkills = extractSkillsFromDescription(desc);
+            const techStack = job.tech_stack || extractTechStack(job.job_description) || [];
+
+            // Combine all skills
+            const allSkills = [...new Set([...extractedSkills, ...techStack])].slice(0, 20);
+
+            let matchedCount = 0;
+            const rows = allSkills.map(skill => {
+                const isMatch = userSkills.some(us =>
+                    us.toLowerCase().includes(skill.toLowerCase()) ||
+                    skill.toLowerCase().includes(us.toLowerCase())
+                );
+                if (isMatch) matchedCount++;
+
+                const category = techStack.includes(skill) ? 'Tech' : 'Required';
+                return `
+                    <tr>
+                        <td>${skill}</td>
+                        <td><span style="padding: 2px 8px; background: var(--bg-tertiary); border-radius: 4px; font-size: 10px; text-transform: uppercase;">${category}</span></td>
+                        <td><span class="skill-match ${isMatch ? 'yes' : 'no'}">${isMatch ? '✓' : '✗'}</span></td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows || '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No skills detected</td></tr>';
+
+            document.getElementById('detail-skills-matched').textContent = matchedCount;
+            document.getElementById('detail-skills-total').textContent = allSkills.length;
+        }
+
+        function extractSkillsFromDescription(desc) {
+            const skillPatterns = [
+                // Technical skills
+                'kubernetes', 'docker', 'aws', 'azure', 'gcp', 'terraform', 'ansible',
+                'python', 'java', 'javascript', 'typescript', 'go', 'rust', 'c\\+\\+',
+                'react', 'vue', 'angular', 'node', 'django', 'flask', 'spring',
+                'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch',
+                'ci/cd', 'jenkins', 'github actions', 'gitlab', 'argocd',
+                'prometheus', 'grafana', 'datadog', 'splunk',
+                'linux', 'unix', 'bash', 'shell scripting',
+                'microservices', 'api', 'rest', 'graphql', 'grpc',
+                'agile', 'scrum', 'jira'
+            ];
+
+            const found = [];
+            for (const pattern of skillPatterns) {
+                const regex = new RegExp(`\\b${pattern}\\b`, 'gi');
+                if (regex.test(desc)) {
+                    const match = desc.match(regex);
+                    if (match) found.push(match[0]);
+                }
+            }
+            return [...new Set(found)];
+        }
+
+        function getUserSkillsFromStorage() {
+            // Try to get from localStorage or return default common skills
+            try {
+                const stored = localStorage.getItem('userSkills');
+                if (stored) return JSON.parse(stored);
+            } catch (e) {}
+
+            // Default skills (would come from user profile in production)
+            return [
+                'Kubernetes', 'Docker', 'AWS', 'Python', 'Go', 'Terraform',
+                'CI/CD', 'Linux', 'Microservices', 'Prometheus', 'Grafana'
+            ];
+        }
+
         function updateBulkApplyBar(selectedRows) {
             const bar = document.getElementById('bulk-apply-bar');
             const countEl = document.getElementById('selected-count');
