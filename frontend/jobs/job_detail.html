@@ -675,9 +675,7 @@
             }
 
             try {
-                const response = await apiRequest(`/ingest/refetch-description/${jobId}`, {
-                    method: 'POST'
-                });
+                const response = await apiRequest(`/ingest/refetch-description/${jobId}`, 'POST');
 
                 if (response.new_description_length && response.new_description_length > 100) {
                     showToast('Job description fetched successfully!', 'success');
