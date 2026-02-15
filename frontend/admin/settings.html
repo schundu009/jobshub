@@ -801,6 +801,14 @@
                                 <button class="btn-modern secondary" onclick="cleanupDuplicates()">Scan & Remove</button>
                             </div>
                         </div>
+
+                        <div class="cleanup-row">
+                            <span class="label">Fetch missing job descriptions</span>
+                            <div class="controls">
+                                <span id="descriptions-result" class="inline-status"></span>
+                                <button class="btn-modern secondary" onclick="fetchMissingDescriptions()">Fetch All</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1390,6 +1398,29 @@
             } catch (error) {
                 resultSpan.textContent = 'Error';
                 resultSpan.style.color = '#ef4444';
+            }
+        }
+
+        async function fetchMissingDescriptions() {
+            const resultSpan = document.getElementById('descriptions-result');
+            resultSpan.textContent = 'Starting...';
+            resultSpan.style.color = 'var(--text-muted)';
+
+            try {
+                const response = await apiRequest('/ingest/fetch-all-descriptions', 'POST');
+
+                if (response.jobs_queued > 0) {
+                    resultSpan.textContent = `${response.jobs_queued} jobs queued`;
+                    resultSpan.style.color = '#22c55e';
+                    showAlert(`Started fetching descriptions for ${response.jobs_queued} jobs in background. This may take a few minutes.`);
+                } else {
+                    resultSpan.textContent = 'No jobs need descriptions';
+                    resultSpan.style.color = '#f59e0b';
+                }
+            } catch (error) {
+                resultSpan.textContent = 'Error';
+                resultSpan.style.color = '#ef4444';
+                showAlert('Failed to start description fetch: ' + error.message, 'error');
             }
         }
     </script>
