@@ -162,11 +162,6 @@ class CircleCIScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/circleci/jobs"
 
 @ScraperRegistry.register(category="custom")
-class CrowdstrikeScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="crowdstrike", company_name="Crowdstrike", careers_url="https://crowdstrike.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/crowdstrike/jobs"
-
-@ScraperRegistry.register(category="custom")
 class CrusoeEnergyScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="crusoeenergy", company_name="Crusoe Energy", careers_url="https://crusoe.ai/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/crusoe/jobs"
