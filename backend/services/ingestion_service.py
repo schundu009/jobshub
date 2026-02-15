@@ -1965,7 +1965,7 @@ def fetch_eightfold_jobs(company_slug: str) -> list:
         jobs.append(normalized_job)
 
     # Fetch job descriptions from individual pages
-    # Use rate limiting to avoid overwhelming the server
+    # Use Playwright for JS-rendered pages, with HTTP fallback
     import time
     total_jobs = len(jobs)
     fetched_descriptions = 0
@@ -1976,20 +1976,25 @@ def fetch_eightfold_jobs(company_slug: str) -> list:
         job_url = job.get('job_url')
         if job_url:
             try:
-                description = _fetch_eightfold_job_description(job_url)
-                if description:
+                # Try Playwright first (JS-rendered pages)
+                description = fetch_eightfold_description_sync(job_url)
+
+                # Fallback to HTTP method
+                if not description or len(description) < 100:
+                    description = _fetch_eightfold_job_description(job_url)
+
+                if description and len(description) > 100:
                     job['job_description'] = description
                     fetched_descriptions += 1
             except Exception as e:
                 logger.warning(f"Error fetching description for job {idx + 1}/{total_jobs}: {e}")
 
-            # Rate limiting: pause between requests (200ms)
-            # Skip delay for last job
+            # Rate limiting: pause between requests (longer for Playwright)
             if idx < total_jobs - 1:
-                time.sleep(0.2)
+                time.sleep(1.0)
 
-            # Log progress every 10 jobs
-            if (idx + 1) % 10 == 0:
+            # Log progress every 5 jobs
+            if (idx + 1) % 5 == 0:
                 logger.info(f"Eightfold description fetch progress: {idx + 1}/{total_jobs}")
 
     logger.info(f"Fetched {fetched_descriptions}/{total_jobs} Eightfold job descriptions")
