@@ -2364,8 +2364,8 @@
                 <option value="6">Last 6 hours</option>
                 <option value="12">Last 12 hours</option>
                 <option value="24">Last 24 hours</option>
-                <option value="48">Last 2 days</option>
-                <option value="72" selected>Last 3 days</option>
+                <option value="48" selected>Last 2 days</option>
+                <option value="72">Last 3 days</option>
                 <option value="168">Last 7 days</option>
                 <option value="336">Last 14 days</option>
                 <option value="720">Last 30 days</option>
@@ -2397,7 +2397,7 @@
                 <option value="90">90%+</option>
                 <option value="80">80%+</option>
                 <option value="70">70%+</option>
-                <option value="60">60%+</option>
+                <option value="60" selected>60%+</option>
                 <option value="50">50%+</option>
                 <option value="40">40%+</option>
                 <option value="30">30%+</option>
@@ -3297,12 +3297,67 @@
             initRolesBanner();
             initSidebarRoleFilters();
 
+            // Auto-detect user location based on timezone and set location filter
+            detectAndSetUserLocation();
+
             const gridDiv = document.querySelector('#jobsGrid');
             agGrid.createGrid(gridDiv, gridOptions);
             setupEventListeners();
 
             // Filters reset on page load - no persistence
         });
+
+        // Detect user's location based on timezone and auto-set location filter
+        function detectAndSetUserLocation() {
+            try {
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const locationFilter = document.getElementById('location-filter');
+
+                if (!timezone || !locationFilter) return;
+
+                let detectedLocation = '';
+
+                // Map timezone to location filter value
+                if (timezone.startsWith('America/')) {
+                    // Check for Canadian cities
+                    const canadianCities = ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Edmonton', 'Ottawa', 'Winnipeg', 'Halifax'];
+                    const isCanada = canadianCities.some(city => timezone.includes(city));
+
+                    if (isCanada) {
+                        detectedLocation = 'canada';
+                    } else {
+                        // US locations
+                        detectedLocation = 'united states';
+                    }
+                } else if (timezone.startsWith('Asia/')) {
+                    // Check for Indian cities
+                    const indianTimezones = ['Kolkata', 'Mumbai', 'Chennai', 'Bangalore', 'Delhi', 'Hyderabad'];
+                    const isIndia = indianTimezones.some(city => timezone.includes(city)) || timezone === 'Asia/Calcutta';
+
+                    if (isIndia) {
+                        detectedLocation = 'india';
+                    }
+                } else if (timezone.startsWith('Europe/')) {
+                    // Check for UK specifically
+                    const ukTimezones = ['London', 'Belfast', 'Dublin'];
+                    const isUK = ukTimezones.some(city => timezone.includes(city));
+
+                    if (isUK) {
+                        detectedLocation = 'uk';
+                    } else {
+                        detectedLocation = 'europe';
+                    }
+                }
+
+                // Set the location filter if we detected a location
+                if (detectedLocation) {
+                    locationFilter.value = detectedLocation;
+                    console.log(`Auto-detected location: ${detectedLocation} (timezone: ${timezone})`);
+                }
+            } catch (error) {
+                console.log('Could not detect user location:', error);
+            }
+        }
 
         function setupEventListeners() {
             // Mobile menu toggle
@@ -3486,11 +3541,11 @@
                 if (workTypeDropdownEl) workTypeDropdownEl.classList.remove('active');
             }
 
-            // Check time filter (only show if not default 72h)
+            // Check time filter (only show if not default 48h/2 days)
             const timeFilter = document.getElementById('time-range-filter');
-            if (timeFilter.value !== '72') {
+            if (timeFilter.value !== '48') {
                 const timeText = timeFilter.options[timeFilter.selectedIndex].text;
-                tags.push({ text: `Time: ${timeText}`, clear: () => { timeFilter.value = '72'; loadJobs(); updateActiveFilters(); } });
+                tags.push({ text: `Time: ${timeText}`, clear: () => { timeFilter.value = '48'; loadJobs(); updateActiveFilters(); } });
                 timeFilter.classList.add('active');
             } else {
                 timeFilter.classList.remove('active');
@@ -3516,11 +3571,11 @@
                 salaryMaxFilter.classList.remove('active');
             }
 
-            // Check match filter
+            // Check match filter (only show if not default 60%)
             const matchFilter = document.getElementById('match-filter');
-            if (matchFilter.value) {
+            if (matchFilter.value && matchFilter.value !== '60') {
                 const matchText = matchFilter.options[matchFilter.selectedIndex].text;
-                tags.push({ text: `Match: ${matchText}`, clear: () => { matchFilter.value = ''; applyFilters(); updateActiveFilters(); } });
+                tags.push({ text: `Match: ${matchText}`, clear: () => { matchFilter.value = '60'; applyFilters(); updateActiveFilters(); } });
                 matchFilter.classList.add('active');
             } else {
                 matchFilter.classList.remove('active');
@@ -3583,16 +3638,17 @@
 
         function clearAllFilters() {
             // Reset all filters to defaults
-            document.getElementById('location-filter').value = '';
+            // Re-detect user location instead of clearing
+            detectAndSetUserLocation();
             // Clear work type checkboxes
             document.querySelectorAll('.work-type-checkbox').forEach(c => c.checked = false);
             const wtLabel = document.getElementById('work-type-label');
             if (wtLabel) wtLabel.textContent = 'All Work Types';
             localStorage.removeItem('preferredWorkTypes');
-            document.getElementById('time-range-filter').value = '72';
+            document.getElementById('time-range-filter').value = '48';  // Default: 2 days
             document.getElementById('salary-min-filter').value = '';
             document.getElementById('salary-max-filter').value = '';
-            document.getElementById('match-filter').value = '';
+            document.getElementById('match-filter').value = '60';  // Default: 60%
             document.getElementById('exclude-govt').checked = false;
             document.getElementById('exclude-citizenship').checked = false;
             document.getElementById('exclude-no-desc').checked = false;
