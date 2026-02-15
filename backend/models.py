@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Boolean, Float, JSON
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Boolean, Float, JSON, Index, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -261,6 +261,11 @@ class Company(Base):
 
 class Job(Base):
     __tablename__ = "jobs"
+    __table_args__ = (
+        # Prevent duplicate jobs from same company with same external_job_id
+        Index('ix_jobs_company_external_unique', 'company_id', 'external_job_id',
+              unique=True, postgresql_where=text("external_job_id IS NOT NULL")),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
