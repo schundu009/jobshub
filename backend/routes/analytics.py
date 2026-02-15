@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, true
+from sqlalchemy import func, true, text
 from datetime import datetime, timedelta
 from collections import defaultdict
+from typing import Optional
 
 from database import get_db
-from models import Job, Company, Contact, Interview
+from models import Job, Company, Contact, Interview, Note, Document, User
+from middleware.auth import get_current_user
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -285,3 +287,60 @@ async def get_interview_stats(db: Session = Depends(get_db)):
         "by_type": type_counts,
         "upcoming": upcoming_list
     }
+
+
+@router.delete("/cleanup/old-jobs")
+async def cleanup_old_jobs(
+    days: int = Query(default=7, ge=1, le=365, description="Delete jobs older than this many days"),
+    dry_run: bool = Query(default=True, description="Preview without deleting"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Delete jobs older than the specified number of days.
+
+    Admin-only endpoint. Related records (interviews, notes, documents) are also deleted.
+    Use dry_run=true to preview before deleting.
+    """
+    # Admin check
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+    # Get jobs to delete
+    jobs_query = db.query(Job).filter(Job.created_at < cutoff_date)
+    jobs_to_delete = jobs_query.all()
+    job_ids = [job.id for job in jobs_to_delete]
+
+    result = {
+        "cutoff_date": cutoff_date.isoformat(),
+        "dry_run": dry_run,
+        "jobs_count": len(job_ids),
+        "interviews_count": 0,
+        "notes_count": 0,
+        "documents_count": 0,
+    }
+
+    if not job_ids:
+        return result
+
+    # Count related records
+    result["interviews_count"] = db.query(Interview).filter(Interview.job_id.in_(job_ids)).count()
+    result["notes_count"] = db.query(Note).filter(Note.job_id.in_(job_ids)).count()
+    result["documents_count"] = db.query(Document).filter(Document.job_id.in_(job_ids)).count()
+
+    if dry_run:
+        return result
+
+    # Delete related records first (those without CASCADE)
+    db.query(Interview).filter(Interview.job_id.in_(job_ids)).delete(synchronize_session=False)
+    db.query(Note).filter(Note.job_id.in_(job_ids)).delete(synchronize_session=False)
+    db.query(Document).filter(Document.job_id.in_(job_ids)).delete(synchronize_session=False)
+
+    # Delete jobs (cascades to job_relevance_scores, application_submissions)
+    db.query(Job).filter(Job.id.in_(job_ids)).delete(synchronize_session=False)
+
+    db.commit()
+
+    return result

@@ -1,303 +1,150 @@
-# JobTrails - Project Guide
+# CLAUDE.md
 
-A personal job application tracking system built with FastAPI backend and vanilla HTML/CSS/JS frontend.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## CRITICAL: MANDATORY DEPLOYMENT AFTER EVERY CHANGE
+## CRITICAL: Deployment After Every Change
 
-**This is a PRODUCTION project. ALL changes MUST be deployed immediately.**
+This is a PRODUCTION project. ALL code changes MUST be deployed immediately.
 
-### Deployment is NON-NEGOTIABLE
-
-After ANY code change, you MUST:
 ```bash
 git add -A && git commit -m "Your message" && git push origin main
 ```
 
 **DO NOT** consider a task complete until changes are committed and pushed.
 
-### Production URLs (ALWAYS verify here, NOT localhost)
+### Production URLs
 - **Frontend**: https://www.cariara.com/jobs/
 - **Backend API**: https://cariara-backend.up.railway.app
 - **Admin Portal**: https://www.cariara.com/admin/
 
-### Auto-Deploy Pipeline
-- Railway auto-deploys backend from `main` branch
-- Vercel auto-deploys frontend from `main` branch
-- Changes typically reflect within 1-2 minutes after push
+Railway and Vercel auto-deploy from `main` branch within 1-2 minutes.
 
-## CRITICAL: Service Health Discipline
-
-**ALWAYS verify services are running after ANY code change:**
-
-```bash
-# Check backend health
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/analytics/summary
-
-# Check frontend health
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
-
-# Check uvicorn process
-pgrep -fl "uvicorn"
-```
-
-- Backend with `--reload` auto-restarts on Python file changes
-- If backend is down, restart: `cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000`
-- If frontend is down, restart: `cd frontend && python3 -m http.server 3000`
-
-**Never assume services are running. Always verify.**
-
-## Quick Start
+## Development Commands
 
 ```bash
 # Activate virtual environment
 source venv/bin/activate
 
-# Start backend server
+# Start backend (with auto-reload)
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
 # Serve frontend (separate terminal)
 cd frontend && python3 -m http.server 3000
+
+# Run tests
+pytest
+
+# Format code
+black backend/
+isort backend/
+
+# Database migrations
+alembic revision --autogenerate -m "description"
+alembic upgrade head
+
+# Celery worker (requires Redis)
+celery -A backend.celery_app worker --loglevel=info
+
+# Celery scheduler
+celery -A backend.celery_app beat --loglevel=info
+
+# Install Playwright browsers (for scraping)
+playwright install chromium
 ```
 
-- Backend API: http://localhost:8000
-- Frontend: http://localhost:3000
+## Service Health Verification
 
-## Project Structure
-
-```
-jobportal/
-├── backend/
-│   ├── main.py           # FastAPI app entry point
-│   ├── database.py       # SQLAlchemy setup (SQLite)
-│   ├── models.py         # All SQLAlchemy models
-│   ├── routes/           # API endpoints
-│   │   ├── jobs.py       # Job CRUD + filtering
-│   │   ├── companies.py  # Company CRUD
-│   │   ├── contacts.py   # Contact CRUD
-│   │   ├── interviews.py # Interview scheduling
-│   │   ├── notes.py      # Job notes
-│   │   ├── documents.py  # File uploads
-│   │   ├── analytics.py  # Dashboard statistics
-│   │   ├── ingest.py     # ATS job ingestion
-│   │   ├── scrapers.py   # Custom scraper management
-│   │   ├── ai.py         # AI-powered features
-│   │   ├── users.py      # User & role profiles
-│   │   └── settings.py   # App settings
-│   ├── scrapers/         # Job board scrapers
-│   ├── services/         # Business logic services
-│   ├── tasks/            # Celery background tasks
-│   └── utils/            # Helper utilities
-├── frontend/
-│   ├── index.html        # Dashboard
-│   ├── jobs.html         # Jobs list with filtering
-│   ├── job_form.html     # Add/edit job
-│   ├── job_detail.html   # Job details view
-│   ├── companies.html    # Companies management
-│   ├── contacts.html     # Contacts management
-│   ├── discover.html     # Job discovery from ATS
-│   ├── analytics.html    # Charts & statistics
-│   ├── settings.html     # App settings
-│   ├── css/              # Stylesheets
-│   └── js/               # Shared JavaScript
-├── data/
-│   └── jobtrails.db      # SQLite database
-└── requirements.txt
+Always verify services after code changes:
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/analytics/summary
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
+pgrep -fl "uvicorn"
 ```
 
-## Database Models
+## Architecture Overview
 
-### Core Models
-- **Job** - Job postings with status tracking (wishlist, applied, interviewing, offer, rejected, withdrawn)
-- **Company** - Company info, linked to jobs and contacts
-- **Contact** - Networking contacts at companies
-- **Interview** - Scheduled interviews with outcomes
-- **Note** - Notes attached to jobs
-- **Document** - Uploaded files (resumes, cover letters)
+### Backend (FastAPI)
+- **Entry**: `backend/main.py` - FastAPI app setup with CORS, routes, static files
+- **Database**: SQLite (local `data/jobtrails.db`) / PostgreSQL (Railway production)
+- **ORM**: SQLAlchemy 2.0 with all models in `backend/models.py`
+- **Auth**: JWT tokens with OAuth 2.0 (Google, GitHub, LinkedIn) in `routes/auth.py` and `routes/oauth.py`
 
-### Discovery Models
-- **IngestionSource** - Tracks ATS career pages (Greenhouse, Lever, Ashby, Workday)
-- **RoleProfile** - Job matching criteria (title patterns, keywords, seniority)
-- **User** - User accounts with role preferences
-- **JobRelevanceScore** - Cached relevance scores for job-user combinations
+### Frontend (Vanilla HTML/CSS/JS)
+- **Auth helper**: `frontend/js/app.js` - Use `apiRequest()` for all API calls (handles auth, token refresh)
+- **Theme**: Dark/light mode via `data-theme` attribute
+- Pages: `index.html` (dashboard), `jobs.html` (list), `discover.html` (ATS discovery), `analytics.html`
 
-### Scraper Models
-- **ScraperRun** - Scraper execution history
-- **ScraperConfigDB** - Per-scraper configuration and health metrics
+### Scraper System
+Located in `backend/scrapers/`, uses a mixin-based architecture:
+
+**Base Classes** (`base.py`):
+- `HTTPScraper` - For sites with JSON APIs (most common)
+- `PlaywrightScraper` - For JavaScript-heavy sites requiring browser
+
+**ATS Mixins** (provide `scrape()` and `parse_job()` implementations):
+- `GreenhouseMixin` - boards-api.greenhouse.io
+- `AshbyMixin` - api.ashbyhq.com
+- `LeverMixin` - jobs.lever.co
+- `WorkdayHybridMixin` - Workday sites (requires Playwright)
+- `SmartRecruitersMixin` - SmartRecruiters ATS
+
+**Adding a scraper**:
+```python
+@ScraperRegistry.register(category="custom")
+class CompanyScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="slug", company_name="Name", ...)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/slug/jobs"
+```
+
+### Background Tasks (Celery)
+- **Broker**: Redis
+- **Task Queues**: `scrapers_http`, `scrapers_browser`, `scrapers_orchestrator`, `maintenance`
+- **Scheduled**: `scrape_all_companies` runs every 6 hours via Beat
 
 ## Auto-Apply Feature
 
-### Supported ATS Types
-Auto-apply only works with these ATS platforms:
-- **Greenhouse** (boards.greenhouse.io)
-- **Lever** (jobs.lever.co)
-- **Workday** (myworkdayjobs.com)
+Only works with: **Greenhouse**, **Lever**, **Workday**
+NOT supported: Ashby, iCIMS, Taleo, BrassRing, Jobvite, SmartRecruiters
 
-**NOT supported**: Ashby, iCIMS, Taleo, BrassRing, Jobvite, SmartRecruiters
+Key endpoints:
+- `POST /api/auto-apply/submit/{job_id}` - Submit application
+- `GET /api/auto-apply/preflight/{job_id}` - Check availability
 
-For unsupported ATS types, the job detail page shows a "Apply Manually" button instead.
+## Railway Services
 
-### Auto-Apply Endpoints
-| Endpoint | Purpose |
-|----------|---------|
-| `/api/auto-apply/preflight/{job_id}` | Check if auto-apply is available |
-| `/api/auto-apply/submit/{job_id}` | Submit application (immediate or queued) |
-| `/api/auto-apply/submissions` | List user's application submissions |
-| `/api/auto-apply/config` | Get/update auto-apply settings |
+| Service | Purpose | Dockerfile |
+|---------|---------|------------|
+| Backend | FastAPI API | `Dockerfile` |
+| Worker | Celery tasks | `Dockerfile.worker` |
+| Beat | Task scheduler | `Dockerfile.beat` |
+| Redis | Queue broker | Railway managed |
+| PostgreSQL | Database | Railway managed |
 
-### Submit Options
-- `process_immediately: true` - Apply now using browser automation
-- `process_immediately: false` - Queue for Celery worker (requires Worker service)
+## Common Issues
 
-## Key API Endpoints
-
-| Endpoint | Purpose |
-|----------|---------|
-| `/api/jobs` | Job CRUD operations |
-| `/api/companies` | Company management |
-| `/api/contacts` | Contact management |
-| `/api/interviews` | Interview scheduling |
-| `/api/analytics/summary` | Dashboard stats (total_jobs, total_companies, status_counts) |
-| `/api/analytics/by-company` | Jobs grouped by company with counts |
-| `/api/ingest/sources` | Manage ATS ingestion sources |
-| `/api/ingest/{ats_type}/{slug}` | Fetch jobs from ATS |
-| `/api/scrapers` | Custom scraper management |
-
-## Company Job Counts
-
-Job counts for companies are calculated in two places:
-
-1. **`/api/companies`** - Returns `job_count` per company via `len(company.jobs)`
-2. **`/api/analytics/by-company`** - Groups jobs by company with status breakdown
-
-The count relies on SQLAlchemy relationship `Company.jobs` being properly populated.
-
-## Database Location
-
-SQLite database: `data/jobtrails.db`
-
-Configured in `backend/database.py`:
-```python
-DATABASE_URL = f"sqlite:///{os.path.join(DATA_DIR, 'jobtrails.db')}"
-```
-
-## Common Issues & Fixes
-
-### Railway Deployment
-
-#### OAuth redirect_uri_mismatch
-- **Cause**: `BACKEND_URL` env var doesn't match actual Railway URL
-- **Fix**: Ensure `BACKEND_URL=https://cariara-backend.up.railway.app` (not `cariara-backend-production`)
-
-#### Jobs not saving to database (SSL errors)
-- **Cause**: Railway internal PostgreSQL connections failing with SSL errors
-- **Fix**: In `database.py`, add `sslmode=disable` for Railway internal connections:
+### Railway SSL Errors
+For internal PostgreSQL connections, ensure `sslmode=disable`:
 ```python
 if 'railway.internal' in db_url and '?' not in db_url:
     db_url = f"{db_url}?sslmode=disable"
 ```
 
-#### Worker not running / Scrapers not scheduling
-- **Symptoms**: No new jobs since a specific date, Beat is running but Worker is down
-- **Check**: Railway dashboard → Worker service logs
-- **Fix**: Redeploy Worker service
+### OAuth redirect_uri_mismatch
+Set `BACKEND_URL=https://cariara-backend.up.railway.app` (not `cariara-backend-production`)
 
-#### Playwright browser not found
-- **Error**: `chromium_headless_shell` not installed
-- **Fix**: In `Dockerfile.worker`:
+### Frontend "Loading..." Stuck
+Use `apiRequest('/jobs/${jobId}')` from `app.js`, not raw `fetch()`
+
+### Playwright Browser Missing
+In `Dockerfile.worker`:
 ```dockerfile
 RUN playwright install --with-deps chromium chromium-headless-shell
 ```
 
-### Scraper Issues
+### Workday URL Case Sensitivity
+Site names like `External_Career` must preserve case - don't lowercase
 
-#### Workday URL case sensitivity
-- **Cause**: Site names like `External_Career` get lowercased to `external_career`
-- **Fix**: In `ingestion_service.py`, extract site name from original URL before lowercasing
-
-#### Company moved to different ATS
-- **Symptoms**: 404 errors for specific companies
-- **Common migrations**:
-  - Anyscale: Greenhouse → Ashby (`https://api.ashbyhq.com/posting-api/job-board/anyscale`)
-  - Character AI: Greenhouse → Ashby (`https://api.ashbyhq.com/posting-api/job-board/character`)
-- **Fix**: Update scraper to use new ATS API
-
-#### WorkdayPlaywrightMixin import error
-- **Fix**: Add alias in `workday_scrapers.py`:
-```python
-WorkdayPlaywrightMixin = WorkdayHybridMixin
-```
-
-### Frontend Issues
-
-#### "Loading job details..." stuck
-- **Cause**: Using raw `fetch` instead of `apiRequest` helper
-- **Fix**: Use `apiRequest('/jobs/${jobId}')` from `app.js` which handles auth & token refresh
-
-#### Job description as single paragraph
-- **Cause**: Plain text newlines ignored in HTML
-- **Fix**: Add CSS `white-space: pre-line` to `.job-description-content`
-
-#### Wrong job_detail.html routing
-- **Cause**: Links pointing to `/admin/job_detail.html` instead of `/jobs/job_detail.html`
-- **Fix**: Update href in discover.html to use correct path
-
-#### Redis showing unhealthy on dashboard
-- **Cause**: Using wrong health endpoint
-- **Fix**: Use `/health/redis` endpoint instead of `/health`
-
-### Database Issues
-
-#### Counts showing 0
-- Check that `company_id` foreign key is set on Job records
-- Verify the SQLAlchemy relationship is loading correctly
-- Query the database directly: `SELECT company_id, COUNT(*) FROM jobs GROUP BY company_id`
-
-#### Empty tables
-- Ensure data was properly migrated/imported
-- Check for filtering issues in the API or frontend
-
-#### Password reset on Railway
-```python
-import bcrypt
-from sqlalchemy import create_engine, text
-engine = create_engine("postgresql://postgres:PASSWORD@HOST:PORT/railway")
-hashed = bcrypt.hashpw("newpassword".encode(), bcrypt.gensalt()).decode()
-with engine.connect() as conn:
-    conn.execute(text("UPDATE users SET hashed_password = :pwd WHERE email = :email"),
-                 {"pwd": hashed, "email": "user@example.com"})
-    conn.commit()
-```
-
-## Railway Services
-
-| Service | Purpose | Key Files |
-|---------|---------|-----------|
-| Backend | FastAPI API server | `Dockerfile`, `main.py` |
-| Worker | Celery task worker | `Dockerfile.worker`, `celery_app.py` |
-| Beat | Celery scheduler | `Dockerfile.beat`, `celery_app.py` |
-| Redis | Task queue broker | Railway managed |
-| PostgreSQL | Database | Railway managed |
-
-## Adding New Scrapers
-
-### Greenhouse
-```python
-@ScraperRegistry.register(category="custom")
-class CompanyScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="company", company_name="Company", ...)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/company/jobs"
-```
-
-### Ashby
-```python
-@ScraperRegistry.register(category="custom")
-class CompanyScraper(AshbyMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="company", company_name="Company", ...)
-    API_URL = "https://api.ashbyhq.com/posting-api/job-board/company"
-```
-
-### Workday
-Add to `WORKDAY_COMPANIES` in `workday_scrapers.py`:
-```python
-("company", "Company Name", "company", "wd1", "External_Career_Site"),
-```
+### Company Moved to Different ATS
+Common migrations (update scraper to use new API):
+- Anyscale: Greenhouse → Ashby
+- Character AI: Greenhouse → Ashby
