@@ -147,9 +147,18 @@
         }
 
         async function editCompany(id) {
+            // Check if modal elements exist
+            const modalTitle = document.getElementById('modal-title');
+            const companyModal = document.getElementById('company-modal');
+
+            if (!modalTitle || !companyModal) {
+                showAlert('Edit modal not available on this page', 'error');
+                return;
+            }
+
             try {
                 const company = await apiRequest(`/companies/${id}`);
-                document.getElementById('modal-title').textContent = 'Edit Company';
+                modalTitle.textContent = 'Edit Company';
                 document.getElementById('company-id').value = company.id;
                 document.getElementById('name').value = company.name || '';
                 document.getElementById('website').value = company.website || '';
@@ -157,7 +166,7 @@
                 document.getElementById('size').value = company.size || '';
                 document.getElementById('location').value = company.location || '';
                 document.getElementById('notes').value = company.notes || '';
-                document.getElementById('company-modal').classList.add('active');
+                companyModal.classList.add('active');
             } catch (error) {
                 showAlert('Failed to load company: ' + error.message, 'error');
             }
