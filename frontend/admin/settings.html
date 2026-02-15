@@ -802,11 +802,27 @@
                             </div>
                         </div>
 
-                        <div class="cleanup-row">
-                            <span class="label">Fetch missing job descriptions</span>
-                            <div class="controls">
-                                <span id="descriptions-result" class="inline-status"></span>
-                                <button class="btn-modern secondary" onclick="fetchMissingDescriptions()">Fetch All</button>
+                        <div class="cleanup-row" style="flex-direction: column; align-items: stretch; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="label">Fetch missing job descriptions</span>
+                                <div class="controls">
+                                    <span id="descriptions-result" class="inline-status"></span>
+                                    <button class="btn-modern secondary" id="fetch-desc-btn" onclick="fetchMissingDescriptions()">Fetch All</button>
+                                </div>
+                            </div>
+                            <div id="fetch-progress-container" style="display: none;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-muted);">
+                                    <span id="fetch-progress-status">Processing...</span>
+                                    <span id="fetch-progress-stats">0 / 0</span>
+                                </div>
+                                <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
+                                    <div id="fetch-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #8b5cf6, #6366f1); border-radius: 4px; transition: width 0.3s ease;"></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
+                                    <span id="fetch-progress-updated">Updated: <span style="color: #22c55e;">0</span></span>
+                                    <span id="fetch-progress-failed">Failed: <span style="color: #ef4444;">0</span></span>
+                                    <span id="fetch-progress-eta">ETA: calculating...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1401,27 +1417,119 @@
             }
         }
 
+        let fetchProgressInterval = null;
+        let fetchStartTime = null;
+        let totalJobsToFetch = 0;
+
         async function fetchMissingDescriptions() {
             const resultSpan = document.getElementById('descriptions-result');
+            const progressContainer = document.getElementById('fetch-progress-container');
+            const fetchBtn = document.getElementById('fetch-desc-btn');
+
             resultSpan.textContent = 'Starting...';
             resultSpan.style.color = 'var(--text-muted)';
+            fetchBtn.disabled = true;
+            fetchBtn.textContent = 'Processing...';
 
             try {
                 const response = await apiRequest('/ingest/fetch-all-descriptions', 'POST');
 
                 if (response.jobs_queued > 0) {
+                    totalJobsToFetch = response.jobs_queued;
+                    fetchStartTime = Date.now();
                     resultSpan.textContent = `${response.jobs_queued} jobs queued`;
-                    resultSpan.style.color = '#22c55e';
-                    showAlert(`Started fetching descriptions for ${response.jobs_queued} jobs in background. This may take a few minutes.`);
+                    resultSpan.style.color = '#8b5cf6';
+
+                    // Show progress bar
+                    progressContainer.style.display = 'block';
+                    document.getElementById('fetch-progress-stats').textContent = `0 / ${totalJobsToFetch}`;
+                    document.getElementById('fetch-progress-bar').style.width = '0%';
+
+                    // Start polling for progress
+                    startProgressPolling();
                 } else {
                     resultSpan.textContent = 'No jobs need descriptions';
                     resultSpan.style.color = '#f59e0b';
+                    fetchBtn.disabled = false;
+                    fetchBtn.textContent = 'Fetch All';
                 }
             } catch (error) {
                 resultSpan.textContent = 'Error';
                 resultSpan.style.color = '#ef4444';
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = 'Fetch All';
                 showAlert('Failed to start description fetch: ' + error.message, 'error');
             }
+        }
+
+        function startProgressPolling() {
+            if (fetchProgressInterval) clearInterval(fetchProgressInterval);
+
+            fetchProgressInterval = setInterval(async () => {
+                try {
+                    const status = await apiRequest('/ingest/fetch-progress');
+                    updateProgressUI(status);
+
+                    if (status.status === 'completed' || status.status === 'idle') {
+                        clearInterval(fetchProgressInterval);
+                        fetchProgressInterval = null;
+                        completeProgress(status);
+                    }
+                } catch (error) {
+                    console.error('Progress check failed:', error);
+                }
+            }, 2000);
+        }
+
+        function updateProgressUI(status) {
+            const processed = status.processed || 0;
+            const total = status.total || totalJobsToFetch;
+            const updated = status.updated || 0;
+            const failed = status.failed || 0;
+            const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
+
+            document.getElementById('fetch-progress-bar').style.width = `${percent}%`;
+            document.getElementById('fetch-progress-stats').textContent = `${processed} / ${total}`;
+            document.getElementById('fetch-progress-status').textContent = status.status === 'running' ? 'Processing...' : 'Waiting...';
+            document.getElementById('fetch-progress-updated').innerHTML = `Updated: <span style="color: #22c55e;">${updated}</span>`;
+            document.getElementById('fetch-progress-failed').innerHTML = `Failed: <span style="color: #ef4444;">${failed}</span>`;
+
+            // Calculate ETA
+            if (processed > 0 && fetchStartTime) {
+                const elapsed = (Date.now() - fetchStartTime) / 1000;
+                const rate = processed / elapsed;
+                const remaining = total - processed;
+                const etaSeconds = Math.round(remaining / rate);
+                const etaMin = Math.floor(etaSeconds / 60);
+                const etaSec = etaSeconds % 60;
+                document.getElementById('fetch-progress-eta').textContent = `ETA: ${etaMin}m ${etaSec}s`;
+            }
+        }
+
+        function completeProgress(status) {
+            const resultSpan = document.getElementById('descriptions-result');
+            const fetchBtn = document.getElementById('fetch-desc-btn');
+            const progressBar = document.getElementById('fetch-progress-bar');
+
+            progressBar.style.width = '100%';
+            progressBar.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
+
+            document.getElementById('fetch-progress-status').textContent = 'Completed!';
+            document.getElementById('fetch-progress-eta').textContent = '';
+
+            resultSpan.textContent = `Done! ${status.updated || 0} updated`;
+            resultSpan.style.color = '#22c55e';
+
+            fetchBtn.disabled = false;
+            fetchBtn.textContent = 'Fetch All';
+
+            showAlert(`Completed! Updated ${status.updated || 0} job descriptions, ${status.failed || 0} failed.`);
+
+            // Hide progress after 5 seconds
+            setTimeout(() => {
+                document.getElementById('fetch-progress-container').style.display = 'none';
+                progressBar.style.background = 'linear-gradient(90deg, #8b5cf6, #6366f1)';
+            }, 5000);
         }
     </script>
 </body>

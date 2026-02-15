@@ -1694,6 +1694,23 @@ async def refetch_single_job_description(
         raise HTTPException(status_code=500, detail=f"Error fetching description: {str(e)}")
 
 
+# Global progress tracking for description fetch
+fetch_progress = {
+    "status": "idle",
+    "total": 0,
+    "processed": 0,
+    "updated": 0,
+    "failed": 0,
+    "started_at": None,
+}
+
+
+@router.get("/fetch-progress")
+async def get_fetch_progress(current_user: User = Depends(get_current_user)):
+    """Get current progress of description fetch operation."""
+    return fetch_progress
+
+
 @router.post("/fetch-all-descriptions")
 async def fetch_all_missing_descriptions(
     background_tasks: BackgroundTasks,
@@ -1704,6 +1721,7 @@ async def fetch_all_missing_descriptions(
     Fetch descriptions for ALL jobs with missing descriptions.
     Runs in background and processes all active jobs.
     """
+    global fetch_progress
     from datetime import datetime, timedelta
 
     # Get ALL jobs with missing descriptions (no limit)
@@ -1729,18 +1747,28 @@ async def fetch_all_missing_descriptions(
 
     job_ids = [j.id for j in jobs_to_update]
 
+    # Initialize progress
+    fetch_progress = {
+        "status": "running",
+        "total": total_count,
+        "processed": 0,
+        "updated": 0,
+        "failed": 0,
+        "started_at": datetime.utcnow().isoformat(),
+    }
+
     def process_all_jobs():
+        global fetch_progress
         import time
         from database import SessionLocal
         db_session = SessionLocal()
-        updated = 0
-        failed = 0
 
         try:
             for idx, job_id in enumerate(job_ids):
                 job = db_session.query(Job).get(job_id)
                 if not job or not job.job_url:
-                    failed += 1
+                    fetch_progress["failed"] += 1
+                    fetch_progress["processed"] = idx + 1
                     continue
 
                 try:
@@ -1758,21 +1786,24 @@ async def fetch_all_missing_descriptions(
                         job.job_description = description[:15000]
                         job.updated_at = datetime.utcnow()
                         db_session.commit()
-                        updated += 1
+                        fetch_progress["updated"] += 1
                     else:
-                        failed += 1
+                        fetch_progress["failed"] += 1
 
                     # Rate limiting
-                    time.sleep(0.5)
+                    time.sleep(0.3)
 
                 except Exception as e:
                     logger.error(f"Error fetching description for job {job_id}: {e}")
-                    failed += 1
+                    fetch_progress["failed"] += 1
                     db_session.rollback()
+
+                fetch_progress["processed"] = idx + 1
 
         finally:
             db_session.close()
-            logger.info(f"Description fetch complete: {updated} updated, {failed} failed out of {len(job_ids)}")
+            fetch_progress["status"] = "completed"
+            logger.info(f"Description fetch complete: {fetch_progress['updated']} updated, {fetch_progress['failed']} failed out of {len(job_ids)}")
 
     background_tasks.add_task(process_all_jobs)
 
