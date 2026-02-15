@@ -7,247 +7,791 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/admin-layout.css">
     <style>
-        .settings-section {
+        /* Settings Page - Enterprise Design System */
+        .settings-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        /* Card Component */
+        .settings-card {
             background: var(--bg-elevated);
             border: 1px solid var(--border-default);
             border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
+            overflow: hidden;
         }
-        .settings-section h3 {
-            margin: 0 0 5px 0;
-            color: var(--text-primary);
-        }
-        .settings-section p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin: 0 0 20px 0;
-        }
-        .api-key-form {
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-default);
             display: flex;
-            gap: 10px;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: space-between;
         }
-        .api-key-form input {
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-header-icon svg {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .status-badge.warning {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .status-badge.neutral {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* API Key Section */
+        .api-key-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .api-key-display code {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg-elevated);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .api-key-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .api-key-input-group input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 12px 16px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-default);
             border-radius: 8px;
             font-size: 14px;
-            font-family: monospace;
+            font-family: 'SF Mono', 'Fira Code', monospace;
             color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .api-key-form input:focus {
-            border-color: var(--accent-primary);
+
+        .api-key-input-group input:focus {
             outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
-        .api-key-status {
-            margin-top: 15px;
-            padding: 15px;
+
+        /* Modern Buttons */
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-modern {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .api-key-status.configured {
-            background: var(--success-muted);
-            color: var(--success);
-            border: 1px solid var(--success);
+
+        .btn-modern svg {
+            width: 16px;
+            height: 16px;
         }
-        .api-key-status.not-configured {
-            background: var(--warning-muted);
-            color: var(--warning);
-            border: 1px solid var(--warning);
+
+        .btn-modern.primary {
+            background: var(--accent-primary);
+            color: white;
         }
-        .api-key-status.error {
-            background: var(--error-muted);
-            color: var(--error);
-            border: 1px solid var(--error);
+
+        .btn-modern.primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
         }
-        .key-preview {
-            font-family: monospace;
+
+        .btn-modern.secondary {
             background: var(--bg-tertiary);
-            padding: 2px 6px;
-            border-radius: 3px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
         }
-        .btn-test {
-            background: var(--info);
-            color: white;
+
+        .btn-modern.secondary:hover {
+            background: var(--border-default);
         }
-        .btn-remove {
-            background: var(--error);
-            color: white;
+
+        .btn-modern.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
         }
+
+        .btn-modern.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-modern.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .btn-modern.success:hover {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .btn-modern:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Batch Ingestion */
+        .batch-status-bar {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .batch-status-bar.visible {
+            display: flex;
+        }
+
+        .pulse-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+        }
+
+        .pulse-indicator.active {
+            animation: pulse 1.5s infinite;
+        }
+
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.1); }
+            50% { opacity: 0.6; transform: scale(1.15); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-card .sublabel {
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        /* Progress Section */
+        .progress-section {
+            display: none;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .progress-section.visible {
+            display: block;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .progress-header .title {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .progress-header .percent {
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .progress-bar-container {
+            background: var(--border-default);
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), #22c55e);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .metrics-row {
+            display: flex;
+            gap: 24px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .metrics-row strong {
+            color: var(--text-secondary);
+        }
+
+        /* Log Viewer */
+        .log-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .log-section.visible {
+            display: block;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .log-header h4 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .log-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .log-controls label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .log-controls button {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .log-controls button:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .log-viewer {
+            background: #0a0a14;
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 16px;
+            height: 320px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Fira Code', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            gap: 12px;
+        }
+
+        .log-entry .time {
+            color: #4a5568;
+            flex-shrink: 0;
+        }
+
+        .log-entry .indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-top: 7px;
+            flex-shrink: 0;
+        }
+
+        .log-entry.info .indicator { background: #60a5fa; }
+        .log-entry.success .indicator { background: #22c55e; }
+        .log-entry.error .indicator { background: #ef4444; }
+        .log-entry.warning .indicator { background: #fbbf24; }
+
+        .log-entry.info { color: #60a5fa; }
+        .log-entry.success { color: #22c55e; }
+        .log-entry.error { color: #ef4444; }
+        .log-entry.warning { color: #fbbf24; }
+
+        /* Summary Section */
+        .summary-section {
+            display: none;
+            margin-top: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .summary-section.visible {
+            display: block;
+        }
+
+        .summary-section h4 {
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .summary-item .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .summary-item .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Cleanup Section */
+        .cleanup-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cleanup-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .cleanup-row .label {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .cleanup-row .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cleanup-row select {
+            padding: 8px 12px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .cleanup-row select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .cleanup-result {
+            display: none;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .cleanup-result.visible {
+            display: block;
+        }
+
+        .cleanup-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .cleanup-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .cleanup-stat .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .cleanup-stat .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Status feedback */
+        .inline-status {
+            font-size: 12px;
+            min-width: 60px;
+            text-align: right;
         }
     </style>
 </head>
 <body>
     <main class="container">
-        <div class="settings-section">
-            <h3>OpenAI API Key</h3>
-
-            <div id="api-key-status" class="api-key-status not-configured">
-                <span class="status-icon">⏳</span> Checking API key status...
-            </div>
-
-            <div class="api-key-form" id="api-key-form">
-                <input type="password" id="api-key-input" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
-                <button class="btn btn-test" onclick="testApiKey()">Test</button>
-                <button class="btn btn-remove" onclick="removeApiKey()" id="remove-btn" style="display: none;">Remove</button>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <h3>Batch Ingestion</h3>
-
-            <div id="batch-status-banner" style="display: none; background: var(--bg-tertiary); border-radius: 8px; padding: 12px 16px; margin-bottom: 15px; border-left: 4px solid var(--accent-primary);">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div id="status-indicator" style="width: 10px; height: 10px; border-radius: 50%; background: var(--accent-primary); animation: pulse 1.5s infinite;"></div>
-                    <span id="batch-status-text" style="font-weight: 500; color: var(--text-primary);">Idle</span>
-                    <span id="batch-current-company" style="color: var(--text-secondary); font-size: 13px;"></span>
+        <div class="settings-grid">
+            <!-- API Key Configuration -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>
+                        <div class="card-header-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                            </svg>
+                        </div>
+                        API Configuration
+                    </h3>
+                    <div id="api-status-badge" class="status-badge neutral">
+                        <span class="status-dot"></span>
+                        <span>Checking...</span>
+                    </div>
                 </div>
-            </div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
-                <button class="btn btn-primary" onclick="startBatchIngestion(false)" id="batch-fast-btn">
-                    ▶ Start Fast Batch
-                </button>
-                <button class="btn btn-secondary" onclick="startBatchIngestion(true)" id="batch-slow-btn">
-                    🐢 Slow Companies
-                </button>
-                <button class="btn btn-remove" onclick="stopBatchIngestion()" id="batch-stop-btn" style="display: none;">
-                    ⏹ Stop
-                </button>
-                <button class="btn btn-secondary" onclick="triggerWebhook()" id="webhook-btn">
-                    🔄 Trigger Scrapers
-                </button>
-                <button class="btn btn-secondary" onclick="checkBatchStatus()" id="batch-check-btn">
-                    📊 Status
-                </button>
-            </div>
-
-            <div id="batch-progress" style="display: none;">
-                <div style="background: var(--bg-tertiary); border-radius: 8px; padding: 20px; margin-top: 10px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span id="batch-progress-text" style="font-weight: 500; color: var(--text-primary);">Processing...</span>
-                        <span id="batch-progress-percent" style="font-weight: 600; color: var(--accent-primary);">0%</span>
+                <div class="card-body">
+                    <div id="api-key-display" class="api-key-display" style="display: none;">
+                        <svg width="16" height="16" fill="none" stroke="#22c55e" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span style="color: var(--text-secondary);">Active key:</span>
+                        <code id="api-key-preview">sk-****...****</code>
                     </div>
-                    <div style="background: var(--border-default); border-radius: 4px; height: 12px; overflow: hidden;">
-                        <div id="batch-progress-bar" style="background: linear-gradient(90deg, var(--accent-primary), #4ade80); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                    </div>
-
-                    <div id="time-metrics" style="margin-top: 12px; display: flex; gap: 20px; font-size: 12px; color: var(--text-muted);">
-                        <span>⏱ Elapsed: <strong id="stat-elapsed" style="color: var(--text-secondary);">0:00</strong></span>
-                        <span>⏳ Remaining: <strong id="stat-remaining" style="color: var(--text-secondary);">--</strong></span>
-                        <span>📈 Rate: <strong id="stat-rate" style="color: var(--text-secondary);">-- src/min</strong></span>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-top: 15px;">
-                        <div style="background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);" id="stat-processed">0</div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Processed</div>
-                            <div style="font-size: 10px; color: var(--text-tertiary);">of <span id="stat-total">0</span></div>
-                        </div>
-                        <div style="background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #4ade80;" id="stat-success">0</div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Success</div>
-                        </div>
-                        <div style="background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #f87171;" id="stat-failed">0</div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Failed</div>
-                        </div>
-                        <div style="background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #60a5fa;" id="stat-added">0</div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Jobs Added</div>
-                        </div>
-                        <div style="background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #fbbf24;" id="stat-updated">0</div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Updated</div>
-                        </div>
-                        <div style="background: var(--bg-elevated); border-radius: 6px; padding: 12px; text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #a78bfa;" id="stat-deactivated">0</div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Deactivated</div>
-                        </div>
+                    <div class="api-key-input-group">
+                        <input type="password" id="api-key-input" placeholder="Enter OpenAI API key (sk-...)">
+                        <button class="btn-modern primary" onclick="saveApiKey()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save
+                        </button>
+                        <button class="btn-modern secondary" onclick="testApiKey()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            Test
+                        </button>
+                        <button class="btn-modern danger" onclick="removeApiKey()" id="remove-btn" style="display: none;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Remove
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div id="log-container" style="margin-top: 15px; display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h4 style="margin: 0; font-size: 14px; color: var(--text-primary);">📋 Live Logs</h4>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span id="log-count" style="font-size: 11px; color: var(--text-muted);">0 entries</span>
-                        <label style="font-size: 12px; color: var(--text-secondary);">
-                            <input type="checkbox" id="auto-scroll" checked> Auto-scroll
-                        </label>
-                        <button onclick="clearLogs()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px;">Clear</button>
+            <!-- Batch Ingestion -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>
+                        <div class="card-header-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </div>
+                        Batch Ingestion
+                    </h3>
+                    <div id="batch-indicator" class="status-badge neutral" style="display: none;">
+                        <span class="status-dot"></span>
+                        <span>Stopped</span>
                     </div>
                 </div>
-                <div id="log-viewer" style="
-                    background: #0d0d1a;
-                    border: 1px solid var(--border-default);
-                    border-radius: 8px;
-                    padding: 12px;
-                    height: 350px;
-                    overflow-y: auto;
-                    font-family: 'Monaco', 'Menlo', monospace;
-                    font-size: 12px;
-                    line-height: 1.8;
-                "></div>
+                <div class="card-body">
+                    <div id="batch-status-bar" class="batch-status-bar">
+                        <div id="status-indicator" class="pulse-indicator active"></div>
+                        <span id="batch-status-text" style="font-weight: 500; color: var(--text-primary);">Idle</span>
+                        <span id="batch-current-company" style="color: var(--text-secondary); font-size: 13px;"></span>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn-modern primary" onclick="startBatchIngestion(false)" id="batch-fast-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Start Fast Batch
+                        </button>
+                        <button class="btn-modern secondary" onclick="startBatchIngestion(true)" id="batch-slow-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Slow Companies
+                        </button>
+                        <button class="btn-modern danger" onclick="stopBatchIngestion()" id="batch-stop-btn" style="display: none;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                            </svg>
+                            Stop
+                        </button>
+                        <button class="btn-modern secondary" onclick="triggerWebhook()" id="webhook-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            Trigger Scrapers
+                        </button>
+                        <button class="btn-modern secondary" onclick="checkBatchStatus()" id="batch-check-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Status
+                        </button>
+                    </div>
+
+                    <div id="batch-progress" class="progress-section">
+                        <div class="progress-header">
+                            <span id="batch-progress-text" class="title">Processing...</span>
+                            <span id="batch-progress-percent" class="percent">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="batch-progress-bar" class="progress-bar-fill"></div>
+                        </div>
+                        <div class="metrics-row">
+                            <span>Elapsed: <strong id="stat-elapsed">0:00</strong></span>
+                            <span>Remaining: <strong id="stat-remaining">--</strong></span>
+                            <span>Rate: <strong id="stat-rate">-- src/min</strong></span>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="value" style="color: var(--text-primary);" id="stat-processed">0</div>
+                                <div class="label">Processed</div>
+                                <div class="sublabel">of <span id="stat-total">0</span></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="value" style="color: #22c55e;" id="stat-success">0</div>
+                                <div class="label">Success</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="value" style="color: #ef4444;" id="stat-failed">0</div>
+                                <div class="label">Failed</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="value" style="color: #3b82f6;" id="stat-added">0</div>
+                                <div class="label">Jobs Added</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="value" style="color: #f59e0b;" id="stat-updated">0</div>
+                                <div class="label">Updated</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="value" style="color: #8b5cf6;" id="stat-deactivated">0</div>
+                                <div class="label">Deactivated</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="log-container" class="log-section">
+                        <div class="log-header">
+                            <h4>Live Logs</h4>
+                            <div class="log-controls">
+                                <span id="log-count">0 entries</span>
+                                <label>
+                                    <input type="checkbox" id="auto-scroll" checked> Auto-scroll
+                                </label>
+                                <button onclick="clearLogs()">Clear</button>
+                            </div>
+                        </div>
+                        <div id="log-viewer" class="log-viewer"></div>
+                    </div>
+
+                    <div id="batch-summary" class="summary-section">
+                        <h4>Batch Summary</h4>
+                        <div id="summary-content"></div>
+                    </div>
+                </div>
             </div>
 
-            <div id="batch-summary" style="display: none; margin-top: 15px; background: var(--bg-tertiary); border-radius: 8px; padding: 20px; border: 1px solid var(--border-default);">
-                <h4 style="margin: 0 0 15px 0; color: var(--text-primary);">📊 Batch Summary</h4>
-                <div id="summary-content"></div>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <h3>Scraper & Cleanup</h3>
-
-            <div style="display: grid; gap: 16px;">
-                <!-- Job Age Filter -->
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                    <span style="color: var(--text-primary); font-size: 14px;">Fetch jobs from last</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <select id="max-job-age" style="padding: 8px 12px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;" onchange="saveJobAgeFilter()">
-                            <option value="7">7 days</option>
-                            <option value="14">14 days</option>
-                            <option value="30">30 days</option>
-                        </select>
-                        <span id="job-age-status" style="font-size: 12px; min-width: 20px;"></span>
-                    </div>
+            <!-- Data Management -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>
+                        <div class="card-header-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                            </svg>
+                        </div>
+                        Data Management
+                    </h3>
                 </div>
+                <div class="card-body">
+                    <div class="cleanup-grid">
+                        <div class="cleanup-row">
+                            <span class="label">Fetch jobs from last</span>
+                            <div class="controls">
+                                <select id="max-job-age" onchange="saveJobAgeFilter()">
+                                    <option value="7">7 days</option>
+                                    <option value="14">14 days</option>
+                                    <option value="30">30 days</option>
+                                </select>
+                                <span id="job-age-status" class="inline-status"></span>
+                            </div>
+                        </div>
 
-                <!-- Delete Old Jobs -->
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                    <span style="color: var(--text-primary); font-size: 14px;">Delete jobs older than</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <select id="cleanup-days" style="padding: 8px 12px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
-                            <option value="3">3 days</option>
-                            <option value="7" selected>7 days</option>
-                            <option value="14">14 days</option>
-                            <option value="30">30 days</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="previewCleanup()" style="padding: 6px 12px; font-size: 12px;">Preview</button>
-                        <button class="btn btn-remove" onclick="executeCleanup()" style="padding: 6px 12px; font-size: 12px;">Delete</button>
-                    </div>
-                </div>
+                        <div class="cleanup-row">
+                            <span class="label">Delete jobs older than</span>
+                            <div class="controls">
+                                <select id="cleanup-days">
+                                    <option value="3">3 days</option>
+                                    <option value="7" selected>7 days</option>
+                                    <option value="14">14 days</option>
+                                    <option value="30">30 days</option>
+                                </select>
+                                <button class="btn-modern secondary" onclick="previewCleanup()">Preview</button>
+                                <button class="btn-modern danger" onclick="executeCleanup()">Delete</button>
+                            </div>
+                        </div>
 
-                <!-- Cleanup Result -->
-                <div id="cleanup-result" style="display: none; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                    <div id="cleanup-result-content"></div>
-                </div>
+                        <div id="cleanup-result" class="cleanup-result">
+                            <div id="cleanup-result-content"></div>
+                        </div>
 
-                <!-- Remove Duplicates -->
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg-tertiary); border-radius: 8px;">
-                    <span style="color: var(--text-primary); font-size: 14px;">Remove duplicate jobs</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span id="duplicates-result" style="font-size: 12px; color: var(--text-muted);"></span>
-                        <button class="btn btn-secondary" onclick="cleanupDuplicates()" style="padding: 6px 12px; font-size: 12px;">Scan & Remove</button>
+                        <div class="cleanup-row">
+                            <span class="label">Remove duplicate jobs</span>
+                            <div class="controls">
+                                <span id="duplicates-result" class="inline-status"></span>
+                                <button class="btn-modern secondary" onclick="cleanupDuplicates()">Scan & Remove</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,12 +805,8 @@
         document.addEventListener('DOMContentLoaded', async function() {
             initAdminLayout('settings', 'Settings');
 
-            // Check authentication
-            if (!requireAuth()) {
-                return;
-            }
+            if (!requireAuth()) return;
 
-            // Initialize after layout is ready
             document.getElementById('api-key-input').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') saveApiKey();
             });
@@ -279,9 +819,7 @@
         async function loadJobAgeFilter() {
             try {
                 const response = await apiRequest('/settings/job-age-filter');
-                const select = document.getElementById('max-job-age');
-                select.value = response.max_job_age_days;
-                document.getElementById('job-age-status').textContent = '';
+                document.getElementById('max-job-age').value = response.max_job_age_days;
             } catch (error) {
                 console.error('Failed to load job age filter:', error);
             }
@@ -297,43 +835,44 @@
 
             try {
                 await apiRequest('/settings/job-age-filter', 'POST', { days });
-                statusSpan.textContent = '✓ Saved';
-                statusSpan.style.color = '#4ade80';
+                statusSpan.textContent = 'Saved';
+                statusSpan.style.color = '#22c55e';
                 showAlert(`Job age filter updated to ${days} days`);
-
-                // Clear success message after 3 seconds
-                setTimeout(() => {
-                    statusSpan.textContent = '';
-                }, 3000);
+                setTimeout(() => { statusSpan.textContent = ''; }, 3000);
             } catch (error) {
-                statusSpan.textContent = '✗ Failed';
-                statusSpan.style.color = '#f87171';
+                statusSpan.textContent = 'Failed';
+                statusSpan.style.color = '#ef4444';
                 showAlert('Failed to save: ' + error.message, 'error');
             }
         }
 
         async function checkApiKeyStatus() {
-            const statusDiv = document.getElementById('api-key-status');
+            const badge = document.getElementById('api-status-badge');
+            const display = document.getElementById('api-key-display');
+            const preview = document.getElementById('api-key-preview');
             const removeBtn = document.getElementById('remove-btn');
-            const apiKeyInput = document.getElementById('api-key-input');
+            const input = document.getElementById('api-key-input');
 
             try {
                 const response = await apiRequest('/settings/api-key');
 
                 if (response.is_set) {
-                    statusDiv.className = 'api-key-status configured';
-                    statusDiv.innerHTML = `<span class="status-icon">✓</span> API key configured: <span class="key-preview">${response.key_preview}</span>`;
-                    apiKeyInput.placeholder = 'Enter new key to replace...';
-                    removeBtn.style.display = 'inline-block';
+                    badge.className = 'status-badge success';
+                    badge.innerHTML = '<span class="status-dot"></span><span>Configured</span>';
+                    display.style.display = 'flex';
+                    preview.textContent = response.key_preview;
+                    input.placeholder = 'Enter new key to replace...';
+                    removeBtn.style.display = 'inline-flex';
                 } else {
-                    statusDiv.className = 'api-key-status not-configured';
-                    statusDiv.innerHTML = `<span class="status-icon">⚠</span> No API key configured`;
-                    apiKeyInput.placeholder = 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+                    badge.className = 'status-badge warning';
+                    badge.innerHTML = '<span class="status-dot"></span><span>Not Configured</span>';
+                    display.style.display = 'none';
+                    input.placeholder = 'Enter OpenAI API key (sk-...)';
                     removeBtn.style.display = 'none';
                 }
             } catch (error) {
-                statusDiv.className = 'api-key-status error';
-                statusDiv.innerHTML = `<span class="status-icon">✗</span> Error: ${error.message}`;
+                badge.className = 'status-badge error';
+                badge.innerHTML = '<span class="status-dot"></span><span>Error</span>';
             }
         }
 
@@ -357,11 +896,12 @@
         }
 
         async function testApiKey() {
-            const statusDiv = document.getElementById('api-key-status');
+            const badge = document.getElementById('api-status-badge');
             const input = document.getElementById('api-key-input');
             const testKey = input.value.trim();
 
-            statusDiv.innerHTML = `<span class="status-icon">⏳</span> Testing API key...`;
+            badge.className = 'status-badge neutral';
+            badge.innerHTML = '<span class="status-dot"></span><span>Testing...</span>';
 
             try {
                 let response;
@@ -372,17 +912,17 @@
                 }
 
                 if (response.valid) {
-                    statusDiv.className = 'api-key-status configured';
-                    statusDiv.innerHTML = `<span class="status-icon">✓</span> API key is valid!`;
+                    badge.className = 'status-badge success';
+                    badge.innerHTML = '<span class="status-dot"></span><span>Valid</span>';
                     showAlert('API key is valid!');
                 } else {
-                    statusDiv.className = 'api-key-status error';
-                    statusDiv.innerHTML = `<span class="status-icon">✗</span> ${response.message}`;
+                    badge.className = 'status-badge error';
+                    badge.innerHTML = '<span class="status-dot"></span><span>Invalid</span>';
                     showAlert(response.message, 'error');
                 }
             } catch (error) {
-                statusDiv.className = 'api-key-status error';
-                statusDiv.innerHTML = `<span class="status-icon">✗</span> Error: ${error.message}`;
+                badge.className = 'status-badge error';
+                badge.innerHTML = '<span class="status-dot"></span><span>Error</span>';
                 showAlert('Error testing API key: ' + error.message, 'error');
             }
 
@@ -410,7 +950,7 @@
         function setBatchButtonsState(running) {
             document.getElementById('batch-fast-btn').disabled = running;
             document.getElementById('batch-slow-btn').disabled = running;
-            document.getElementById('batch-stop-btn').style.display = running ? 'inline-block' : 'none';
+            document.getElementById('batch-stop-btn').style.display = running ? 'inline-flex' : 'none';
         }
 
         async function startBatchIngestion(slowOnly = false) {
@@ -424,7 +964,7 @@
             logCount = 0;
             document.getElementById('log-count').textContent = '0 entries';
             logViewer.innerHTML = '';
-            summaryDiv.style.display = 'none';
+            summaryDiv.classList.remove('visible');
 
             try {
                 let url = '/ingest/sources/refresh/batch/async?batch_size=10&timeout_per_source=120';
@@ -434,18 +974,18 @@
                 currentBatchJobId = response.job_id;
                 localStorage.setItem('currentBatchJobId', currentBatchJobId);
 
-                document.getElementById('batch-status-banner').style.display = 'block';
+                document.getElementById('batch-status-bar').classList.add('visible');
                 document.getElementById('batch-status-text').textContent = `Starting (${response.mode})`;
                 document.getElementById('batch-current-company').textContent = `Job ID: ${response.job_id}`;
 
-                progressDiv.style.display = 'block';
-                logContainer.style.display = 'block';
+                progressDiv.classList.add('visible');
+                logContainer.classList.add('visible');
                 document.getElementById('stat-total').textContent = response.total_sources;
 
                 showAlert(`Batch job started! Processing ${response.total_sources} sources.`);
                 startLogStream(currentBatchJobId);
             } catch (error) {
-                document.getElementById('batch-status-banner').style.display = 'block';
+                document.getElementById('batch-status-bar').classList.add('visible');
                 document.getElementById('batch-status-text').textContent = 'Error';
                 document.getElementById('batch-current-company').textContent = error.message;
                 showAlert('Failed to start batch: ' + error.message, 'error');
@@ -469,8 +1009,7 @@
 
         function startLogStream(jobId) {
             stopLogStream();
-            const logContainer = document.getElementById('log-container');
-            logContainer.style.display = 'block';
+            document.getElementById('log-container').classList.add('visible');
 
             eventSource = new EventSource(`${API_BASE}/ingest/sources/refresh/batch/stream/${jobId}`);
 
@@ -524,16 +1063,12 @@
             const logViewer = document.getElementById('log-viewer');
             const autoScroll = document.getElementById('auto-scroll').checked;
 
-            const icons = { 'info': '📋', 'success': '✅', 'error': '❌', 'warning': '⚠️' };
-            const colors = { 'info': '#60a5fa', 'success': '#4ade80', 'error': '#f87171', 'warning': '#fbbf24' };
-
             const time = new Date(log.timestamp).toLocaleTimeString();
-            const color = colors[log.level] || '#94a3b8';
-            const icon = icons[log.level] || '•';
+            const level = log.level || 'info';
 
             const logLine = document.createElement('div');
-            logLine.style.cssText = `color: ${color}; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05);`;
-            logLine.innerHTML = `<span style="color:#4a5568;margin-right:8px;">${time}</span><span style="margin-right:6px;">${icon}</span>${escapeHtml(log.message)}`;
+            logLine.className = `log-entry ${level}`;
+            logLine.innerHTML = `<span class="time">${time}</span><span class="indicator"></span><span>${escapeHtml(log.message)}</span>`;
 
             logViewer.appendChild(logLine);
             logCount++;
@@ -559,7 +1094,7 @@
 
                 const logsRes = await apiRequest(`/ingest/sources/refresh/batch/logs/${currentBatchJobId}`);
                 const logViewer = document.getElementById('log-viewer');
-                document.getElementById('log-container').style.display = 'block';
+                document.getElementById('log-container').classList.add('visible');
                 logViewer.innerHTML = '';
                 logsRes.logs.forEach(log => appendLog(log));
                 logSince = logsRes.next_since;
@@ -575,11 +1110,11 @@
 
         function updateBatchProgress(status) {
             const progressDiv = document.getElementById('batch-progress');
-            const statusBanner = document.getElementById('batch-status-banner');
+            const statusBanner = document.getElementById('batch-status-bar');
             const summaryDiv = document.getElementById('batch-summary');
 
-            progressDiv.style.display = 'block';
-            statusBanner.style.display = 'block';
+            progressDiv.classList.add('visible');
+            statusBanner.classList.add('visible');
 
             const percent = status.total_sources > 0 ? Math.round((status.processed / status.total_sources) * 100) : 0;
 
@@ -612,32 +1147,30 @@
 
             if (status.status === 'running') {
                 setBatchButtonsState(true);
-                indicator.style.background = '#4ade80';
-                indicator.style.animation = 'pulse 1.5s infinite';
+                indicator.style.background = '#22c55e';
+                indicator.classList.add('active');
                 statusText.textContent = `Running${status.mode ? ` (${status.mode})` : ''}`;
-                currentCompany.textContent = status.current_source ? `→ ${status.current_source}` : '';
+                currentCompany.textContent = status.current_source ? `Processing: ${status.current_source}` : '';
                 document.getElementById('batch-progress-text').textContent = `Processing ${status.processed} of ${status.total_sources}`;
-                summaryDiv.style.display = 'none';
+                summaryDiv.classList.remove('visible');
             } else if (status.status === 'completed') {
                 setBatchButtonsState(false);
                 indicator.style.background = '#22c55e';
-                indicator.style.animation = 'none';
+                indicator.classList.remove('active');
                 statusText.textContent = 'Completed';
                 currentCompany.textContent = '';
                 document.getElementById('batch-progress-text').textContent = 'Batch completed successfully';
                 showBatchSummary(status);
-                // Clear the job ID so refresh doesn't re-fetch logs
                 currentBatchJobId = null;
                 localStorage.removeItem('currentBatchJobId');
                 stopLogStream();
             } else if (status.status === 'stopped' || status.status === 'failed') {
                 setBatchButtonsState(false);
-                indicator.style.background = status.status === 'stopped' ? '#fbbf24' : '#ef4444';
-                indicator.style.animation = 'none';
+                indicator.style.background = status.status === 'stopped' ? '#f59e0b' : '#ef4444';
+                indicator.classList.remove('active');
                 statusText.textContent = status.status === 'stopped' ? 'Stopped' : 'Failed';
                 currentCompany.textContent = status.error || '';
                 showBatchSummary(status);
-                // Clear the job ID so refresh doesn't re-fetch logs
                 currentBatchJobId = null;
                 localStorage.removeItem('currentBatchJobId');
                 stopLogStream();
@@ -658,31 +1191,31 @@
             const elapsed = batchStartTime ? Math.floor((Date.now() - batchStartTime) / 1000) : 0;
 
             content.innerHTML = `
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div>
-                        <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Sources Processed</div>
-                        <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${status.processed} of ${status.total_sources}</div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="label">Sources Processed</div>
+                        <div class="value">${status.processed} of ${status.total_sources}</div>
                     </div>
-                    <div>
-                        <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Success Rate</div>
-                        <div style="font-size: 18px; font-weight: 600; color: ${successRate >= 80 ? '#4ade80' : successRate >= 50 ? '#fbbf24' : '#f87171'};">${successRate}%</div>
+                    <div class="summary-item">
+                        <div class="label">Success Rate</div>
+                        <div class="value" style="color: ${successRate >= 80 ? '#22c55e' : successRate >= 50 ? '#f59e0b' : '#ef4444'};">${successRate}%</div>
                     </div>
-                    <div>
-                        <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Total Time</div>
-                        <div style="font-size: 18px; font-weight: 600; color: var(--text-primary);">${formatTime(elapsed)}</div>
+                    <div class="summary-item">
+                        <div class="label">Total Time</div>
+                        <div class="value">${formatTime(elapsed)}</div>
                     </div>
-                    <div>
-                        <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Jobs Impact</div>
-                        <div style="font-size: 14px; color: var(--text-primary);">
-                            <span style="color: #60a5fa;">+${status.jobs_added} new</span> ·
-                            <span style="color: #fbbf24;">~${status.jobs_updated} updated</span> ·
-                            <span style="color: #a78bfa;">-${status.jobs_deactivated || 0} removed</span>
+                    <div class="summary-item">
+                        <div class="label">Jobs Impact</div>
+                        <div class="value" style="font-size: 14px;">
+                            <span style="color: #3b82f6;">+${status.jobs_added}</span> /
+                            <span style="color: #f59e0b;">~${status.jobs_updated}</span> /
+                            <span style="color: #8b5cf6;">-${status.jobs_deactivated || 0}</span>
                         </div>
                     </div>
                 </div>
             `;
 
-            summaryDiv.style.display = 'block';
+            summaryDiv.classList.add('visible');
             batchStartTime = null;
         }
 
@@ -702,7 +1235,6 @@
             logSince = 0;
             logCount = 0;
             document.getElementById('log-count').textContent = '0 entries';
-            // Clear localStorage so logs don't re-appear on refresh
             currentBatchJobId = null;
             localStorage.removeItem('currentBatchJobId');
             stopLogStream();
@@ -714,37 +1246,37 @@
             const resultDiv = document.getElementById('cleanup-result');
             const contentDiv = document.getElementById('cleanup-result-content');
 
-            resultDiv.style.display = 'block';
-            contentDiv.innerHTML = '<span style="color: var(--text-muted);">⏳ Checking...</span>';
+            resultDiv.classList.add('visible');
+            contentDiv.innerHTML = '<span style="color: var(--text-muted);">Analyzing...</span>';
 
             try {
                 const response = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE');
 
                 contentDiv.innerHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Jobs</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #f87171;">${response.jobs_count}</div>
+                    <div class="cleanup-stats">
+                        <div class="cleanup-stat">
+                            <div class="label">Jobs</div>
+                            <div class="value" style="color: #ef4444;">${response.jobs_count}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Interviews</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.interviews_count}</div>
+                        <div class="cleanup-stat">
+                            <div class="label">Interviews</div>
+                            <div class="value" style="color: var(--text-primary);">${response.interviews_count}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Notes</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.notes_count}</div>
+                        <div class="cleanup-stat">
+                            <div class="label">Notes</div>
+                            <div class="value" style="color: var(--text-primary);">${response.notes_count}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Documents</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.documents_count}</div>
+                        <div class="cleanup-stat">
+                            <div class="label">Documents</div>
+                            <div class="value" style="color: var(--text-primary);">${response.documents_count}</div>
                         </div>
                     </div>
-                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
-                        Cutoff: ${new Date(response.cutoff_date).toLocaleString()} (Preview only - nothing deleted)
+                    <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+                        Cutoff: ${new Date(response.cutoff_date).toLocaleString()} (Preview only)
                     </div>
                 `;
             } catch (error) {
-                contentDiv.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
+                contentDiv.innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
             }
         }
 
@@ -758,72 +1290,69 @@
             const resultDiv = document.getElementById('cleanup-result');
             const contentDiv = document.getElementById('cleanup-result-content');
 
-            resultDiv.style.display = 'block';
-            contentDiv.innerHTML = '<span style="color: var(--text-muted);">⏳ Deleting...</span>';
+            resultDiv.classList.add('visible');
+            contentDiv.innerHTML = '<span style="color: var(--text-muted);">Deleting...</span>';
 
             try {
                 const response = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE');
 
                 contentDiv.innerHTML = `
-                    <div style="color: #4ade80; font-weight: 600; margin-bottom: 10px;">✓ Cleanup completed!</div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Jobs Deleted</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #4ade80;">${response.jobs_count}</div>
+                    <div style="color: #22c55e; font-weight: 600; margin-bottom: 12px;">Cleanup completed</div>
+                    <div class="cleanup-stats">
+                        <div class="cleanup-stat">
+                            <div class="label">Jobs Deleted</div>
+                            <div class="value" style="color: #22c55e;">${response.jobs_count}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Interviews</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.interviews_count}</div>
+                        <div class="cleanup-stat">
+                            <div class="label">Interviews</div>
+                            <div class="value" style="color: var(--text-primary);">${response.interviews_count}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Notes</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.notes_count}</div>
+                        <div class="cleanup-stat">
+                            <div class="label">Notes</div>
+                            <div class="value" style="color: var(--text-primary);">${response.notes_count}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Documents</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.documents_count}</div>
+                        <div class="cleanup-stat">
+                            <div class="label">Documents</div>
+                            <div class="value" style="color: var(--text-primary);">${response.documents_count}</div>
                         </div>
                     </div>
                 `;
                 showAlert(`Deleted ${response.jobs_count} old jobs successfully!`);
             } catch (error) {
-                contentDiv.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
+                contentDiv.innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
                 showAlert('Failed to cleanup: ' + error.message, 'error');
             }
         }
 
         async function cleanupDuplicates() {
             const resultSpan = document.getElementById('duplicates-result');
-            resultSpan.textContent = '⏳ Checking...';
+            resultSpan.textContent = 'Scanning...';
             resultSpan.style.color = 'var(--text-muted)';
 
             try {
-                // First, check for duplicates
                 const checkResponse = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE');
 
                 if (checkResponse.duplicates_count === 0) {
-                    resultSpan.textContent = '✓ No duplicates found!';
-                    resultSpan.style.color = '#4ade80';
+                    resultSpan.textContent = 'No duplicates';
+                    resultSpan.style.color = '#22c55e';
                     return;
                 }
 
                 if (!confirm(`Found ${checkResponse.duplicates_count} duplicate jobs. Delete them?`)) {
-                    resultSpan.textContent = `Found ${checkResponse.duplicates_count} duplicates (not deleted)`;
-                    resultSpan.style.color = '#fbbf24';
+                    resultSpan.textContent = `${checkResponse.duplicates_count} found`;
+                    resultSpan.style.color = '#f59e0b';
                     return;
                 }
 
-                // Execute deletion
                 const deleteResponse = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE');
-                resultSpan.textContent = `✓ Removed ${deleteResponse.duplicates_count} duplicates!`;
-                resultSpan.style.color = '#4ade80';
+                resultSpan.textContent = `${deleteResponse.duplicates_count} removed`;
+                resultSpan.style.color = '#22c55e';
                 showAlert(`Removed ${deleteResponse.duplicates_count} duplicate jobs!`);
             } catch (error) {
-                resultSpan.textContent = `❌ ${error.message}`;
-                resultSpan.style.color = '#f87171';
+                resultSpan.textContent = 'Error';
+                resultSpan.style.color = '#ef4444';
             }
         }
-
     </script>
 </body>
 </html>
