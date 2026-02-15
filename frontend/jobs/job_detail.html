@@ -456,10 +456,10 @@
                     </div>
                 </div>
                 <div class="apply-actions">
-                    ${job.job_url ? `<a href="autoapply.html?url=${encodeURIComponent(job.job_url)}" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);">
+                    ${job.job_url ? `<button onclick="openSmartApply()" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                         Smart Apply (AI)
-                    </a>` : ''}
+                    </button>` : ''}
                     <button class="btn btn-secondary" id="auto-apply-btn" onclick="autoApply()">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         Quick Apply
@@ -633,7 +633,90 @@
             loadJob();
         }
 
+        // Smart Apply Modal Functions
+        async function openSmartApply() {
+            const job = currentJob;
+            if (!job || !job.job_url) {
+                showToast('No job URL available', 'error');
+                return;
+            }
+
+            // Build autoapply base URL
+            const autoapplyBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:5001'
+                : 'https://cariara-autoapply.up.railway.app';
+
+            // Generate unique session ID
+            const sessionId = `jp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Try to fetch and send resume to autoapply
+            try {
+                const resumeResponse = await apiRequest('/users/documents/default-resume');
+                if (resumeResponse && resumeResponse.content) {
+                    // Send resume to autoapply service
+                    try {
+                        await fetch(`${autoapplyBase}/api/resume/external`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                resume_text: resumeResponse.content,
+                                session_id: sessionId
+                            })
+                        });
+                        showToast('Resume synced with AutoApply', 'success');
+                    } catch (e) {
+                        console.warn('Could not sync resume with autoapply:', e);
+                    }
+                }
+            } catch (e) {
+                console.warn('No default resume found:', e);
+            }
+
+            // Build autoapply URL with parameters
+            const params = new URLSearchParams();
+            params.set('url', job.job_url);
+            params.set('session', sessionId);
+
+            const autoapplyUrl = `${autoapplyBase}/?${params.toString()}`;
+
+            // Open modal with iframe
+            const modal = document.getElementById('smart-apply-modal');
+            const iframe = document.getElementById('smart-apply-iframe');
+            iframe.src = autoapplyUrl;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSmartApply() {
+            const modal = document.getElementById('smart-apply-modal');
+            const iframe = document.getElementById('smart-apply-iframe');
+            modal.style.display = 'none';
+            iframe.src = 'about:blank';
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSmartApply();
+        });
+
         init();
     </script>
+
+    <!-- Smart Apply Modal -->
+    <div id="smart-apply-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="position:relative; width:95%; max-width:1200px; height:90vh; background:var(--bg-primary); border-radius:16px; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--bg-secondary); border-bottom:1px solid var(--border-color);">
+                <h3 style="margin:0; font-size:18px; font-weight:600; color:var(--text-primary);">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; vertical-align:middle; margin-right:8px; color:#8b5cf6;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Smart Apply (AI)
+                </h3>
+                <button onclick="closeSmartApply()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); padding:8px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px; height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <iframe id="smart-apply-iframe" src="about:blank" style="width:100%; height:calc(100% - 60px); border:none;"></iframe>
+        </div>
+    </div>
 </body>
 </html>
