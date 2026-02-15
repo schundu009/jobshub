@@ -986,6 +986,70 @@ def _normalize_apple_job(job: dict) -> dict:
     }
 
 
+def _fetch_intuit_job_description(job_url: str) -> tuple:
+    """
+    Fetch job description and posted date from an individual Intuit job page.
+
+    Returns:
+        Tuple of (description, posted_date) or ('', None) if not found
+    """
+    if not job_url:
+        return '', None
+
+    try:
+        request = urllib.request.Request(
+            job_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            }
+        )
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            html = response.read().decode('utf-8', errors='ignore')
+
+        description = ''
+        posted_date = None
+
+        # Try to find description in job-description div
+        desc_match = re.search(
+            r'<div[^>]*class="[^"]*ats-description[^"]*"[^>]*>(.*?)</div>',
+            html,
+            re.DOTALL | re.IGNORECASE
+        )
+        if desc_match:
+            description = html_to_text(desc_match.group(1))
+
+        # Try alternate pattern
+        if not description:
+            desc_match = re.search(
+                r'<div[^>]*id="[^"]*job-description[^"]*"[^>]*>(.*?)</div>',
+                html,
+                re.DOTALL | re.IGNORECASE
+            )
+            if desc_match:
+                description = html_to_text(desc_match.group(1))
+
+        # Look for posted date
+        date_match = re.search(
+            r'Date Posted[:\s]*</?\w+[^>]*>?\s*([A-Za-z]+ \d{1,2},?\s*\d{4})',
+            html,
+            re.IGNORECASE
+        )
+        if date_match:
+            try:
+                from datetime import datetime
+                date_str = date_match.group(1).replace(',', '')
+                posted_date = datetime.strptime(date_str, '%B %d %Y').strftime('%Y-%m-%d')
+            except:
+                pass
+
+        return description[:10000] if description else '', posted_date
+
+    except Exception as e:
+        logger.warning(f"Failed to fetch Intuit job description from {job_url}: {e}")
+        return '', None
+
+
 def fetch_intuit_jobs(company_slug: str) -> list:
     """
     Fetch jobs from Intuit's careers page (TalentBrew platform).
@@ -1027,6 +1091,36 @@ def fetch_intuit_jobs(company_slug: str) -> list:
         except Exception as e:
             print(f"Error fetching Intuit jobs page {page}: {e}")
             break
+
+    # Fetch descriptions for each job (rate-limited)
+    import time
+    total_jobs = len(all_jobs)
+    fetched = 0
+
+    logger.info(f"Fetching descriptions for {total_jobs} Intuit jobs")
+
+    for idx, job in enumerate(all_jobs):
+        job_url = job.get('job_url')
+        if job_url:
+            try:
+                description, posted_date = _fetch_intuit_job_description(job_url)
+                if description:
+                    job['job_description'] = description
+                    fetched += 1
+                if posted_date:
+                    job['posted_date'] = posted_date
+            except Exception as e:
+                logger.warning(f"Error fetching Intuit job {idx + 1}/{total_jobs}: {e}")
+
+            # Rate limiting: 200ms between requests
+            if idx < total_jobs - 1:
+                time.sleep(0.2)
+
+            # Log progress every 20 jobs
+            if (idx + 1) % 20 == 0:
+                logger.info(f"Intuit description fetch: {idx + 1}/{total_jobs}")
+
+    logger.info(f"Fetched {fetched}/{total_jobs} Intuit job descriptions")
 
     return all_jobs
 
@@ -1070,6 +1164,74 @@ def _parse_intuit_jobs_from_html(html: str, base_url: str) -> list:
         })
 
     return jobs
+
+
+def _fetch_adp_job_description(job_url: str) -> str:
+    """
+    Fetch job description from an individual ADP job page.
+
+    Returns:
+        The job description text, or empty string if not found
+    """
+    if not job_url:
+        return ''
+
+    try:
+        request = urllib.request.Request(
+            job_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            }
+        )
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            html = response.read().decode('utf-8', errors='ignore')
+
+        description = ''
+
+        # Try to find description in various ADP page patterns
+        patterns = [
+            r'<div[^>]*class="[^"]*job-description[^"]*"[^>]*>(.*?)</div>',
+            r'<div[^>]*id="[^"]*jobDescription[^"]*"[^>]*>(.*?)</div>',
+            r'<div[^>]*class="[^"]*requisitionDescriptionContainer[^"]*"[^>]*>(.*?)</div>',
+            r'<section[^>]*class="[^"]*description[^"]*"[^>]*>(.*?)</section>',
+        ]
+
+        for pattern in patterns:
+            match = re.search(pattern, html, re.DOTALL | re.IGNORECASE)
+            if match and len(match.group(1)) > 50:
+                description = html_to_text(match.group(1))
+                break
+
+        # Try to find JSON-LD data
+        if not description:
+            jsonld_match = re.search(
+                r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>',
+                html,
+                re.DOTALL | re.IGNORECASE
+            )
+            if jsonld_match:
+                try:
+                    jsonld_data = json.loads(jsonld_match.group(1))
+                    if isinstance(jsonld_data, list):
+                        for item in jsonld_data:
+                            if item.get('@type') == 'JobPosting':
+                                description = item.get('description', '')
+                                break
+                    elif jsonld_data.get('@type') == 'JobPosting':
+                        description = jsonld_data.get('description', '')
+                except:
+                    pass
+
+        if description:
+            description = html_to_text(description)
+            return description[:10000].strip()
+
+        return ''
+
+    except Exception as e:
+        logger.warning(f"Failed to fetch ADP job description from {job_url}: {e}")
+        return ''
 
 
 def fetch_adp_jobs(company_slug: str) -> list:
@@ -1145,12 +1307,41 @@ def fetch_adp_jobs(company_slug: str) -> list:
             'title': title,
             'location': location.strip() if location else None,
             'job_url': job_url,
-            'job_description': work_level if work_level else '',
+            'job_description': '',  # Will be populated below
+            'work_type': work_level,  # Keep work type as separate field
             'source': 'adp',
             'external_job_id': external_job_id,
             'posted_date': posted_date,
         }
         jobs.append(normalized_job)
+
+    # Fetch descriptions for each job (rate-limited)
+    import time
+    total_jobs = len(jobs)
+    fetched = 0
+
+    logger.info(f"Fetching descriptions for {total_jobs} ADP jobs")
+
+    for idx, job in enumerate(jobs):
+        job_url = job.get('job_url')
+        if job_url:
+            try:
+                description = _fetch_adp_job_description(job_url)
+                if description:
+                    job['job_description'] = description
+                    fetched += 1
+            except Exception as e:
+                logger.warning(f"Error fetching ADP job {idx + 1}/{total_jobs}: {e}")
+
+            # Rate limiting: 200ms between requests
+            if idx < total_jobs - 1:
+                time.sleep(0.2)
+
+            # Log progress every 10 jobs
+            if (idx + 1) % 10 == 0:
+                logger.info(f"ADP description fetch: {idx + 1}/{total_jobs}")
+
+    logger.info(f"Fetched {fetched}/{total_jobs} ADP job descriptions")
 
     return jobs
 
