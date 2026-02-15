@@ -1697,31 +1697,27 @@ async def refetch_single_job_description(
 @router.post("/fetch-all-descriptions")
 async def fetch_all_missing_descriptions(
     background_tasks: BackgroundTasks,
-    batch_size: int = 200,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Fetch descriptions for ALL jobs with missing descriptions.
-    Runs in background and processes all active jobs from last 30 days.
+    Runs in background and processes all active jobs.
     """
     from datetime import datetime, timedelta
 
-    cutoff = datetime.utcnow() - timedelta(days=30)
-
-    # Count jobs with missing descriptions
+    # Get ALL jobs with missing descriptions (no limit)
     jobs_to_update = db.query(Job).filter(
         Job.is_active == True,
         Job.job_url.isnot(None),
         Job.job_url != '',
-        Job.created_at >= cutoff,
         or_(
             Job.job_description.is_(None),
             Job.job_description == '',
             Job.job_description == 'No description available.',
             func.length(Job.job_description) < 100
         )
-    ).limit(batch_size).all()
+    ).all()
 
     total_count = len(jobs_to_update)
 

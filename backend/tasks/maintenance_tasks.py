@@ -231,7 +231,7 @@ def generate_scraper_health_report() -> dict:
 
 
 @celery_app.task
-def fetch_missing_descriptions(batch_size: int = 50, delay_between: float = 1.0) -> dict:
+def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5) -> dict:
     """
     Fetch descriptions for jobs that have empty or missing descriptions.
 
@@ -239,8 +239,8 @@ def fetch_missing_descriptions(batch_size: int = 50, delay_between: float = 1.0)
     fetches the description from the job page, and updates the record.
 
     Args:
-        batch_size: Maximum number of jobs to process per run (default: 50)
-        delay_between: Seconds to wait between requests to avoid rate limiting (default: 1.0)
+        batch_size: Maximum number of jobs to process per run (default: 500)
+        delay_between: Seconds to wait between requests to avoid rate limiting (default: 0.5)
 
     Returns:
         Dict with fetch results
@@ -249,15 +249,11 @@ def fetch_missing_descriptions(batch_size: int = 50, delay_between: float = 1.0)
 
     db = get_db()
     try:
-        # Find jobs with missing descriptions that have a valid URL
-        # Only process active jobs from the last 30 days
-        cutoff = datetime.utcnow() - timedelta(days=30)
-
+        # Find ALL jobs with missing descriptions that have a valid URL
         jobs_to_update = db.query(Job).filter(
             Job.is_active == True,
             Job.job_url.isnot(None),
             Job.job_url != '',
-            Job.created_at >= cutoff,
             or_(
                 Job.job_description.is_(None),
                 Job.job_description == '',
