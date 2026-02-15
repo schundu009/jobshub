@@ -369,11 +369,63 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
     return (None, None)
 
 
+def sanitize_html(html: str) -> str:
+    """
+    Sanitize HTML by removing dangerous elements but preserving formatting.
+    Keeps: p, br, ul, ol, li, strong, b, em, i, h1-h6, div, span
+    Removes: script, style, iframe, form, input, etc.
+    """
+    if not html:
+        return ''
+
+    # Remove dangerous elements completely
+    html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r'<iframe[^>]*>.*?</iframe>', '', html, flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r'<form[^>]*>.*?</form>', '', html, flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r'<input[^>]*/?>', '', html, flags=re.IGNORECASE)
+    html = re.sub(r'<button[^>]*>.*?</button>', '', html, flags=re.IGNORECASE | re.DOTALL)
+    html = re.sub(r'<noscript[^>]*>.*?</noscript>', '', html, flags=re.IGNORECASE | re.DOTALL)
+
+    # Remove all attributes except basic ones to prevent XSS
+    # Keep only: class, id (for styling purposes)
+    def clean_tag(match):
+        tag = match.group(1).lower()
+        # Allowed tags
+        allowed = ['p', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u',
+                   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'a', 'table',
+                   'tr', 'td', 'th', 'thead', 'tbody']
+        if tag in allowed:
+            # Return tag without attributes for safety
+            return f'<{tag}>'
+        return ''
+
+    def clean_closing_tag(match):
+        tag = match.group(1).lower()
+        allowed = ['p', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u',
+                   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span', 'a', 'table',
+                   'tr', 'td', 'th', 'thead', 'tbody']
+        if tag in allowed:
+            return f'</{tag}>'
+        return ''
+
+    # Clean opening tags
+    html = re.sub(r'<([a-zA-Z][a-zA-Z0-9]*)[^>]*>', clean_tag, html)
+    # Clean closing tags
+    html = re.sub(r'</([a-zA-Z][a-zA-Z0-9]*)>', clean_closing_tag, html)
+
+    # Clean up extra whitespace but preserve structure
+    html = re.sub(r'\n\s*\n\s*\n', '\n\n', html)
+    html = re.sub(r'  +', ' ', html)
+
+    return html.strip()
+
+
 def fetch_job_description_from_url(job_url: str) -> str:
     """
     Fetch job description from any job URL by analyzing the page content.
     Attempts multiple extraction methods for different ATS platforms.
-    Returns the extracted description or empty string on failure.
+    Returns the extracted description (HTML preserved) or empty string on failure.
     """
     if not job_url:
         return ''
@@ -400,7 +452,7 @@ def fetch_job_description_from_url(job_url: str) -> str:
                 job = props.get('job', {}) or props.get('position', {}) or props.get('jobDetails', {})
                 desc = job.get('description', '') or job.get('jobDescription', '') or job.get('content', '')
                 if desc and len(desc) > 100:
-                    return html_to_text(desc)[:10000]
+                    return sanitize_html(desc)[:15000]
             except:
                 pass
 
@@ -413,7 +465,7 @@ def fetch_job_description_from_url(job_url: str) -> str:
                     ld_data = ld_data[0] if ld_data else {}
                 desc = ld_data.get('description', '')
                 if desc and len(desc) > 100:
-                    return html_to_text(desc)[:10000]
+                    return sanitize_html(desc)[:15000]
             except:
                 pass
 
@@ -437,14 +489,16 @@ def fetch_job_description_from_url(job_url: str) -> str:
             match = re.search(pattern, html, re.DOTALL | re.IGNORECASE)
             if match:
                 content = match.group(1)
-                text = html_to_text(content)
-                if len(text) > 200:  # Minimum viable description length
-                    return text[:10000]
+                sanitized = sanitize_html(content)
+                # Check if there's substantial content
+                text_only = re.sub(r'<[^>]+>', '', sanitized)
+                if len(text_only) > 200:  # Minimum viable description length
+                    return sanitized[:15000]
 
         # Method 4: Extract from meta description as fallback
         meta_match = re.search(r'<meta[^>]*name="description"[^>]*content="([^"]*)"', html, re.IGNORECASE)
         if meta_match and len(meta_match.group(1)) > 100:
-            return meta_match.group(1)[:10000]
+            return meta_match.group(1)[:15000]
 
         # Method 5: Try to find the largest text block in the page
         # Remove navigation, header, footer areas first
@@ -456,9 +510,10 @@ def fetch_job_description_from_url(job_url: str) -> str:
             # Find divs with substantial text
             div_matches = re.findall(r'<div[^>]*>(.*?)</div>', body, re.DOTALL)
             for div_content in div_matches:
-                text = html_to_text(div_content)
-                if len(text) > 500:  # Substantial content
-                    return text[:10000]
+                sanitized = sanitize_html(div_content)
+                text_only = re.sub(r'<[^>]+>', '', sanitized)
+                if len(text_only) > 500:  # Substantial content
+                    return sanitized[:15000]
 
         return ''
 
