@@ -344,3 +344,62 @@ async def cleanup_old_jobs(
     db.commit()
 
     return result
+
+
+@router.delete("/cleanup/duplicates")
+async def cleanup_duplicates(
+    dry_run: bool = Query(default=True, description="Preview without deleting"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Find and remove duplicate jobs (same company_id + external_job_id).
+
+    Admin-only endpoint. Keeps the oldest job record and deletes newer duplicates.
+    Use dry_run=true to preview before deleting.
+    """
+    # Admin check
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # Find duplicates: jobs with same company_id and external_job_id
+    # We'll keep the one with the lowest id (oldest)
+    duplicates_query = text("""
+        SELECT j.id
+        FROM jobs j
+        INNER JOIN (
+            SELECT company_id, external_job_id, MIN(id) as min_id
+            FROM jobs
+            WHERE external_job_id IS NOT NULL
+            GROUP BY company_id, external_job_id
+            HAVING COUNT(*) > 1
+        ) dups ON j.company_id = dups.company_id
+              AND j.external_job_id = dups.external_job_id
+              AND j.id > dups.min_id
+    """)
+
+    result = db.execute(duplicates_query)
+    duplicate_ids = [row[0] for row in result.fetchall()]
+
+    response = {
+        "dry_run": dry_run,
+        "duplicates_count": len(duplicate_ids),
+    }
+
+    if not duplicate_ids:
+        return response
+
+    if dry_run:
+        return response
+
+    # Delete related records first
+    db.query(Interview).filter(Interview.job_id.in_(duplicate_ids)).delete(synchronize_session=False)
+    db.query(Note).filter(Note.job_id.in_(duplicate_ids)).delete(synchronize_session=False)
+    db.query(Document).filter(Document.job_id.in_(duplicate_ids)).delete(synchronize_session=False)
+
+    # Delete duplicate jobs
+    db.query(Job).filter(Job.id.in_(duplicate_ids)).delete(synchronize_session=False)
+
+    db.commit()
+
+    return response

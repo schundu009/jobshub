@@ -204,6 +204,44 @@
                 <div id="summary-content"></div>
             </div>
         </div>
+
+        <div class="settings-section">
+            <h3>Database Maintenance</h3>
+            <p>Clean up old jobs and manage database health.</p>
+
+            <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div>
+                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 5px;">Delete jobs older than</label>
+                    <select id="cleanup-days" style="padding: 10px 15px; background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                        <option value="3">3 days</option>
+                        <option value="7" selected>7 days</option>
+                        <option value="14">14 days</option>
+                        <option value="30">30 days</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" onclick="previewCleanup()">
+                    👁 Preview
+                </button>
+                <button class="btn btn-remove" onclick="executeCleanup()" id="cleanup-btn">
+                    🗑 Delete Old Jobs
+                </button>
+            </div>
+
+            <div id="cleanup-result" style="display: none; margin-top: 15px; padding: 15px; background: var(--bg-tertiary); border-radius: 8px; border: 1px solid var(--border-default);">
+                <div id="cleanup-result-content"></div>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-default);">
+                <h4 style="margin: 0 0 10px 0; font-size: 14px; color: var(--text-primary);">Remove Duplicate Jobs</h4>
+                <p style="color: var(--text-secondary); font-size: 13px; margin: 0 0 10px 0;">
+                    Find and remove duplicate job entries (same company + external job ID).
+                </p>
+                <button class="btn btn-secondary" onclick="cleanupDuplicates()">
+                    🔍 Find & Remove Duplicates
+                </button>
+                <span id="duplicates-result" style="margin-left: 10px; font-size: 13px; color: var(--text-secondary);"></span>
+            </div>
+        </div>
     </main>
 
     <script src="../js/app.js"></script>
@@ -608,6 +646,122 @@
             logSince = 0;
             logCount = 0;
             document.getElementById('log-count').textContent = '0 entries';
+        }
+
+        // Database Maintenance Functions
+        async function previewCleanup() {
+            const days = document.getElementById('cleanup-days').value;
+            const resultDiv = document.getElementById('cleanup-result');
+            const contentDiv = document.getElementById('cleanup-result-content');
+
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = '<span style="color: var(--text-muted);">⏳ Checking...</span>';
+
+            try {
+                const response = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE');
+
+                contentDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Jobs</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #f87171;">${response.jobs_count}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Interviews</div>
+                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.interviews_count}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Notes</div>
+                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.notes_count}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Documents</div>
+                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.documents_count}</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                        Cutoff: ${new Date(response.cutoff_date).toLocaleString()} (Preview only - nothing deleted)
+                    </div>
+                `;
+            } catch (error) {
+                contentDiv.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function executeCleanup() {
+            const days = document.getElementById('cleanup-days').value;
+
+            if (!confirm(`Are you sure you want to DELETE all jobs older than ${days} days?\n\nThis action cannot be undone!`)) {
+                return;
+            }
+
+            const resultDiv = document.getElementById('cleanup-result');
+            const contentDiv = document.getElementById('cleanup-result-content');
+
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = '<span style="color: var(--text-muted);">⏳ Deleting...</span>';
+
+            try {
+                const response = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE');
+
+                contentDiv.innerHTML = `
+                    <div style="color: #4ade80; font-weight: 600; margin-bottom: 10px;">✓ Cleanup completed!</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Jobs Deleted</div>
+                            <div style="font-size: 24px; font-weight: 700; color: #4ade80;">${response.jobs_count}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Interviews</div>
+                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.interviews_count}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Notes</div>
+                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.notes_count}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Documents</div>
+                            <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);">${response.documents_count}</div>
+                        </div>
+                    </div>
+                `;
+                showAlert(`Deleted ${response.jobs_count} old jobs successfully!`);
+            } catch (error) {
+                contentDiv.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
+                showAlert('Failed to cleanup: ' + error.message, 'error');
+            }
+        }
+
+        async function cleanupDuplicates() {
+            const resultSpan = document.getElementById('duplicates-result');
+            resultSpan.textContent = '⏳ Checking...';
+            resultSpan.style.color = 'var(--text-muted)';
+
+            try {
+                // First, check for duplicates
+                const checkResponse = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE');
+
+                if (checkResponse.duplicates_count === 0) {
+                    resultSpan.textContent = '✓ No duplicates found!';
+                    resultSpan.style.color = '#4ade80';
+                    return;
+                }
+
+                if (!confirm(`Found ${checkResponse.duplicates_count} duplicate jobs. Delete them?`)) {
+                    resultSpan.textContent = `Found ${checkResponse.duplicates_count} duplicates (not deleted)`;
+                    resultSpan.style.color = '#fbbf24';
+                    return;
+                }
+
+                // Execute deletion
+                const deleteResponse = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE');
+                resultSpan.textContent = `✓ Removed ${deleteResponse.duplicates_count} duplicates!`;
+                resultSpan.style.color = '#4ade80';
+                showAlert(`Removed ${deleteResponse.duplicates_count} duplicate jobs!`);
+            } catch (error) {
+                resultSpan.textContent = `❌ ${error.message}`;
+                resultSpan.style.color = '#f87171';
+            }
         }
 
     </script>
