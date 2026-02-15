@@ -3534,18 +3534,18 @@
         }
 
         function actionsCellRenderer(params) {
-            const jobUrl = params.data.job_url;
-            const jobId = params.data.id;
-            const linkStyle = 'color:var(--text-secondary);font-size:11px;text-decoration:underline;cursor:pointer;';
+            const job = params.data;
+            const jobUrl = job.job_url;
+            const jobId = job.id;
+            const applyStyle = 'color:var(--accent-blue);font-size:11px;text-decoration:none;cursor:pointer;padding:4px 10px;background:var(--accent-blue-muted);border-radius:4px;font-weight:500;';
             if (jobUrl) {
-                return `<div style="display:flex;gap:12px;" onclick="event.stopPropagation()">
-                    <a href="${jobUrl}" target="_blank" style="${linkStyle}" onclick="event.stopPropagation()">Apply</a>
-                    <a href="job_detail.html?id=${jobId}" style="${linkStyle}" onclick="event.stopPropagation()">Details</a>
+                return `<div style="display:flex;gap:8px;align-items:center;">
+                    <a href="smart-apply.html?job_id=${jobId}" style="${applyStyle}" onclick="event.stopPropagation()">Apply</a>
                 </div>`;
             }
-            return `<div onclick="event.stopPropagation()">
-                <a href="job_detail.html?id=${jobId}" style="${linkStyle}" onclick="event.stopPropagation()">View</a>
-            </div>`;
+            return `<div style="display:flex;gap:8px;align-items:center;">
+                    <span style="color:var(--text-muted);font-size:11px;">No URL</span>
+                </div>`;
         }
 
         // Column Definitions - With tooltips and proper sizing
