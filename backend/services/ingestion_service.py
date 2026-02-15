@@ -369,6 +369,103 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
     return (None, None)
 
 
+def fetch_job_description_from_url(job_url: str) -> str:
+    """
+    Fetch job description from any job URL by analyzing the page content.
+    Attempts multiple extraction methods for different ATS platforms.
+    Returns the extracted description or empty string on failure.
+    """
+    if not job_url:
+        return ''
+
+    try:
+        request = urllib.request.Request(
+            job_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+            }
+        )
+        with urllib.request.urlopen(request, timeout=20, context=ssl_context) as response:
+            html = response.read().decode('utf-8', errors='ignore')
+
+        # Method 1: Look for __NEXT_DATA__ (Next.js apps like Eightfold, Phenom)
+        next_data_match = re.search(r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
+        if next_data_match:
+            try:
+                next_data = json.loads(next_data_match.group(1))
+                # Try various paths where job description might be stored
+                props = next_data.get('props', {}).get('pageProps', {})
+                job = props.get('job', {}) or props.get('position', {}) or props.get('jobDetails', {})
+                desc = job.get('description', '') or job.get('jobDescription', '') or job.get('content', '')
+                if desc and len(desc) > 100:
+                    return html_to_text(desc)[:10000]
+            except:
+                pass
+
+        # Method 2: Look for JSON-LD structured data
+        json_ld_match = re.search(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html, re.DOTALL)
+        if json_ld_match:
+            try:
+                ld_data = json.loads(json_ld_match.group(1))
+                if isinstance(ld_data, list):
+                    ld_data = ld_data[0] if ld_data else {}
+                desc = ld_data.get('description', '')
+                if desc and len(desc) > 100:
+                    return html_to_text(desc)[:10000]
+            except:
+                pass
+
+        # Method 3: Look for common job description containers
+        description_patterns = [
+            # Common class/id patterns for job descriptions
+            r'<div[^>]*(?:class|id)=["\'][^"\']*(?:job-description|jobDescription|job_description|description-content|job-details|posting-description|ats-description)[^"\']*["\'][^>]*>(.*?)</div>',
+            r'<section[^>]*(?:class|id)=["\'][^"\']*(?:job-description|description)[^"\']*["\'][^>]*>(.*?)</section>',
+            r'<article[^>]*(?:class|id)=["\'][^"\']*(?:job|posting)[^"\']*["\'][^>]*>(.*?)</article>',
+            # Workday specific
+            r'<div[^>]*data-automation-id="jobPostingDescription"[^>]*>(.*?)</div>',
+            # Greenhouse specific
+            r'<div[^>]*id="content"[^>]*>(.*?)</div>',
+            # SmartRecruiters
+            r'<div[^>]*class="job-sections"[^>]*>(.*?)</div>',
+            # Generic patterns
+            r'<div[^>]*class="[^"]*content[^"]*"[^>]*>(.*?)</div>',
+        ]
+
+        for pattern in description_patterns:
+            match = re.search(pattern, html, re.DOTALL | re.IGNORECASE)
+            if match:
+                content = match.group(1)
+                text = html_to_text(content)
+                if len(text) > 200:  # Minimum viable description length
+                    return text[:10000]
+
+        # Method 4: Extract from meta description as fallback
+        meta_match = re.search(r'<meta[^>]*name="description"[^>]*content="([^"]*)"', html, re.IGNORECASE)
+        if meta_match and len(meta_match.group(1)) > 100:
+            return meta_match.group(1)[:10000]
+
+        # Method 5: Try to find the largest text block in the page
+        # Remove navigation, header, footer areas first
+        body_match = re.search(r'<body[^>]*>(.*?)</body>', html, re.DOTALL | re.IGNORECASE)
+        if body_match:
+            body = body_match.group(1)
+            # Remove common non-content elements
+            body = re.sub(r'<(nav|header|footer|aside|script|style|noscript)[^>]*>.*?</\1>', '', body, flags=re.DOTALL | re.IGNORECASE)
+            # Find divs with substantial text
+            div_matches = re.findall(r'<div[^>]*>(.*?)</div>', body, re.DOTALL)
+            for div_content in div_matches:
+                text = html_to_text(div_content)
+                if len(text) > 500:  # Substantial content
+                    return text[:10000]
+
+        return ''
+
+    except Exception as e:
+        return ''
+
+
 def fetch_greenhouse_jobs(company_slug: str) -> list:
     """
     Fetch jobs from Greenhouse public API.

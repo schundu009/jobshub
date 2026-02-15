@@ -1550,3 +1550,144 @@ def fix_database_sequences(
         "message": "Sequences fixed",
         "tables": tables_fixed
     }
+
+
+@router.post("/refetch-descriptions")
+async def refetch_missing_descriptions(
+    background_tasks: BackgroundTasks,
+    company_name: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Re-fetch job descriptions for jobs that are missing them.
+    Can filter by company name. Runs in background for large batches.
+    """
+    import time
+
+    # Query for jobs with missing or empty descriptions
+    query = db.query(Job).filter(
+        (Job.job_description == None) |
+        (Job.job_description == '') |
+        (Job.job_description.like('No description%'))
+    )
+
+    if company_name:
+        # Get company by name
+        company = db.query(Company).filter(
+            Company.name.ilike(f"%{company_name}%")
+        ).first()
+        if company:
+            query = query.filter(Job.company_id == company.id)
+
+    jobs_to_update = query.limit(limit).all()
+
+    if not jobs_to_update:
+        return {
+            "message": "No jobs found with missing descriptions",
+            "jobs_found": 0
+        }
+
+    # For small batches, process immediately
+    if len(jobs_to_update) <= 10:
+        updated_count = 0
+        failed_count = 0
+
+        for job in jobs_to_update:
+            if not job.job_url:
+                failed_count += 1
+                continue
+
+            try:
+                description = ingestion_service.fetch_job_description_from_url(job.job_url)
+                if description and len(description) > 100:
+                    job.job_description = description
+                    updated_count += 1
+                else:
+                    failed_count += 1
+                time.sleep(0.3)  # Rate limiting
+            except Exception:
+                failed_count += 1
+
+        db.commit()
+
+        return {
+            "message": f"Processed {len(jobs_to_update)} jobs",
+            "updated": updated_count,
+            "failed": failed_count,
+            "mode": "immediate"
+        }
+    else:
+        # For larger batches, process in background
+        job_ids = [j.id for j in jobs_to_update]
+
+        def process_batch():
+            from database import SessionLocal
+            db_session = SessionLocal()
+            try:
+                updated = 0
+                for job_id in job_ids:
+                    job = db_session.query(Job).get(job_id)
+                    if job and job.job_url:
+                        try:
+                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
+                            if description and len(description) > 100:
+                                job.job_description = description
+                                updated += 1
+                                db_session.commit()
+                            time.sleep(0.3)
+                        except Exception:
+                            pass
+            finally:
+                db_session.close()
+
+        background_tasks.add_task(process_batch)
+
+        return {
+            "message": f"Started background processing for {len(jobs_to_update)} jobs",
+            "jobs_queued": len(jobs_to_update),
+            "mode": "background"
+        }
+
+
+@router.post("/refetch-description/{job_id}")
+async def refetch_single_job_description(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Re-fetch job description for a single job by ID.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    if not job.job_url:
+        raise HTTPException(status_code=400, detail="Job has no URL to fetch from")
+
+    try:
+        description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+        if description and len(description) > 100:
+            old_len = len(job.job_description) if job.job_description else 0
+            job.job_description = description
+            db.commit()
+
+            return {
+                "message": "Job description updated",
+                "job_id": job_id,
+                "title": job.title,
+                "old_description_length": old_len,
+                "new_description_length": len(description)
+            }
+        else:
+            return {
+                "message": "Could not extract description from job URL",
+                "job_id": job_id,
+                "job_url": job.job_url
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching description: {str(e)}")
