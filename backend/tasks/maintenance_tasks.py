@@ -5,14 +5,18 @@ Tasks:
 - cleanup_old_scraper_runs: Remove old scraper run records
 - mark_stale_jobs_inactive: Mark jobs not seen recently as inactive
 - compute_relevance_scores: Recompute relevance scores for new jobs
+- fetch_missing_descriptions: Fetch descriptions for jobs that have empty ones
 """
 
 import logging
+import time
 from datetime import datetime, timedelta
+from sqlalchemy import or_
 
 from celery_app import celery_app
 from database import SessionLocal
 from models import ScraperRun, Job, ScraperConfigDB
+from services import ingestion_service
 
 logger = logging.getLogger(__name__)
 
@@ -221,6 +225,116 @@ def generate_scraper_health_report() -> dict:
         )
 
         return report
+
+    finally:
+        db.close()
+
+
+@celery_app.task
+def fetch_missing_descriptions(batch_size: int = 50, delay_between: float = 1.0) -> dict:
+    """
+    Fetch descriptions for jobs that have empty or missing descriptions.
+
+    This task queries jobs with empty descriptions that have a valid job_url,
+    fetches the description from the job page, and updates the record.
+
+    Args:
+        batch_size: Maximum number of jobs to process per run (default: 50)
+        delay_between: Seconds to wait between requests to avoid rate limiting (default: 1.0)
+
+    Returns:
+        Dict with fetch results
+    """
+    logger.info(f"Fetching missing descriptions for up to {batch_size} jobs")
+
+    db = get_db()
+    try:
+        # Find jobs with missing descriptions that have a valid URL
+        # Only process active jobs from the last 30 days
+        cutoff = datetime.utcnow() - timedelta(days=30)
+
+        jobs_to_update = db.query(Job).filter(
+            Job.is_active == True,
+            Job.job_url.isnot(None),
+            Job.job_url != '',
+            Job.created_at >= cutoff,
+            or_(
+                Job.job_description.is_(None),
+                Job.job_description == '',
+                Job.job_description == 'No description available.'
+            )
+        ).limit(batch_size).all()
+
+        if not jobs_to_update:
+            logger.info("No jobs with missing descriptions found")
+            return {
+                "status": "success",
+                "processed": 0,
+                "updated": 0,
+                "failed": 0,
+                "message": "No jobs with missing descriptions"
+            }
+
+        logger.info(f"Found {len(jobs_to_update)} jobs with missing descriptions")
+
+        updated_count = 0
+        failed_count = 0
+        failed_jobs = []
+
+        for job in jobs_to_update:
+            try:
+                logger.debug(f"Fetching description for job {job.id}: {job.title} at {job.job_url}")
+
+                description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+                if description and len(description) > 100:
+                    job.job_description = description[:15000]
+                    job.updated_at = datetime.utcnow()
+                    db.commit()
+                    updated_count += 1
+                    logger.info(f"Updated description for job {job.id}: {job.title} ({len(description)} chars)")
+                else:
+                    failed_count += 1
+                    failed_jobs.append({
+                        "id": job.id,
+                        "title": job.title,
+                        "url": job.job_url,
+                        "reason": "Empty or short description returned"
+                    })
+                    logger.warning(f"Could not fetch description for job {job.id}: {job.title}")
+
+                # Rate limiting between requests
+                time.sleep(delay_between)
+
+            except Exception as e:
+                failed_count += 1
+                failed_jobs.append({
+                    "id": job.id,
+                    "title": job.title,
+                    "url": job.job_url,
+                    "reason": str(e)
+                })
+                logger.error(f"Error fetching description for job {job.id}: {e}")
+                db.rollback()
+
+        result = {
+            "status": "success",
+            "processed": len(jobs_to_update),
+            "updated": updated_count,
+            "failed": failed_count,
+            "failed_jobs": failed_jobs[:10] if failed_jobs else [],  # Limit failed jobs in response
+        }
+
+        logger.info(f"Description fetch complete: {updated_count} updated, {failed_count} failed")
+
+        return result
+
+    except Exception as e:
+        logger.exception("Error in fetch_missing_descriptions task")
+        return {
+            "status": "error",
+            "error": str(e),
+        }
 
     finally:
         db.close()

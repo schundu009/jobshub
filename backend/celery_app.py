@@ -122,6 +122,12 @@ celery_app.conf.update(
             "schedule": crontab(minute=0, hour=0),
             "options": {"queue": "maintenance"},
         },
+        # Fetch missing job descriptions every 2 hours
+        "fetch-missing-descriptions": {
+            "task": "tasks.maintenance_tasks.fetch_missing_descriptions",
+            "schedule": crontab(minute=30, hour="*/2"),
+            "options": {"queue": "maintenance"},
+        },
     },
 )
 

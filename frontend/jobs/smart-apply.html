@@ -200,17 +200,32 @@
                 initJobsSidebar('smart-apply');
             }
 
-            // Check for URL parameter
+            // Check for URL parameters
             const params = new URLSearchParams(window.location.search);
             const jobUrl = params.get('url');
+            const jobId = params.get('job_id');
 
             if (jobUrl) {
                 document.getElementById('job-url').value = decodeURIComponent(jobUrl);
+            } else if (jobId) {
+                // Fetch job details to get the URL
+                await fetchJobUrl(jobId);
             }
 
             // Try to connect to autoapply
             await checkConnection();
         });
+
+        async function fetchJobUrl(jobId) {
+            try {
+                const job = await apiRequest(`/jobs/${jobId}`);
+                if (job && job.job_url) {
+                    document.getElementById('job-url').value = job.job_url;
+                }
+            } catch (err) {
+                console.error('Error fetching job details:', err);
+            }
+        }
 
         async function checkConnection() {
             const loading = document.getElementById('loading');
