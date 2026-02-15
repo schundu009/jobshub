@@ -4181,6 +4181,9 @@
         function applyFilters() {
             if (!gridApi) return;
 
+            // Reset job detail panel when filters change
+            resetJobDetailPanel();
+
             const locationFilter = document.getElementById('location-filter').value.toLowerCase();
             const selectedWorkTypes = Array.from(document.querySelectorAll('.work-type-checkbox:checked')).map(c => c.value);
             const salaryMinFilter = parseInt(document.getElementById('salary-min-filter').value) || 0;
@@ -4363,6 +4366,9 @@
         }
 
         async function loadJobs() {
+            // Reset job detail panel when loading new jobs
+            resetJobDetailPanel();
+
             // Show loading overlay
             if (gridApi) {
                 gridApi.showLoadingOverlay();
@@ -4540,6 +4546,18 @@
         // Bulk Apply Functions
         // Show job detail panel
         let selectedJobId = null;
+
+        function resetJobDetailPanel() {
+            selectedJobId = null;
+            const panel = document.getElementById('job-detail-panel');
+            const emptyState = panel.querySelector('.detail-empty-state');
+            const contentWrapper = panel.querySelector('.detail-content-wrapper');
+
+            // Show empty state, hide content
+            panel.classList.add('empty');
+            emptyState.style.display = '';
+            contentWrapper.style.display = 'none';
+        }
 
         function showJobDetail(job) {
             selectedJobId = job.id;
