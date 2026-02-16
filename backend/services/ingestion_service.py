@@ -49,6 +49,7 @@ SUPPORTED_ATS = {
     'intuit': 'Intuit',
     'adp': 'ADP',
     'eightfold': 'Eightfold',
+    'gohire': 'GoHire',
 }
 
 
@@ -365,6 +366,14 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
         if domain_match:
             # Could be Eightfold - use hostname as base
             return ('eightfold', f"{hostname}:{domain_match.group(1)}")
+
+    # GoHire - https://jobs.gohire.io/{company-slug}/
+    gohire_pattern = r'jobs\.gohire\.io/([a-z0-9_-]+)'
+    match = re.search(gohire_pattern, url)
+    if match:
+        slug = match.group(1)
+        if slug not in ['www', 'api', 'assets']:
+            return ('gohire', slug)
 
     return (None, None)
 
@@ -1559,6 +1568,154 @@ def fetch_adp_jobs(company_slug: str) -> list:
     return jobs
 
 
+def fetch_gohire_jobs(company_slug: str) -> list:
+    """
+    Fetch jobs from GoHire career pages.
+
+    GoHire uses simple HTML pages at:
+    - Jobs list: https://jobs.gohire.io/{company-slug}/
+    - Job detail: https://jobs.gohire.io/{company-slug}/{job-title-id}/
+
+    Args:
+        company_slug: The company identifier in GoHire (e.g., 'hydra-host-uwnxgabz')
+
+    Returns:
+        List of normalized job dictionaries
+    """
+    if not company_slug:
+        raise ValueError("GoHire company slug is required")
+
+    base_url = f"https://jobs.gohire.io/{company_slug}/"
+    logger.info(f"Fetching GoHire jobs from {base_url}")
+
+    try:
+        request = urllib.request.Request(
+            base_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'Accept': 'text/html'
+            }
+        )
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            html = response.read().decode('utf-8')
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise ValueError(f"Company not found on GoHire: '{company_slug}'")
+        raise ValueError(f"GoHire error: {e.code}")
+    except urllib.error.URLError as e:
+        raise ValueError(f"Network error: {str(e)}")
+
+    # Extract job links from HTML
+    # Pattern: href="https://jobs.gohire.io/{company-slug}/{job-title-id}/"
+    job_pattern = rf'href="(https://jobs\.gohire\.io/{re.escape(company_slug)}/[a-z0-9_-]+/)"'
+    job_urls = list(set(re.findall(job_pattern, html)))
+
+    if not job_urls:
+        logger.info(f"No jobs found on GoHire for {company_slug}")
+        return []
+
+    logger.info(f"Found {len(job_urls)} GoHire job URLs")
+
+    jobs = []
+    import time
+
+    for idx, job_url in enumerate(job_urls):
+        try:
+            job_data = _fetch_gohire_job_page(job_url)
+            if job_data:
+                job_data['source'] = 'gohire'
+                jobs.append(job_data)
+        except Exception as e:
+            logger.warning(f"Error fetching GoHire job {idx + 1}/{len(job_urls)}: {e}")
+
+        # Rate limiting
+        if idx < len(job_urls) - 1:
+            time.sleep(0.3)
+
+        # Log progress every 10 jobs
+        if (idx + 1) % 10 == 0:
+            logger.info(f"GoHire fetch progress: {idx + 1}/{len(job_urls)}")
+
+    logger.info(f"Successfully fetched {len(jobs)} GoHire jobs")
+    return jobs
+
+
+def _fetch_gohire_job_page(job_url: str) -> dict:
+    """
+    Fetch and parse a single GoHire job page.
+
+    Returns:
+        Dict with job details or None if parsing fails
+    """
+    try:
+        request = urllib.request.Request(
+            job_url,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                'Accept': 'text/html'
+            }
+        )
+        with urllib.request.urlopen(request, timeout=30, context=ssl_context) as response:
+            html = response.read().decode('utf-8')
+    except Exception as e:
+        logger.warning(f"Error fetching GoHire job page: {e}")
+        return None
+
+    # Extract title from page
+    title_match = re.search(r'<title>([^<]+)</title>', html)
+    title = ''
+    if title_match:
+        title = title_match.group(1).strip()
+        # Clean up title - often format is "Job Title | Company Name"
+        if ' | ' in title:
+            title = title.split(' | ')[0].strip()
+        elif ' - Jobs at ' in title:
+            title = title.split(' - Jobs at ')[0].strip()
+
+    # Extract location from sidebar
+    location = None
+    # GoHire uses jp-sidebar-item for metadata
+    location_match = re.search(
+        r'<div class="jp-sidebar-item-title">\s*Location\s*</div>\s*<div class="jp-sidebar-item-data">([^<]+)</div>',
+        html, re.IGNORECASE | re.DOTALL
+    )
+    if location_match:
+        location = location_match.group(1).strip()
+
+    # Extract job type (Full Time, Part Time, etc.)
+    work_type = None
+    type_match = re.search(
+        r'<div class="jp-sidebar-item-title">\s*Type\s*</div>\s*<div class="jp-sidebar-item-data">([^<]+)</div>',
+        html, re.IGNORECASE | re.DOTALL
+    )
+    if type_match:
+        work_type = type_match.group(1).strip()
+
+    # Extract job description from jp-text div
+    description = ''
+    desc_match = re.search(
+        r'<div class="jp-text">\s*<div>(.*?)</div>\s*</div>',
+        html, re.DOTALL
+    )
+    if desc_match:
+        description = desc_match.group(1).strip()
+        # Convert HTML to text
+        description = html_to_text(description)
+
+    # Extract job ID from URL (last part before trailing slash)
+    url_parts = job_url.rstrip('/').split('/')
+    external_job_id = url_parts[-1] if url_parts else ''
+
+    return {
+        'title': title or 'Untitled',
+        'location': location,
+        'job_url': job_url,
+        'job_description': description,
+        'work_type': work_type,
+        'external_job_id': external_job_id,
+    }
+
+
 def _fetch_eightfold_job_description(job_url: str, max_retries: int = 2) -> str:
     """
     Fetch the job description from an individual Eightfold job page.
@@ -2056,6 +2213,7 @@ def fetch_jobs_from_ats(ats_type: str, company_slug: str) -> list:
         'intuit': fetch_intuit_jobs,
         'adp': fetch_adp_jobs,
         'eightfold': fetch_eightfold_jobs,
+        'gohire': fetch_gohire_jobs,
     }
 
     if ats_type in fetchers:
@@ -2269,5 +2427,10 @@ def get_supported_ats_info() -> dict:
             'name': 'Eightfold AI',
             'example_url': 'https://paypal.eightfold.ai/careers?domain=paypal.com',
             'pattern': '{company}.eightfold.ai/careers?domain={domain}',
+        },
+        'gohire': {
+            'name': 'GoHire',
+            'example_url': 'https://jobs.gohire.io/company-name/',
+            'pattern': 'jobs.gohire.io/{company-slug}/',
         },
     }
