@@ -712,6 +712,251 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Celery Workers Styles */
+        .celery-status-section {
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .celery-status-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .celery-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .celery-info-item {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .celery-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .celery-value {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .celery-value.online {
+            color: #22c55e;
+        }
+
+        .celery-value.offline {
+            color: #ef4444;
+        }
+
+        .celery-queues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .celery-queue-item {
+            background: var(--bg-tertiary);
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .celery-queue-item .queue-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'SF Mono', monospace;
+        }
+
+        .celery-queue-item .queue-depth {
+            font-weight: 600;
+            font-size: 13px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+        }
+
+        .celery-queue-item .queue-depth.has-messages {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+
+        .celery-tasks-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .celery-task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .celery-task-item .task-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .celery-task-item .task-name {
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .celery-task-item .task-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-muted);
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+            background: white;
+        }
+
+        .recent-tasks-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+        }
+
+        .recent-task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 12px;
+        }
+
+        .recent-task-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-task-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .recent-task-item .task-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .recent-task-item .task-title {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .recent-task-item .task-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .recent-task-item .task-status {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .recent-task-item .task-status.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .recent-task-item .task-status.failure {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .recent-task-item .task-status.pending {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .worker-item {
+            background: var(--bg-secondary);
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .worker-item .worker-name {
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .worker-item .worker-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
@@ -1041,6 +1286,147 @@
                 </div>
             </div>
 
+            <!-- Celery Workers -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>
+                        <div class="card-header-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                            </svg>
+                        </div>
+                        Celery Workers
+                    </h3>
+                    <div id="celery-status-badge" class="status-badge warning">
+                        <span class="status-dot"></span>
+                        <span>Checking...</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Worker Status -->
+                    <div class="celery-status-section">
+                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Worker Status</h4>
+                        <div id="celery-workers-info" class="celery-info-grid">
+                            <div class="celery-info-item">
+                                <span class="celery-label">Redis</span>
+                                <span id="redis-status" class="celery-value">--</span>
+                            </div>
+                            <div class="celery-info-item">
+                                <span class="celery-label">Workers Online</span>
+                                <span id="workers-count" class="celery-value">--</span>
+                            </div>
+                        </div>
+                        <div id="celery-workers-list" style="margin-top: 12px;"></div>
+                    </div>
+
+                    <!-- Queue Status -->
+                    <div class="celery-status-section" style="margin-top: 20px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Queue Depths</h4>
+                        <div id="celery-queues-info" class="celery-queues-grid">
+                            <div style="color: var(--text-muted); font-size: 13px;">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Task Triggers -->
+                    <div class="celery-status-section" style="margin-top: 20px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Manual Task Triggers</h4>
+                        <div class="celery-tasks-grid">
+                            <div class="celery-task-item">
+                                <div class="task-info">
+                                    <span class="task-name">Run All Scrapers</span>
+                                    <span class="task-desc">Trigger all active scrapers</span>
+                                </div>
+                                <button class="btn-modern secondary" onclick="triggerCeleryTask('scrape_all_companies')">Run</button>
+                            </div>
+                            <div class="celery-task-item">
+                                <div class="task-info">
+                                    <span class="task-name">Cleanup Old Runs</span>
+                                    <span class="task-desc">Remove old scraper run records</span>
+                                </div>
+                                <button class="btn-modern secondary" onclick="triggerCeleryTask('cleanup_old_scraper_runs')">Run</button>
+                            </div>
+                            <div class="celery-task-item">
+                                <div class="task-info">
+                                    <span class="task-name">Mark Stale Jobs</span>
+                                    <span class="task-desc">Mark old jobs as inactive</span>
+                                </div>
+                                <button class="btn-modern secondary" onclick="triggerCeleryTask('mark_stale_jobs_inactive')">Run</button>
+                            </div>
+                            <div class="celery-task-item">
+                                <div class="task-info">
+                                    <span class="task-name">Fetch Descriptions</span>
+                                    <span class="task-desc">Fetch missing job descriptions</span>
+                                </div>
+                                <button class="btn-modern secondary" onclick="triggerCeleryTask('fetch_missing_descriptions')">Run</button>
+                            </div>
+                            <div class="celery-task-item">
+                                <div class="task-info">
+                                    <span class="task-name">Process Auto-Apply</span>
+                                    <span class="task-desc">Process pending applications</span>
+                                </div>
+                                <button class="btn-modern secondary" onclick="triggerCeleryTask('process_pending_applications')">Run</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Configuration -->
+                    <div class="celery-status-section" style="margin-top: 20px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Schedule Configuration</h4>
+                        <div class="cleanup-grid">
+                            <div class="cleanup-row">
+                                <span class="label">Scraper interval</span>
+                                <div class="controls">
+                                    <select id="scraper-interval-hours">
+                                        <option value="1">Every 1 hour</option>
+                                        <option value="2">Every 2 hours</option>
+                                        <option value="4">Every 4 hours</option>
+                                        <option value="6" selected>Every 6 hours</option>
+                                        <option value="12">Every 12 hours</option>
+                                        <option value="24">Every 24 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="cleanup-row">
+                                <span class="label">Auto-apply enabled</span>
+                                <div class="controls">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="auto-apply-enabled" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="cleanup-row">
+                                <span class="label">Description fetch enabled</span>
+                                <div class="controls">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="description-fetch-enabled" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="cleanup-row">
+                                <span class="label"></span>
+                                <div class="controls">
+                                    <button class="btn-modern primary" onclick="saveCelerySchedules()">Save Schedule Settings</button>
+                                    <span id="schedule-save-status" class="inline-status"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Tasks -->
+                    <div class="celery-status-section" style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4 style="margin: 0; font-size: 14px; color: var(--text-primary);">Recent Tasks</h4>
+                            <button class="btn-modern secondary" onclick="loadRecentTasks()" style="padding: 4px 10px; font-size: 11px;">Refresh</button>
+                        </div>
+                        <div id="recent-tasks-container" class="recent-tasks-list">
+                            <div style="color: var(--text-muted); font-size: 13px; padding: 12px;">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Data Management -->
             <div class="settings-card">
                 <div class="card-header">
@@ -1139,6 +1525,9 @@
             await loadAIModel();
             await loadJobAgeFilter();
             await loadScraperStatus();
+            await loadCeleryStatus();
+            await loadCelerySchedules();
+            await loadRecentTasks();
             if (currentBatchJobId) checkBatchStatus(true);
         });
 
@@ -2203,6 +2592,191 @@
                 document.getElementById('fetch-progress-container').style.display = 'none';
                 progressBar.style.background = 'linear-gradient(90deg, #8b5cf6, #6366f1)';
             }, 5000);
+        }
+
+        // ============== Celery Workers Functions ==============
+
+        async function loadCeleryStatus() {
+            const badge = document.getElementById('celery-status-badge');
+            const redisStatus = document.getElementById('redis-status');
+            const workersCount = document.getElementById('workers-count');
+            const workersList = document.getElementById('celery-workers-list');
+            const queuesInfo = document.getElementById('celery-queues-info');
+
+            try {
+                const status = await apiRequest('/celery/status');
+
+                // Update badge
+                if (status.connected) {
+                    badge.className = 'status-badge success';
+                    badge.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
+                } else {
+                    badge.className = 'status-badge warning';
+                    badge.innerHTML = '<span class="status-dot"></span><span>No Workers</span>';
+                }
+
+                // Update Redis status
+                redisStatus.textContent = status.redis_connected ? 'Connected' : 'Disconnected';
+                redisStatus.className = 'celery-value ' + (status.redis_connected ? 'online' : 'offline');
+
+                // Update workers count
+                workersCount.textContent = status.workers.length;
+                workersCount.className = 'celery-value ' + (status.workers.length > 0 ? 'online' : 'offline');
+
+                // Update workers list
+                if (status.workers.length > 0) {
+                    workersList.innerHTML = status.workers.map(w => `
+                        <div class="worker-item">
+                            <span class="worker-name">${escapeHtml(w.hostname)}</span>
+                            <span class="worker-stats">
+                                <span>Active: ${w.active_tasks}</span>
+                                <span>Processed: ${w.processed}</span>
+                                <span>Concurrency: ${w.concurrency}</span>
+                            </span>
+                        </div>
+                    `).join('');
+                } else {
+                    workersList.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; padding: 8px 0;">No workers online. Start a Celery worker to process tasks.</div>';
+                }
+
+                // Update queues
+                if (status.queues.length > 0) {
+                    queuesInfo.innerHTML = status.queues.map(q => `
+                        <div class="celery-queue-item">
+                            <span class="queue-name">${escapeHtml(q.name)}</span>
+                            <span class="queue-depth ${q.messages > 0 ? 'has-messages' : ''}">${q.messages}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    queuesInfo.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">No queue info available</div>';
+                }
+
+            } catch (error) {
+                console.error('Failed to load Celery status:', error);
+                badge.className = 'status-badge error';
+                badge.innerHTML = '<span class="status-dot"></span><span>Error</span>';
+                redisStatus.textContent = 'Error';
+                redisStatus.className = 'celery-value offline';
+            }
+        }
+
+        async function loadCelerySchedules() {
+            try {
+                const schedules = await apiRequest('/celery/schedules');
+
+                // Find interval setting
+                let intervalHours = 6;
+                let autoApplyEnabled = true;
+                let descFetchEnabled = true;
+
+                // Check if we have schedules data to infer settings
+                for (const schedule of schedules) {
+                    if (schedule.name.includes('scraper') || schedule.name.includes('scrape')) {
+                        // Parse schedule to get interval
+                        const match = schedule.schedule.match(/(\d+)\s*hours?/i);
+                        if (match) {
+                            intervalHours = parseInt(match[1]);
+                        }
+                    }
+                    if (schedule.name.includes('auto_apply') || schedule.name.includes('application')) {
+                        autoApplyEnabled = schedule.enabled;
+                    }
+                    if (schedule.name.includes('description')) {
+                        descFetchEnabled = schedule.enabled;
+                    }
+                }
+
+                // Update UI
+                document.getElementById('scraper-interval-hours').value = intervalHours;
+                document.getElementById('auto-apply-enabled').checked = autoApplyEnabled;
+                document.getElementById('description-fetch-enabled').checked = descFetchEnabled;
+
+            } catch (error) {
+                console.error('Failed to load Celery schedules:', error);
+            }
+        }
+
+        async function saveCelerySchedules() {
+            const statusSpan = document.getElementById('schedule-save-status');
+            statusSpan.textContent = 'Saving...';
+            statusSpan.style.color = 'var(--text-muted)';
+
+            const settings = {
+                scraper_interval_hours: parseInt(document.getElementById('scraper-interval-hours').value),
+                auto_apply_enabled: document.getElementById('auto-apply-enabled').checked,
+                description_fetch_enabled: document.getElementById('description-fetch-enabled').checked
+            };
+
+            try {
+                await apiRequest('/celery/schedules', 'PUT', settings);
+                statusSpan.textContent = 'Saved!';
+                statusSpan.style.color = '#22c55e';
+                showAlert('Schedule settings saved. Restart Celery Beat for changes to take effect.');
+
+                setTimeout(() => {
+                    statusSpan.textContent = '';
+                }, 3000);
+            } catch (error) {
+                statusSpan.textContent = 'Error';
+                statusSpan.style.color = '#ef4444';
+                showAlert('Failed to save schedule settings: ' + error.message, 'error');
+            }
+        }
+
+        async function triggerCeleryTask(taskName) {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+
+            try {
+                const response = await apiRequest('/celery/tasks/trigger', 'POST', { task_name: taskName });
+
+                if (response.status === 'dispatched') {
+                    showAlert(`Task ${taskName} triggered successfully! ID: ${response.task_id}`);
+                } else {
+                    showAlert(`Task ${taskName}: ${response.message}`, 'warning');
+                }
+
+                // Refresh status after a delay
+                setTimeout(() => {
+                    loadCeleryStatus();
+                    loadRecentTasks();
+                }, 2000);
+
+            } catch (error) {
+                showAlert('Failed to trigger task: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        async function loadRecentTasks() {
+            const container = document.getElementById('recent-tasks-container');
+
+            try {
+                const tasks = await apiRequest('/celery/tasks/recent?limit=20');
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; padding: 12px;">No recent tasks</div>';
+                    return;
+                }
+
+                container.innerHTML = tasks.map(task => `
+                    <div class="recent-task-item">
+                        <div class="task-detail">
+                            <span class="task-title">${escapeHtml(task.name)}</span>
+                            <span class="task-meta">${task.started_at ? formatRelativeTime(new Date(task.started_at)) : 'N/A'} ${task.args ? '- ' + escapeHtml(task.args) : ''}</span>
+                        </div>
+                        <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Failed to load recent tasks:', error);
+                container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; padding: 12px;">Failed to load tasks</div>';
+            }
         }
     </script>
 </body>
