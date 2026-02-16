@@ -3,1448 +3,724 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara Admin - Settings</title>
+    <title>Settings - Cariara Admin</title>
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/admin-layout.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        /* Settings Page - Enterprise Design System */
-        .settings-grid {
-            display: grid;
-            gap: 24px;
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Card Component */
-        .settings-card {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-default);
-            border-radius: 12px;
-            overflow: hidden;
+        * { font-family: var(--font-sans); }
+        code, .mono { font-family: var(--font-mono); }
+
+        /* Layout */
+        .settings-container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border-default);
+        /* Tabs */
+        .tabs {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-header h3 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-header-icon {
-            width: 32px;
-            height: 32px;
+            gap: 2px;
             background: var(--bg-tertiary);
-            border-radius: 8px;
+            padding: 4px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
         }
 
-        .card-header-icon svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-secondary);
-        }
+        .tab:hover { color: var(--text-primary); background: var(--bg-secondary); }
+        .tab.active { color: var(--text-primary); background: var(--bg-elevated); box-shadow: var(--shadow-sm); }
+        .tab svg { width: 16px; height: 16px; }
 
-        .card-body {
-            padding: 24px;
-        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
 
-        /* Status Badge */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .status-badge.success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-
-        .status-badge.warning {
-            background: rgba(251, 191, 36, 0.1);
-            color: #fbbf24;
-        }
-
-        .status-badge.error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .status-badge.neutral {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        /* API Key Section */
-        .api-key-display {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
+        /* Cards */
+        .card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-lg);
             margin-bottom: 16px;
         }
 
-        .api-key-display code {
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 13px;
-            color: var(--text-secondary);
-            background: var(--bg-elevated);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .api-key-input-group {
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
             display: flex;
-            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .api-key-input-group input {
-            flex: 1;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
+        .card-title {
             font-size: 14px;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            color: var(--text-primary);
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .api-key-input-group input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-        .provider-toggle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .provider-toggle:hover {
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-        }
-        .provider-toggle.active {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        /* Modern Buttons */
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .btn-modern {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-modern svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .btn-modern.primary {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        .btn-modern.primary:hover {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn-modern.secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-default);
-        }
-
-        .btn-modern.secondary:hover {
-            background: var(--border-default);
-        }
-
-        .btn-modern.danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .btn-modern.danger:hover {
-            background: rgba(239, 68, 68, 0.2);
-        }
-
-        .btn-modern.success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-
-        .btn-modern.success:hover {
-            background: rgba(34, 197, 94, 0.2);
-        }
-
-        .btn-modern:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* Batch Ingestion */
-        .batch-status-bar {
-            display: none;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 3px solid var(--accent-primary);
-        }
-
-        .batch-status-bar.visible {
-            display: flex;
-        }
-
-        .pulse-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--accent-primary);
-        }
-
-        .pulse-indicator.active {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.15); }
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .spin {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 1200px) {
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .stat-card {
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            line-height: 1.2;
-        }
-
-        .stat-card .label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        .stat-card .sublabel {
-            font-size: 10px;
-            color: var(--text-tertiary);
-        }
-
-        /* Progress Section */
-        .progress-section {
-            display: none;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .progress-section.visible {
-            display: block;
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .progress-header .title {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .progress-header .percent {
-            font-weight: 600;
-            color: var(--accent-primary);
-        }
-
-        .progress-bar-container {
-            background: var(--border-default);
-            border-radius: 4px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-primary), #22c55e);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .metrics-row {
-            display: flex;
-            gap: 24px;
-            margin-top: 12px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .metrics-row strong {
-            color: var(--text-secondary);
-        }
-
-        /* Log Viewer */
-        .log-section {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .log-section.visible {
-            display: block;
-        }
-
-        .log-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .log-header h4 {
-            margin: 0;
-            font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
-        }
-
-        .log-controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .log-controls label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-        }
-
-        .log-controls button {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .log-controls button:hover {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .log-viewer {
-            background: #0a0a14;
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
-            padding: 16px;
-            height: 320px;
-            overflow-y: auto;
-            font-family: 'SF Mono', 'Fira Code', 'Monaco', monospace;
-            font-size: 12px;
-            line-height: 1.8;
-        }
-
-        .log-entry {
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            display: flex;
-            gap: 12px;
-        }
-
-        .log-entry .time {
-            color: #4a5568;
-            flex-shrink: 0;
-        }
-
-        .log-entry .indicator {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            margin-top: 7px;
-            flex-shrink: 0;
-        }
-
-        .log-entry.info .indicator { background: #60a5fa; }
-        .log-entry.success .indicator { background: #22c55e; }
-        .log-entry.error .indicator { background: #ef4444; }
-        .log-entry.warning .indicator { background: #fbbf24; }
-
-        .log-entry.info { color: #60a5fa; }
-        .log-entry.success { color: #22c55e; }
-        .log-entry.error { color: #ef4444; }
-        .log-entry.warning { color: #fbbf24; }
-
-        /* Summary Section */
-        .summary-section {
-            display: none;
-            margin-top: 20px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .summary-section.visible {
-            display: block;
-        }
-
-        .summary-section h4 {
-            margin: 0 0 16px 0;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .summary-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .summary-item .label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .summary-item .value {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Cleanup Section */
-        .cleanup-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .cleanup-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-        }
-
-        .cleanup-row .label {
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .cleanup-row .controls {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .cleanup-row select {
-            padding: 8px 12px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 13px;
-        }
+        .card-title svg { width: 18px; height: 18px; color: var(--text-muted); }
+        .card-body { padding: 16px 20px; }
 
-        .cleanup-row select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-        }
+        /* Grid Layouts */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        @media (max-width: 900px) { .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; } }
 
-        .cleanup-result {
-            display: none;
-            padding: 16px;
+        /* Stat Box */
+        .stat-box {
             background: var(--bg-tertiary);
-            border-radius: 8px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            text-align: center;
         }
 
-        .cleanup-result.visible {
-            display: block;
-        }
-
-        .cleanup-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        @media (max-width: 768px) {
-            .cleanup-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .cleanup-stat .label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .cleanup-stat .value {
+        .stat-box .value {
             font-size: 24px;
             font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
         }
 
-        /* Status feedback */
-        .inline-status {
-            font-size: 12px;
-            min-width: 60px;
-            text-align: right;
+        .stat-box .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
         }
 
-        /* Scraper Status Styles */
-        .scraper-table {
+        .stat-box.success .value { color: #22c55e; }
+        .stat-box.warning .value { color: #f59e0b; }
+        .stat-box.danger .value { color: #ef4444; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn svg { width: 14px; height: 14px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-primary { background: var(--accent-primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-default); }
+        .btn-secondary:hover:not(:disabled) { background: var(--border-default); }
+
+        .btn-ghost { background: transparent; color: var(--text-secondary); }
+        .btn-ghost:hover:not(:disabled) { background: var(--bg-tertiary); color: var(--text-primary); }
+
+        .btn-danger { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.2); }
+
+        .btn-sm { padding: 6px 10px; font-size: 12px; }
+        .btn-xs { padding: 4px 8px; font-size: 11px; }
+
+        /* Form Controls */
+        .input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .input.mono { font-family: var(--font-mono); font-size: 12px; }
+
+        .select {
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* Toggle */
+        .toggle {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .toggle input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 20px;
+            transition: var(--transition);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle input:checked + .toggle-track { background: var(--accent-primary); border-color: var(--accent-primary); }
+        .toggle input:checked + .toggle-track .toggle-thumb { transform: translateX(16px); background: white; }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        .badge-success { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .badge-warning { background: rgba(251,191,36,0.1); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .badge-neutral { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+        /* Row */
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .row:last-child { border-bottom: none; }
+
+        .row-label {
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .row-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Table */
+        .table-wrap {
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
         }
 
-        .scraper-table th {
+        .table th {
             text-align: left;
-            padding: 10px 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
+            padding: 10px 14px;
             font-size: 11px;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
             border-bottom: 1px solid var(--border-default);
-            background: var(--bg-tertiary);
-        }
-
-        .scraper-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border-subtle);
-            color: var(--text-primary);
-        }
-
-        .scraper-table tr:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .scraper-table .company-name {
-            font-weight: 500;
-        }
-
-        .scraper-table .mono {
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .health-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .health-indicator.healthy {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-
-        .health-indicator.warning {
-            background: rgba(251, 191, 36, 0.1);
-            color: #fbbf24;
-        }
-
-        .health-indicator.critical {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .health-indicator.unknown {
-            background: var(--bg-tertiary);
-            color: var(--text-muted);
-        }
-
-        .scraper-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .scraper-summary-card {
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .scraper-summary-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .scraper-summary-card .label {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .scraper-table-container {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
-        }
-
-        .scraper-table thead {
             position: sticky;
             top: 0;
-            z-index: 1;
         }
 
-        @media (max-width: 768px) {
-            .scraper-summary-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Celery Workers Styles */
-        .celery-status-section {
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .celery-status-section:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .celery-info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .celery-info-item {
-            background: var(--bg-tertiary);
-            padding: 12px 16px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .celery-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .celery-value {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .celery-value.online {
-            color: #22c55e;
-        }
-
-        .celery-value.offline {
-            color: #ef4444;
-        }
-
-        .celery-queues-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-        }
-
-        .celery-queue-item {
-            background: var(--bg-tertiary);
+        .table td {
             padding: 10px 14px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .celery-queue-item .queue-name {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-family: 'SF Mono', monospace;
-        }
-
-        .celery-queue-item .queue-depth {
-            font-weight: 600;
-            font-size: 13px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: var(--bg-secondary);
-        }
-
-        .celery-queue-item .queue-depth.has-messages {
-            background: rgba(251, 191, 36, 0.15);
-            color: #fbbf24;
-        }
-
-        .celery-tasks-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .celery-task-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-        }
-
-        .celery-task-item .task-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .celery-task-item .task-name {
-            font-weight: 500;
-            font-size: 13px;
+            border-bottom: 1px solid var(--border-subtle);
             color: var(--text-primary);
         }
 
-        .celery-task-item .task-desc {
-            font-size: 11px;
-            color: var(--text-muted);
+        .table tbody tr:hover { background: var(--bg-tertiary); }
+        .table tbody tr:last-child td { border-bottom: none; }
+
+        .table-scroll { max-height: 350px; overflow-y: auto; }
+
+        /* Provider Toggle */
+        .provider-group {
+            display: flex;
+            gap: 8px;
         }
 
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
+        .provider-btn {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .provider-btn:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+        .provider-btn.active { background: rgba(99,102,241,0.1); border-color: var(--accent-primary); color: var(--accent-primary); }
+        .provider-btn svg { width: 18px; height: 18px; }
+
+        /* Quick Actions */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
             background: var(--bg-tertiary);
             border: 1px solid var(--border-default);
-            transition: 0.3s;
-            border-radius: 24px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
         }
 
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 2px;
-            bottom: 2px;
-            background: var(--text-muted);
-            transition: 0.3s;
-            border-radius: 50%;
-        }
+        .action-btn:hover { border-color: var(--accent-primary); background: var(--bg-secondary); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .toggle-switch input:checked + .toggle-slider {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(20px);
-            background: white;
-        }
-
-        .recent-tasks-list {
-            max-height: 250px;
-            overflow-y: auto;
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
-        }
-
-        .recent-task-item {
+        .action-btn .icon {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn .icon svg { width: 16px; height: 16px; color: var(--accent-primary); }
+        .action-btn .text { font-size: 13px; font-weight: 500; color: var(--text-primary); text-align: left; }
+
+        /* Queue Pills */
+        .queue-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .queue-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+        }
+
+        .queue-pill .name { font-family: var(--font-mono); color: var(--text-secondary); }
+        .queue-pill .count { font-weight: 600; color: var(--text-primary); background: var(--bg-secondary); padding: 2px 8px; border-radius: 10px; }
+        .queue-pill .count.active { background: rgba(251,191,36,0.15); color: #f59e0b; }
+
+        /* Status Indicator */
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .status-row .label { font-size: 13px; color: var(--text-secondary); }
+        .status-row .value { font-size: 13px; font-weight: 600; }
+        .status-row .value.online { color: #22c55e; }
+        .status-row .value.offline { color: #ef4444; }
+
+        /* Task List */
+        .task-list { max-height: 200px; overflow-y: auto; }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: 10px 14px;
             border-bottom: 1px solid var(--border-subtle);
             font-size: 12px;
         }
 
-        .recent-task-item:last-child {
-            border-bottom: none;
-        }
+        .task-item:last-child { border-bottom: none; }
+        .task-item:hover { background: var(--bg-tertiary); }
 
-        .recent-task-item:hover {
-            background: var(--bg-tertiary);
-        }
+        .task-item .name { font-weight: 500; color: var(--text-primary); }
+        .task-item .meta { color: var(--text-muted); font-size: 11px; }
 
-        .recent-task-item .task-detail {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .recent-task-item .task-title {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .recent-task-item .task-meta {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .recent-task-item .task-status {
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-
-        .recent-task-item .task-status.success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-        }
-
-        .recent-task-item .task-status.failure {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-        }
-
-        .recent-task-item .task-status.pending {
-            background: rgba(251, 191, 36, 0.1);
-            color: #fbbf24;
-        }
-
-        .worker-item {
-            background: var(--bg-secondary);
-            padding: 10px 14px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .worker-item .worker-name {
-            font-family: 'SF Mono', monospace;
+        /* Inline status */
+        .inline-status {
             font-size: 12px;
-            color: var(--text-primary);
+            font-weight: 500;
+            margin-left: 8px;
         }
 
-        .worker-item .worker-stats {
+        /* Spin animation */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; }
+
+        /* Health indicator */
+        .health { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+        .health.healthy { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .health.warning { background: rgba(251,191,36,0.1); color: #f59e0b; }
+        .health.critical { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Compact Key Display */
+        .key-display {
             display: flex;
-            gap: 12px;
-            font-size: 11px;
-            color: var(--text-muted);
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
         }
+
+        .key-display code {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* Compact input group */
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group .input { flex: 1; }
+
+        /* Section divider */
+        .divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: 16px 0;
+        }
+
+        /* Cleanup stats */
+        .cleanup-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .cleanup-stat { text-align: center; }
+        .cleanup-stat .value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+        .cleanup-stat .label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Progress bar */
+        .progress-wrap { margin-top: 12px; display: none; }
+        .progress-wrap.visible { display: block; }
+        .progress-bar { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #6366f1); border-radius: 3px; transition: width 0.3s; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
     </style>
 </head>
 <body>
     <main class="container">
-        <div class="settings-grid">
-            <!-- API Key Configuration -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>
-                        <div class="card-header-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-                            </svg>
-                        </div>
-                        AI API Configuration
-                    </h3>
-                    <div id="api-status-badge" class="status-badge neutral">
-                        <span class="status-dot"></span>
-                        <span>Checking...</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Provider Toggle -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                        <button id="provider-openai" class="btn-modern provider-toggle active" onclick="switchProvider('openai')" style="flex: 1;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/>
-                            </svg>
-                            OpenAI
-                        </button>
-                        <button id="provider-anthropic" class="btn-modern provider-toggle" onclick="switchProvider('anthropic')" style="flex: 1;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M17.304 3.54l-4.093 16.92H8.697l4.093-16.92h4.514zM8.697 3.54L4.604 20.46H.09L4.183 3.54h4.514z"/>
-                            </svg>
-                            Anthropic
-                        </button>
-                    </div>
-                    <!-- Default Provider & Model Settings -->
-                    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 200px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-muted);">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                                </svg>
-                                <span style="color: var(--text-secondary); font-size: 12px;">Default Provider</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <strong id="default-provider-name" style="color: var(--text-primary); font-size: 14px;">OpenAI</strong>
-                                <button id="set-default-btn" class="btn-modern secondary" onclick="setDefaultProvider()" style="margin-left: auto; padding: 4px 10px; font-size: 11px;">
-                                    Set as Default
-                                </button>
-                            </div>
-                        </div>
-                        <div style="flex: 1; min-width: 200px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-muted);">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                </svg>
-                                <span style="color: var(--text-secondary); font-size: 12px;">AI Model (<span id="model-provider-label">OpenAI</span>)</span>
-                            </div>
-                            <select id="ai-model-select" onchange="setAIModel()" style="width: 100%; padding: 6px 10px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
-                                <!-- OpenAI models -->
-                                <optgroup id="openai-models" label="OpenAI">
-                                    <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
-                                    <option value="gpt-4o">GPT-4o (Best)</option>
-                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                                </optgroup>
-                                <!-- Claude models -->
-                                <optgroup id="claude-models" label="Claude">
-                                    <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Best)</option>
-                                    <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Fast)</option>
-                                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="api-key-display" class="api-key-display" style="display: none;">
-                        <svg width="16" height="16" fill="none" stroke="#22c55e" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span style="color: var(--text-secondary);">Active <span id="active-provider-label">OpenAI</span> key:</span>
-                        <code id="api-key-preview">sk-****...****</code>
-                    </div>
-                    <div class="api-key-input-group">
-                        <input type="password" id="api-key-input" placeholder="Enter OpenAI API key (sk-...)">
-                        <button class="btn-modern primary" onclick="saveApiKey()">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            Save
-                        </button>
-                        <button class="btn-modern secondary" onclick="testApiKey()">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                            Test
-                        </button>
-                        <button class="btn-modern danger" onclick="removeApiKey()" id="remove-btn" style="display: none;">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Remove
-                        </button>
-                    </div>
-                    <p style="color: var(--text-muted); font-size: 12px; margin-top: 12px;">
-                        <span id="provider-info">OpenAI API keys start with "sk-". Used for AI-powered job matching and cover letter generation.</span>
-                    </p>
-                </div>
+        <div class="settings-container">
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('ai')" data-tab="ai">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    AI Config
+                </button>
+                <button class="tab" onclick="switchTab('scrapers')" data-tab="scrapers">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                    Scrapers
+                </button>
+                <button class="tab" onclick="switchTab('workers')" data-tab="workers">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/></svg>
+                    Workers
+                </button>
+                <button class="tab" onclick="switchTab('data')" data-tab="data">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                    Data
+                </button>
             </div>
 
-            <!-- Batch Ingestion -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>
-                        <div class="card-header-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
+            <!-- AI Config Tab -->
+            <div id="tab-ai" class="tab-panel active">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                            API Keys
+                        </span>
+                        <div id="api-status-badge" class="badge badge-neutral"><span class="badge-dot"></span>Checking</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="provider-group" style="margin-bottom: 16px;">
+                            <button id="provider-openai" class="provider-btn active" onclick="switchProvider('openai')">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>
+                                OpenAI
+                            </button>
+                            <button id="provider-anthropic" class="provider-btn" onclick="switchProvider('anthropic')">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.304 3.54l-4.093 16.92H8.697l4.093-16.92h4.514zM8.697 3.54L4.604 20.46H.09L4.183 3.54h4.514z"/></svg>
+                                Anthropic
+                            </button>
                         </div>
-                        Batch Ingestion
-                    </h3>
-                    <div id="batch-indicator" class="status-badge neutral" style="display: none;">
-                        <span class="status-dot"></span>
-                        <span>Stopped</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div id="batch-status-bar" class="batch-status-bar">
-                        <div id="status-indicator" class="pulse-indicator active"></div>
-                        <span id="batch-status-text" style="font-weight: 500; color: var(--text-primary);">Idle</span>
-                        <span id="batch-current-company" style="color: var(--text-secondary); font-size: 13px;"></span>
-                    </div>
 
-                    <div class="btn-group">
-                        <button class="btn-modern primary" onclick="startBatchIngestion(false)" id="batch-fast-btn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Start Fast Batch
-                        </button>
-                        <button class="btn-modern secondary" onclick="startBatchIngestion(true)" id="batch-slow-btn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Slow Companies
-                        </button>
-                        <button class="btn-modern danger" onclick="stopBatchIngestion()" id="batch-stop-btn" style="display: none;">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
-                            </svg>
-                            Stop
-                        </button>
-                        <button class="btn-modern secondary" onclick="triggerWebhook()" id="webhook-btn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                            Trigger Scrapers
-                        </button>
-                        <button class="btn-modern secondary" onclick="checkBatchStatus()" id="batch-check-btn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                            Status
-                        </button>
-                    </div>
+                        <div id="api-key-display" class="key-display" style="display: none;">
+                            <svg width="14" height="14" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span style="color: var(--text-secondary); font-size: 12px;"><span id="active-provider-label">OpenAI</span>:</span>
+                            <code id="api-key-preview">sk-****</code>
+                            <button id="remove-btn" class="btn btn-ghost btn-xs" onclick="removeApiKey()" style="margin-left: auto;">Remove</button>
+                        </div>
 
-                    <div id="batch-progress" class="progress-section">
-                        <div class="progress-header">
-                            <span id="batch-progress-text" class="title">Processing...</span>
-                            <span id="batch-progress-percent" class="percent">0%</span>
+                        <div class="input-group">
+                            <input type="password" id="api-key-input" class="input mono" placeholder="sk-...">
+                            <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
                         </div>
-                        <div class="progress-bar-container">
-                            <div id="batch-progress-bar" class="progress-bar-fill"></div>
-                        </div>
-                        <div class="metrics-row">
-                            <span>Elapsed: <strong id="stat-elapsed">0:00</strong></span>
-                            <span>Remaining: <strong id="stat-remaining">--</strong></span>
-                            <span>Rate: <strong id="stat-rate">-- src/min</strong></span>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="value" style="color: var(--text-primary);" id="stat-processed">0</div>
-                                <div class="label">Processed</div>
-                                <div class="sublabel">of <span id="stat-total">0</span></div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="value" style="color: #22c55e;" id="stat-success">0</div>
-                                <div class="label">Success</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="value" style="color: #ef4444;" id="stat-failed">0</div>
-                                <div class="label">Failed</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="value" style="color: #3b82f6;" id="stat-added">0</div>
-                                <div class="label">Jobs Added</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="value" style="color: #f59e0b;" id="stat-updated">0</div>
-                                <div class="label">Updated</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="value" style="color: #8b5cf6;" id="stat-deactivated">0</div>
-                                <div class="label">Deactivated</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div id="log-container" class="log-section">
-                        <div class="log-header">
-                            <h4>Live Logs</h4>
-                            <div class="log-controls">
-                                <span id="log-count">0 entries</span>
-                                <label>
-                                    <input type="checkbox" id="auto-scroll" checked> Auto-scroll
-                                </label>
-                                <button onclick="clearLogs()">Clear</button>
+                        <div class="divider"></div>
+
+                        <div class="grid-2">
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Default Provider</label>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <strong id="default-provider-name" style="font-size: 14px;">OpenAI</strong>
+                                    <button id="set-default-btn" class="btn btn-ghost btn-xs" onclick="setDefaultProvider()">Set as Default</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Model</label>
+                                <select id="ai-model-select" class="select" onchange="setAIModel()" style="width: 100%;">
+                                    <optgroup label="OpenAI">
+                                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                                        <option value="gpt-4o">GPT-4o</option>
+                                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    </optgroup>
+                                    <optgroup label="Claude">
+                                        <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                                        <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
+                                        <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                                    </optgroup>
+                                </select>
                             </div>
                         </div>
-                        <div id="log-viewer" class="log-viewer"></div>
-                    </div>
-
-                    <div id="batch-summary" class="summary-section">
-                        <h4>Batch Summary</h4>
-                        <div id="summary-content"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Scraper Status -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>
-                        <div class="card-header-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                        </div>
-                        Scraper Status
-                    </h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn-modern secondary" onclick="resetAllFailures()" title="Reset all failure counts">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                            Reset Failures
-                        </button>
-                        <button class="btn-modern danger" onclick="disableCriticalScrapers()" title="Disable scrapers with 10+ failures">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                            </svg>
-                            Disable Critical
-                        </button>
-                        <button class="btn-modern secondary" onclick="refreshScraperStatus()" id="refresh-scraper-btn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                        </svg>
-                        Refresh
-                    </button>
+            <!-- Scrapers Tab -->
+            <div id="tab-scrapers" class="tab-panel">
+                <div class="grid-4" style="margin-bottom: 16px;">
+                    <div class="stat-box"><div class="value" id="scraper-total">--</div><div class="label">Total</div></div>
+                    <div class="stat-box success"><div class="value" id="scraper-healthy">--</div><div class="label">Healthy</div></div>
+                    <div class="stat-box warning"><div class="value" id="scraper-warning">--</div><div class="label">Warning</div></div>
+                    <div class="stat-box danger"><div class="value" id="scraper-critical">--</div><div class="label">Critical</div></div>
                 </div>
-                <div class="card-body">
-                    <div id="scraper-summary" class="scraper-summary-grid">
-                        <div class="scraper-summary-card">
-                            <div class="value" style="color: var(--text-primary);" id="scraper-total">--</div>
-                            <div class="label">Total Scrapers</div>
-                        </div>
-                        <div class="scraper-summary-card">
-                            <div class="value" style="color: #22c55e;" id="scraper-healthy">--</div>
-                            <div class="label">Healthy</div>
-                        </div>
-                        <div class="scraper-summary-card">
-                            <div class="value" style="color: #fbbf24;" id="scraper-warning">--</div>
-                            <div class="label">Warning</div>
-                        </div>
-                        <div class="scraper-summary-card">
-                            <div class="value" style="color: #ef4444;" id="scraper-critical">--</div>
-                            <div class="label">Critical</div>
-                        </div>
-                    </div>
 
-                    <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Scraper Status</span>
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <label style="font-size: 13px; color: var(--text-secondary);">Filter:</label>
-                            <select id="scraper-filter" onchange="filterScrapers()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-primary); font-size: 13px;">
-                                <option value="all">All Scrapers</option>
-                                <option value="warning">Warning Only</option>
-                                <option value="critical">Critical Only</option>
-                                <option value="healthy">Healthy Only</option>
-                                <option value="failed">All Failed (Warning + Critical)</option>
+                            <select id="scraper-filter" class="select" onchange="filterScrapers()" style="font-size: 12px;">
+                                <option value="all">All</option>
+                                <option value="warning">Warning</option>
+                                <option value="critical">Critical</option>
+                                <option value="healthy">Healthy</option>
+                            </select>
+                            <button class="btn btn-secondary btn-sm" onclick="runAllWarningScrapers()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
+                                Run Warning
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Company</th>
+                                        <th>Status</th>
+                                        <th>Last Success</th>
+                                        <th>Failures</th>
+                                        <th>Jobs</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scraper-table-body">
+                                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workers Tab -->
+            <div id="tab-workers" class="tab-panel">
+                <div class="grid-2" style="margin-bottom: 16px;">
+                    <div class="status-row">
+                        <span class="label">Redis</span>
+                        <span id="redis-status" class="value">--</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="label">Workers</span>
+                        <span id="workers-count" class="value">--</span>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Queue Depths</span>
+                        <div id="celery-status-badge" class="badge badge-neutral"><span class="badge-dot"></span>Checking</div>
+                    </div>
+                    <div class="card-body">
+                        <div id="celery-queues-info" class="queue-grid">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Quick Actions</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="action-grid">
+                            <button class="action-btn" onclick="triggerCeleryTask('scrape_all_companies')">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
+                                <span class="text">Run All Scrapers</span>
+                            </button>
+                            <button class="action-btn" onclick="triggerCeleryTask('cleanup_old_scraper_runs')">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
+                                <span class="text">Cleanup Runs</span>
+                            </button>
+                            <button class="action-btn" onclick="triggerCeleryTask('mark_stale_jobs_inactive')">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                                <span class="text">Mark Stale</span>
+                            </button>
+                            <button class="action-btn" onclick="triggerCeleryTask('fetch_missing_descriptions')">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                                <span class="text">Fetch Descriptions</span>
+                            </button>
+                            <button class="action-btn" onclick="triggerCeleryTask('process_pending_applications')">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+                                <span class="text">Process Apply</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Schedule</span>
+                        <button class="btn btn-primary btn-sm" onclick="saveCelerySchedules()">Save</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <span class="row-label">Scraper Interval</span>
+                            <select id="scraper-interval-hours" class="select">
+                                <option value="1">1 hour</option>
+                                <option value="2">2 hours</option>
+                                <option value="4">4 hours</option>
+                                <option value="6" selected>6 hours</option>
+                                <option value="12">12 hours</option>
+                                <option value="24">24 hours</option>
                             </select>
                         </div>
-                        <button class="btn-modern secondary" onclick="runAllWarningScrapers()" style="padding: 6px 12px; font-size: 12px;">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                            </svg>
-                            Run All Warning
-                        </button>
-                    </div>
-
-                    <div class="scraper-table-container">
-                        <table class="scraper-table">
-                            <thead>
-                                <tr>
-                                    <th>Company</th>
-                                    <th>Status</th>
-                                    <th>Last Success</th>
-                                    <th>Failures</th>
-                                    <th>Active Jobs</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scraper-table-body">
-                                <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">
-                                        Loading scraper status...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div id="scraper-error" style="display: none; padding: 16px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; margin-top: 16px;">
+                        <div class="row">
+                            <span class="row-label">Auto-Apply</span>
+                            <label class="toggle"><input type="checkbox" id="auto-apply-enabled" checked><div class="toggle-track"><div class="toggle-thumb"></div></div></label>
+                        </div>
+                        <div class="row">
+                            <span class="row-label">Description Fetch</span>
+                            <label class="toggle"><input type="checkbox" id="description-fetch-enabled" checked><div class="toggle-track"><div class="toggle-thumb"></div></div></label>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Celery Workers -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>
-                        <div class="card-header-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
-                            </svg>
-                        </div>
-                        Celery Workers
-                    </h3>
-                    <div id="celery-status-badge" class="status-badge warning">
-                        <span class="status-dot"></span>
-                        <span>Checking...</span>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Recent Tasks</span>
+                        <button class="btn btn-ghost btn-sm" onclick="loadRecentTasks()">Refresh</button>
                     </div>
-                </div>
-                <div class="card-body">
-                    <!-- Worker Status -->
-                    <div class="celery-status-section">
-                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Worker Status</h4>
-                        <div id="celery-workers-info" class="celery-info-grid">
-                            <div class="celery-info-item">
-                                <span class="celery-label">Redis</span>
-                                <span id="redis-status" class="celery-value">--</span>
-                            </div>
-                            <div class="celery-info-item">
-                                <span class="celery-label">Workers Online</span>
-                                <span id="workers-count" class="celery-value">--</span>
-                            </div>
-                        </div>
-                        <div id="celery-workers-list" style="margin-top: 12px;"></div>
-                    </div>
-
-                    <!-- Queue Status -->
-                    <div class="celery-status-section" style="margin-top: 20px;">
-                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Queue Depths</h4>
-                        <div id="celery-queues-info" class="celery-queues-grid">
-                            <div style="color: var(--text-muted); font-size: 13px;">Loading...</div>
-                        </div>
-                    </div>
-
-                    <!-- Manual Task Triggers -->
-                    <div class="celery-status-section" style="margin-top: 20px;">
-                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Manual Task Triggers</h4>
-                        <div class="celery-tasks-grid">
-                            <div class="celery-task-item">
-                                <div class="task-info">
-                                    <span class="task-name">Run All Scrapers</span>
-                                    <span class="task-desc">Trigger all active scrapers</span>
-                                </div>
-                                <button class="btn-modern secondary" onclick="triggerCeleryTask('scrape_all_companies')">Run</button>
-                            </div>
-                            <div class="celery-task-item">
-                                <div class="task-info">
-                                    <span class="task-name">Cleanup Old Runs</span>
-                                    <span class="task-desc">Remove old scraper run records</span>
-                                </div>
-                                <button class="btn-modern secondary" onclick="triggerCeleryTask('cleanup_old_scraper_runs')">Run</button>
-                            </div>
-                            <div class="celery-task-item">
-                                <div class="task-info">
-                                    <span class="task-name">Mark Stale Jobs</span>
-                                    <span class="task-desc">Mark old jobs as inactive</span>
-                                </div>
-                                <button class="btn-modern secondary" onclick="triggerCeleryTask('mark_stale_jobs_inactive')">Run</button>
-                            </div>
-                            <div class="celery-task-item">
-                                <div class="task-info">
-                                    <span class="task-name">Fetch Descriptions</span>
-                                    <span class="task-desc">Fetch missing job descriptions</span>
-                                </div>
-                                <button class="btn-modern secondary" onclick="triggerCeleryTask('fetch_missing_descriptions')">Run</button>
-                            </div>
-                            <div class="celery-task-item">
-                                <div class="task-info">
-                                    <span class="task-name">Process Auto-Apply</span>
-                                    <span class="task-desc">Process pending applications</span>
-                                </div>
-                                <button class="btn-modern secondary" onclick="triggerCeleryTask('process_pending_applications')">Run</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Schedule Configuration -->
-                    <div class="celery-status-section" style="margin-top: 20px;">
-                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">Schedule Configuration</h4>
-                        <div class="cleanup-grid">
-                            <div class="cleanup-row">
-                                <span class="label">Scraper interval</span>
-                                <div class="controls">
-                                    <select id="scraper-interval-hours">
-                                        <option value="1">Every 1 hour</option>
-                                        <option value="2">Every 2 hours</option>
-                                        <option value="4">Every 4 hours</option>
-                                        <option value="6" selected>Every 6 hours</option>
-                                        <option value="12">Every 12 hours</option>
-                                        <option value="24">Every 24 hours</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="cleanup-row">
-                                <span class="label">Auto-apply enabled</span>
-                                <div class="controls">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="auto-apply-enabled" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="cleanup-row">
-                                <span class="label">Description fetch enabled</span>
-                                <div class="controls">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="description-fetch-enabled" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="cleanup-row">
-                                <span class="label"></span>
-                                <div class="controls">
-                                    <button class="btn-modern primary" onclick="saveCelerySchedules()">Save Schedule Settings</button>
-                                    <span id="schedule-save-status" class="inline-status"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Tasks -->
-                    <div class="celery-status-section" style="margin-top: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <h4 style="margin: 0; font-size: 14px; color: var(--text-primary);">Recent Tasks</h4>
-                            <button class="btn-modern secondary" onclick="loadRecentTasks()" style="padding: 4px 10px; font-size: 11px;">Refresh</button>
-                        </div>
-                        <div id="recent-tasks-container" class="recent-tasks-list">
-                            <div style="color: var(--text-muted); font-size: 13px; padding: 12px;">Loading...</div>
+                    <div class="table-wrap">
+                        <div id="recent-tasks-container" class="task-list">
+                            <div style="padding: 20px; text-align: center; color: var(--text-muted);">Loading...</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Data Management -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <h3>
-                        <div class="card-header-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
-                            </svg>
-                        </div>
-                        Data Management
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="cleanup-grid">
-                        <div class="cleanup-row">
-                            <span class="label">Fetch jobs from last</span>
-                            <div class="controls">
-                                <select id="max-job-age" onchange="saveJobAgeFilter()">
+            <!-- Data Tab -->
+            <div id="tab-data" class="tab-panel">
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Job Filters</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <span class="row-label">Fetch jobs from last</span>
+                            <div class="row-controls">
+                                <select id="max-job-age" class="select" onchange="saveJobAgeFilter()">
                                     <option value="7">7 days</option>
                                     <option value="14">14 days</option>
                                     <option value="30">30 days</option>
@@ -1452,53 +728,53 @@
                                 <span id="job-age-status" class="inline-status"></span>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="cleanup-row">
-                            <span class="label">Delete jobs older than</span>
-                            <div class="controls">
-                                <select id="cleanup-days">
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Cleanup</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <span class="row-label">Delete jobs older than</span>
+                            <div class="row-controls">
+                                <select id="cleanup-days" class="select">
                                     <option value="3">3 days</option>
                                     <option value="7" selected>7 days</option>
                                     <option value="14">14 days</option>
                                     <option value="30">30 days</option>
                                 </select>
-                                <button class="btn-modern secondary" onclick="previewCleanup()">Preview</button>
-                                <button class="btn-modern danger" onclick="executeCleanup()">Delete</button>
+                                <button class="btn btn-secondary btn-sm" onclick="previewCleanup()">Preview</button>
+                                <button class="btn btn-danger btn-sm" onclick="executeCleanup()">Delete</button>
                             </div>
                         </div>
 
-                        <div id="cleanup-result" class="cleanup-result">
-                            <div id="cleanup-result-content"></div>
+                        <div id="cleanup-result" style="display: none; margin-top: 12px;">
+                            <div id="cleanup-result-content" class="cleanup-stats"></div>
                         </div>
 
-                        <div class="cleanup-row">
-                            <span class="label">Remove duplicate jobs</span>
-                            <div class="controls">
+                        <div class="row">
+                            <span class="row-label">Remove duplicates</span>
+                            <div class="row-controls">
                                 <span id="duplicates-result" class="inline-status"></span>
-                                <button class="btn-modern secondary" onclick="cleanupDuplicates()">Scan & Remove</button>
+                                <button class="btn btn-secondary btn-sm" onclick="cleanupDuplicates()">Scan</button>
                             </div>
                         </div>
 
-                        <div class="cleanup-row" style="flex-direction: column; align-items: stretch; gap: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="label">Fetch missing job descriptions</span>
-                                <div class="controls">
+                        <div class="row" style="flex-direction: column; align-items: stretch;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <span class="row-label">Fetch missing descriptions</span>
+                                <div class="row-controls">
                                     <span id="descriptions-result" class="inline-status"></span>
-                                    <button class="btn-modern secondary" id="fetch-desc-btn" onclick="fetchMissingDescriptions()">Fetch All</button>
+                                    <button id="fetch-desc-btn" class="btn btn-secondary btn-sm" onclick="fetchMissingDescriptions()">Fetch</button>
                                 </div>
                             </div>
-                            <div id="fetch-progress-container" style="display: none;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-muted);">
+                            <div id="fetch-progress-container" class="progress-wrap">
+                                <div class="progress-bar"><div id="fetch-progress-bar" class="progress-fill" style="width: 0%;"></div></div>
+                                <div class="progress-meta">
                                     <span id="fetch-progress-status">Processing...</span>
                                     <span id="fetch-progress-stats">0 / 0</span>
-                                </div>
-                                <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
-                                    <div id="fetch-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #8b5cf6, #6366f1); border-radius: 4px; transition: width 0.3s ease;"></div>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-muted);">
-                                    <span id="fetch-progress-updated">Updated: <span style="color: #22c55e;">0</span></span>
-                                    <span id="fetch-progress-failed">Failed: <span style="color: #ef4444;">0</span></span>
-                                    <span id="fetch-progress-eta">ETA: calculating...</span>
                                 </div>
                             </div>
                         </div>
@@ -1511,291 +787,44 @@
     <script src="../js/app.js"></script>
     <script src="../js/admin-sidebar.js"></script>
     <script>
-        // Initialize admin layout and page
+        // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
             initAdminLayout('settings', 'Settings');
-
             if (!requireAuth()) return;
 
-            document.getElementById('api-key-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') saveApiKey();
-            });
-            await checkApiKeyStatus();
-            await loadDefaultProvider();
-            await loadAIModel();
-            await loadJobAgeFilter();
-            await loadScraperStatus();
-            await loadCeleryStatus();
-            await loadCelerySchedules();
-            await loadRecentTasks();
-            if (currentBatchJobId) checkBatchStatus(true);
+            document.getElementById('api-key-input').addEventListener('keypress', e => { if (e.key === 'Enter') saveApiKey(); });
+
+            await Promise.all([
+                checkApiKeyStatus(),
+                loadDefaultProvider(),
+                loadAIModel(),
+                loadJobAgeFilter(),
+                loadScraperStatus(),
+                loadCeleryStatus(),
+                loadCelerySchedules(),
+                loadRecentTasks()
+            ]);
         });
 
-        // Job Age Filter Functions
-        async function loadJobAgeFilter() {
-            try {
-                const response = await apiRequest('/settings/job-age-filter');
-                document.getElementById('max-job-age').value = response.max_job_age_days;
-            } catch (error) {
-                console.error('Failed to load job age filter:', error);
-            }
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
         }
 
-        async function saveJobAgeFilter() {
-            const select = document.getElementById('max-job-age');
-            const statusSpan = document.getElementById('job-age-status');
-            const days = parseInt(select.value);
-
-            statusSpan.textContent = 'Saving...';
-            statusSpan.style.color = 'var(--text-muted)';
-
-            try {
-                await apiRequest('/settings/job-age-filter', 'POST', { days });
-                statusSpan.textContent = 'Saved';
-                statusSpan.style.color = '#22c55e';
-                showAlert(`Job age filter updated to ${days} days`);
-                setTimeout(() => { statusSpan.textContent = ''; }, 3000);
-            } catch (error) {
-                statusSpan.textContent = 'Failed';
-                statusSpan.style.color = '#ef4444';
-                showAlert('Failed to save: ' + error.message, 'error');
-            }
-        }
-
-        // Scraper Status Functions
-        async function loadScraperStatus() {
-            try {
-                const status = await apiRequest('/scrapers/status');
-                renderScraperStatus(status);
-            } catch (error) {
-                console.error('Failed to load scraper status:', error);
-                document.getElementById('scraper-error').style.display = 'block';
-                document.getElementById('scraper-error').textContent = 'Failed to load scraper status: ' + error.message;
-            }
-        }
-
-        async function refreshScraperStatus() {
-            const btn = document.getElementById('refresh-scraper-btn');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `
-                <svg class="spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                Refreshing...
-            `;
-
-            try {
-                await loadScraperStatus();
-                showAlert('Scraper status refreshed');
-            } catch (error) {
-                showAlert('Failed to refresh: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
-        async function resetAllFailures() {
-            if (!confirm('This will reset failure counts for ALL scrapers. Continue?')) {
-                return;
-            }
-
-            try {
-                const response = await apiRequest('/scrapers/maintenance/reset-failures', 'POST');
-                showAlert(`Reset complete: ${response.scrapers_reset} scrapers reset`);
-                await loadScraperStatus();
-            } catch (error) {
-                showAlert('Failed to reset: ' + error.message, 'error');
-            }
-        }
-
-        async function disableCriticalScrapers() {
-            const threshold = 10;
-            if (!confirm(`This will disable all scrapers with ${threshold}+ consecutive failures. Continue?`)) {
-                return;
-            }
-
-            try {
-                const response = await apiRequest(`/scrapers/maintenance/disable-critical?threshold=${threshold}`, 'POST');
-                showAlert(`Disabled ${response.disabled_count} critical scrapers`);
-                await loadScraperStatus();
-            } catch (error) {
-                showAlert('Failed to disable: ' + error.message, 'error');
-            }
-        }
-
-        // Store all scrapers for filtering
-        let allScrapers = [];
-
-        function filterScrapers() {
-            const filter = document.getElementById('scraper-filter').value;
-            let filtered = allScrapers;
-
-            if (filter === 'warning') {
-                filtered = allScrapers.filter(s => getScraperHealth(s) === 'warning');
-            } else if (filter === 'critical') {
-                filtered = allScrapers.filter(s => getScraperHealth(s) === 'critical');
-            } else if (filter === 'healthy') {
-                filtered = allScrapers.filter(s => getScraperHealth(s) === 'healthy');
-            } else if (filter === 'failed') {
-                filtered = allScrapers.filter(s => {
-                    const h = getScraperHealth(s);
-                    return h === 'warning' || h === 'critical';
-                });
-            }
-
-            renderScraperTable(filtered);
-        }
-
-        async function runAllWarningScrapers() {
-            const warningScrapers = allScrapers.filter(s => getScraperHealth(s) === 'warning');
-            if (warningScrapers.length === 0) {
-                showAlert('No warning scrapers to run');
-                return;
-            }
-
-            if (!confirm(`This will run ${warningScrapers.length} warning scrapers. Continue?`)) {
-                return;
-            }
-
-            showAlert(`Running ${warningScrapers.length} warning scrapers...`);
-
-            try {
-                // Use the batch endpoint - more efficient
-                const data = await apiRequest('/scrapers/run-warning-sync', 'POST');
-
-                if (data.status === 'completed') {
-                    const msg = `Completed: ${data.http_scrapers_run} HTTP scrapers run, ${data.total_jobs_new} new jobs found`;
-                    const extra = data.browser_scrapers_skipped > 0
-                        ? ` (${data.browser_scrapers_skipped} browser scrapers skipped - require Celery)`
-                        : '';
-                    showAlert(msg + extra, 'success');
-                } else {
-                    showAlert('Warning scraper run completed with issues', 'warning');
-                }
-            } catch (e) {
-                // Fallback to running one by one if batch endpoint fails
-                showAlert('Batch endpoint failed, running individually...', 'warning');
-                let success = 0, failed = 0;
-                for (const s of warningScrapers) {
-                    try {
-                        const data = await apiRequest(`/scrapers/${s.company_slug}/run-sync`, 'POST');
-                        if (data.status === 'success') success++;
-                        else failed++;
-                    } catch (e) {
-                        failed++;
-                    }
-                }
-                showAlert(`Completed: ${success} succeeded, ${failed} failed`);
-            }
-
-            await loadScraperStatus();
-        }
-
-        function renderScraperStatus(scrapers) {
-            // Store for filtering
-            allScrapers = scrapers;
-            // Calculate summary
-            let healthy = 0, warning = 0, critical = 0;
-
-            scrapers.forEach(s => {
-                const health = getScraperHealth(s);
-                if (health === 'healthy') healthy++;
-                else if (health === 'warning') warning++;
-                else if (health === 'critical') critical++;
-            });
-
-            // Update summary cards
-            document.getElementById('scraper-total').textContent = scrapers.length;
-            document.getElementById('scraper-healthy').textContent = healthy;
-            document.getElementById('scraper-warning').textContent = warning;
-            document.getElementById('scraper-critical').textContent = critical;
-
-            // Render table with current filter
-            filterScrapers();
-        }
-
-        function renderScraperTable(scrapers) {
-            // Sort scrapers: critical first, then warning, then healthy
-            scrapers.sort((a, b) => {
-                const order = { critical: 0, warning: 1, healthy: 2, unknown: 3 };
-                return order[getScraperHealth(a)] - order[getScraperHealth(b)];
-            });
-
-            // Render table
-            const tbody = document.getElementById('scraper-table-body');
-
-            if (scrapers.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">
-                            No scrapers match filter
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = scrapers.map(s => {
-                const health = getScraperHealth(s);
-                const healthLabel = health.charAt(0).toUpperCase() + health.slice(1);
-                const lastSuccess = s.last_success_at ? formatRelativeTime(s.last_success_at) : 'Never';
-                const lastError = s.last_error ? escapeHtml(s.last_error.substring(0, 50)) + (s.last_error.length > 50 ? '...' : '') : '';
-
-                return `
-                    <tr>
-                        <td class="company-name">
-                            ${escapeHtml(s.company_name)}
-                            ${lastError ? `<div style="font-size: 10px; color: #ef4444; margin-top: 2px;" title="${escapeHtml(s.last_error)}">${lastError}</div>` : ''}
-                        </td>
-                        <td>
-                            <span class="health-indicator ${health}">
-                                <span class="status-dot"></span>
-                                ${healthLabel}
-                            </span>
-                        </td>
-                        <td class="mono">${lastSuccess}</td>
-                        <td style="color: ${s.consecutive_failures > 0 ? '#ef4444' : 'var(--text-secondary)'};">
-                            ${s.consecutive_failures}
-                        </td>
-                        <td>${s.active_jobs.toLocaleString()}</td>
-                        <td>
-                            <button class="btn-modern secondary" onclick="runScraper('${escapeHtml(s.company_slug)}')" style="padding: 4px 10px; font-size: 11px;">
-                                Run
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function getScraperHealth(scraper) {
-            if (!scraper.is_enabled) return 'unknown';
-            if (scraper.consecutive_failures >= 5) return 'critical';
-            if (scraper.consecutive_failures >= 2) return 'warning';
-            if (!scraper.last_success_at) return 'unknown';
-
-            // Check if last success was more than 7 days ago
-            const lastSuccess = new Date(scraper.last_success_at);
-            const daysSinceSuccess = (Date.now() - lastSuccess.getTime()) / (1000 * 60 * 60 * 24);
-            if (daysSinceSuccess > 7) return 'warning';
-
-            return 'healthy';
-        }
-
-        function formatRelativeTime(isoString) {
-            const date = new Date(isoString);
+        // Helper functions
+        function formatRelativeTime(date) {
             const now = new Date();
-            const diffMs = now - date;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffHours < 24) return `${diffHours}h ago`;
-            if (diffDays < 7) return `${diffDays}d ago`;
+            const diff = now - date;
+            const mins = Math.floor(diff / 60000);
+            const hours = Math.floor(mins / 60);
+            const days = Math.floor(hours / 24);
+            if (mins < 1) return 'Just now';
+            if (mins < 60) return `${mins}m`;
+            if (hours < 24) return `${hours}h`;
+            if (days < 7) return `${days}d`;
             return date.toLocaleDateString();
         }
 
@@ -1805,137 +834,17 @@
             return div.innerHTML;
         }
 
-        async function runScraper(slug) {
-            const btn = event.target;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Running...';
-
-            try {
-                // Use sync endpoint (doesn't require Celery worker)
-                const data = await apiRequest(`/scrapers/${slug}/run-sync`, 'POST');
-                if (data.status === 'success') {
-                    showAlert(`${slug}: ${data.jobs_new} added, ${data.jobs_updated} updated`);
-                } else {
-                    showAlert(`${slug} failed: ${data.error || 'Unknown error'}`, 'error');
-                }
-                // Refresh the scraper status after running
-                await loadScraperStatus();
-            } catch (error) {
-                showAlert('Failed to run scraper: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-        }
-
-        // API Provider State
+        // ============== AI Provider Functions ==============
         let currentProvider = 'openai';
         let defaultProvider = 'openai';
-
-        async function loadDefaultProvider() {
-            try {
-                const response = await apiRequest('/settings/default-ai-provider');
-                defaultProvider = response.provider || 'openai';
-                updateDefaultProviderUI();
-            } catch (error) {
-                console.error('Failed to load default provider:', error);
-            }
-        }
-
-        function updateDefaultProviderUI() {
-            const nameEl = document.getElementById('default-provider-name');
-            const btnEl = document.getElementById('set-default-btn');
-
-            nameEl.textContent = defaultProvider === 'openai' ? 'OpenAI' : 'Anthropic';
-
-            // Hide "Set as Default" button if current provider is already default
-            if (currentProvider === defaultProvider) {
-                btnEl.style.display = 'none';
-            } else {
-                btnEl.style.display = 'inline-flex';
-            }
-
-            // Update model selector to show appropriate models
-            updateModelSelector();
-        }
-
-        async function setDefaultProvider() {
-            try {
-                await apiRequest('/settings/default-ai-provider', 'POST', { provider: currentProvider });
-                defaultProvider = currentProvider;
-                updateDefaultProviderUI();
-                showAlert(`${currentProvider === 'openai' ? 'OpenAI' : 'Anthropic'} set as default AI provider`);
-            } catch (error) {
-                showAlert('Failed to set default provider: ' + error.message, 'error');
-            }
-        }
-
         let aiModelSettings = { openai_model: 'gpt-4o-mini', claude_model: 'claude-3-5-sonnet-20241022' };
-
-        async function loadAIModel() {
-            try {
-                const response = await apiRequest('/settings/ai-model');
-                aiModelSettings = response;
-                updateModelSelector();
-            } catch (error) {
-                console.error('Failed to load AI model:', error);
-            }
-        }
-
-        function updateModelSelector() {
-            const select = document.getElementById('ai-model-select');
-            const label = document.getElementById('model-provider-label');
-
-            // Set the model based on the current/default provider
-            if (defaultProvider === 'anthropic') {
-                select.value = aiModelSettings.claude_model || 'claude-3-5-sonnet-20241022';
-                label.textContent = 'Claude';
-            } else {
-                select.value = aiModelSettings.openai_model || 'gpt-4o-mini';
-                label.textContent = 'OpenAI';
-            }
-        }
-
-        async function setAIModel() {
-            const model = document.getElementById('ai-model-select').value;
-            try {
-                const response = await apiRequest('/settings/ai-model', 'POST', { model });
-                // Update local cache
-                if (model.startsWith('claude')) {
-                    aiModelSettings.claude_model = model;
-                } else {
-                    aiModelSettings.openai_model = model;
-                }
-                showAlert(`${response.provider} model set to ${model}`);
-            } catch (error) {
-                showAlert('Failed to set AI model: ' + error.message, 'error');
-            }
-        }
 
         function switchProvider(provider) {
             currentProvider = provider;
-            const input = document.getElementById('api-key-input');
-            const info = document.getElementById('provider-info');
-            const providerLabel = document.getElementById('active-provider-label');
-
-            // Update toggle button styles
-            document.querySelectorAll('.provider-toggle').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('provider-' + provider).classList.add('active');
-
-            // Update input placeholder and info text
-            if (provider === 'openai') {
-                input.placeholder = 'Enter OpenAI API key (sk-...)';
-                info.textContent = 'OpenAI API keys start with "sk-". Used for AI-powered job matching and cover letter generation.';
-                providerLabel.textContent = 'OpenAI';
-            } else {
-                input.placeholder = 'Enter Anthropic API key (sk-ant-...)';
-                info.textContent = 'Anthropic API keys start with "sk-ant-". Used for Claude-powered AI features.';
-                providerLabel.textContent = 'Anthropic';
-            }
-
-            // Clear input and refresh status for selected provider
-            input.value = '';
+            document.getElementById('api-key-input').placeholder = provider === 'openai' ? 'sk-...' : 'sk-ant-...';
+            document.getElementById('api-key-input').value = '';
             checkApiKeyStatus();
             updateDefaultProviderUI();
         }
@@ -1944,839 +853,385 @@
             const badge = document.getElementById('api-status-badge');
             const display = document.getElementById('api-key-display');
             const preview = document.getElementById('api-key-preview');
-            const removeBtn = document.getElementById('remove-btn');
-            const input = document.getElementById('api-key-input');
-            const providerLabel = document.getElementById('active-provider-label');
+            const label = document.getElementById('active-provider-label');
 
             try {
-                const response = await apiRequest(`/settings/api-key?provider=${currentProvider}`);
-
-                if (response.is_set) {
-                    badge.className = 'status-badge success';
-                    badge.innerHTML = '<span class="status-dot"></span><span>Configured</span>';
+                const res = await apiRequest(`/settings/api-key?provider=${currentProvider}`);
+                if (res.is_set) {
+                    badge.className = 'badge badge-success';
+                    badge.innerHTML = '<span class="badge-dot"></span>Active';
                     display.style.display = 'flex';
-                    preview.textContent = response.key_preview;
-                    providerLabel.textContent = currentProvider === 'openai' ? 'OpenAI' : 'Anthropic';
-                    input.placeholder = 'Enter new key to replace...';
-                    removeBtn.style.display = 'inline-flex';
+                    preview.textContent = res.key_preview;
+                    label.textContent = currentProvider === 'openai' ? 'OpenAI' : 'Anthropic';
                 } else {
-                    badge.className = 'status-badge warning';
-                    badge.innerHTML = '<span class="status-dot"></span><span>Not Configured</span>';
+                    badge.className = 'badge badge-warning';
+                    badge.innerHTML = '<span class="badge-dot"></span>Not Set';
                     display.style.display = 'none';
-                    input.placeholder = currentProvider === 'openai' ? 'Enter OpenAI API key (sk-...)' : 'Enter Anthropic API key (sk-ant-...)';
-                    removeBtn.style.display = 'none';
                 }
-            } catch (error) {
-                badge.className = 'status-badge error';
-                badge.innerHTML = '<span class="status-dot"></span><span>Error</span>';
+            } catch (e) {
+                badge.className = 'badge badge-danger';
+                badge.innerHTML = '<span class="badge-dot"></span>Error';
             }
         }
 
         async function saveApiKey() {
-            const input = document.getElementById('api-key-input');
-            const apiKey = input.value.trim();
-
-            if (!apiKey) {
-                showAlert('Please enter an API key', 'error');
-                return;
-            }
-
-            // Validate key format
-            if (currentProvider === 'openai' && !apiKey.startsWith('sk-')) {
-                showAlert('OpenAI API keys should start with "sk-"', 'error');
-                return;
-            }
-            if (currentProvider === 'anthropic' && !apiKey.startsWith('sk-ant-')) {
-                showAlert('Anthropic API keys should start with "sk-ant-"', 'error');
-                return;
-            }
+            const key = document.getElementById('api-key-input').value.trim();
+            if (!key) return showAlert('Enter an API key', 'error');
+            if (currentProvider === 'openai' && !key.startsWith('sk-')) return showAlert('Invalid OpenAI key', 'error');
+            if (currentProvider === 'anthropic' && !key.startsWith('sk-ant-')) return showAlert('Invalid Anthropic key', 'error');
 
             try {
-                await apiRequest('/settings/api-key', 'POST', { api_key: apiKey, provider: currentProvider });
-                showAlert(`${currentProvider === 'openai' ? 'OpenAI' : 'Anthropic'} API key saved successfully`);
-                input.value = '';
+                await apiRequest('/settings/api-key', 'POST', { api_key: key, provider: currentProvider });
+                showAlert('API key saved');
+                document.getElementById('api-key-input').value = '';
                 checkApiKeyStatus();
-            } catch (error) {
-                showAlert('Failed to save API key: ' + error.message, 'error');
-            }
-        }
-
-        async function testApiKey() {
-            const badge = document.getElementById('api-status-badge');
-            const input = document.getElementById('api-key-input');
-            const testKey = input.value.trim();
-
-            badge.className = 'status-badge neutral';
-            badge.innerHTML = '<span class="status-dot"></span><span>Testing...</span>';
-
-            try {
-                let response;
-                if (testKey) {
-                    response = await apiRequest('/settings/test-api-key', 'POST', { api_key: testKey, provider: currentProvider });
-                } else {
-                    response = await apiRequest(`/settings/test-api-key?provider=${currentProvider}`);
-                }
-
-                if (response.valid) {
-                    badge.className = 'status-badge success';
-                    badge.innerHTML = '<span class="status-dot"></span><span>Valid</span>';
-                    showAlert(`${currentProvider === 'openai' ? 'OpenAI' : 'Anthropic'} API key is valid!`);
-                } else {
-                    badge.className = 'status-badge error';
-                    badge.innerHTML = '<span class="status-dot"></span><span>Invalid</span>';
-                    showAlert(response.message, 'error');
-                }
-            } catch (error) {
-                badge.className = 'status-badge error';
-                badge.innerHTML = '<span class="status-dot"></span><span>Error</span>';
-                showAlert('Error testing API key: ' + error.message, 'error');
-            }
-
-            setTimeout(checkApiKeyStatus, 2000);
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
         }
 
         async function removeApiKey() {
-            const providerName = currentProvider === 'openai' ? 'OpenAI' : 'Anthropic';
-            if (!confirm(`Are you sure you want to remove the ${providerName} API key?`)) return;
-
+            if (!confirm('Remove this API key?')) return;
             try {
                 await apiRequest(`/settings/api-key?provider=${currentProvider}`, 'DELETE');
-                showAlert(`${providerName} API key removed`);
+                showAlert('API key removed');
                 checkApiKeyStatus();
-            } catch (error) {
-                showAlert('Failed to remove API key: ' + error.message, 'error');
-            }
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
         }
 
-        // Batch Ingestion
-        let currentBatchJobId = localStorage.getItem('currentBatchJobId');
-        let eventSource = null;
-        let batchStartTime = null;
-        let logCount = 0;
-
-        function setBatchButtonsState(running) {
-            document.getElementById('batch-fast-btn').disabled = running;
-            document.getElementById('batch-slow-btn').disabled = running;
-            document.getElementById('batch-stop-btn').style.display = running ? 'inline-flex' : 'none';
-        }
-
-        async function startBatchIngestion(slowOnly = false) {
-            const progressDiv = document.getElementById('batch-progress');
-            const logContainer = document.getElementById('log-container');
-            const logViewer = document.getElementById('log-viewer');
-            const summaryDiv = document.getElementById('batch-summary');
-
-            setBatchButtonsState(true);
-            batchStartTime = Date.now();
-            logCount = 0;
-            document.getElementById('log-count').textContent = '0 entries';
-            logViewer.innerHTML = '';
-            summaryDiv.classList.remove('visible');
-
+        async function loadDefaultProvider() {
             try {
-                let url = '/ingest/sources/refresh/batch/async?batch_size=10&timeout_per_source=120';
-                url += slowOnly ? '&slow_only=true' : '&exclude_slow=true';
+                const res = await apiRequest('/settings/default-ai-provider');
+                defaultProvider = res.provider || 'openai';
+                updateDefaultProviderUI();
+            } catch (e) { console.error(e); }
+        }
 
-                const response = await apiRequest(url, 'POST');
-                currentBatchJobId = response.job_id;
-                localStorage.setItem('currentBatchJobId', currentBatchJobId);
+        function updateDefaultProviderUI() {
+            document.getElementById('default-provider-name').textContent = defaultProvider === 'openai' ? 'OpenAI' : 'Anthropic';
+            document.getElementById('set-default-btn').style.display = currentProvider === defaultProvider ? 'none' : 'inline-flex';
+            updateModelSelector();
+        }
 
-                document.getElementById('batch-status-bar').classList.add('visible');
-                document.getElementById('batch-status-text').textContent = `Starting (${response.mode})`;
-                document.getElementById('batch-current-company').textContent = `Job ID: ${response.job_id}`;
+        async function setDefaultProvider() {
+            try {
+                await apiRequest('/settings/default-ai-provider', 'POST', { provider: currentProvider });
+                defaultProvider = currentProvider;
+                updateDefaultProviderUI();
+                showAlert('Default provider updated');
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+        }
 
-                progressDiv.classList.add('visible');
-                logContainer.classList.add('visible');
-                document.getElementById('stat-total').textContent = response.total_sources;
+        async function loadAIModel() {
+            try {
+                const res = await apiRequest('/settings/ai-model');
+                aiModelSettings = res;
+                updateModelSelector();
+            } catch (e) { console.error(e); }
+        }
 
-                showAlert(`Batch job started! Processing ${response.total_sources} sources.`);
-                startLogStream(currentBatchJobId);
-            } catch (error) {
-                document.getElementById('batch-status-bar').classList.add('visible');
-                document.getElementById('batch-status-text').textContent = 'Error';
-                document.getElementById('batch-current-company').textContent = error.message;
-                showAlert('Failed to start batch: ' + error.message, 'error');
-                setBatchButtonsState(false);
+        function updateModelSelector() {
+            const select = document.getElementById('ai-model-select');
+            select.value = defaultProvider === 'anthropic'
+                ? (aiModelSettings.claude_model || 'claude-3-5-sonnet-20241022')
+                : (aiModelSettings.openai_model || 'gpt-4o-mini');
+        }
+
+        async function setAIModel() {
+            const model = document.getElementById('ai-model-select').value;
+            try {
+                await apiRequest('/settings/ai-model', 'POST', { model });
+                if (model.startsWith('claude')) aiModelSettings.claude_model = model;
+                else aiModelSettings.openai_model = model;
+                showAlert('Model updated');
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+        }
+
+        // ============== Scraper Functions ==============
+        let allScrapers = [];
+
+        async function loadScraperStatus() {
+            try {
+                const data = await apiRequest('/scrapers/status');
+                allScrapers = data.scrapers || [];
+
+                document.getElementById('scraper-total').textContent = data.total || 0;
+                document.getElementById('scraper-healthy').textContent = data.healthy || 0;
+                document.getElementById('scraper-warning').textContent = data.warning || 0;
+                document.getElementById('scraper-critical').textContent = data.critical || 0;
+
+                renderScraperTable();
+            } catch (e) {
+                document.getElementById('scraper-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;">Error loading</td></tr>';
             }
         }
 
-        async function stopBatchIngestion() {
-            if (!currentBatchJobId) {
-                showAlert('No batch job to stop', 'error');
+        function filterScrapers() { renderScraperTable(); }
+
+        function renderScraperTable() {
+            const filter = document.getElementById('scraper-filter').value;
+            const tbody = document.getElementById('scraper-table-body');
+
+            let filtered = allScrapers;
+            if (filter !== 'all') {
+                filtered = allScrapers.filter(s => s.health_status === filter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">No scrapers</td></tr>';
                 return;
             }
 
-            try {
-                const response = await apiRequest(`/ingest/sources/refresh/batch/stop/${currentBatchJobId}`, 'POST');
-                showAlert(response.message);
-            } catch (error) {
-                showAlert('Failed to stop batch: ' + error.message, 'error');
-            }
+            tbody.innerHTML = filtered.map(s => `
+                <tr>
+                    <td><strong>${escapeHtml(s.company_name)}</strong><br><span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">${escapeHtml(s.company_slug)}</span></td>
+                    <td><span class="health ${s.health_status}">${s.health_status}</span></td>
+                    <td style="font-size:12px;color:var(--text-secondary);">${s.last_success_at ? formatRelativeTime(new Date(s.last_success_at)) : '--'}</td>
+                    <td style="font-family:var(--font-mono);font-size:12px;">${s.consecutive_failures || 0}</td>
+                    <td style="font-family:var(--font-mono);font-size:12px;">${s.active_jobs || 0}</td>
+                    <td><button class="btn btn-ghost btn-xs" onclick="runScraper('${s.company_slug}')">Run</button></td>
+                </tr>
+            `).join('');
         }
 
-        function startLogStream(jobId) {
-            stopLogStream();
-            document.getElementById('log-container').classList.add('visible');
-
-            eventSource = new EventSource(`${API_BASE}/ingest/sources/refresh/batch/stream/${jobId}`);
-
-            eventSource.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'log') appendLog(data.data);
-                    else if (data.type === 'status') updateBatchProgress(data.data);
-                    else if (data.type === 'done') {
-                        updateBatchProgress(data.data);
-                        stopLogStream();
-                        if (data.data.status === 'completed') showAlert('Batch ingestion completed!');
-                    }
-                } catch (e) { console.error('SSE parse error:', e); }
-            };
-
-            eventSource.onerror = () => {
-                stopLogStream();
-                startLogPolling(jobId);
-            };
-        }
-
-        function stopLogStream() {
-            if (eventSource) { eventSource.close(); eventSource = null; }
-        }
-
-        let logPollInterval = null;
-        let logSince = 0;
-
-        function startLogPolling(jobId) {
-            stopLogPolling();
-            logPollInterval = setInterval(async () => {
-                try {
-                    const [statusRes, logsRes] = await Promise.all([
-                        apiRequest(`/ingest/sources/refresh/batch/status/${jobId}`),
-                        apiRequest(`/ingest/sources/refresh/batch/logs/${jobId}?since=${logSince}`)
-                    ]);
-                    updateBatchProgress(statusRes);
-                    logsRes.logs.forEach(log => appendLog(log));
-                    logSince = logsRes.next_since;
-                    if (statusRes.status !== 'running') stopLogPolling();
-                } catch (e) { console.error('Poll error:', e); }
-            }, 2000);
-        }
-
-        function stopLogPolling() {
-            if (logPollInterval) { clearInterval(logPollInterval); logPollInterval = null; }
-        }
-
-        function appendLog(log) {
-            const logViewer = document.getElementById('log-viewer');
-            const autoScroll = document.getElementById('auto-scroll').checked;
-
-            const time = new Date(log.timestamp).toLocaleTimeString();
-            const level = log.level || 'info';
-
-            const logLine = document.createElement('div');
-            logLine.className = `log-entry ${level}`;
-            logLine.innerHTML = `<span class="time">${time}</span><span class="indicator"></span><span>${escapeHtml(log.message)}</span>`;
-
-            logViewer.appendChild(logLine);
-            logCount++;
-            document.getElementById('log-count').textContent = `${logCount} entries`;
-            if (autoScroll) logViewer.scrollTop = logViewer.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        async function checkBatchStatus(silent = false) {
-            if (!currentBatchJobId) {
-                if (!silent) showAlert('No batch job running.', 'error');
-                return;
-            }
-
-            try {
-                const response = await apiRequest(`/ingest/sources/refresh/batch/status/${currentBatchJobId}`);
-                updateBatchProgress(response);
-
-                const logsRes = await apiRequest(`/ingest/sources/refresh/batch/logs/${currentBatchJobId}`);
-                const logViewer = document.getElementById('log-viewer');
-                document.getElementById('log-container').classList.add('visible');
-                logViewer.innerHTML = '';
-                logsRes.logs.forEach(log => appendLog(log));
-                logSince = logsRes.next_since;
-
-                if (response.status === 'running') startLogStream(currentBatchJobId);
-            } catch (error) {
-                currentBatchJobId = null;
-                localStorage.removeItem('currentBatchJobId');
-                setBatchButtonsState(false);
-                if (!silent) showAlert('Previous batch job no longer exists.', 'warning');
-            }
-        }
-
-        function updateBatchProgress(status) {
-            const progressDiv = document.getElementById('batch-progress');
-            const statusBanner = document.getElementById('batch-status-bar');
-            const summaryDiv = document.getElementById('batch-summary');
-
-            progressDiv.classList.add('visible');
-            statusBanner.classList.add('visible');
-
-            const percent = status.total_sources > 0 ? Math.round((status.processed / status.total_sources) * 100) : 0;
-
-            document.getElementById('batch-progress-bar').style.width = percent + '%';
-            document.getElementById('batch-progress-percent').textContent = percent + '%';
-
-            document.getElementById('stat-processed').textContent = status.processed;
-            document.getElementById('stat-total').textContent = status.total_sources;
-            document.getElementById('stat-success').textContent = status.sources_refreshed;
-            document.getElementById('stat-failed').textContent = status.sources_failed;
-            document.getElementById('stat-added').textContent = status.jobs_added;
-            document.getElementById('stat-updated').textContent = status.jobs_updated;
-            document.getElementById('stat-deactivated').textContent = status.jobs_deactivated || 0;
-
-            if (batchStartTime) {
-                const elapsed = Math.floor((Date.now() - batchStartTime) / 1000);
-                document.getElementById('stat-elapsed').textContent = formatTime(elapsed);
-
-                if (status.processed > 0 && status.total_sources > status.processed) {
-                    const rate = status.processed / (elapsed / 60);
-                    const remaining = (status.total_sources - status.processed) / rate * 60;
-                    document.getElementById('stat-remaining').textContent = formatTime(Math.round(remaining));
-                    document.getElementById('stat-rate').textContent = rate.toFixed(1) + ' src/min';
-                }
-            }
-
-            const indicator = document.getElementById('status-indicator');
-            const statusText = document.getElementById('batch-status-text');
-            const currentCompany = document.getElementById('batch-current-company');
-
-            if (status.status === 'running') {
-                setBatchButtonsState(true);
-                indicator.style.background = '#22c55e';
-                indicator.classList.add('active');
-                statusText.textContent = `Running${status.mode ? ` (${status.mode})` : ''}`;
-                currentCompany.textContent = status.current_source ? `Processing: ${status.current_source}` : '';
-                document.getElementById('batch-progress-text').textContent = `Processing ${status.processed} of ${status.total_sources}`;
-                summaryDiv.classList.remove('visible');
-            } else if (status.status === 'completed') {
-                setBatchButtonsState(false);
-                indicator.style.background = '#22c55e';
-                indicator.classList.remove('active');
-                statusText.textContent = 'Completed';
-                currentCompany.textContent = '';
-                document.getElementById('batch-progress-text').textContent = 'Batch completed successfully';
-                showBatchSummary(status);
-                currentBatchJobId = null;
-                localStorage.removeItem('currentBatchJobId');
-                stopLogStream();
-            } else if (status.status === 'stopped' || status.status === 'failed') {
-                setBatchButtonsState(false);
-                indicator.style.background = status.status === 'stopped' ? '#f59e0b' : '#ef4444';
-                indicator.classList.remove('active');
-                statusText.textContent = status.status === 'stopped' ? 'Stopped' : 'Failed';
-                currentCompany.textContent = status.error || '';
-                showBatchSummary(status);
-                currentBatchJobId = null;
-                localStorage.removeItem('currentBatchJobId');
-                stopLogStream();
-            }
-        }
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function showBatchSummary(status) {
-            const summaryDiv = document.getElementById('batch-summary');
-            const content = document.getElementById('summary-content');
-
-            const successRate = status.total_sources > 0 ? ((status.sources_refreshed / status.total_sources) * 100).toFixed(1) : 0;
-            const elapsed = batchStartTime ? Math.floor((Date.now() - batchStartTime) / 1000) : 0;
-
-            content.innerHTML = `
-                <div class="summary-grid">
-                    <div class="summary-item">
-                        <div class="label">Sources Processed</div>
-                        <div class="value">${status.processed} of ${status.total_sources}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Success Rate</div>
-                        <div class="value" style="color: ${successRate >= 80 ? '#22c55e' : successRate >= 50 ? '#f59e0b' : '#ef4444'};">${successRate}%</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Total Time</div>
-                        <div class="value">${formatTime(elapsed)}</div>
-                    </div>
-                    <div class="summary-item">
-                        <div class="label">Jobs Impact</div>
-                        <div class="value" style="font-size: 14px;">
-                            <span style="color: #3b82f6;">+${status.jobs_added}</span> /
-                            <span style="color: #f59e0b;">~${status.jobs_updated}</span> /
-                            <span style="color: #8b5cf6;">-${status.jobs_deactivated || 0}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            summaryDiv.classList.add('visible');
-            batchStartTime = null;
-        }
-
-        async function triggerWebhook() {
-            const btn = document.getElementById('webhook-btn');
-            const originalText = btn.innerHTML;
-
-            // Show loading state
+        async function runScraper(slug) {
+            const btn = event.target;
             btn.disabled = true;
-            btn.innerHTML = `
-                <svg class="spin" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                Triggering...
-            `;
-
+            btn.textContent = '...';
             try {
-                console.log('Triggering scrapers via authenticated endpoint...');
-                const data = await apiRequest('/scrapers/run-all', 'POST');
-
-                console.log('Scraper trigger response:', data);
-                showAlert(`Scrapers triggered successfully! Task ID: ${data.task_id}`, 'success');
-            } catch (error) {
-                console.error('Scraper trigger error:', error);
-                showAlert('Failed to trigger scrapers: ' + error.message, 'error');
-            } finally {
-                // Restore button state
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
+                const data = await apiRequest(`/scrapers/${slug}/run-sync`, 'POST');
+                showAlert(`${slug}: +${data.jobs_new || 0} new`);
+                await loadScraperStatus();
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Run'; }
         }
 
-        function clearLogs() {
-            document.getElementById('log-viewer').innerHTML = '';
-            logSince = 0;
-            logCount = 0;
-            document.getElementById('log-count').textContent = '0 entries';
-            currentBatchJobId = null;
-            localStorage.removeItem('currentBatchJobId');
-            stopLogStream();
-        }
-
-        // Database Maintenance Functions
-        async function previewCleanup() {
-            const days = document.getElementById('cleanup-days').value;
-            const resultDiv = document.getElementById('cleanup-result');
-            const contentDiv = document.getElementById('cleanup-result-content');
-
-            resultDiv.classList.add('visible');
-            contentDiv.innerHTML = '<span style="color: var(--text-muted);">Analyzing...</span>';
-
+        async function runAllWarningScrapers() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="spin" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
             try {
-                const response = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE');
-
-                contentDiv.innerHTML = `
-                    <div class="cleanup-stats">
-                        <div class="cleanup-stat">
-                            <div class="label">Jobs</div>
-                            <div class="value" style="color: #ef4444;">${response.jobs_count}</div>
-                        </div>
-                        <div class="cleanup-stat">
-                            <div class="label">Interviews</div>
-                            <div class="value" style="color: var(--text-primary);">${response.interviews_count}</div>
-                        </div>
-                        <div class="cleanup-stat">
-                            <div class="label">Notes</div>
-                            <div class="value" style="color: var(--text-primary);">${response.notes_count}</div>
-                        </div>
-                        <div class="cleanup-stat">
-                            <div class="label">Documents</div>
-                            <div class="value" style="color: var(--text-primary);">${response.documents_count}</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
-                        Cutoff: ${new Date(response.cutoff_date).toLocaleString()} (Preview only)
-                    </div>
-                `;
-            } catch (error) {
-                contentDiv.innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
-            }
+                const data = await apiRequest('/scrapers/run-warning-sync', 'POST');
+                showAlert(`Ran ${data.total_triggered || 0} scrapers`);
+                await loadScraperStatus();
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+            finally { btn.disabled = false; btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>Run Warning'; }
         }
 
-        async function executeCleanup() {
-            const days = document.getElementById('cleanup-days').value;
-
-            if (!confirm(`Are you sure you want to DELETE all jobs older than ${days} days?\n\nThis action cannot be undone!`)) {
-                return;
-            }
-
-            const resultDiv = document.getElementById('cleanup-result');
-            const contentDiv = document.getElementById('cleanup-result-content');
-
-            resultDiv.classList.add('visible');
-            contentDiv.innerHTML = '<span style="color: var(--text-muted);">Deleting...</span>';
-
-            try {
-                const response = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE');
-
-                contentDiv.innerHTML = `
-                    <div style="color: #22c55e; font-weight: 600; margin-bottom: 12px;">Cleanup completed</div>
-                    <div class="cleanup-stats">
-                        <div class="cleanup-stat">
-                            <div class="label">Jobs Deleted</div>
-                            <div class="value" style="color: #22c55e;">${response.jobs_count}</div>
-                        </div>
-                        <div class="cleanup-stat">
-                            <div class="label">Interviews</div>
-                            <div class="value" style="color: var(--text-primary);">${response.interviews_count}</div>
-                        </div>
-                        <div class="cleanup-stat">
-                            <div class="label">Notes</div>
-                            <div class="value" style="color: var(--text-primary);">${response.notes_count}</div>
-                        </div>
-                        <div class="cleanup-stat">
-                            <div class="label">Documents</div>
-                            <div class="value" style="color: var(--text-primary);">${response.documents_count}</div>
-                        </div>
-                    </div>
-                `;
-                showAlert(`Deleted ${response.jobs_count} old jobs successfully!`);
-            } catch (error) {
-                contentDiv.innerHTML = `<span style="color: #ef4444;">Error: ${error.message}</span>`;
-                showAlert('Failed to cleanup: ' + error.message, 'error');
-            }
-        }
-
-        async function cleanupDuplicates() {
-            const resultSpan = document.getElementById('duplicates-result');
-            resultSpan.textContent = 'Scanning...';
-            resultSpan.style.color = 'var(--text-muted)';
-
-            try {
-                const checkResponse = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE');
-
-                if (checkResponse.duplicates_count === 0) {
-                    resultSpan.textContent = 'No duplicates';
-                    resultSpan.style.color = '#22c55e';
-                    return;
-                }
-
-                if (!confirm(`Found ${checkResponse.duplicates_count} duplicate jobs. Delete them?`)) {
-                    resultSpan.textContent = `${checkResponse.duplicates_count} found`;
-                    resultSpan.style.color = '#f59e0b';
-                    return;
-                }
-
-                const deleteResponse = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE');
-                resultSpan.textContent = `${deleteResponse.duplicates_count} removed`;
-                resultSpan.style.color = '#22c55e';
-                showAlert(`Removed ${deleteResponse.duplicates_count} duplicate jobs!`);
-            } catch (error) {
-                resultSpan.textContent = 'Error';
-                resultSpan.style.color = '#ef4444';
-            }
-        }
-
-        let fetchProgressInterval = null;
-        let fetchStartTime = null;
-        let totalJobsToFetch = 0;
-
-        async function fetchMissingDescriptions() {
-            const resultSpan = document.getElementById('descriptions-result');
-            const progressContainer = document.getElementById('fetch-progress-container');
-            const fetchBtn = document.getElementById('fetch-desc-btn');
-
-            resultSpan.textContent = 'Starting...';
-            resultSpan.style.color = 'var(--text-muted)';
-            fetchBtn.disabled = true;
-            fetchBtn.textContent = 'Processing...';
-
-            try {
-                const response = await apiRequest('/ingest/fetch-all-descriptions', 'POST');
-
-                if (response.jobs_queued > 0) {
-                    totalJobsToFetch = response.jobs_queued;
-                    fetchStartTime = Date.now();
-                    resultSpan.textContent = `${response.jobs_queued} jobs queued`;
-                    resultSpan.style.color = '#8b5cf6';
-
-                    // Show progress bar
-                    progressContainer.style.display = 'block';
-                    document.getElementById('fetch-progress-stats').textContent = `0 / ${totalJobsToFetch}`;
-                    document.getElementById('fetch-progress-bar').style.width = '0%';
-
-                    // Start polling for progress
-                    startProgressPolling();
-                } else {
-                    resultSpan.textContent = 'No jobs need descriptions';
-                    resultSpan.style.color = '#f59e0b';
-                    fetchBtn.disabled = false;
-                    fetchBtn.textContent = 'Fetch All';
-                }
-            } catch (error) {
-                resultSpan.textContent = 'Error';
-                resultSpan.style.color = '#ef4444';
-                fetchBtn.disabled = false;
-                fetchBtn.textContent = 'Fetch All';
-                showAlert('Failed to start description fetch: ' + error.message, 'error');
-            }
-        }
-
-        function startProgressPolling() {
-            if (fetchProgressInterval) clearInterval(fetchProgressInterval);
-
-            fetchProgressInterval = setInterval(async () => {
-                try {
-                    const status = await apiRequest('/ingest/fetch-progress');
-                    updateProgressUI(status);
-
-                    if (status.status === 'completed' || status.status === 'idle') {
-                        clearInterval(fetchProgressInterval);
-                        fetchProgressInterval = null;
-                        completeProgress(status);
-                    }
-                } catch (error) {
-                    console.error('Progress check failed:', error);
-                }
-            }, 2000);
-        }
-
-        function updateProgressUI(status) {
-            const processed = status.processed || 0;
-            const total = status.total || totalJobsToFetch;
-            const updated = status.updated || 0;
-            const failed = status.failed || 0;
-            const percent = total > 0 ? Math.round((processed / total) * 100) : 0;
-
-            document.getElementById('fetch-progress-bar').style.width = `${percent}%`;
-            document.getElementById('fetch-progress-stats').textContent = `${processed} / ${total}`;
-            document.getElementById('fetch-progress-status').textContent = status.status === 'running' ? 'Processing...' : 'Waiting...';
-            document.getElementById('fetch-progress-updated').innerHTML = `Updated: <span style="color: #22c55e;">${updated}</span>`;
-            document.getElementById('fetch-progress-failed').innerHTML = `Failed: <span style="color: #ef4444;">${failed}</span>`;
-
-            // Calculate ETA
-            if (processed > 0 && fetchStartTime) {
-                const elapsed = (Date.now() - fetchStartTime) / 1000;
-                const rate = processed / elapsed;
-                const remaining = total - processed;
-                const etaSeconds = Math.round(remaining / rate);
-                const etaMin = Math.floor(etaSeconds / 60);
-                const etaSec = etaSeconds % 60;
-                document.getElementById('fetch-progress-eta').textContent = `ETA: ${etaMin}m ${etaSec}s`;
-            }
-        }
-
-        function completeProgress(status) {
-            const resultSpan = document.getElementById('descriptions-result');
-            const fetchBtn = document.getElementById('fetch-desc-btn');
-            const progressBar = document.getElementById('fetch-progress-bar');
-
-            progressBar.style.width = '100%';
-            progressBar.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
-
-            document.getElementById('fetch-progress-status').textContent = 'Completed!';
-            document.getElementById('fetch-progress-eta').textContent = '';
-
-            resultSpan.textContent = `Done! ${status.updated || 0} updated`;
-            resultSpan.style.color = '#22c55e';
-
-            fetchBtn.disabled = false;
-            fetchBtn.textContent = 'Fetch All';
-
-            showAlert(`Completed! Updated ${status.updated || 0} job descriptions, ${status.failed || 0} failed.`);
-
-            // Hide progress after 5 seconds
-            setTimeout(() => {
-                document.getElementById('fetch-progress-container').style.display = 'none';
-                progressBar.style.background = 'linear-gradient(90deg, #8b5cf6, #6366f1)';
-            }, 5000);
-        }
-
-        // ============== Celery Workers Functions ==============
-
+        // ============== Celery Functions ==============
         async function loadCeleryStatus() {
             const badge = document.getElementById('celery-status-badge');
-            const redisStatus = document.getElementById('redis-status');
-            const workersCount = document.getElementById('workers-count');
-            const workersList = document.getElementById('celery-workers-list');
-            const queuesInfo = document.getElementById('celery-queues-info');
+            const redis = document.getElementById('redis-status');
+            const workers = document.getElementById('workers-count');
+            const queues = document.getElementById('celery-queues-info');
 
             try {
                 const status = await apiRequest('/celery/status');
 
-                // Update badge
-                if (status.connected) {
-                    badge.className = 'status-badge success';
-                    badge.innerHTML = '<span class="status-dot"></span><span>Connected</span>';
-                } else {
-                    badge.className = 'status-badge warning';
-                    badge.innerHTML = '<span class="status-dot"></span><span>No Workers</span>';
-                }
+                badge.className = status.connected ? 'badge badge-success' : 'badge badge-warning';
+                badge.innerHTML = `<span class="badge-dot"></span>${status.connected ? 'Connected' : 'No Workers'}`;
 
-                // Update Redis status
-                redisStatus.textContent = status.redis_connected ? 'Connected' : 'Disconnected';
-                redisStatus.className = 'celery-value ' + (status.redis_connected ? 'online' : 'offline');
+                redis.textContent = status.redis_connected ? 'Connected' : 'Offline';
+                redis.className = 'value ' + (status.redis_connected ? 'online' : 'offline');
 
-                // Update workers count
-                workersCount.textContent = status.workers.length;
-                workersCount.className = 'celery-value ' + (status.workers.length > 0 ? 'online' : 'offline');
+                workers.textContent = status.workers.length;
+                workers.className = 'value ' + (status.workers.length > 0 ? 'online' : 'offline');
 
-                // Update workers list
-                if (status.workers.length > 0) {
-                    workersList.innerHTML = status.workers.map(w => `
-                        <div class="worker-item">
-                            <span class="worker-name">${escapeHtml(w.hostname)}</span>
-                            <span class="worker-stats">
-                                <span>Active: ${w.active_tasks}</span>
-                                <span>Processed: ${w.processed}</span>
-                                <span>Concurrency: ${w.concurrency}</span>
-                            </span>
-                        </div>
-                    `).join('');
-                } else {
-                    workersList.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; padding: 8px 0;">No workers online. Start a Celery worker to process tasks.</div>';
-                }
-
-                // Update queues
                 if (status.queues.length > 0) {
-                    queuesInfo.innerHTML = status.queues.map(q => `
-                        <div class="celery-queue-item">
-                            <span class="queue-name">${escapeHtml(q.name)}</span>
-                            <span class="queue-depth ${q.messages > 0 ? 'has-messages' : ''}">${q.messages}</span>
+                    queues.innerHTML = status.queues.map(q => `
+                        <div class="queue-pill">
+                            <span class="name">${escapeHtml(q.name)}</span>
+                            <span class="count ${q.messages > 0 ? 'active' : ''}">${q.messages}</span>
                         </div>
                     `).join('');
                 } else {
-                    queuesInfo.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">No queue info available</div>';
+                    queues.innerHTML = '<span style="color:var(--text-muted);">No queues</span>';
                 }
-
-            } catch (error) {
-                console.error('Failed to load Celery status:', error);
-                badge.className = 'status-badge error';
-                badge.innerHTML = '<span class="status-dot"></span><span>Error</span>';
-                redisStatus.textContent = 'Error';
-                redisStatus.className = 'celery-value offline';
+            } catch (e) {
+                badge.className = 'badge badge-danger';
+                badge.innerHTML = '<span class="badge-dot"></span>Error';
             }
         }
 
         async function loadCelerySchedules() {
             try {
                 const schedules = await apiRequest('/celery/schedules');
-
-                // Find interval setting
-                let intervalHours = 6;
-                let autoApplyEnabled = true;
-                let descFetchEnabled = true;
-
-                // Check if we have schedules data to infer settings
-                for (const schedule of schedules) {
-                    if (schedule.name.includes('scraper') || schedule.name.includes('scrape')) {
-                        // Parse schedule to get interval
-                        const match = schedule.schedule.match(/(\d+)\s*hours?/i);
-                        if (match) {
-                            intervalHours = parseInt(match[1]);
-                        }
+                let interval = 6, autoApply = true, descFetch = true;
+                for (const s of schedules) {
+                    if (s.name.includes('scraper')) {
+                        const m = s.schedule.match(/(\d+)\s*hours?/i);
+                        if (m) interval = parseInt(m[1]);
                     }
-                    if (schedule.name.includes('auto_apply') || schedule.name.includes('application')) {
-                        autoApplyEnabled = schedule.enabled;
-                    }
-                    if (schedule.name.includes('description')) {
-                        descFetchEnabled = schedule.enabled;
-                    }
+                    if (s.name.includes('auto_apply')) autoApply = s.enabled;
+                    if (s.name.includes('description')) descFetch = s.enabled;
                 }
-
-                // Update UI
-                document.getElementById('scraper-interval-hours').value = intervalHours;
-                document.getElementById('auto-apply-enabled').checked = autoApplyEnabled;
-                document.getElementById('description-fetch-enabled').checked = descFetchEnabled;
-
-            } catch (error) {
-                console.error('Failed to load Celery schedules:', error);
-            }
+                document.getElementById('scraper-interval-hours').value = interval;
+                document.getElementById('auto-apply-enabled').checked = autoApply;
+                document.getElementById('description-fetch-enabled').checked = descFetch;
+            } catch (e) { console.error(e); }
         }
 
         async function saveCelerySchedules() {
-            const statusSpan = document.getElementById('schedule-save-status');
-            statusSpan.textContent = 'Saving...';
-            statusSpan.style.color = 'var(--text-muted)';
-
-            const settings = {
-                scraper_interval_hours: parseInt(document.getElementById('scraper-interval-hours').value),
-                auto_apply_enabled: document.getElementById('auto-apply-enabled').checked,
-                description_fetch_enabled: document.getElementById('description-fetch-enabled').checked
-            };
-
             try {
-                await apiRequest('/celery/schedules', 'PUT', settings);
-                statusSpan.textContent = 'Saved!';
-                statusSpan.style.color = '#22c55e';
-                showAlert('Schedule settings saved. Restart Celery Beat for changes to take effect.');
-
-                setTimeout(() => {
-                    statusSpan.textContent = '';
-                }, 3000);
-            } catch (error) {
-                statusSpan.textContent = 'Error';
-                statusSpan.style.color = '#ef4444';
-                showAlert('Failed to save schedule settings: ' + error.message, 'error');
-            }
+                await apiRequest('/celery/schedules', 'PUT', {
+                    scraper_interval_hours: parseInt(document.getElementById('scraper-interval-hours').value),
+                    auto_apply_enabled: document.getElementById('auto-apply-enabled').checked,
+                    description_fetch_enabled: document.getElementById('description-fetch-enabled').checked
+                });
+                showAlert('Schedule saved');
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
         }
 
         async function triggerCeleryTask(taskName) {
-            const btn = event.target;
-            const originalText = btn.textContent;
+            const btn = event.target.closest('.action-btn');
             btn.disabled = true;
-            btn.textContent = 'Running...';
-
             try {
-                const response = await apiRequest('/celery/tasks/trigger', 'POST', { task_name: taskName });
-
-                if (response.status === 'dispatched') {
-                    showAlert(`Task ${taskName} triggered successfully! ID: ${response.task_id}`);
-                } else {
-                    showAlert(`Task ${taskName}: ${response.message}`, 'warning');
-                }
-
-                // Refresh status after a delay
-                setTimeout(() => {
-                    loadCeleryStatus();
-                    loadRecentTasks();
-                }, 2000);
-
-            } catch (error) {
-                showAlert('Failed to trigger task: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
+                const res = await apiRequest('/celery/tasks/trigger', 'POST', { task_name: taskName });
+                showAlert(`Task ${taskName} triggered`);
+                setTimeout(() => { loadCeleryStatus(); loadRecentTasks(); }, 2000);
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+            finally { btn.disabled = false; }
         }
 
         async function loadRecentTasks() {
             const container = document.getElementById('recent-tasks-container');
-
             try {
-                const tasks = await apiRequest('/celery/tasks/recent?limit=20');
-
+                const tasks = await apiRequest('/celery/tasks/recent?limit=15');
                 if (tasks.length === 0) {
-                    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; padding: 12px;">No recent tasks</div>';
+                    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No tasks</div>';
                     return;
                 }
-
-                container.innerHTML = tasks.map(task => `
-                    <div class="recent-task-item">
-                        <div class="task-detail">
-                            <span class="task-title">${escapeHtml(task.name)}</span>
-                            <span class="task-meta">${task.started_at ? formatRelativeTime(new Date(task.started_at)) : 'N/A'} ${task.args ? '- ' + escapeHtml(task.args) : ''}</span>
+                container.innerHTML = tasks.map(t => `
+                    <div class="task-item">
+                        <div>
+                            <div class="name">${escapeHtml(t.name)}</div>
+                            <div class="meta">${t.started_at ? formatRelativeTime(new Date(t.started_at)) : '--'}</div>
                         </div>
-                        <span class="task-status ${task.status.toLowerCase()}">${task.status}</span>
+                        <span class="badge badge-${t.status === 'SUCCESS' ? 'success' : 'danger'}">${t.status}</span>
                     </div>
                 `).join('');
-
-            } catch (error) {
-                console.error('Failed to load recent tasks:', error);
-                container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; padding: 12px;">Failed to load tasks</div>';
+            } catch (e) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Error</div>';
             }
+        }
+
+        // ============== Data Functions ==============
+        async function loadJobAgeFilter() {
+            try {
+                const res = await apiRequest('/settings/job-age-filter');
+                document.getElementById('max-job-age').value = res.max_job_age_days;
+            } catch (e) { console.error(e); }
+        }
+
+        async function saveJobAgeFilter() {
+            const days = document.getElementById('max-job-age').value;
+            const status = document.getElementById('job-age-status');
+            status.textContent = '...';
+            try {
+                await apiRequest('/settings/job-age-filter', 'POST', { days: parseInt(days) });
+                status.textContent = 'Saved';
+                status.style.color = '#22c55e';
+                setTimeout(() => { status.textContent = ''; }, 2000);
+            } catch (e) {
+                status.textContent = 'Error';
+                status.style.color = '#ef4444';
+            }
+        }
+
+        async function previewCleanup() {
+            const days = document.getElementById('cleanup-days').value;
+            const result = document.getElementById('cleanup-result');
+            const content = document.getElementById('cleanup-result-content');
+            result.style.display = 'block';
+            content.innerHTML = '<div style="text-align:center;color:var(--text-muted);">Analyzing...</div>';
+
+            try {
+                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE');
+                content.innerHTML = `
+                    <div class="cleanup-stat"><div class="value" style="color:#ef4444;">${res.jobs_count}</div><div class="label">Jobs</div></div>
+                    <div class="cleanup-stat"><div class="value">${res.interviews_count}</div><div class="label">Interviews</div></div>
+                    <div class="cleanup-stat"><div class="value">${res.notes_count}</div><div class="label">Notes</div></div>
+                    <div class="cleanup-stat"><div class="value">${res.documents_count}</div><div class="label">Docs</div></div>
+                `;
+            } catch (e) { content.innerHTML = `<div style="color:#ef4444;">Error: ${e.message}</div>`; }
+        }
+
+        async function executeCleanup() {
+            const days = document.getElementById('cleanup-days').value;
+            if (!confirm(`Delete all jobs older than ${days} days?`)) return;
+
+            const result = document.getElementById('cleanup-result');
+            const content = document.getElementById('cleanup-result-content');
+            result.style.display = 'block';
+            content.innerHTML = '<div style="text-align:center;color:var(--text-muted);">Deleting...</div>';
+
+            try {
+                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE');
+                content.innerHTML = `<div style="color:#22c55e;font-weight:600;text-align:center;">Deleted ${res.jobs_count} jobs</div>`;
+                showAlert(`Deleted ${res.jobs_count} jobs`);
+            } catch (e) { content.innerHTML = `<div style="color:#ef4444;">Error: ${e.message}</div>`; }
+        }
+
+        async function cleanupDuplicates() {
+            const status = document.getElementById('duplicates-result');
+            status.textContent = 'Scanning...';
+            try {
+                const check = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE');
+                if (check.duplicates_count === 0) {
+                    status.textContent = 'None found';
+                    status.style.color = '#22c55e';
+                    return;
+                }
+                if (!confirm(`Found ${check.duplicates_count} duplicates. Remove?`)) {
+                    status.textContent = `${check.duplicates_count} found`;
+                    return;
+                }
+                const res = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE');
+                status.textContent = `${res.duplicates_count} removed`;
+                status.style.color = '#22c55e';
+            } catch (e) { status.textContent = 'Error'; status.style.color = '#ef4444'; }
+        }
+
+        let fetchProgressInterval = null;
+        async function fetchMissingDescriptions() {
+            const status = document.getElementById('descriptions-result');
+            const btn = document.getElementById('fetch-desc-btn');
+            const progress = document.getElementById('fetch-progress-container');
+
+            status.textContent = 'Starting...';
+            btn.disabled = true;
+
+            try {
+                const res = await apiRequest('/ingest/fetch-all-descriptions', 'POST');
+                if (res.jobs_queued > 0) {
+                    progress.classList.add('visible');
+                    fetchProgressInterval = setInterval(() => pollFetchProgress(), 3000);
+                } else {
+                    status.textContent = 'No jobs to fetch';
+                    status.style.color = '#22c55e';
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                status.textContent = 'Error';
+                status.style.color = '#ef4444';
+                btn.disabled = false;
+            }
+        }
+
+        async function pollFetchProgress() {
+            try {
+                const s = await apiRequest('/ingest/fetch-descriptions-status');
+                const pct = s.total > 0 ? Math.round((s.processed / s.total) * 100) : 0;
+                document.getElementById('fetch-progress-bar').style.width = `${pct}%`;
+                document.getElementById('fetch-progress-status').textContent = s.status === 'completed' ? 'Done!' : 'Processing...';
+                document.getElementById('fetch-progress-stats').textContent = `${s.processed} / ${s.total}`;
+
+                if (s.status === 'completed' || s.status === 'idle') {
+                    clearInterval(fetchProgressInterval);
+                    document.getElementById('descriptions-result').textContent = `Done! ${s.updated || 0} updated`;
+                    document.getElementById('descriptions-result').style.color = '#22c55e';
+                    document.getElementById('fetch-desc-btn').disabled = false;
+                    setTimeout(() => { document.getElementById('fetch-progress-container').classList.remove('visible'); }, 3000);
+                }
+            } catch (e) { clearInterval(fetchProgressInterval); }
         }
     </script>
 </body>
