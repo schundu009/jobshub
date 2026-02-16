@@ -101,11 +101,11 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     access_token, _ = create_access_token(user.id, user.email, user.role)
     refresh_token, _ = create_refresh_token(user.id)
 
-    # Determine redirect path based on portal
+    # Determine redirect URL based on portal (separate domains)
     if portal == "jobs":
-        login_path = "/jobs/login.html"
+        base_url = "https://jobs.cariara.com/login.html"
     else:
-        login_path = "/admin/login.html"
+        base_url = "https://admin.cariara.com/login.html"
 
     # URL encode the user name to handle special characters
     encoded_name = urllib.parse.quote(user.name or '')
@@ -121,7 +121,7 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
 
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
-        f"{settings.oauth_redirect_base}{login_path}"
+        f"{base_url}"
         f"#access_token={access_token}"
         f"&refresh_token={refresh_token}"
         f"&user_id={user.id}"
@@ -176,8 +176,8 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
 
     except Exception as e:
         # Redirect to login with error
-        login_path = "/jobs/login.html" if portal == "jobs" else "/admin/login.html"
-        error_url = f"{settings.oauth_redirect_base}{login_path}#error=oauth_failed&message={str(e)}"
+        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else "https://admin.cariara.com/login.html"
+        error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
 
@@ -242,8 +242,8 @@ async def github_callback(request: Request, db: Session = Depends(get_db)):
             return create_frontend_redirect(user, portal)
 
     except Exception as e:
-        login_path = "/jobs/login.html" if portal == "jobs" else "/admin/login.html"
-        error_url = f"{settings.oauth_redirect_base}{login_path}#error=oauth_failed&message={str(e)}"
+        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else "https://admin.cariara.com/login.html"
+        error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
 
@@ -351,6 +351,6 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
             return create_frontend_redirect(user, portal)
 
     except Exception as e:
-        login_path = "/jobs/login.html" if portal == "jobs" else "/admin/login.html"
-        error_url = f"{settings.oauth_redirect_base}{login_path}#error=oauth_failed&message={str(e)}"
+        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else "https://admin.cariara.com/login.html"
+        error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)

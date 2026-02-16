@@ -3,13 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Redirecting...</title>
+    <title>Cariara Admin - Login</title>
     <script>
-        // Redirect to main login page
-        window.location.href = 'https://jobs.cariara.com/login.html';
+        // Check for OAuth callback tokens in URL hash
+        const hash = window.location.hash.substring(1);
+        if (hash && hash.includes('access_token')) {
+            // Parse tokens from OAuth callback
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
+            const userId = params.get('user_id');
+            const userEmail = params.get('user_email');
+            const userName = decodeURIComponent(params.get('user_name') || '');
+            const userRole = params.get('user_role');
+            const onboardingCompleted = params.get('onboarding_completed') === 'true';
+            const rolesConfirmed = params.get('roles_confirmed') === 'true';
+            const jobRoles = params.get('job_roles') ? JSON.parse(decodeURIComponent(params.get('job_roles'))) : [];
+
+            if (accessToken && refreshToken) {
+                // Store tokens
+                localStorage.setItem('access_token', accessToken);
+                localStorage.setItem('refresh_token', refreshToken);
+                localStorage.setItem('user', JSON.stringify({
+                    id: userId,
+                    email: userEmail,
+                    name: userName,
+                    role: userRole,
+                    onboarding_completed: onboardingCompleted,
+                    roles_confirmed: rolesConfirmed,
+                    job_roles: jobRoles
+                }));
+
+                // Redirect to admin dashboard
+                window.location.href = '/index.html';
+            } else {
+                // Invalid OAuth callback, redirect to jobs login
+                window.location.href = 'https://jobs.cariara.com/login.html';
+            }
+        } else {
+            // No OAuth tokens, redirect to jobs login
+            window.location.href = 'https://jobs.cariara.com/login.html';
+        }
     </script>
 </head>
 <body>
-    <p>Redirecting to login...</p>
+    <p>Processing login...</p>
 </body>
 </html>
