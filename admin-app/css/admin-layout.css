@@ -884,11 +884,14 @@
     color: var(--error);
 }
 
-/* Admin User Section */
-.admin-user-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+/* Admin User Info Section (Independent) */
+.admin-user-info-section {
+    margin-bottom: 12px;
+}
+
+/* Admin Signout Section (Independent) */
+.admin-signout-section {
+    /* Separate from user info */
 }
 
 .admin-user-info {

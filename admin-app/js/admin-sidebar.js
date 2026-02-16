@@ -84,8 +84,11 @@ function renderAdminSidebar(activePageId) {
                 ${navHtml}
             </nav>
             <div class="admin-sidebar-footer">
-                <div class="admin-user-section" id="admin-user-section">
+                <div class="admin-user-info-section" id="admin-user-info-section">
                     <!-- User info will be populated by JS -->
+                </div>
+                <div class="admin-signout-section" id="admin-signout-section">
+                    <!-- Signout will be populated by JS -->
                 </div>
             </div>
         </aside>
@@ -182,31 +185,40 @@ function adminLogout() {
     window.location.href = '/login.html';
 }
 
-// Update user info in sidebar
+// Update user info in sidebar (independent from signout)
 function updateAdminUserInfo() {
-    const userSection = document.getElementById('admin-user-section');
-    if (!userSection) return;
+    const userInfoSection = document.getElementById('admin-user-info-section');
+    const signoutSection = document.getElementById('admin-signout-section');
 
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const name = user.name || 'Admin';
-    const email = user.email || '';
-    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'A';
-    const role = user.role || 'admin';
-    const roleDisplay = role === 'admin' ? 'Administrator' : role.charAt(0).toUpperCase() + role.slice(1);
+    // Populate user info section
+    if (userInfoSection) {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const name = user.name || 'Admin';
+        const email = user.email || '';
+        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'A';
+        const role = user.role || 'admin';
+        const roleDisplay = role === 'admin' ? 'Administrator' : role.charAt(0).toUpperCase() + role.slice(1);
 
-    userSection.innerHTML = `
-        <div class="admin-user-info">
-            <div class="admin-user-avatar">${initials}</div>
-            <div class="admin-user-details">
-                <div class="admin-user-name">${name}</div>
-                <div class="admin-user-email">${email || roleDisplay}</div>
+        userInfoSection.innerHTML = `
+            <div class="admin-user-info">
+                <div class="admin-user-avatar">${initials}</div>
+                <div class="admin-user-details">
+                    <div class="admin-user-name">${name}</div>
+                    <div class="admin-user-email">${email || roleDisplay}</div>
+                </div>
             </div>
-        </div>
-        <button class="admin-logout-btn" onclick="adminLogout()" title="Sign Out">
-            ${getNavIcon('logout', 16)}
-            <span>Sign Out</span>
-        </button>
-    `;
+        `;
+    }
+
+    // Populate signout section (independent)
+    if (signoutSection) {
+        signoutSection.innerHTML = `
+            <button class="admin-logout-btn" onclick="adminLogout()" title="Sign Out">
+                ${getNavIcon('logout', 16)}
+                <span>Sign Out</span>
+            </button>
+        `;
+    }
 }
 
 // Theme toggle function
