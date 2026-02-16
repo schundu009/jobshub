@@ -4600,6 +4600,8 @@
                     jobsToDisplay.sort((a, b) => b.relevance_score - a.relevance_score);
                 }
 
+                console.log('[JobFilter] Jobs to display:', jobsToDisplay.length);
+
                 if (gridApi) {
                     gridApi.setGridOption('rowData', jobsToDisplay);
                     if (currentRole) {
@@ -4612,7 +4614,10 @@
                     gridApi.hideOverlay();
                     if (jobsToDisplay.length === 0) {
                         gridApi.showNoRowsOverlay();
+                        console.warn('[JobFilter] No jobs to display after filtering');
                     }
+                } else {
+                    console.error('[JobFilter] gridApi is null - AG Grid not initialized');
                 }
 
                 // Update freshness badge
@@ -4632,6 +4637,8 @@
 
             } catch (error) {
                 console.error('Failed to load jobs:', error);
+                // Show error message to user
+                alert('Failed to load jobs: ' + (error.message || error));
                 // Hide loading overlay and show no rows on error
                 if (gridApi) {
                     gridApi.hideOverlay();
