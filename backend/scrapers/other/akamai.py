@@ -1,93 +1,176 @@
-"""Akamai job scraper - uses Workday API."""
+"""
+Akamai Jobs Scraper.
 
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
-from scrapers.registry import ScraperRegistry
-from typing import List, Optional
+Uses Playwright for jobs.akamai.com (Oracle Cloud HCM).
+"""
+
 from datetime import datetime
+from typing import Optional
+import re
+
+from scrapers.base import (
+    PlaywrightScraper,
+    ScraperConfig,
+    ScraperType,
+    ScrapedJob,
+    ScrapeResult,
+)
+from scrapers.registry import ScraperRegistry
 
 
 @ScraperRegistry.register(category="other")
-class AkamaiScraper(HTTPScraper):
-    """Scraper for Akamai careers (Workday)."""
+class AkamaiOracleScraper(PlaywrightScraper):
+    """Scraper for Akamai careers (Oracle Cloud HCM)."""
 
     config = ScraperConfig(
         company_slug="akamai",
         company_name="Akamai",
-        careers_url="https://www.akamai.com/careers",
-        scraper_type=ScraperType.HTTP,
-        rate_limit=20,
-        max_pages=50,
+        careers_url="https://fa-extu-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/jobs",
+        scraper_type=ScraperType.PLAYWRIGHT,
+        rate_limit=5,
+        page_timeout=60,
+        max_pages=30,
     )
 
-    API_URL = "https://akamaicareers.wd1.myworkdayjobs.com/wday/cxs/akamaicareers/search/jobs"
+    BASE_URL = "https://fa-extu-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/jobs"
 
     async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        offset = 0
-        limit = 20
+        """Scrape Akamai careers using Playwright."""
+        all_jobs = []
+        page_num = 1
 
-        while offset < self.config.max_pages * limit:
-            payload = {
-                "appliedFacets": {},
-                "limit": limit,
-                "offset": offset,
-                "searchText": ""
-            }
-
-            data = await self.fetch_json(self.API_URL, method="POST", payload=payload)
-            if not data:
-                break
-
-            job_postings = data.get("jobPostings", [])
-            if not job_postings:
-                break
-
-            for job in job_postings:
-                parsed = self.parse_job(job)
-                if parsed:
-                    all_jobs.append(parsed)
-
-            total = data.get("total", 0)
-            offset += limit
-            if offset >= total:
-                break
-
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            jobs_found=len(all_jobs),
-            error_message=None
-        )
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        page = await self.get_page()
         try:
-            title = raw.get("title", "")
-            external_id = raw.get("bulletFields", [""])[0] if raw.get("bulletFields") else ""
-            location = raw.get("locationsText", "")
-            posted_on = raw.get("postedOn", "")
+            # Navigate to jobs page
+            await page.goto(self.BASE_URL, wait_until="networkidle")
+            await page.wait_for_timeout(5000)
 
-            posted_date = None
-            if posted_on:
+            while page_num <= self.config.max_pages:
+                # Wait for job list to load - Oracle HCM uses specific selectors
                 try:
-                    posted_date = datetime.strptime(posted_on, "%Y-%m-%dT%H:%M:%S.%f%z")
-                except:
-                    try:
-                        posted_date = datetime.strptime(posted_on.split("T")[0], "%Y-%m-%d")
-                    except:
-                        pass
+                    await page.wait_for_selector(
+                        "[class*='job-list'] a, [class*='requisition'], a[href*='/job/'], a[href*='requisitionId']",
+                        timeout=15000
+                    )
+                except Exception:
+                    self.logger.info(f"Job list not found on page {page_num}")
+                    break
 
-            job_path = raw.get("externalPath", "")
-            job_url = f"https://akamaicareers.wd1.myworkdayjobs.com/en-US/search{job_path}"
+                # Get job cards
+                cards = await page.query_selector_all(
+                    "a[href*='/job/'], a[href*='requisitionId'], [class*='job-card'] a, [class*='requisition-list'] a"
+                )
+
+                if not cards:
+                    self.logger.info(f"No job cards found on page {page_num}")
+                    break
+
+                self.logger.info(f"Found {len(cards)} job cards on page {page_num}")
+
+                for card in cards:
+                    job = await self._parse_job_card(card)
+                    if job and job.external_job_id:
+                        # Deduplicate
+                        if not any(j.external_job_id == job.external_job_id for j in all_jobs):
+                            all_jobs.append(job)
+
+                # Try pagination
+                next_btn = await page.query_selector(
+                    "button[aria-label='Next'], a[aria-label='Next page'], "
+                    "[class*='pagination'] button:last-child:not([disabled])"
+                )
+
+                if next_btn:
+                    is_disabled = await next_btn.get_attribute("disabled")
+                    if not is_disabled:
+                        try:
+                            await next_btn.click()
+                            await page.wait_for_timeout(3000)
+                            page_num += 1
+                            continue
+                        except Exception as e:
+                            self.logger.warning(f"Could not click next: {e}")
+
+                # Try scrolling for infinite scroll
+                prev_count = len(all_jobs)
+                for _ in range(3):
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    await page.wait_for_timeout(2000)
+
+                new_cards = await page.query_selector_all("a[href*='/job/'], a[href*='requisitionId']")
+                if len(new_cards) <= len(cards) and len(all_jobs) == prev_count:
+                    break
+
+                page_num += 1
+
+            return ScrapeResult(
+                success=True,
+                jobs=all_jobs,
+                pages_scraped=page_num,
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error scraping Akamai: {e}")
+            return ScrapeResult(
+                success=False,
+                jobs=all_jobs,
+                error_message=str(e),
+            )
+
+        finally:
+            await self.release_page(page)
+
+    async def _parse_job_card(self, card) -> Optional[ScrapedJob]:
+        """Parse a job card element."""
+        try:
+            href = await card.get_attribute("href")
+
+            if not href:
+                return None
+
+            # Extract job ID from URL
+            job_id = ""
+            match = re.search(r'requisitionId[=/](\d+)', href)
+            if match:
+                job_id = match.group(1)
+            else:
+                match = re.search(r'/job/(\d+)', href)
+                if match:
+                    job_id = match.group(1)
+
+            if not job_id:
+                return None
+
+            job_url = href if href.startswith("http") else f"https://fa-extu-saasfaprod1.fa.ocs.oraclecloud.com{href}"
+
+            # Get title
+            title = ""
+            title_el = await card.query_selector("h2, h3, [class*='title'], [class*='job-name']")
+            if title_el:
+                title = await title_el.text_content()
+            else:
+                title = await card.text_content()
+                if title:
+                    lines = [l.strip() for l in title.split('\n') if l.strip()]
+                    title = lines[0] if lines else ""
+
+            # Get location
+            location = ""
+            loc_el = await card.query_selector("[class*='location'], [class*='Location']")
+            if loc_el:
+                location = await loc_el.text_content()
 
             return ScrapedJob(
-                title=title,
-                location=location,
+                title=self.clean_text(title) or f"Akamai Position {job_id}",
+                location=self.clean_text(location) or "",
                 job_url=job_url,
-                external_job_id=external_id or job_path,
-                job_description="",
-                department="",
-                posted_date=posted_date,
+                external_job_id=job_id,
+                department=None,
             )
         except Exception as e:
-            self.logger.error(f"Error parsing job: {e}")
+            self.logger.warning(f"Error parsing job card: {e}")
             return None
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        """Parse raw job data (not used for Playwright scraper)."""
+        return None
