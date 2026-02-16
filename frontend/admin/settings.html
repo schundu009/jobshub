@@ -598,6 +598,120 @@
             min-width: 60px;
             text-align: right;
         }
+
+        /* Scraper Status Styles */
+        .scraper-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .scraper-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-default);
+            background: var(--bg-tertiary);
+        }
+
+        .scraper-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+
+        .scraper-table tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .scraper-table .company-name {
+            font-weight: 500;
+        }
+
+        .scraper-table .mono {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .health-indicator.healthy {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .health-indicator.warning {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .health-indicator.critical {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .health-indicator.unknown {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+        }
+
+        .scraper-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .scraper-summary-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .scraper-summary-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .scraper-summary-card .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .scraper-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+        }
+
+        .scraper-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .scraper-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -790,6 +904,71 @@
                 </div>
             </div>
 
+            <!-- Scraper Status -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <h3>
+                        <div class="card-header-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        Scraper Status
+                    </h3>
+                    <button class="btn-modern secondary" onclick="refreshScraperStatus()" id="refresh-scraper-btn">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="scraper-summary" class="scraper-summary-grid">
+                        <div class="scraper-summary-card">
+                            <div class="value" style="color: var(--text-primary);" id="scraper-total">--</div>
+                            <div class="label">Total Scrapers</div>
+                        </div>
+                        <div class="scraper-summary-card">
+                            <div class="value" style="color: #22c55e;" id="scraper-healthy">--</div>
+                            <div class="label">Healthy</div>
+                        </div>
+                        <div class="scraper-summary-card">
+                            <div class="value" style="color: #fbbf24;" id="scraper-warning">--</div>
+                            <div class="label">Warning</div>
+                        </div>
+                        <div class="scraper-summary-card">
+                            <div class="value" style="color: #ef4444;" id="scraper-critical">--</div>
+                            <div class="label">Critical</div>
+                        </div>
+                    </div>
+
+                    <div class="scraper-table-container">
+                        <table class="scraper-table">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Status</th>
+                                    <th>Last Success</th>
+                                    <th>Failures</th>
+                                    <th>Active Jobs</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scraper-table-body">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                        Loading scraper status...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="scraper-error" style="display: none; padding: 16px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; margin-top: 16px;">
+                    </div>
+                </div>
+            </div>
+
             <!-- Data Management -->
             <div class="settings-card">
                 <div class="card-header">
@@ -885,6 +1064,7 @@
             });
             await checkApiKeyStatus();
             await loadJobAgeFilter();
+            await loadScraperStatus();
             if (currentBatchJobId) checkBatchStatus(true);
         });
 
@@ -916,6 +1096,150 @@
                 statusSpan.textContent = 'Failed';
                 statusSpan.style.color = '#ef4444';
                 showAlert('Failed to save: ' + error.message, 'error');
+            }
+        }
+
+        // Scraper Status Functions
+        async function loadScraperStatus() {
+            try {
+                const status = await apiRequest('/scrapers/status');
+                renderScraperStatus(status);
+            } catch (error) {
+                console.error('Failed to load scraper status:', error);
+                document.getElementById('scraper-error').style.display = 'block';
+                document.getElementById('scraper-error').textContent = 'Failed to load scraper status: ' + error.message;
+            }
+        }
+
+        async function refreshScraperStatus() {
+            const btn = document.getElementById('refresh-scraper-btn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refreshing...
+            `;
+
+            try {
+                await loadScraperStatus();
+                showAlert('Scraper status refreshed');
+            } catch (error) {
+                showAlert('Failed to refresh: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function renderScraperStatus(scrapers) {
+            // Calculate summary
+            let healthy = 0, warning = 0, critical = 0;
+
+            scrapers.forEach(s => {
+                const health = getScraperHealth(s);
+                if (health === 'healthy') healthy++;
+                else if (health === 'warning') warning++;
+                else if (health === 'critical') critical++;
+            });
+
+            // Update summary cards
+            document.getElementById('scraper-total').textContent = scrapers.length;
+            document.getElementById('scraper-healthy').textContent = healthy;
+            document.getElementById('scraper-warning').textContent = warning;
+            document.getElementById('scraper-critical').textContent = critical;
+
+            // Sort scrapers: critical first, then warning, then healthy
+            scrapers.sort((a, b) => {
+                const order = { critical: 0, warning: 1, healthy: 2, unknown: 3 };
+                return order[getScraperHealth(a)] - order[getScraperHealth(b)];
+            });
+
+            // Render table
+            const tbody = document.getElementById('scraper-table-body');
+
+            if (scrapers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                            No scrapers configured
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = scrapers.map(s => {
+                const health = getScraperHealth(s);
+                const healthLabel = health.charAt(0).toUpperCase() + health.slice(1);
+                const lastSuccess = s.last_success_at ? formatRelativeTime(s.last_success_at) : 'Never';
+
+                return `
+                    <tr>
+                        <td class="company-name">${escapeHtml(s.company_name)}</td>
+                        <td>
+                            <span class="health-indicator ${health}">
+                                <span class="status-dot"></span>
+                                ${healthLabel}
+                            </span>
+                        </td>
+                        <td class="mono">${lastSuccess}</td>
+                        <td style="color: ${s.consecutive_failures > 0 ? '#ef4444' : 'var(--text-secondary)'};">
+                            ${s.consecutive_failures}
+                        </td>
+                        <td>${s.active_jobs.toLocaleString()}</td>
+                        <td>
+                            <button class="btn-modern secondary" onclick="runScraper('${escapeHtml(s.company_slug)}')" style="padding: 4px 10px; font-size: 11px;">
+                                Run
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getScraperHealth(scraper) {
+            if (!scraper.is_enabled) return 'unknown';
+            if (scraper.consecutive_failures >= 5) return 'critical';
+            if (scraper.consecutive_failures >= 2) return 'warning';
+            if (!scraper.last_success_at) return 'unknown';
+
+            // Check if last success was more than 7 days ago
+            const lastSuccess = new Date(scraper.last_success_at);
+            const daysSinceSuccess = (Date.now() - lastSuccess.getTime()) / (1000 * 60 * 60 * 24);
+            if (daysSinceSuccess > 7) return 'warning';
+
+            return 'healthy';
+        }
+
+        function formatRelativeTime(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        async function runScraper(slug) {
+            try {
+                const data = await apiRequest(`/scrapers/${slug}/run`, 'POST');
+                showAlert(`Scraper triggered for ${slug}. Task ID: ${data.task_id}`);
+            } catch (error) {
+                showAlert('Failed to trigger scraper: ' + error.message, 'error');
             }
         }
 
