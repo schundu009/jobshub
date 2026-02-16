@@ -162,6 +162,11 @@ class CircleCIScraper(GreenhouseMixin, HTTPScraper):
     API_URL = "https://boards-api.greenhouse.io/v1/boards/circleci/jobs"
 
 @ScraperRegistry.register(category="custom")
+class CohereHealthScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="coherehealth", company_name="Cohere Health", careers_url="https://www.coherehealth.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/coherehealth/jobs"
+
+@ScraperRegistry.register(category="custom")
 class CrusoeEnergyScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="crusoeenergy", company_name="Crusoe Energy", careers_url="https://crusoe.ai/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/crusoe/jobs"
@@ -287,6 +292,11 @@ class RelaceScraper(AshbyMixin, HTTPScraper):
 class ResendScraper(AshbyMixin, HTTPScraper):
     config = ScraperConfig(company_slug="resend", company_name="Resend", careers_url="https://resend.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://api.ashbyhq.com/posting-api/job-board/resend"
+
+@ScraperRegistry.register(category="custom")
+class CohereScraper(AshbyMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="cohere", company_name="Cohere", careers_url="https://jobs.ashbyhq.com/cohere", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/cohere"
 
 
 # SmartRecruiters Scrapers
