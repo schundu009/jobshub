@@ -182,8 +182,8 @@ a:hover {
 /* Sidebar - Dark Navy */
 .sidebar {
     width: 220px;
-    background: var(--sidebar-bg, #0f172a);
-    border-right: 1px solid var(--sidebar-border, #1e293b);
+    background: #0f172a !important;
+    border-right: 1px solid #1e293b !important;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -196,18 +196,20 @@ a:hover {
 
 .sidebar-header {
     padding: 20px;
-    border-bottom: 1px solid var(--sidebar-border, #1e293b);
+    border-bottom: 1px solid #1e293b !important;
+    background: #0f172a !important;
 }
 
 .sidebar-header h1 {
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff;
+    color: #ffffff !important;
 }
 
 .sidebar-nav {
     flex: 1;
     padding: 12px 8px;
+    background: #0f172a !important;
 }
 
 .sidebar-nav a {
@@ -215,7 +217,7 @@ a:hover {
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    color: var(--sidebar-text, #94a3b8);
+    color: #94a3b8 !important;
     text-decoration: none;
     border-radius: 4px;
     margin-bottom: 2px;
@@ -224,19 +226,72 @@ a:hover {
 }
 
 .sidebar-nav a:hover {
-    background: var(--sidebar-hover, #1e293b);
-    color: #ffffff;
+    background: #1e293b !important;
+    color: #ffffff !important;
 }
 
 .sidebar-nav a.active {
-    background: var(--accent-primary);
-    color: #ffffff;
+    background: #14b8a6 !important;
+    color: #ffffff !important;
 }
 
 .sidebar-nav a svg {
     width: 18px;
     height: 18px;
     opacity: 0.7;
+}
+
+/* Sidebar section titles - always light on dark */
+.nav-section-title {
+    color: #64748b !important;
+}
+
+/* Sidebar filter sections - always light on dark */
+.sidebar-filter-title {
+    color: #64748b !important;
+}
+
+.sidebar-filter-item {
+    color: #94a3b8 !important;
+}
+
+.sidebar-filter-item:hover {
+    background: #1e293b !important;
+    color: #ffffff !important;
+}
+
+.sidebar-filter-item.active {
+    background: rgba(20, 184, 166, 0.2) !important;
+    color: #14b8a6 !important;
+}
+
+.sidebar-filter-item .filter-count {
+    color: #64748b !important;
+    background: #1e293b !important;
+}
+
+.sidebar-company-item {
+    color: #94a3b8 !important;
+}
+
+.sidebar-company-item:hover {
+    background: #1e293b !important;
+    color: #ffffff !important;
+}
+
+.sidebar-company-item.active {
+    background: rgba(20, 184, 166, 0.2) !important;
+    color: #14b8a6 !important;
+}
+
+.sidebar-company-item .company-initial {
+    background: #1e293b !important;
+    color: #14b8a6 !important;
+}
+
+.sidebar-company-item .company-count {
+    color: #64748b !important;
+    background: #1e293b !important;
 }
 
 /* Main Content */
