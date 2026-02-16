@@ -255,7 +255,7 @@
             font-weight: 600;
         }
         .status-badge.applied { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
-        .status-badge.queued { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .status-badge.queued { background: rgba(20, 184, 166, 0.15); color: #14b8a6; }
         .status-badge.new { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 
         .spinner {
@@ -489,7 +489,7 @@
                     </div>
                 </div>
                 <div class="apply-actions">
-                    ${job.job_url ? `<button onclick="openSmartApply()" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);">
+                    ${job.job_url ? `<button onclick="openSmartApply()" class="btn btn-primary" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                         Smart Apply (AI)
                     </button>` : ''}
@@ -594,7 +594,7 @@
                     showToast('Application queued for processing! Check Auto Apply page for status.', 'success');
                 }
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Queued!';
-                btn.style.background = '#8b5cf6';
+                btn.style.background = '#14b8a6';
 
             } catch (error) {
                 showToast(error.message || 'Failed to submit application', 'error');
@@ -634,7 +634,7 @@
                 showToast('Job added to apply queue!', 'success');
                 if (btn) {
                     btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Queued!';
-                    btn.style.background = '#8b5cf6';
+                    btn.style.background = '#14b8a6';
                 }
             } catch (error) {
                 showToast(error.message || 'Failed to add to queue', 'error');
@@ -773,7 +773,7 @@
         <div style="position:relative; width:95%; max-width:1200px; height:90vh; background:var(--bg-primary); border-radius:16px; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
             <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--bg-secondary); border-bottom:1px solid var(--border-color);">
                 <h3 style="margin:0; font-size:18px; font-weight:600; color:var(--text-primary);">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; vertical-align:middle; margin-right:8px; color:#8b5cf6;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; vertical-align:middle; margin-right:8px; color:#14b8a6;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     Smart Apply (AI)
                 </h3>
                 <button onclick="closeSmartApply()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); padding:8px;">
