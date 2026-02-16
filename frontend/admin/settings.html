@@ -1348,25 +1348,15 @@
             `;
 
             try {
-                console.log('Triggering scrapers webhook...');
-                const response = await fetch('https://cariara-backend.up.railway.app/api/scrapers/webhook/trigger?secret=cariara-scrape-2024', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                console.log('Triggering scrapers via authenticated endpoint...');
+                const data = await apiRequest('/scrapers/run-all', {
+                    method: 'POST'
                 });
 
-                console.log('Webhook response status:', response.status);
-                const data = await response.json();
-                console.log('Webhook response data:', data);
-
-                if (response.ok) {
-                    showAlert(`Scrapers triggered successfully! Task ID: ${data.task_id}`, 'success');
-                } else {
-                    showAlert('Failed to trigger scrapers: ' + (data.detail || data.message || 'Unknown error'), 'error');
-                }
+                console.log('Scraper trigger response:', data);
+                showAlert(`Scrapers triggered successfully! Task ID: ${data.task_id}`, 'success');
             } catch (error) {
-                console.error('Webhook error:', error);
+                console.error('Scraper trigger error:', error);
                 showAlert('Failed to trigger scrapers: ' + error.message, 'error');
             } finally {
                 // Restore button state
