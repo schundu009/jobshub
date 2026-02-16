@@ -118,8 +118,9 @@ function renderAdminTopbar(title, breadcrumb = null) {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
                     </svg>
                 </button>
-                <button class="admin-topbar-btn admin-signout-btn" onclick="adminLogout()" title="Sign Out">
-                    ${getNavIcon('logout', 20)}
+                <button class="admin-signout-btn" onclick="adminLogout()" title="Sign Out">
+                    ${getNavIcon('logout', 18)}
+                    <span>Sign Out</span>
                 </button>
                 <a href="https://jobs.cariara.com/" class="admin-topbar-btn" title="Job Seeker Portal" target="_blank">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

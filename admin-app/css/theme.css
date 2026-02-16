@@ -1102,6 +1102,20 @@ header .theme-toggle button:hover {
     color: #ef4444 !important;
 }
 
+[data-theme="light"] .admin-signout-btn,
+:root .admin-signout-btn {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+}
+
+[data-theme="light"] .admin-signout-btn:hover,
+:root .admin-signout-btn:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #ef4444 !important;
+}
+
 [data-theme="light"] .admin-topbar,
 :root .admin-topbar {
     background: #ffffff !important;
@@ -1214,6 +1228,18 @@ header .theme-toggle button:hover {
 [data-theme="dark"] .admin-topbar-btn:hover {
     background: #334155 !important;
     color: #ffffff !important;
+}
+
+[data-theme="dark"] .admin-signout-btn {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .admin-signout-btn:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #ef4444 !important;
 }
 
 [data-theme="dark"] .admin-content {
