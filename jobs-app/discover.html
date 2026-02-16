@@ -612,6 +612,12 @@
                 height: auto;
             }
 
+            .grid-section {
+                width: 100%;
+                min-height: 400px;
+                height: auto;
+            }
+
             .job-detail-panel {
                 display: none;  /* Hide on mobile - use job detail page instead */
             }
@@ -805,7 +811,7 @@
             .grid-container {
                 height: auto;
                 min-height: 400px;
-                max-height: calc(100vh - 320px);
+                max-height: none;  /* Remove max-height constraint on mobile */
             }
 
             /* AG Grid mobile adjustments */
@@ -892,6 +898,12 @@
                 height: auto;
             }
 
+            .grid-section {
+                width: 100%;
+                min-height: 350px;
+                height: auto;
+            }
+
             .job-detail-panel {
                 display: none;  /* Hide on mobile */
             }
@@ -899,7 +911,7 @@
             .grid-container {
                 height: auto;
                 min-height: 350px;
-                max-height: calc(100vh - 280px);
+                max-height: none;  /* Remove max-height constraint on mobile */
             }
 
             .role-btn {
