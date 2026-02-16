@@ -729,3 +729,123 @@ async def webhook_trigger_scrapers(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to dispatch: {str(e)}")
+
+
+# ============== Scraper Maintenance Endpoints ==============
+
+@router.post("/maintenance/reset-failures")
+def reset_all_failure_counts(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Reset failure counts for all scrapers.
+    Use this after fixing scraper issues to give them a fresh start.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    updated = db.query(ScraperConfigDB).filter(
+        ScraperConfigDB.consecutive_failures > 0
+    ).update({"consecutive_failures": 0})
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "scrapers_reset": updated,
+        "message": f"Reset failure counts for {updated} scrapers"
+    }
+
+
+@router.post("/maintenance/disable-critical")
+def disable_critical_scrapers(
+    threshold: int = Query(default=10, ge=5, description="Failure threshold to consider critical"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Disable all scrapers with consecutive failures above threshold.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    # Get critical scrapers
+    critical = db.query(ScraperConfigDB).filter(
+        ScraperConfigDB.consecutive_failures >= threshold
+    ).all()
+
+    disabled_slugs = []
+    for config in critical:
+        config.is_enabled = False
+        disabled_slugs.append(config.company_slug)
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "disabled_count": len(disabled_slugs),
+        "disabled_scrapers": disabled_slugs[:50],  # Show first 50
+        "message": f"Disabled {len(disabled_slugs)} scrapers with {threshold}+ failures"
+    }
+
+
+@router.post("/{company_slug}/reset-failures")
+def reset_scraper_failures(
+    company_slug: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Reset failure count for a specific scraper."""
+    config = db.query(ScraperConfigDB).filter(
+        ScraperConfigDB.company_slug == company_slug
+    ).first()
+
+    if not config:
+        # Create new config with zero failures
+        config = ScraperConfigDB(
+            company_slug=company_slug,
+            consecutive_failures=0,
+            is_enabled=True
+        )
+        db.add(config)
+    else:
+        config.consecutive_failures = 0
+        config.is_enabled = True
+
+    db.commit()
+
+    return {
+        "status": "success",
+        "company_slug": company_slug,
+        "message": f"Reset failures for {company_slug}"
+    }
+
+
+@router.get("/maintenance/summary")
+def get_maintenance_summary(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a summary of scraper health for maintenance purposes."""
+    from sqlalchemy import func
+
+    # Get counts by failure level
+    configs = db.query(ScraperConfigDB).all()
+
+    critical = [c for c in configs if c.consecutive_failures >= 5]
+    warning = [c for c in configs if 2 <= c.consecutive_failures < 5]
+    disabled = [c for c in configs if not c.is_enabled]
+
+    # Get scrapers that have never succeeded
+    never_succeeded = [c for c in configs if c.last_success_at is None and c.consecutive_failures > 0]
+
+    return {
+        "total_configured": len(configs),
+        "critical_count": len(critical),
+        "warning_count": len(warning),
+        "disabled_count": len(disabled),
+        "never_succeeded_count": len(never_succeeded),
+        "critical_scrapers": [{"slug": c.company_slug, "failures": c.consecutive_failures} for c in critical[:20]],
+        "never_succeeded": [{"slug": c.company_slug, "failures": c.consecutive_failures} for c in never_succeeded[:20]],
+    }
