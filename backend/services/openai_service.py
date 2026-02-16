@@ -2,15 +2,45 @@ import os
 from openai import OpenAI
 
 client = None
+_cached_api_key = None
+
+
+def get_openai_api_key():
+    """Get OpenAI API key from environment or database."""
+    # Check environment first
+    env_key = os.environ.get("OPENAI_API_KEY")
+    if env_key:
+        return env_key
+
+    # Check database
+    try:
+        from database import SessionLocal
+        from models import AppSetting
+        db = SessionLocal()
+        try:
+            setting = db.query(AppSetting).filter(AppSetting.key == "openai_api_key").first()
+            if setting:
+                return setting.value
+        finally:
+            db.close()
+    except Exception:
+        pass
+
+    return None
 
 
 def get_client():
-    global client
-    if client is None:
-        api_key = os.environ.get("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY environment variable is not set")
+    global client, _cached_api_key
+
+    api_key = get_openai_api_key()
+    if not api_key:
+        raise ValueError("OpenAI API key not configured. Set it in Settings or via OPENAI_API_KEY environment variable.")
+
+    # Recreate client if API key changed
+    if client is None or _cached_api_key != api_key:
         client = OpenAI(api_key=api_key)
+        _cached_api_key = api_key
+
     return client
 
 
