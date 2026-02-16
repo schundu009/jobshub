@@ -284,6 +284,87 @@ def trigger_all_scrapers(current_user: User = Depends(get_current_user)):
     )
 
 
+@router.post("/run-warning", response_model=TriggerResponse)
+def trigger_warning_scrapers(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Trigger scraping for all warning scrapers (including stale ones).
+
+    Warning scrapers are those with:
+    - 2+ consecutive failures, OR
+    - Last success more than 7 days ago
+
+    This dispatches Celery tasks so it works for both HTTP and Playwright scrapers.
+    """
+    from datetime import timedelta
+    from tasks.scraper_tasks import scrape_company_http, scrape_company_browser
+    from scrapers.base import ScraperType
+
+    slugs = ScraperRegistry.list_slugs()
+    warning_slugs = []
+    cutoff = datetime.utcnow() - timedelta(days=7)
+
+    for slug in slugs:
+        config = db.query(ScraperConfigDB).filter(
+            ScraperConfigDB.company_slug == slug
+        ).first()
+
+        # Skip disabled scrapers
+        if config and not config.is_enabled:
+            continue
+
+        is_warning = False
+
+        if config:
+            # Check consecutive failures
+            if 2 <= (config.consecutive_failures or 0) < 5:
+                is_warning = True
+            # Check if stale (last success > 7 days ago)
+            elif config.last_success_at and config.last_success_at < cutoff:
+                is_warning = True
+            elif not config.last_success_at:
+                # Never succeeded - treat as warning if has been attempted
+                if config.total_runs and config.total_runs > 0:
+                    is_warning = True
+        else:
+            # No config means never run - check if it should run
+            is_warning = True
+
+        if is_warning:
+            warning_slugs.append(slug)
+
+    if not warning_slugs:
+        return TriggerResponse(
+            status="no_action",
+            task_id=None,
+            message="No warning scrapers found",
+        )
+
+    # Dispatch tasks based on scraper type
+    http_count = 0
+    browser_count = 0
+
+    for slug in warning_slugs:
+        scraper_cls = ScraperRegistry.get(slug)
+        if not scraper_cls:
+            continue
+
+        if scraper_cls.config.scraper_type == ScraperType.HTTP:
+            scrape_company_http.delay(slug)
+            http_count += 1
+        else:
+            scrape_company_browser.delay(slug)
+            browser_count += 1
+
+    return TriggerResponse(
+        status="dispatched",
+        task_id=None,
+        message=f"Dispatched {http_count} HTTP and {browser_count} browser scraper tasks for {len(warning_slugs)} warning scrapers",
+    )
+
+
 @router.post("/run-category/{category}", response_model=TriggerResponse)
 def trigger_category(
     category: str,
@@ -622,6 +703,127 @@ async def run_scraper_sync(
             duration_seconds=duration,
             error=str(e)
         )
+
+
+@router.post("/run-warning-sync")
+async def run_warning_scrapers_sync(
+    limit: int = Query(default=100, ge=1, le=300, description="Max scrapers to run"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Run all warning HTTP scrapers synchronously without Celery.
+
+    Warning scrapers are those with:
+    - 2+ consecutive failures (but <5), OR
+    - Last success more than 7 days ago
+
+    Browser/Playwright scrapers are skipped (require Celery).
+    """
+    from datetime import timedelta
+    from scrapers.base import ScraperType
+    from scrapers.rate_limiter import get_rate_limiter
+    from services.scraper_service import save_scraped_jobs
+    from tasks.scraper_tasks import record_scraper_run
+
+    slugs = ScraperRegistry.list_slugs()
+    warning_slugs = []
+    cutoff = datetime.utcnow() - timedelta(days=7)
+
+    for slug in slugs:
+        config = db.query(ScraperConfigDB).filter(
+            ScraperConfigDB.company_slug == slug
+        ).first()
+
+        # Skip disabled scrapers
+        if config and not config.is_enabled:
+            continue
+
+        is_warning = False
+
+        if config:
+            if 2 <= (config.consecutive_failures or 0) < 5:
+                is_warning = True
+            elif config.last_success_at and config.last_success_at < cutoff:
+                is_warning = True
+            elif not config.last_success_at and config.total_runs and config.total_runs > 0:
+                is_warning = True
+        else:
+            is_warning = True
+
+        if is_warning:
+            warning_slugs.append(slug)
+
+    # Filter to HTTP only and apply limit
+    http_scrapers = []
+    browser_skipped = 0
+
+    for slug in warning_slugs:
+        scraper_cls = ScraperRegistry.get(slug)
+        if scraper_cls and scraper_cls.config.scraper_type == ScraperType.HTTP:
+            http_scrapers.append(slug)
+        else:
+            browser_skipped += 1
+
+    http_scrapers = http_scrapers[:limit]
+
+    results = []
+    total_jobs_found = 0
+    total_jobs_new = 0
+
+    rate_limiter = get_rate_limiter()
+
+    for company_slug in http_scrapers:
+        start_time = datetime.utcnow()
+
+        try:
+            scraper_cls = ScraperRegistry.get(company_slug)
+            if not scraper_cls:
+                continue
+
+            scraper = scraper_cls(rate_limiter=rate_limiter)
+            result = await scraper.run()
+
+            jobs_new = 0
+            jobs_updated = 0
+
+            if result.success and result.jobs:
+                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                result.jobs_new = jobs_new
+                result.jobs_updated = jobs_updated
+
+            record_scraper_run(db, company_slug, result)
+
+            duration = (datetime.utcnow() - start_time).total_seconds()
+
+            results.append({
+                "company_slug": company_slug,
+                "status": "success" if result.success else "failed",
+                "jobs_found": result.jobs_found,
+                "jobs_new": jobs_new,
+                "duration_seconds": round(duration, 2),
+                "error": result.error_message[:100] if result.error_message else None,
+            })
+
+            total_jobs_found += result.jobs_found
+            total_jobs_new += jobs_new
+
+        except Exception as e:
+            results.append({
+                "company_slug": company_slug,
+                "status": "error",
+                "error": str(e)[:100],
+            })
+
+    return {
+        "status": "completed",
+        "warning_scrapers_found": len(warning_slugs),
+        "http_scrapers_run": len(results),
+        "browser_scrapers_skipped": browser_skipped,
+        "total_jobs_found": total_jobs_found,
+        "total_jobs_new": total_jobs_new,
+        "results": results
+    }
 
 
 @router.post("/run-all-sync")

@@ -1266,24 +1266,41 @@
                 return;
             }
 
-            if (!confirm(`This will run ${warningScrapers.length} warning scrapers synchronously. This may take a while. Continue?`)) {
+            if (!confirm(`This will run ${warningScrapers.length} warning scrapers. Continue?`)) {
                 return;
             }
 
             showAlert(`Running ${warningScrapers.length} warning scrapers...`);
 
-            let success = 0, failed = 0;
-            for (const s of warningScrapers) {
-                try {
-                    const data = await apiRequest(`/scrapers/${s.company_slug}/run-sync`, 'POST');
-                    if (data.status === 'success') success++;
-                    else failed++;
-                } catch (e) {
-                    failed++;
+            try {
+                // Use the batch endpoint - more efficient
+                const data = await apiRequest('/scrapers/run-warning-sync', 'POST');
+
+                if (data.status === 'completed') {
+                    const msg = `Completed: ${data.http_scrapers_run} HTTP scrapers run, ${data.total_jobs_new} new jobs found`;
+                    const extra = data.browser_scrapers_skipped > 0
+                        ? ` (${data.browser_scrapers_skipped} browser scrapers skipped - require Celery)`
+                        : '';
+                    showAlert(msg + extra, 'success');
+                } else {
+                    showAlert('Warning scraper run completed with issues', 'warning');
                 }
+            } catch (e) {
+                // Fallback to running one by one if batch endpoint fails
+                showAlert('Batch endpoint failed, running individually...', 'warning');
+                let success = 0, failed = 0;
+                for (const s of warningScrapers) {
+                    try {
+                        const data = await apiRequest(`/scrapers/${s.company_slug}/run-sync`, 'POST');
+                        if (data.status === 'success') success++;
+                        else failed++;
+                    } catch (e) {
+                        failed++;
+                    }
+                }
+                showAlert(`Completed: ${success} succeeded, ${failed} failed`);
             }
 
-            showAlert(`Completed: ${success} succeeded, ${failed} failed`);
             await loadScraperStatus();
         }
 

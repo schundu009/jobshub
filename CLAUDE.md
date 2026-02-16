@@ -34,6 +34,9 @@ cd frontend && python3 -m http.server 3000
 # Run tests
 pytest
 
+# Run single test file
+pytest backend/tests/test_scrapers.py -v
+
 # Format code
 black backend/
 isort backend/
@@ -48,13 +51,15 @@ celery -A backend.celery_app worker --loglevel=info
 # Celery scheduler
 celery -A backend.celery_app beat --loglevel=info
 
+# Monitor Celery tasks
+celery -A backend.celery_app flower --port=5555
+
 # Install Playwright browsers (for scraping)
 playwright install chromium
 ```
 
 ## Service Health Verification
 
-Always verify services after code changes:
 ```bash
 curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/analytics/summary
 curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
@@ -67,48 +72,76 @@ pgrep -fl "uvicorn"
 - **Entry**: `backend/main.py` - FastAPI app setup with CORS, routes, static files
 - **Database**: SQLite (local `data/jobtrails.db`) / PostgreSQL (Railway production)
 - **ORM**: SQLAlchemy 2.0 with all models in `backend/models.py`
-- **Auth**: JWT tokens with OAuth 2.0 (Google, GitHub, LinkedIn) in `routes/auth.py` and `routes/oauth.py`
+- **Auth**: JWT tokens (15-min expiry, 7-day refresh) with OAuth 2.0 (Google, GitHub, LinkedIn)
+- **Routes**: `backend/routes/` - 17 route files including AI, analytics, auth, auto-apply, scrapers
+- **Services**: `backend/services/` - Business logic layer
 
 ### Frontend (Vanilla HTML/CSS/JS)
 - **Auth helper**: `frontend/js/app.js` - Use `apiRequest()` for all API calls (handles auth, token refresh)
 - **Theme**: Dark/light mode via `data-theme` attribute
 - Pages: `index.html` (dashboard), `jobs.html` (list), `discover.html` (ATS discovery), `analytics.html`
 
+### AI Services
+
+Provider-based architecture with routing in `backend/services/ai_service.py`:
+- **OpenAI**: `openai_service.py` - Models: `gpt-4o-mini` (default), `gpt-4o`, `gpt-4-turbo`
+- **Anthropic**: `anthropic_service.py` - Models: `claude-3-5-sonnet-20241022` (default), `claude-3-5-haiku`, `claude-3-opus`
+
+Configuration stored in `AppSetting` table:
+- `default_ai_provider`: "openai" or "anthropic"
+- `ai_model`: Specific model override
+- API keys: Environment vars (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) or database settings
+
 ### Scraper System
-Located in `backend/scrapers/`, uses a mixin-based architecture:
+
+Located in `backend/scrapers/`, uses a mixin-based architecture with registry pattern.
 
 **Base Classes** (`base.py`):
-- `HTTPScraper` - For sites with JSON APIs (most common)
-- `PlaywrightScraper` - For JavaScript-heavy sites requiring browser
+- `HTTPScraper` - For sites with JSON APIs (most common, ~80+ companies)
+- `PlaywrightScraper` - For JavaScript-heavy sites (~20 companies)
 
-**ATS Mixins** (provide `scrape()` and `parse_job()` implementations):
+**ATS Mixins** (defined in `custom/remaining_scrapers.py`, provide `scrape()` and `parse_job()`):
 - `GreenhouseMixin` - boards-api.greenhouse.io
 - `AshbyMixin` - api.ashbyhq.com
 - `LeverMixin` - jobs.lever.co
-- `WorkdayHybridMixin` - Workday sites (requires Playwright)
 - `SmartRecruitersMixin` - SmartRecruiters ATS
+- `WorkdayHybridMixin` - Workday sites (requires Playwright, in `enterprise/workday_scrapers.py`)
 
-**Adding a scraper**:
+**Adding a Greenhouse scraper** (most common pattern):
 ```python
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.registry import ScraperRegistry
+from scrapers.custom.remaining_scrapers import GreenhouseMixin
+
 @ScraperRegistry.register(category="custom")
 class CompanyScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="slug", company_name="Name", ...)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/slug/jobs"
+    config = ScraperConfig(
+        company_slug="company-slug",
+        company_name="Company Name",
+        careers_url="https://company.com/careers",
+        scraper_type=ScraperType.HTTP,
+    )
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/company-slug/jobs"
 ```
 
+**Scraper categories**: `big_tech/`, `enterprise/`, `finance/`, `other/`, `custom/`
+
 ### Background Tasks (Celery)
+
 - **Broker**: Redis
-- **Task Queues**: `scrapers_http`, `scrapers_browser`, `scrapers_orchestrator`, `maintenance`
-- **Scheduled**: `scrape_all_companies` runs every 6 hours via Beat
+- **Queues**: `scrapers_http` (10/min), `scrapers_browser` (5/min), `scrapers_orchestrator`, `maintenance`
+- **Scheduled**: `scrape_all_companies` every 6 hours, cleanup tasks daily
 
 ## Auto-Apply Feature
 
-Only works with: **Greenhouse**, **Lever**, **Workday**
-NOT supported: Ashby, iCIMS, Taleo, BrassRing, Jobvite, SmartRecruiters
+**Supported**: Greenhouse, Lever, Workday
+**NOT supported**: Ashby, iCIMS, Taleo, BrassRing, Jobvite, SmartRecruiters
 
 Key endpoints:
 - `POST /api/auto-apply/submit/{job_id}` - Submit application
 - `GET /api/auto-apply/preflight/{job_id}` - Check availability
+
+Implementation in `backend/services/auto_apply/` with ATS-specific classes.
 
 ## Railway Services
 
@@ -145,6 +178,8 @@ RUN playwright install --with-deps chromium chromium-headless-shell
 Site names like `External_Career` must preserve case - don't lowercase
 
 ### Company Moved to Different ATS
-Common migrations (update scraper to use new API):
+When a scraper fails with 404/empty results, company may have migrated ATS:
 - Anyscale: Greenhouse → Ashby
 - Character AI: Greenhouse → Ashby
+
+Check company careers page to identify new ATS, then update the scraper to use the appropriate mixin.
