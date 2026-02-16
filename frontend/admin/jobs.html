@@ -7,11 +7,20 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/admin-layout.css">
     <style>
-        /* Prevent horizontal overflow */
+        /* Prevent horizontal overflow - aggressive fix */
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
         .container {
+            width: 100%;
             max-width: 100%;
             overflow-x: hidden;
-            box-sizing: border-box;
         }
 
         .hero-section {

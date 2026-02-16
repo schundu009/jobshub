@@ -162,6 +162,8 @@
     margin-left: 220px;
     min-height: 100vh;
     background: var(--bg-primary);
+    overflow-x: hidden;
+    max-width: calc(100vw - 220px);
 }
 
 .admin-topbar {
