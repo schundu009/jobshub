@@ -1349,9 +1349,7 @@
 
             try {
                 console.log('Triggering scrapers via authenticated endpoint...');
-                const data = await apiRequest('/scrapers/run-all', {
-                    method: 'POST'
-                });
+                const data = await apiRequest('/scrapers/run-all', 'POST');
 
                 console.log('Scraper trigger response:', data);
                 showAlert(`Scrapers triggered successfully! Task ID: ${data.task_id}`, 'success');
