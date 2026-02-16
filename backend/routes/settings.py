@@ -3,10 +3,9 @@ Settings routes for managing application configuration.
 
 Security notes:
 - JWT authentication required for all endpoints
-- API keys are stored in environment variables only (not persisted to files in production)
-- In production, set OPENAI_API_KEY and ANTHROPIC_API_KEY via environment variables
-- The set_api_key endpoint is for development/testing convenience only
-- Production deployments should disable API key modification via ALLOW_API_KEY_MODIFICATION=false
+- API keys are stored in the database (encrypted in transit via HTTPS)
+- Environment variables take precedence over database values
+- Production deployments can disable API key modification via ALLOW_API_KEY_MODIFICATION=false
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -26,9 +25,11 @@ logger = logging.getLogger(__name__)
 # In production, set ALLOW_API_KEY_MODIFICATION=false to prevent API key changes via API
 ALLOW_API_KEY_MODIFICATION = os.getenv("ALLOW_API_KEY_MODIFICATION", "true").lower() == "true"
 
-# Store API keys in memory for session (NOT persisted to files in production)
-_openai_key_cache = os.environ.get('OPENAI_API_KEY')
-_anthropic_key_cache = os.environ.get('ANTHROPIC_API_KEY')
+# Database keys for API key storage
+API_KEY_DB_KEYS = {
+    "openai": "openai_api_key",
+    "anthropic": "anthropic_api_key"
+}
 
 
 class APIKeyRequest(BaseModel):
@@ -43,31 +44,51 @@ class APIKeyResponse(BaseModel):
     provider: Optional[str] = None
 
 
-def get_current_api_key(provider: str = "openai") -> Optional[str]:
-    """Get current API key from environment or cache for the specified provider."""
-    if provider == "anthropic":
-        return os.environ.get('ANTHROPIC_API_KEY') or _anthropic_key_cache
-    return os.environ.get('OPENAI_API_KEY') or _openai_key_cache
+def get_api_key_from_db(db: Session, provider: str) -> Optional[str]:
+    """Get API key from database for the specified provider."""
+    db_key = API_KEY_DB_KEYS.get(provider)
+    if not db_key:
+        return None
+    setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
+    return setting.value if setting else None
+
+
+def get_current_api_key(provider: str = "openai", db: Session = None) -> Optional[str]:
+    """Get current API key from environment or database for the specified provider."""
+    # Environment variables take precedence
+    env_var = 'ANTHROPIC_API_KEY' if provider == 'anthropic' else 'OPENAI_API_KEY'
+    env_key = os.environ.get(env_var)
+    if env_key:
+        return env_key
+
+    # Fall back to database
+    if db:
+        return get_api_key_from_db(db, provider)
+    return None
 
 
 @router.get("/api-key", response_model=APIKeyResponse)
 def get_api_key_status(
     provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Check if API key is configured for the specified provider. Requires authentication.
     Returns whether a key is set (without exposing any part of the key).
     """
-    api_key = get_current_api_key(provider)
     env_var = 'ANTHROPIC_API_KEY' if provider == 'anthropic' else 'OPENAI_API_KEY'
+    api_key = get_current_api_key(provider, db)
 
     if api_key:
         # Security: Only show masked placeholder, never reveal actual key characters
         preview = "sk-ant-****...****" if provider == 'anthropic' else "sk-****...****"
 
         # Indicate source of the key
-        source = "environment" if os.environ.get(env_var) else "session"
+        if os.environ.get(env_var):
+            source = "environment"
+        else:
+            source = "database"
 
         return APIKeyResponse(is_set=True, key_preview=preview, source=source, provider=provider)
 
@@ -75,17 +96,15 @@ def get_api_key_status(
 
 
 @router.post("/api-key")
-def set_api_key(request: APIKeyRequest, current_user: User = Depends(get_current_user)):
+def set_api_key(
+    request: APIKeyRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Set the API key for the specified provider. Requires authentication.
-
-    Security notes:
-    - Key is stored in memory only (not persisted to disk)
-    - In production, disable this endpoint by setting ALLOW_API_KEY_MODIFICATION=false
-    - For production, set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable before starting the app
+    Key is persisted to the database for cross-session availability.
     """
-    global _openai_key_cache, _anthropic_key_cache
-
     # Check if modification is allowed
     if not ALLOW_API_KEY_MODIFICATION:
         raise HTTPException(
@@ -106,38 +125,47 @@ def set_api_key(request: APIKeyRequest, current_user: User = Depends(get_current
                 status_code=400,
                 detail="Invalid API key format. Anthropic keys start with 'sk-ant-'"
             )
-        os.environ['ANTHROPIC_API_KEY'] = api_key
-        _anthropic_key_cache = api_key
-        logger.info("Anthropic API key set via API (session only, not persisted)")
     else:
         if not api_key.startswith("sk-"):
             raise HTTPException(
                 status_code=400,
                 detail="Invalid API key format. OpenAI keys start with 'sk-'"
             )
-        os.environ['OPENAI_API_KEY'] = api_key
-        _openai_key_cache = api_key
-        logger.info("OpenAI API key set via API (session only, not persisted)")
+
+    # Save to database
+    db_key = API_KEY_DB_KEYS.get(provider)
+    setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
+
+    if setting:
+        setting.value = api_key
+    else:
+        setting = AppSetting(
+            key=db_key,
+            value=api_key,
+            description=f"{provider.title()} API key for AI features"
+        )
+        db.add(setting)
+
+    db.commit()
+    logger.info(f"{provider.title()} API key saved to database")
 
     return {
-        "message": f"{provider.title()} API key saved for this session",
+        "message": f"{provider.title()} API key saved successfully",
         "provider": provider,
-        "warning": "Key is stored in memory only. Set environment variable for persistence."
+        "source": "database"
     }
 
 
 @router.delete("/api-key")
 def remove_api_key(
     provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Remove the stored API key for the specified provider. Requires authentication.
-
-    Note: This only removes the session key. Environment variable keys cannot be removed via API.
+    Removes from database. Environment variable keys cannot be removed via API.
     """
-    global _openai_key_cache, _anthropic_key_cache
-
     if not ALLOW_API_KEY_MODIFICATION:
         raise HTTPException(
             status_code=403,
@@ -146,17 +174,20 @@ def remove_api_key(
 
     env_var = 'ANTHROPIC_API_KEY' if provider == 'anthropic' else 'OPENAI_API_KEY'
 
-    if provider == "anthropic":
-        _anthropic_key_cache = None
-    else:
-        _openai_key_cache = None
-
-    # If key was set via environment, we can't really remove it
+    # If key was set via environment, we can't remove it
     if os.environ.get(env_var):
         return {
-            "message": f"Session {provider} API key cleared",
-            "warning": f"Environment variable {env_var} is still set. Restart the app to clear it."
+            "message": f"Cannot remove {provider} API key",
+            "warning": f"Key is set via environment variable {env_var}. Remove it from server configuration."
         }
+
+    # Remove from database
+    db_key = API_KEY_DB_KEYS.get(provider)
+    setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
+    if setting:
+        db.delete(setting)
+        db.commit()
+        logger.info(f"{provider.title()} API key removed from database")
 
     return {"message": f"{provider.title()} API key removed successfully"}
 
@@ -164,13 +195,14 @@ def remove_api_key(
 @router.get("/test-api-key")
 def test_api_key(
     provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
+    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
     Test if the configured API key is valid for the specified provider. Requires authentication.
     Makes a minimal API call to validate the key.
     """
-    api_key = get_current_api_key(provider)
+    api_key = get_current_api_key(provider, db)
 
     if not api_key:
         raise HTTPException(status_code=400, detail=f"No {provider} API key configured")
@@ -238,13 +270,24 @@ def _test_anthropic_key(api_key: str) -> dict:
 
 
 @router.get("/security")
-def get_security_settings(current_user: User = Depends(get_current_user)):
+def get_security_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Get current security configuration status. Requires authentication.
     """
+    # Determine OpenAI key source
+    if os.environ.get('OPENAI_API_KEY'):
+        openai_source = "environment"
+    elif get_api_key_from_db(db, "openai"):
+        openai_source = "database"
+    else:
+        openai_source = "none"
+
     return {
         "api_key_modification_allowed": ALLOW_API_KEY_MODIFICATION,
-        "api_key_source": "environment" if os.environ.get('OPENAI_API_KEY') else ("session" if _openai_key_cache else "none"),
+        "api_key_source": openai_source,
         "ssl_verification": os.getenv("DISABLE_SSL_VERIFY", "false").lower() != "true",
         "debug_mode": os.getenv("DEBUG", "false").lower() == "true",
     }
