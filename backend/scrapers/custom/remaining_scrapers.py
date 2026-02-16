@@ -298,6 +298,11 @@ class CohereScraper(AshbyMixin, HTTPScraper):
     config = ScraperConfig(company_slug="cohere", company_name="Cohere", careers_url="https://jobs.ashbyhq.com/cohere", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://api.ashbyhq.com/posting-api/job-board/cohere"
 
+@ScraperRegistry.register(category="custom")
+class SnowflakeScraper(AshbyMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="snowflake", company_name="Snowflake", careers_url="https://careers.snowflake.com/us/en/search-results", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/snowflake"
+
 
 # SmartRecruiters Scrapers
 # API: https://api.smartrecruiters.com/v1/companies/{COMPANY_ID}/postings
