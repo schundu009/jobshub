@@ -247,6 +247,13 @@ def get_scraper_stats(db: Session, company_slug: str) -> dict:
             Job.company_id == company.id,
         ).count()
 
+    # Get last error from most recent failed run
+    last_error = None
+    for run in recent_runs:
+        if not run.success and run.error_message:
+            last_error = run.error_message
+            break
+
     return {
         "company_slug": company_slug,
         "company_name": company_name,
@@ -255,6 +262,7 @@ def get_scraper_stats(db: Session, company_slug: str) -> dict:
         "total_runs": config.total_runs if config else 0,
         "last_success_at": config.last_success_at.isoformat() if config and config.last_success_at else None,
         "last_failure_at": config.last_failure_at.isoformat() if config and config.last_failure_at else None,
+        "last_error": last_error,
         "active_jobs": active_jobs,
         "total_jobs": total_jobs,
         "recent_runs": [

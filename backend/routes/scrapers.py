@@ -50,6 +50,7 @@ class ScraperStatus(BaseModel):
     total_runs: int
     last_success_at: Optional[str]
     last_failure_at: Optional[str]
+    last_error: Optional[str] = None
     active_jobs: int
     total_jobs: int
 
@@ -161,6 +162,7 @@ def get_all_status(
             total_runs=stats["total_runs"],
             last_success_at=stats["last_success_at"],
             last_failure_at=stats["last_failure_at"],
+            last_error=stats.get("last_error"),
             active_jobs=stats["active_jobs"],
             total_jobs=stats["total_jobs"],
         ))

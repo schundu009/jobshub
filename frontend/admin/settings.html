@@ -995,6 +995,25 @@
                         </div>
                     </div>
 
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <label style="font-size: 13px; color: var(--text-secondary);">Filter:</label>
+                            <select id="scraper-filter" onchange="filterScrapers()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-primary); font-size: 13px;">
+                                <option value="all">All Scrapers</option>
+                                <option value="warning">Warning Only</option>
+                                <option value="critical">Critical Only</option>
+                                <option value="healthy">Healthy Only</option>
+                                <option value="failed">All Failed (Warning + Critical)</option>
+                            </select>
+                        </div>
+                        <button class="btn-modern secondary" onclick="runAllWarningScrapers()" style="padding: 6px 12px; font-size: 12px;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="14" height="14">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                            </svg>
+                            Run All Warning
+                        </button>
+                    </div>
+
                     <div class="scraper-table-container">
                         <table class="scraper-table">
                             <thead>
@@ -1217,7 +1236,60 @@
             }
         }
 
+        // Store all scrapers for filtering
+        let allScrapers = [];
+
+        function filterScrapers() {
+            const filter = document.getElementById('scraper-filter').value;
+            let filtered = allScrapers;
+
+            if (filter === 'warning') {
+                filtered = allScrapers.filter(s => getScraperHealth(s) === 'warning');
+            } else if (filter === 'critical') {
+                filtered = allScrapers.filter(s => getScraperHealth(s) === 'critical');
+            } else if (filter === 'healthy') {
+                filtered = allScrapers.filter(s => getScraperHealth(s) === 'healthy');
+            } else if (filter === 'failed') {
+                filtered = allScrapers.filter(s => {
+                    const h = getScraperHealth(s);
+                    return h === 'warning' || h === 'critical';
+                });
+            }
+
+            renderScraperTable(filtered);
+        }
+
+        async function runAllWarningScrapers() {
+            const warningScrapers = allScrapers.filter(s => getScraperHealth(s) === 'warning');
+            if (warningScrapers.length === 0) {
+                showAlert('No warning scrapers to run');
+                return;
+            }
+
+            if (!confirm(`This will run ${warningScrapers.length} warning scrapers synchronously. This may take a while. Continue?`)) {
+                return;
+            }
+
+            showAlert(`Running ${warningScrapers.length} warning scrapers...`);
+
+            let success = 0, failed = 0;
+            for (const s of warningScrapers) {
+                try {
+                    const data = await apiRequest(`/scrapers/${s.company_slug}/run-sync`, 'POST');
+                    if (data.status === 'success') success++;
+                    else failed++;
+                } catch (e) {
+                    failed++;
+                }
+            }
+
+            showAlert(`Completed: ${success} succeeded, ${failed} failed`);
+            await loadScraperStatus();
+        }
+
         function renderScraperStatus(scrapers) {
+            // Store for filtering
+            allScrapers = scrapers;
             // Calculate summary
             let healthy = 0, warning = 0, critical = 0;
 
@@ -1234,6 +1306,11 @@
             document.getElementById('scraper-warning').textContent = warning;
             document.getElementById('scraper-critical').textContent = critical;
 
+            // Render table with current filter
+            filterScrapers();
+        }
+
+        function renderScraperTable(scrapers) {
             // Sort scrapers: critical first, then warning, then healthy
             scrapers.sort((a, b) => {
                 const order = { critical: 0, warning: 1, healthy: 2, unknown: 3 };
@@ -1247,7 +1324,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">
-                            No scrapers configured
+                            No scrapers match filter
                         </td>
                     </tr>
                 `;
@@ -1258,10 +1335,14 @@
                 const health = getScraperHealth(s);
                 const healthLabel = health.charAt(0).toUpperCase() + health.slice(1);
                 const lastSuccess = s.last_success_at ? formatRelativeTime(s.last_success_at) : 'Never';
+                const lastError = s.last_error ? escapeHtml(s.last_error.substring(0, 50)) + (s.last_error.length > 50 ? '...' : '') : '';
 
                 return `
                     <tr>
-                        <td class="company-name">${escapeHtml(s.company_name)}</td>
+                        <td class="company-name">
+                            ${escapeHtml(s.company_name)}
+                            ${lastError ? `<div style="font-size: 10px; color: #ef4444; margin-top: 2px;" title="${escapeHtml(s.last_error)}">${lastError}</div>` : ''}
+                        </td>
                         <td>
                             <span class="health-indicator ${health}">
                                 <span class="status-dot"></span>
@@ -1319,11 +1400,26 @@
         }
 
         async function runScraper(slug) {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Running...';
+
             try {
-                const data = await apiRequest(`/scrapers/${slug}/run`, 'POST');
-                showAlert(`Scraper triggered for ${slug}. Task ID: ${data.task_id}`);
+                // Use sync endpoint (doesn't require Celery worker)
+                const data = await apiRequest(`/scrapers/${slug}/run-sync`, 'POST');
+                if (data.status === 'success') {
+                    showAlert(`${slug}: ${data.jobs_new} added, ${data.jobs_updated} updated`);
+                } else {
+                    showAlert(`${slug} failed: ${data.error || 'Unknown error'}`, 'error');
+                }
+                // Refresh the scraper status after running
+                await loadScraperStatus();
             } catch (error) {
-                showAlert('Failed to trigger scraper: ' + error.message, 'error');
+                showAlert('Failed to run scraper: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
             }
         }
 
