@@ -1,17 +1,17 @@
 /**
  * Enterprise Sidebar Navigation
  * Shared across all job seeker portal pages
- * Version: 2.0
+ * Version: 2.0 - Teal/White Theme
  */
 
 /* =============================================================================
-   SIDEBAR CONTAINER
+   SIDEBAR CONTAINER - Dark Navy
    ============================================================================= */
 
 .sidebar {
     width: 240px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
+    background: #0f172a;
+    border-right: 1px solid #1e293b;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -23,7 +23,7 @@
 }
 
 .sidebar:hover {
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
 }
 
 /* =============================================================================
@@ -32,11 +32,11 @@
 
 .sidebar-header {
     padding: 20px 20px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #1e293b;
     display: flex;
     align-items: center;
     gap: 12px;
-    background: var(--bg-secondary);
+    background: #0f172a;
     position: sticky;
     top: 0;
     z-index: 10;
@@ -55,7 +55,7 @@
 .sidebar-header .brand-name {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #ffffff;
     letter-spacing: -0.02em;
 }
 
@@ -69,7 +69,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
-    scrollbar-color: var(--border-color) transparent;
+    scrollbar-color: #334155 transparent;
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -81,19 +81,19 @@
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb {
-    background: var(--border-color);
+    background: #334155;
     border-radius: 4px;
 }
 
 .sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: var(--border-light);
+    background: #475569;
 }
 
 /* Section Titles */
 .nav-section-title {
     font-size: 10px;
     font-weight: 700;
-    color: var(--text-muted);
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     padding: 16px 14px 10px;
@@ -112,9 +112,9 @@
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
-    color: var(--text-secondary);
+    color: #94a3b8;
     text-decoration: none;
-    border-radius: 10px;
+    border-radius: 8px;
     margin-bottom: 4px;
     font-size: 14px;
     font-weight: 500;
@@ -131,20 +131,20 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--accent-blue);
+    background: #14b8a6;
     opacity: 0;
     transform: scale(0.9);
     transition: all 0.3s ease;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 .sidebar-nav a:hover::before {
-    opacity: 0.08;
+    opacity: 0.1;
     transform: scale(1);
 }
 
 .sidebar-nav a:hover {
-    color: var(--text-primary);
+    color: #ffffff;
     transform: translateX(4px);
 }
 
@@ -154,10 +154,10 @@
 
 /* Active state */
 .sidebar-nav a.active {
-    background: linear-gradient(135deg, var(--accent-blue-muted) 0%, rgba(124, 58, 237, 0.15) 100%);
-    color: var(--accent-blue-light);
+    background: #14b8a6;
+    color: #ffffff;
     font-weight: 600;
-    box-shadow: 0 2px 8px var(--accent-blue-muted);
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
 }
 
 .sidebar-nav a.active::before {
@@ -177,16 +177,16 @@
 }
 
 .sidebar-nav a:hover svg {
-    transform: scale(1.15);
+    transform: scale(1.1);
 }
 
 .sidebar-nav a.active svg {
-    color: var(--accent-blue);
+    color: #ffffff;
 }
 
 /* Badge */
 .nav-badge {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: #14b8a6;
     color: white;
     font-size: 10px;
     font-weight: 700;
@@ -195,13 +195,7 @@
     margin-left: auto;
     min-width: 20px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
-    animation: badge-pulse 2s ease-in-out infinite;
-}
-
-@keyframes badge-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    box-shadow: 0 2px 4px rgba(20, 184, 166, 0.3);
 }
 
 /* =============================================================================
@@ -210,8 +204,8 @@
 
 .sidebar-user {
     padding: 16px;
-    border-top: 1px solid var(--border-color);
-    background: var(--bg-tertiary);
+    border-top: 1px solid #1e293b;
+    background: #0f172a;
 }
 
 .sidebar-user-info {
@@ -225,14 +219,14 @@
 }
 
 .sidebar-user-info:hover {
-    background: var(--bg-hover);
+    background: #1e293b;
 }
 
 .sidebar-user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -240,13 +234,13 @@
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sidebar-user-info:hover .sidebar-user-avatar {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
 }
 
 .sidebar-user-details {
@@ -256,7 +250,7 @@
 
 .sidebar-user-name {
     font-weight: 600;
-    color: var(--text-primary);
+    color: #ffffff;
     font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
@@ -265,7 +259,7 @@
 
 .sidebar-user-email {
     font-size: 12px;
-    color: var(--text-muted);
+    color: #64748b;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -280,9 +274,9 @@
     width: 100%;
     padding: 10px 14px;
     background: transparent;
-    border: 1px solid var(--border-color);
+    border: 1px solid #334155;
     border-radius: 8px;
-    color: var(--text-secondary);
+    color: #94a3b8;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -329,7 +323,7 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-secondary);
@@ -358,7 +352,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-secondary);
@@ -392,7 +386,7 @@
     z-index: 250;
     width: 48px;
     height: 48px;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     color: var(--text-primary);
@@ -559,40 +553,63 @@
 }
 
 /* =============================================================================
-   LIGHT THEME OVERRIDES
+   LIGHT THEME OVERRIDES - Keep sidebar dark
    ============================================================================= */
 
 [data-theme="light"] .sidebar {
-    background: #ffffff;
-    border-right-color: #e5e0f0;
+    background: #0f172a;
+    border-right-color: #1e293b;
+}
+
+[data-theme="light"] .sidebar-header {
+    background: #0f172a;
+    border-bottom-color: #1e293b;
+}
+
+[data-theme="light"] .sidebar-header .brand-name {
+    color: #ffffff;
 }
 
 [data-theme="light"] .sidebar-nav a {
-    color: #4a3d5c;
+    color: #94a3b8;
 }
 
 [data-theme="light"] .sidebar-nav a:hover {
-    background: #f5f0fa;
-    color: #1a1025;
+    background: #1e293b;
+    color: #ffffff;
 }
 
 [data-theme="light"] .sidebar-nav a.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
-    color: #7c3aed;
+    background: #14b8a6;
+    color: #ffffff;
 }
 
 [data-theme="light"] .nav-section-title {
-    color: #8a7aa0;
+    color: #64748b;
 }
 
 [data-theme="light"] .sidebar-header .logo {
-    filter: none;
+    filter: brightness(0) invert(1);
 }
 
 [data-theme="light"] .sidebar-user {
-    background: #f8f6fb;
+    background: #0f172a;
+    border-top-color: #1e293b;
 }
 
 [data-theme="light"] .sidebar-user-info:hover {
-    background: #f0ecf5;
+    background: #1e293b;
+}
+
+[data-theme="light"] .sidebar-user-name {
+    color: #ffffff;
+}
+
+[data-theme="light"] .sidebar-user-email {
+    color: #64748b;
+}
+
+[data-theme="light"] .sidebar-logout-btn {
+    border-color: #334155;
+    color: #94a3b8;
 }

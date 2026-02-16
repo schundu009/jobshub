@@ -1,4 +1,4 @@
-/* Admin Layout - Consistent Sidebar Navigation */
+/* Admin Layout - Consistent Sidebar Navigation - Teal Theme */
 
 /* Layout Structure */
 .admin-layout {
@@ -6,11 +6,11 @@
     min-height: 100vh;
 }
 
-/* Sidebar */
+/* Sidebar - Dark Navy */
 .admin-sidebar {
     width: 220px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border-default);
+    background: #0f172a;
+    border-right: 1px solid #1e293b;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -22,7 +22,7 @@
 
 .admin-sidebar-header {
     padding: 24px 20px;
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 1px solid #1e293b;
 }
 
 .admin-logo {
@@ -39,10 +39,7 @@
 .admin-logo-text {
     font-size: 22px;
     font-weight: 600;
-    background: var(--accent-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #ffffff;
 }
 
 /* Navigation */
@@ -59,7 +56,7 @@
 .admin-nav-label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 0 12px;
@@ -71,7 +68,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    color: var(--text-secondary);
+    color: #94a3b8;
     text-decoration: none;
     border-radius: 8px;
     font-size: 14px;
@@ -81,19 +78,18 @@
 }
 
 .admin-nav-item:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: #1e293b;
+    color: #ffffff;
 }
 
 .admin-nav-item.active {
-    background: var(--accent-primary);
-    background: linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
-    color: var(--accent-primary);
-    border: 1px solid rgba(167, 139, 250, 0.3);
+    background: #14b8a6;
+    color: #ffffff;
+    border: none;
 }
 
 .admin-nav-item.active .nav-icon {
-    color: var(--accent-primary);
+    color: #ffffff;
 }
 
 .admin-nav-item .nav-icon {
@@ -104,7 +100,7 @@
 
 .admin-nav-item .nav-badge {
     margin-left: auto;
-    background: var(--accent-primary);
+    background: #14b8a6;
     color: white;
     font-size: 11px;
     font-weight: 600;
@@ -115,7 +111,7 @@
 /* Sidebar Footer */
 .admin-sidebar-footer {
     padding: 16px 20px;
-    border-top: 1px solid var(--border-default);
+    border-top: 1px solid #1e293b;
 }
 
 .admin-user {
@@ -128,7 +124,7 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background: var(--accent-gradient);
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -145,7 +141,7 @@
 .admin-user-name {
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-primary);
+    color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -153,10 +149,10 @@
 
 .admin-user-role {
     font-size: 12px;
-    color: var(--text-muted);
+    color: #64748b;
 }
 
-/* Main Content Area */
+/* Main Content Area - White Background */
 .admin-main {
     flex: 1;
     margin-left: 220px;
@@ -171,7 +167,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 32px;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border-bottom: 1px solid var(--border-default);
     position: sticky;
     top: 0;
@@ -201,7 +197,7 @@
 }
 
 .admin-topbar-breadcrumb a:hover {
-    color: var(--accent-primary);
+    color: #14b8a6;
 }
 
 .admin-topbar-right {
@@ -217,7 +213,7 @@
     width: 40px;
     height: 40px;
     border-radius: 8px;
-    background: var(--bg-elevated);
+    background: var(--bg-card);
     border: 1px solid var(--border-default);
     color: var(--text-secondary);
     cursor: pointer;
@@ -534,7 +530,7 @@
 .admin-card-title svg {
     width: 20px;
     height: 20px;
-    color: var(--accent-primary);
+    color: #14b8a6;
 }
 
 /* Quick Stats Grid */
@@ -561,12 +557,12 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: var(--accent-gradient);
+    background: linear-gradient(90deg, #14b8a6, #2dd4bf);
 }
 
 .admin-stat-card.success::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
 .admin-stat-card.warning::before { background: linear-gradient(90deg, #eab308, #fbbf24); }
-.admin-stat-card.info::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.admin-stat-card.info::before { background: linear-gradient(90deg, #14b8a6, #2dd4bf); }
 .admin-stat-card.error::before { background: linear-gradient(90deg, #ef4444, #f87171); }
 
 .admin-stat-label {
@@ -767,12 +763,12 @@
     justify-content: center;
     font-size: 11px;
     font-weight: 600;
-    color: var(--accent-primary);
+    color: #14b8a6;
     flex-shrink: 0;
 }
 
 .sidebar-company-item:hover .company-initial {
-    background: var(--accent-primary);
+    background: #14b8a6;
     color: white;
 }
 
@@ -849,9 +845,9 @@
 }
 
 .job-type-item.active {
-    background: linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(124, 58, 237, 0.15) 100%);
-    color: var(--accent-primary);
-    border: 1px solid rgba(167, 139, 250, 0.3);
+    background: rgba(20, 184, 166, 0.1);
+    color: #14b8a6;
+    border: 1px solid rgba(20, 184, 166, 0.3);
 }
 
 .job-type-label {

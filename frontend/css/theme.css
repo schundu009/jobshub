@@ -1,87 +1,53 @@
-/* Cariara - Purple Gradient Design System */
-/* Elegant, professional, modern */
+/* Cariara - Teal & White Design System */
+/* Clean, professional, modern - inspired by Rafay */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ========================================
-   CSS Custom Properties - Purple Theme
+   CSS Custom Properties - Teal Theme
    ======================================== */
 
-:root, [data-theme="dark"] {
-    /* Background Colors - Dark purple/navy */
-    --bg-primary: #0a0612;
-    --bg-secondary: #110d1a;
-    --bg-tertiary: #1a1425;
-    --bg-card: #110d1a;
-    --bg-hover: #1f1730;
-    --bg-elevated: #150f20;
-    --bg-white: #1a1425;
-    --bg-subtle: #1f1730;
-    --bg-muted: #2a2040;
-    --bg-base: #0a0612;
-
-    /* Text Colors - White to purple-grey */
-    --text-primary: #ffffff;
-    --text-secondary: #b8b0c8;
-    --text-tertiary: #8a8098;
-    --text-muted: #6b6080;
-
-    /* Border Colors - Purple tinted */
-    --border-color: #2d2540;
-    --border-light: #3d3355;
-    --border-default: #2d2540;
-    --border-subtle: #1f1730;
-
-    /* Purple accent colors */
-    --accent-primary: #a78bfa;
-    --accent-hover: #c4b5fd;
-    --accent-gradient: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 50%, #7c3aed 100%);
-    --purple-light: #c4b5fd;
-    --purple-medium: #a78bfa;
-    --purple-deep: #7c3aed;
-
-    /* Status colors */
-    --success: #22c55e;
-    --success-muted: #14532d;
-    --error: #ef4444;
-    --error-muted: #450a0a;
-    --warning: #eab308;
-    --primary-yellow: #a78bfa;
-    --primary-yellow-light: #c4b5fd;
-}
-
-[data-theme="light"] {
-    /* Background Colors - Light with purple tint */
-    --bg-primary: #faf9fc;
-    --bg-secondary: #f5f3f8;
-    --bg-tertiary: #ede9f4;
+:root, [data-theme="light"] {
+    /* Background Colors - Clean white */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
     --bg-card: #ffffff;
-    --bg-hover: #ebe7f2;
-    --bg-elevated: #f8f6fb;
+    --bg-hover: #f1f5f9;
+    --bg-elevated: #ffffff;
     --bg-white: #ffffff;
-    --bg-subtle: #f5f3f8;
-    --bg-muted: #ede9f4;
-    --bg-base: #faf9fc;
+    --bg-subtle: #f8fafc;
+    --bg-muted: #e2e8f0;
+    --bg-base: #ffffff;
 
-    /* Text Colors - Dark purple tones */
-    --text-primary: #1a1025;
-    --text-secondary: #4a3d5c;
-    --text-tertiary: #6b5c80;
-    --text-muted: #8a7aa0;
+    /* Text Colors - Dark slate */
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-tertiary: #475569;
+    --text-muted: #64748b;
 
-    /* Border Colors - Light purple */
-    --border-color: #ddd6e8;
-    --border-light: #ccc2dc;
-    --border-default: #ddd6e8;
-    --border-subtle: #ebe5f2;
+    /* Border Colors - Light gray */
+    --border-color: #e2e8f0;
+    --border-light: #cbd5e1;
+    --border-default: #e2e8f0;
+    --border-subtle: #f1f5f9;
 
-    /* Purple accent colors */
-    --accent-primary: #7c3aed;
-    --accent-hover: #6d28d9;
-    --accent-gradient: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #6d28d9 100%);
-    --purple-light: #a78bfa;
-    --purple-medium: #7c3aed;
-    --purple-deep: #6d28d9;
+    /* Teal accent colors */
+    --accent-primary: #14b8a6;
+    --accent-hover: #0d9488;
+    --accent-gradient: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #0d9488 100%);
+    --accent-light: #5eead4;
+    --accent-medium: #14b8a6;
+    --accent-deep: #0d9488;
+    --accent-blue: #14b8a6;
+    --accent-blue-muted: rgba(20, 184, 166, 0.15);
+    --accent-blue-light: #14b8a6;
+    --accent-purple: #0d9488;
+
+    /* Legacy purple aliases for compatibility */
+    --purple-light: #5eead4;
+    --purple-medium: #14b8a6;
+    --purple-deep: #0d9488;
 
     /* Status colors */
     --success: #16a34a;
@@ -89,8 +55,74 @@
     --error: #dc2626;
     --error-muted: #fef2f2;
     --warning: #ca8a04;
-    --primary-yellow: #7c3aed;
-    --primary-yellow-light: #a78bfa;
+    --primary-yellow: #14b8a6;
+    --primary-yellow-light: #5eead4;
+
+    /* Sidebar specific - Dark navy */
+    --sidebar-bg: #0f172a;
+    --sidebar-hover: #1e293b;
+    --sidebar-border: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-active: #ffffff;
+}
+
+[data-theme="dark"] {
+    /* Background Colors - Dark slate */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-card: #1e293b;
+    --bg-hover: #334155;
+    --bg-elevated: #1e293b;
+    --bg-white: #1e293b;
+    --bg-subtle: #1e293b;
+    --bg-muted: #334155;
+    --bg-base: #0f172a;
+
+    /* Text Colors - Light slate */
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* Border Colors - Dark slate */
+    --border-color: #334155;
+    --border-light: #475569;
+    --border-default: #334155;
+    --border-subtle: #1e293b;
+
+    /* Teal accent colors */
+    --accent-primary: #2dd4bf;
+    --accent-hover: #5eead4;
+    --accent-gradient: linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #14b8a6 100%);
+    --accent-light: #5eead4;
+    --accent-medium: #2dd4bf;
+    --accent-deep: #14b8a6;
+    --accent-blue: #2dd4bf;
+    --accent-blue-muted: rgba(45, 212, 191, 0.15);
+    --accent-blue-light: #5eead4;
+    --accent-purple: #14b8a6;
+
+    /* Legacy purple aliases for compatibility */
+    --purple-light: #5eead4;
+    --purple-medium: #2dd4bf;
+    --purple-deep: #14b8a6;
+
+    /* Status colors */
+    --success: #22c55e;
+    --success-muted: #14532d;
+    --error: #ef4444;
+    --error-muted: #450a0a;
+    --warning: #eab308;
+    --primary-yellow: #2dd4bf;
+    --primary-yellow-light: #5eead4;
+
+    /* Sidebar specific - Dark navy */
+    --sidebar-bg: #0f172a;
+    --sidebar-hover: #1e293b;
+    --sidebar-border: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-active: #ffffff;
 }
 
 /* ========================================
@@ -147,11 +179,11 @@ a:hover {
     padding: 0 24px;
 }
 
-/* Sidebar */
+/* Sidebar - Dark Navy */
 .sidebar {
     width: 220px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
+    background: var(--sidebar-bg, #0f172a);
+    border-right: 1px solid var(--sidebar-border, #1e293b);
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -164,13 +196,13 @@ a:hover {
 
 .sidebar-header {
     padding: 20px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--sidebar-border, #1e293b);
 }
 
 .sidebar-header h1 {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 .sidebar-nav {
@@ -183,7 +215,7 @@ a:hover {
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    color: var(--text-secondary);
+    color: var(--sidebar-text, #94a3b8);
     text-decoration: none;
     border-radius: 4px;
     margin-bottom: 2px;
@@ -192,13 +224,13 @@ a:hover {
 }
 
 .sidebar-nav a:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: var(--sidebar-hover, #1e293b);
+    color: #ffffff;
 }
 
 .sidebar-nav a.active {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    background: var(--accent-primary);
+    color: #ffffff;
 }
 
 .sidebar-nav a svg {
@@ -316,14 +348,15 @@ a:hover {
 }
 
 .btn-primary {
-    background: var(--accent-gradient);
+    background: var(--accent-primary);
     color: white;
-    border-color: var(--purple-medium);
+    border-color: var(--accent-primary);
+    font-weight: 600;
 }
 
 .btn-primary:hover {
-    background: var(--purple-deep);
-    border-color: var(--purple-deep);
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
     color: white;
 }
 
@@ -709,12 +742,12 @@ tr:last-child td {
 }
 
 /* ========================================
-   Header Navigation
+   Header Navigation - Dark Navy
    ======================================== */
 
 header {
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
     padding: 0 20px;
     position: sticky;
     top: 0;
@@ -727,12 +760,13 @@ header .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 50px;
+    height: 56px;
 }
 
 header h1 {
     font-size: 16px;
     font-weight: 600;
+    color: #ffffff;
 }
 
 header nav {
@@ -751,22 +785,22 @@ header nav ul {
 
 header nav ul li a {
     display: block;
-    padding: 6px 12px;
-    color: var(--text-secondary);
+    padding: 8px 14px;
+    color: #94a3b8;
     text-decoration: none;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     border-radius: 4px;
 }
 
 header nav ul li a:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: #1e293b;
+    color: #ffffff;
 }
 
 header nav ul li a.active {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    background: var(--accent-primary);
+    color: #ffffff;
 }
 
 header .theme-toggle {
@@ -774,18 +808,18 @@ header .theme-toggle {
 }
 
 header .theme-toggle button {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: #1e293b;
+    border: 1px solid #334155;
     border-radius: 4px;
-    padding: 5px 8px;
+    padding: 6px 10px;
     cursor: pointer;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: #94a3b8;
 }
 
 header .theme-toggle button:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: #334155;
+    color: #ffffff;
 }
 
 /* User Menu */
@@ -795,26 +829,26 @@ header .theme-toggle button:hover {
     gap: 10px;
     margin-left: 12px;
     padding-left: 12px;
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid #334155;
 }
 
 .user-menu .user-name {
-    color: var(--text-secondary);
+    color: #94a3b8;
     font-size: 12px;
 }
 
 .user-menu .btn-small {
     padding: 4px 10px;
     font-size: 11px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    background: #1e293b;
+    border: 1px solid #334155;
     border-radius: 4px;
-    color: var(--text-secondary);
+    color: #94a3b8;
     cursor: pointer;
     text-decoration: none;
 }
 
 .user-menu .btn-small:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: #334155;
+    color: #ffffff;
 }
