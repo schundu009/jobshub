@@ -883,3 +883,30 @@
 .job-type-error {
     color: var(--error);
 }
+
+/* Admin Logout Button */
+.admin-logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.admin-logout-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+.admin-logout-btn svg {
+    width: 16px;
+    height: 16px;
+}
