@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/admin-layout.css">
     <style>
+        /* Prevent horizontal overflow */
+        .container {
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
         .hero-section {
             background: var(--bg-elevated);
             border: 1px solid var(--border-default);
@@ -97,6 +104,8 @@
             padding: 16px 20px;
             margin-bottom: 25px;
             border: 1px solid var(--border-default);
+            overflow: hidden;
+            max-width: 100%;
         }
         .tracked-companies h3 {
             margin: 0 0 12px 0;
@@ -110,6 +119,8 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            max-width: 100%;
+            overflow: hidden;
         }
         .company-chip {
             display: inline-flex;
@@ -219,6 +230,7 @@
             gap: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
+            max-width: 100%;
         }
         .stat-mini {
             background: var(--bg-elevated);

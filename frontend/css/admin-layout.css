@@ -235,6 +235,15 @@
 
 .admin-content {
     padding: 32px;
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* Ensure container doesn't overflow */
+.admin-content > .container,
+.admin-content > main {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* Mobile Sidebar Toggle */
