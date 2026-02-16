@@ -73,48 +73,17 @@ function logout() {
 }
 
 /**
- * Check if user has completed onboarding - redirects to onboarding if not completed.
- * Call this after requireAuth() on pages that require onboarding completion.
- * Returns a promise that resolves to true if onboarding is complete.
+ * Require admin role - redirects to jobs portal if not admin.
+ * Call this after requireAuth() on admin pages.
  */
-async function requireOnboarding() {
-    // First check localStorage for cached status
+function requireAdmin() {
     const user = getCurrentUser();
-    if (user && user.onboarding_completed) {
-        return true;
+    if (!user || user.role !== 'admin') {
+        // Not an admin - redirect to jobs portal
+        window.location.href = 'https://jobs.cariara.com/';
+        return false;
     }
-
-    // Check with the server
-    try {
-        const response = await fetch(`${API_BASE}/users/onboarding-status`, {
-            headers: {
-                'Authorization': `Bearer ${getAccessToken()}`
-            }
-        });
-
-        if (!response.ok) {
-            console.error('Failed to check onboarding status');
-            return true; // Don't block on error
-        }
-
-        const status = await response.json();
-        if (!status.onboarding_completed) {
-            // Redirect to jobs portal for onboarding
-            window.location.href = 'https://jobs.cariara.com/onboarding.html';
-            return false;
-        }
-
-        // Update localStorage with correct status
-        if (user) {
-            user.onboarding_completed = true;
-            localStorage.setItem('user', JSON.stringify(user));
-        }
-
-        return true;
-    } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        return true; // Don't block on error
-    }
+    return true;
 }
 
 async function refreshAccessToken() {
@@ -187,30 +156,6 @@ async function apiRequest(endpoint, method = 'GET', data = null, retry = true) {
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Request failed');
-    }
-
-    return response.json();
-}
-
-async function uploadDocument(formData) {
-    const token = getAccessToken();
-    const options = {
-        method: 'POST',
-        body: formData,
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-        options.headers = {
-            'Authorization': `Bearer ${token}`,
-        };
-    }
-
-    const response = await fetch(`${API_BASE}/documents`, options);
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Upload failed');
     }
 
     return response.json();
@@ -399,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // =============================================================================
 
 window.apiRequest = apiRequest;
-window.uploadDocument = uploadDocument;
 window.formatDate = formatDate;
 window.formatDateTime = formatDateTime;
 window.formatSalary = formatSalary;
@@ -415,4 +359,4 @@ window.getCurrentUser = getCurrentUser;
 window.logout = logout;
 window.renderUserMenu = renderUserMenu;
 window.requireAuth = requireAuth;
-window.requireOnboarding = requireOnboarding;
+window.requireAdmin = requireAdmin;

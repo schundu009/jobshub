@@ -87,9 +87,6 @@ function renderAdminSidebar(activePageId) {
                 <div class="admin-user-info-section" id="admin-user-info-section">
                     <!-- User info will be populated by JS -->
                 </div>
-                <div class="admin-signout-section" id="admin-signout-section">
-                    <!-- Signout will be populated by JS -->
-                </div>
             </div>
         </aside>
         <div class="admin-sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -185,12 +182,11 @@ function adminLogout() {
     window.location.href = '/login.html';
 }
 
-// Update user info in sidebar (independent from signout)
+// Update user info in sidebar (signout is in topbar)
 function updateAdminUserInfo() {
     const userInfoSection = document.getElementById('admin-user-info-section');
-    const signoutSection = document.getElementById('admin-signout-section');
 
-    // Populate user info section
+    // Populate user info section only (signout is in topbar)
     if (userInfoSection) {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const name = user.name || 'Admin';
@@ -207,16 +203,6 @@ function updateAdminUserInfo() {
                     <div class="admin-user-email">${email || roleDisplay}</div>
                 </div>
             </div>
-        `;
-    }
-
-    // Populate signout section (independent)
-    if (signoutSection) {
-        signoutSection.innerHTML = `
-            <button class="admin-logout-btn" onclick="adminLogout()" title="Sign Out">
-                ${getNavIcon('logout', 16)}
-                <span>Sign Out</span>
-            </button>
         `;
     }
 }
