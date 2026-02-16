@@ -770,12 +770,21 @@
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-muted);">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
-                                <span style="color: var(--text-secondary); font-size: 12px;">AI Model</span>
+                                <span style="color: var(--text-secondary); font-size: 12px;">AI Model (<span id="model-provider-label">OpenAI</span>)</span>
                             </div>
                             <select id="ai-model-select" onchange="setAIModel()" style="width: 100%; padding: 6px 10px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
-                                <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
-                                <option value="gpt-4o">GPT-4o (Best)</option>
-                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                <!-- OpenAI models -->
+                                <optgroup id="openai-models" label="OpenAI">
+                                    <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
+                                    <option value="gpt-4o">GPT-4o (Best)</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                </optgroup>
+                                <!-- Claude models -->
+                                <optgroup id="claude-models" label="Claude">
+                                    <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Best)</option>
+                                    <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Fast)</option>
+                                    <option value="claude-3-opus-20240229">Claude 3 Opus</option>
+                                </optgroup>
                             </select>
                         </div>
                     </div>
@@ -1302,6 +1311,9 @@
             } else {
                 btnEl.style.display = 'inline-flex';
             }
+
+            // Update model selector to show appropriate models
+            updateModelSelector();
         }
 
         async function setDefaultProvider() {
@@ -1315,20 +1327,43 @@
             }
         }
 
+        let aiModelSettings = { openai_model: 'gpt-4o-mini', claude_model: 'claude-3-5-sonnet-20241022' };
+
         async function loadAIModel() {
             try {
                 const response = await apiRequest('/settings/ai-model');
-                document.getElementById('ai-model-select').value = response.model;
+                aiModelSettings = response;
+                updateModelSelector();
             } catch (error) {
                 console.error('Failed to load AI model:', error);
+            }
+        }
+
+        function updateModelSelector() {
+            const select = document.getElementById('ai-model-select');
+            const label = document.getElementById('model-provider-label');
+
+            // Set the model based on the current/default provider
+            if (defaultProvider === 'anthropic') {
+                select.value = aiModelSettings.claude_model || 'claude-3-5-sonnet-20241022';
+                label.textContent = 'Claude';
+            } else {
+                select.value = aiModelSettings.openai_model || 'gpt-4o-mini';
+                label.textContent = 'OpenAI';
             }
         }
 
         async function setAIModel() {
             const model = document.getElementById('ai-model-select').value;
             try {
-                await apiRequest('/settings/ai-model', 'POST', { model });
-                showAlert(`AI model set to ${model}`);
+                const response = await apiRequest('/settings/ai-model', 'POST', { model });
+                // Update local cache
+                if (model.startsWith('claude')) {
+                    aiModelSettings.claude_model = model;
+                } else {
+                    aiModelSettings.openai_model = model;
+                }
+                showAlert(`${response.provider} model set to ${model}`);
             } catch (error) {
                 showAlert('Failed to set AI model: ' + error.message, 'error');
             }

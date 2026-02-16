@@ -918,7 +918,7 @@ async def generate_job_ai_summary(
         }
 
     try:
-        from services.openai_service import summarize_job_description
+        from services.ai_service import summarize_job_description
         result = summarize_job_description(job.title, job.job_description)
 
         # Cache the result

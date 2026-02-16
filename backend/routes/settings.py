@@ -344,8 +344,10 @@ def set_default_provider(
 
 # ============== AI Model Settings ==============
 
-VALID_AI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"]
-DEFAULT_AI_MODEL = "gpt-4o-mini"
+VALID_OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"]
+VALID_CLAUDE_MODELS = ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"]
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
+DEFAULT_CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 
 
 class AIModelRequest(BaseModel):
@@ -357,16 +359,25 @@ def get_ai_model_setting(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get the configured AI model."""
-    setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
-    current_model = setting.value if setting and setting.value in VALID_AI_MODELS else DEFAULT_AI_MODEL
+    """Get the configured AI models for both providers."""
+    openai_setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
+    claude_setting = db.query(AppSetting).filter(AppSetting.key == "claude_model").first()
+
+    openai_model = openai_setting.value if openai_setting and openai_setting.value in VALID_OPENAI_MODELS else DEFAULT_OPENAI_MODEL
+    claude_model = claude_setting.value if claude_setting and claude_setting.value in VALID_CLAUDE_MODELS else DEFAULT_CLAUDE_MODEL
 
     return {
-        "model": current_model,
-        "available_models": [
+        "openai_model": openai_model,
+        "claude_model": claude_model,
+        "openai_models": [
             {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "description": "Fast & affordable"},
             {"id": "gpt-4o", "name": "GPT-4o", "description": "Best quality"},
             {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "description": "High quality"},
+        ],
+        "claude_models": [
+            {"id": "claude-3-5-sonnet-20241022", "name": "Claude 3.5 Sonnet", "description": "Best quality"},
+            {"id": "claude-3-5-haiku-20241022", "name": "Claude 3.5 Haiku", "description": "Fast & affordable"},
+            {"id": "claude-3-opus-20240229", "name": "Claude 3 Opus", "description": "Most capable"},
         ]
     }
 
@@ -378,25 +389,37 @@ def set_ai_model(
     current_user: User = Depends(get_current_user)
 ):
     """Set the AI model to use for AI features."""
-    if request.model not in VALID_AI_MODELS:
-        raise HTTPException(status_code=400, detail=f"Invalid model. Must be one of: {VALID_AI_MODELS}")
+    model = request.model
 
-    setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
+    # Determine if it's OpenAI or Claude model
+    if model in VALID_OPENAI_MODELS:
+        db_key = "ai_model"
+        provider = "OpenAI"
+    elif model in VALID_CLAUDE_MODELS:
+        db_key = "claude_model"
+        provider = "Claude"
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid model. Valid OpenAI models: {VALID_OPENAI_MODELS}. Valid Claude models: {VALID_CLAUDE_MODELS}"
+        )
+
+    setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
 
     if setting:
-        setting.value = request.model
+        setting.value = model
     else:
         setting = AppSetting(
-            key="ai_model",
-            value=request.model,
-            description="AI model for OpenAI-powered features"
+            key=db_key,
+            value=model,
+            description=f"{provider} model for AI-powered features"
         )
         db.add(setting)
 
     db.commit()
-    logger.info(f"AI model set to {request.model}")
+    logger.info(f"{provider} model set to {model}")
 
-    return {"model": request.model, "message": f"AI model set to {request.model}"}
+    return {"model": model, "provider": provider, "message": f"{provider} model set to {model}"}
 
 
 # ============== Job Age Filter Settings ==============

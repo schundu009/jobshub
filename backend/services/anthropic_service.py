@@ -1,16 +1,20 @@
+"""
+Anthropic Claude AI service for job-related AI features.
+Mirrors the functionality in openai_service.py but uses Claude models.
+"""
 import os
-from openai import OpenAI
+import anthropic
 
 client = None
 _cached_api_key = None
 
-# Available models
-OPENAI_MODELS = {
-    "gpt-4o-mini": "GPT-4o Mini (Fast, Cheap)",
-    "gpt-4o": "GPT-4o (Best Quality)",
-    "gpt-4-turbo": "GPT-4 Turbo (High Quality)",
+# Available Claude models
+CLAUDE_MODELS = {
+    "claude-3-5-sonnet-20241022": "Claude 3.5 Sonnet (Best)",
+    "claude-3-5-haiku-20241022": "Claude 3.5 Haiku (Fast)",
+    "claude-3-opus-20240229": "Claude 3 Opus (Most Capable)",
 }
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "claude-3-5-sonnet-20241022"
 
 
 def get_db_setting(key: str, default: str = None) -> str:
@@ -30,35 +34,35 @@ def get_db_setting(key: str, default: str = None) -> str:
     return default
 
 
-def get_ai_model() -> str:
-    """Get the configured AI model from database."""
-    model = get_db_setting("ai_model", DEFAULT_MODEL)
-    if model in OPENAI_MODELS:
+def get_claude_model() -> str:
+    """Get the configured Claude model from database."""
+    model = get_db_setting("claude_model", DEFAULT_MODEL)
+    if model in CLAUDE_MODELS:
         return model
     return DEFAULT_MODEL
 
 
-def get_openai_api_key():
-    """Get OpenAI API key from environment or database."""
+def get_anthropic_api_key():
+    """Get Anthropic API key from environment or database."""
     # Check environment first
-    env_key = os.environ.get("OPENAI_API_KEY")
+    env_key = os.environ.get("ANTHROPIC_API_KEY")
     if env_key:
         return env_key
 
     # Check database
-    return get_db_setting("openai_api_key")
+    return get_db_setting("anthropic_api_key")
 
 
 def get_client():
     global client, _cached_api_key
 
-    api_key = get_openai_api_key()
+    api_key = get_anthropic_api_key()
     if not api_key:
-        raise ValueError("OpenAI API key not configured. Set it in Settings or via OPENAI_API_KEY environment variable.")
+        raise ValueError("Anthropic API key not configured. Set it in Settings or via ANTHROPIC_API_KEY environment variable.")
 
     # Recreate client if API key changed
     if client is None or _cached_api_key != api_key:
-        client = OpenAI(api_key=api_key)
+        client = anthropic.Anthropic(api_key=api_key)
         _cached_api_key = api_key
 
     return client
@@ -67,7 +71,7 @@ def get_client():
 def generate_cover_letter(job_title: str, company_name: str, job_description: str, resume_text: str) -> str:
     """Generate a tailored cover letter for a specific job."""
     from datetime import datetime
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     today_date = datetime.now().strftime("%B %d, %Y")
 
@@ -111,22 +115,21 @@ Sincerely,
 [Candidate's actual name]
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
+    response = anthropic_client.messages.create(
+        model=get_claude_model(),
+        max_tokens=1000,
         messages=[
-            {"role": "system", "content": "You are an expert career coach who writes compelling, personalized cover letters that help candidates stand out."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.7,
-        max_tokens=1000
+        system="You are an expert career coach who writes compelling, personalized cover letters that help candidates stand out."
     )
 
-    return response.choices[0].message.content
+    return response.content[0].text
 
 
 def generate_interview_questions(job_title: str, job_description: str, interview_type: str) -> str:
     """Generate practice interview questions based on the job."""
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     type_guidance = {
         "phone_screen": "Focus on general fit questions, basic qualifications, and motivation for the role.",
@@ -156,22 +159,21 @@ Instructions:
 - Format as a numbered list with the question followed by the tip
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
+    response = anthropic_client.messages.create(
+        model=get_claude_model(),
+        max_tokens=1500,
         messages=[
-            {"role": "system", "content": "You are an experienced hiring manager and interview coach who helps candidates prepare for job interviews."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.7,
-        max_tokens=1500
+        system="You are an experienced hiring manager and interview coach who helps candidates prepare for job interviews."
     )
 
-    return response.choices[0].message.content
+    return response.content[0].text
 
 
 def analyze_resume_job_match(job_description: str, resume_text: str) -> dict:
     """Analyze how well a resume matches a job posting."""
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     prompt = f"""Analyze how well this resume matches the job description.
 
@@ -204,17 +206,16 @@ SUMMARY:
 [2-3 sentence overall assessment]
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
+    response = anthropic_client.messages.create(
+        model=get_claude_model(),
+        max_tokens=1000,
         messages=[
-            {"role": "system", "content": "You are an expert ATS (Applicant Tracking System) analyst and career coach who helps candidates optimize their resumes for specific jobs."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.3,
-        max_tokens=1000
+        system="You are an expert ATS (Applicant Tracking System) analyst and career coach who helps candidates optimize their resumes for specific jobs."
     )
 
-    content = response.choices[0].message.content
+    content = response.content[0].text
 
     # Parse the response
     result = {
@@ -258,7 +259,7 @@ SUMMARY:
 
 def get_resume_improvements(resume_text: str, target_job_description: str = None) -> str:
     """Get specific suggestions to improve a resume."""
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     job_context = ""
     if target_job_description:
@@ -300,22 +301,21 @@ Provide actionable suggestions in these categories:
 Be specific and reference actual content from the resume when possible.
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
+    response = anthropic_client.messages.create(
+        model=get_claude_model(),
+        max_tokens=1500,
         messages=[
-            {"role": "system", "content": "You are a professional resume writer and career coach with expertise in creating impactful resumes that get interviews."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.5,
-        max_tokens=1500
+        system="You are a professional resume writer and career coach with expertise in creating impactful resumes that get interviews."
     )
 
-    return response.choices[0].message.content
+    return response.content[0].text
 
 
 def generate_company_research(company_name: str, industry: str = None, website: str = None) -> str:
     """Generate a company research summary for interview prep."""
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     context = f"Company: {company_name}"
     if industry:
@@ -357,17 +357,16 @@ Create a comprehensive but concise research summary including:
 Note: Base this on general knowledge. For the most current information, the candidate should also check the company's website and recent news.
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
+    response = anthropic_client.messages.create(
+        model=get_claude_model(),
+        max_tokens=1500,
         messages=[
-            {"role": "system", "content": "You are a career coach helping candidates prepare for interviews by researching companies. Provide helpful, accurate information based on general knowledge about well-known companies, and general industry insights for less known companies."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.7,
-        max_tokens=1500
+        system="You are a career coach helping candidates prepare for interviews by researching companies. Provide helpful, accurate information based on general knowledge about well-known companies, and general industry insights for less known companies."
     )
 
-    return response.choices[0].message.content
+    return response.content[0].text
 
 
 def summarize_job_description(job_title: str, job_description: str) -> dict:
@@ -381,7 +380,7 @@ def summarize_job_description(job_title: str, job_description: str) -> dict:
     if not job_description or len(job_description.strip()) < 50:
         return {"summary": "", "tech_tools": []}
 
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     prompt = f"""Extract the key information from this job posting for a job seeker.
 
@@ -433,17 +432,16 @@ RULES:
 """
 
     try:
-        response = openai_client.chat.completions.create(
-            model=get_ai_model(),
+        response = anthropic_client.messages.create(
+            model=get_claude_model(),
+            max_tokens=800,
             messages=[
-                {"role": "system", "content": "You are an expert job analyst who creates clear, accurate summaries of job postings. Focus on extracting the most important information that helps candidates evaluate fit."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3,
-            max_tokens=800
+            system="You are an expert job analyst who creates clear, accurate summaries of job postings. Focus on extracting the most important information that helps candidates evaluate fit."
         )
 
-        content = response.choices[0].message.content.strip()
+        content = response.content[0].text.strip()
 
         # Extract tech stack from the response for the separate field
         tech_tools = []
@@ -466,7 +464,7 @@ RULES:
 
 def generate_ats_tailored_resume(resume_text: str, job_title: str, job_description: str, company_name: str = None) -> str:
     """Generate an ATS-optimized resume tailored to a specific job."""
-    openai_client = get_client()
+    anthropic_client = get_client()
 
     company_context = f" at {company_name}" if company_name else ""
 
@@ -492,14 +490,13 @@ Instructions:
 Output the complete rewritten resume in a clean, professional format. Do not include any commentary - just output the optimized resume text ready to be used.
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
+    response = anthropic_client.messages.create(
+        model=get_claude_model(),
+        max_tokens=3000,
         messages=[
-            {"role": "system", "content": "You are a professional resume writer specializing in ATS optimization. You transform resumes to maximize their chances of passing ATS screening and impressing recruiters for specific job postings."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.5,
-        max_tokens=3000
+        system="You are a professional resume writer specializing in ATS optimization. You transform resumes to maximize their chances of passing ATS screening and impressing recruiters for specific job postings."
     )
 
-    return response.choices[0].message.content
+    return response.content[0].text

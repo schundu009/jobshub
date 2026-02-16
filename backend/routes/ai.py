@@ -18,7 +18,7 @@ import io
 
 from database import get_db
 from models import Job, Company, User
-from services import openai_service
+from services import ai_service
 from middleware.auth import get_current_user
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
@@ -120,7 +120,7 @@ def generate_cover_letter(
         raise HTTPException(status_code=400, detail="Resume text is required")
 
     try:
-        cover_letter = openai_service.generate_cover_letter(
+        cover_letter = ai_service.generate_cover_letter(
             job_title=job_title,
             company_name=company_name or "the company",
             job_description=job_description,
@@ -163,7 +163,7 @@ def generate_interview_questions(
         raise HTTPException(status_code=400, detail=f"Interview type must be one of: {valid_types}")
 
     try:
-        questions = openai_service.generate_interview_questions(
+        questions = ai_service.generate_interview_questions(
             job_title=job_title,
             job_description=job_description,
             interview_type=request.interview_type
@@ -199,7 +199,7 @@ def analyze_job_match(
         raise HTTPException(status_code=400, detail="Resume text is required")
 
     try:
-        analysis = openai_service.analyze_resume_job_match(
+        analysis = ai_service.analyze_resume_job_match(
             job_description=job_description,
             resume_text=request.resume_text
         )
@@ -232,7 +232,7 @@ def get_resume_improvements(
         raise HTTPException(status_code=400, detail="Resume text is required")
 
     try:
-        suggestions = openai_service.get_resume_improvements(
+        suggestions = ai_service.get_resume_improvements(
             resume_text=request.resume_text,
             target_job_description=job_description
         )
@@ -269,7 +269,7 @@ def research_company(
         raise HTTPException(status_code=400, detail="Company name is required")
 
     try:
-        research = openai_service.generate_company_research(
+        research = ai_service.generate_company_research(
             company_name=company_name,
             industry=industry,
             website=website
@@ -367,7 +367,7 @@ def generate_ats_resume(
         raise HTTPException(status_code=400, detail="Resume text is required")
 
     try:
-        ats_resume = openai_service.generate_ats_tailored_resume(
+        ats_resume = ai_service.generate_ats_tailored_resume(
             resume_text=request.resume_text,
             job_title=job_title,
             job_description=job_description,
@@ -411,7 +411,7 @@ def generate_ats_resume_docx(
 
     try:
         # Generate the optimized resume text
-        ats_resume = openai_service.generate_ats_tailored_resume(
+        ats_resume = ai_service.generate_ats_tailored_resume(
             resume_text=request.resume_text,
             job_title=job_title,
             job_description=job_description,
