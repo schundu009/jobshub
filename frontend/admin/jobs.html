@@ -23,6 +23,27 @@
             overflow-x: hidden;
         }
 
+        /* Table overflow handling */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .admin-table {
+            min-width: 800px;
+        }
+
+        .admin-card {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .filter-bar {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
         .hero-section {
             background: var(--bg-elevated);
             border: 1px solid var(--border-default);
@@ -207,6 +228,7 @@
             gap: 10px;
             flex-wrap: wrap;
             margin-bottom: 15px;
+            max-width: 100%;
         }
         .filter-bar select, .filter-bar input {
             padding: 10px 14px;
@@ -215,6 +237,8 @@
             color: var(--text-primary);
             border-radius: 8px;
             font-family: inherit;
+            max-width: 100%;
+            min-width: 0;
         }
 
         .source-badge {
