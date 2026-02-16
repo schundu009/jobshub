@@ -1,0 +1,18 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5eead4"/>
+      <stop offset="50%" style="stop-color:#14b8a6"/>
+      <stop offset="100%" style="stop-color:#0d9488"/>
+    </linearGradient>
+  </defs>
+  <!-- Main C shape -->
+  <path d="M24 4C12.954 4 4 12.954 4 24C4 35.046 12.954 44 24 44C28.5 44 32.7 42.5 36 40"
+        stroke="url(#logoGradient)" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Horizontal lines -->
+  <line x1="26" y1="20" x2="42" y2="20" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="26" y1="28" x2="38" y2="28" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="26" y1="36" x2="34" y2="36" stroke="url(#logoGradient)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Small circle accent -->
+  <circle cx="44" cy="36" r="3" stroke="url(#logoGradient)" stroke-width="2" fill="none"/>
+</svg>

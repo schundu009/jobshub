@@ -49,7 +49,7 @@ logger = get_logger(__name__)
 # Format: comma-separated list of origins, e.g., "http://localhost:8000,https://myapp.com"
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
-    "http://localhost:3000,http://localhost:8000,http://localhost:8001,http://127.0.0.1:3000,http://127.0.0.1:8000,http://127.0.0.1:8001,https://cariara.com,https://www.cariara.com,https://jobportal-ten-blush.vercel.app,https://jobportal-schundu007.vercel.app,https://jobportal-ihvmibgpi-schundu007.vercel.app"
+    "http://localhost:3000,http://localhost:8000,http://localhost:8001,http://127.0.0.1:3000,http://127.0.0.1:8000,http://127.0.0.1:8001,https://cariara.com,https://www.cariara.com,https://jobs.cariara.com,https://admin.cariara.com,https://jobportal-ten-blush.vercel.app,https://jobportal-schundu007.vercel.app,https://jobportal-ihvmibgpi-schundu007.vercel.app"
 ).split(",")
 
 # API Key for authentication (optional - if set, requires X-API-Key header)

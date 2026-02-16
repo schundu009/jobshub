@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Settings</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="/css/theme.css">
+    <!-- Shared Sidebar Styles -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            font-size: 14px;
+        }
+
+        /* Sidebar - Dark Navy */
+        .sidebar {
+            width: 220px;
+            background: #0f172a !important;
+            border-right: 1px solid #1e293b !important;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header .logo { height: 32px; width: auto; filter: brightness(0) invert(1); }
+        .sidebar-header .brand-name { color: #ffffff !important; }
+        .sidebar-nav { flex: 1; padding: 12px; overflow-y: auto; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            color: #94a3b8 !important;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .sidebar-nav a:hover { background: #1e293b !important; color: #ffffff !important; }
+        .sidebar-nav a.active { background: #14b8a6 !important; color: #ffffff !important; }
+        .sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; transition: transform 0.2s; }
+        .sidebar-nav a:hover svg { transform: scale(1.1); }
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 14px 8px;
+            margin-top: 8px;
+        }
+        .nav-section-title:first-child { margin-top: 0; padding-top: 4px; }
+        .nav-badge {
+            background: #14b8a6;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+        .sidebar-user { padding: 16px; border-top: 1px solid #1e293b; background: #0f172a; }
+        .sidebar-user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .sidebar-user-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 600; font-size: 13px;
+        }
+        .sidebar-user-name { font-weight: 500; color: #ffffff !important; font-size: 13px; }
+        .sidebar-user-email { font-size: 11px; color: #64748b !important; }
+        .sidebar-logout-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; padding: 8px; background: transparent;
+            border: 1px solid #334155; border-radius: 6px;
+            color: #94a3b8; font-size: 12px; cursor: pointer;
+        }
+        .sidebar-logout-btn:hover { background: #1e293b; color: #ffffff; }
+        .sidebar-logout-btn svg { width: 14px; height: 14px; }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px 40px;
+            max-width: 900px;
+        }
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 10px;
+            margin-bottom: 32px;
+            width: fit-content;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tab-btn:hover { color: var(--text-primary); }
+        .tab-btn.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .tab-btn.completed .tab-number { display: none; }
+        .tab-btn.completed .tab-check { display: inline !important; color: #22c55e; }
+        .tab-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tab-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        .tab-btn.active .tab-number { background: var(--accent-blue); color: white; }
+        .tab-check { color: #22c55e; font-weight: bold; margin-left: 6px; }
+        .tab-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        .tab-navigation .btn { min-width: 120px; }
+        .required-indicator { color: #ef4444; margin-left: 2px; }
+
+        /* Section */
+        .section {
+            margin-bottom: 32px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Form Fields */
+        .form-row {
+            display: flex;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .form-row:last-child { border-bottom: none; }
+        .form-label {
+            flex: 0 0 200px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .form-label .help-icon {
+            width: 14px; height: 14px;
+            color: var(--text-muted);
+            cursor: help;
+        }
+        .form-control {
+            flex: 1;
+        }
+        .form-control input,
+        .form-control select,
+        .form-control textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-control input:focus,
+        .form-control select:focus,
+        .form-control textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        .form-control textarea { min-height: 100px; resize: vertical; }
+        .form-control input::placeholder { color: var(--text-muted); }
+
+        /* Tags Input */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 44px;
+            align-items: center;
+        }
+        .tags-container:focus-within { border-color: var(--accent-blue); }
+        .tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            opacity: 0.8;
+        }
+        .tag-remove:hover { opacity: 1; }
+        .tag-remove svg { width: 12px; height: 12px; }
+        .tags-input {
+            flex: 1;
+            min-width: 120px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .tag-limit { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+        /* City Tags */
+        .city-tags { margin-bottom: 8px; }
+        .city-tag {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* Radio/Checkbox Groups */
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .option-btn {
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .option-btn:hover { border-color: var(--accent-blue); }
+        .option-btn.selected {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+
+        /* Mode Cards */
+        .mode-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mode-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .mode-card:hover { border-color: var(--accent-blue); }
+        .mode-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(20, 184, 166, 0.1);
+        }
+        .mode-radio {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mode-card.selected .mode-radio {
+            border-color: var(--accent-blue);
+        }
+        .mode-card.selected .mode-radio::after {
+            content: '';
+            width: 10px; height: 10px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+        }
+        .mode-content { flex: 1; }
+        .mode-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .mode-title { font-weight: 600; margin-bottom: 4px; }
+        .mode-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+
+        /* Experience/Education Cards */
+        .exp-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .exp-title { font-weight: 600; }
+        .exp-company { color: var(--text-secondary); font-size: 13px; }
+        .exp-dates { font-size: 12px; color: var(--text-muted); }
+        .exp-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 8px; }
+        .exp-actions { display: flex; gap: 8px; }
+        .exp-btn {
+            padding: 4px 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .exp-btn:hover { color: var(--text-primary); }
+
+        /* Skills */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .skill-tag {
+            padding: 6px 12px;
+            background: var(--bg-hover);
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .file-upload:hover { border-color: var(--accent-blue); }
+        .file-upload-icon { color: var(--text-muted); margin-bottom: 8px; }
+        .file-upload-icon svg { width: 32px; height: 32px; }
+        .file-upload-text { font-size: 13px; color: var(--text-muted); }
+        .file-upload-text span { color: var(--accent-blue); }
+        .file-uploaded {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+        .file-uploaded-icon { color: var(--accent-blue); }
+        .file-uploaded-name { flex: 1; font-size: 13px; }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: var(--bg-hover);
+            border-radius: 24px;
+            transition: 0.2s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent-blue); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* Save Button */
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 220px;
+            right: 0;
+            padding: 16px 40px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-primary {
+            background: var(--accent-blue);
+            border: none;
+            color: white;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: #22c55e; color: white; }
+        .toast.error { background: #ef4444; color: white; }
+
+        /* Top Right Controls */
+        .top-right-controls {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .theme-toggle svg { width: 18px; height: 18px; }
+        .signout-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .signout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .signout-btn svg { width: 16px; height: 16px; }
+
+        /* Mobile Hamburger Menu */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 250;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .mobile-menu-btn:hover { background: var(--bg-hover); }
+        .mobile-menu-btn svg { width: 22px; height: 22px; }
+        .mobile-menu-btn .menu-close { display: none; }
+        .mobile-menu-btn.active .menu-open { display: none; }
+        .mobile-menu-btn.active .menu-close { display: block; }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+        .sidebar-backdrop.active { opacity: 1; }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                width: 280px;
+                max-width: 85vw;
+            }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .sidebar-backdrop { display: block; }
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+                padding-top: 72px;
+                max-width: 100%;
+            }
+            .sidebar-nav a {
+                padding: 14px 16px;
+                min-height: 48px;
+            }
+            .form-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .form-label { flex: none; }
+            .save-bar { left: 0; padding: 16px; }
+            .top-right-controls { top: 16px; right: 16px; gap: 8px; }
+            .theme-toggle, .signout-btn {
+                width: 44px; height: 44px; padding: 0; justify-content: center;
+            }
+            .signout-btn span { display: none; }
+            .page-title { font-size: 20px; }
+            .btn { min-height: 44px; }
+            input[type="text"], input[type="email"], input[type="url"], select, textarea {
+                font-size: 16px; /* Prevents iOS zoom */
+                padding: 12px 14px;
+                min-height: 48px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-menu-btn { top: 12px; left: 12px; width: 40px; height: 40px; }
+            .main-content { padding: 12px; padding-top: 68px; }
+            .top-right-controls { top: 12px; right: 12px; }
+            .theme-toggle, .signout-btn { width: 40px; height: 40px; }
+            .settings-card { padding: 16px; }
+            .form-row { gap: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu" onclick="toggleMobileSidebar()">
+        <svg class="menu-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg class="menu-close" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="/images/logo-full.svg" alt="Cariara" class="logo">
+        </div>
+        <nav class="sidebar-nav">
+            <!-- APPLICATION Section -->
+            <div class="nav-section-title">Application</div>
+            <a href="discover.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                Search
+            </a>
+
+            <!-- OTHER Section -->
+            <div class="nav-section-title">Other</div>
+            <a href="auto-apply.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Auto Apply
+                <span class="nav-badge" id="auto-apply-count" style="display:none;">0</span>
+            </a>
+            <a href="documents.html">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Resumes
+            </a>
+            <a href="settings.html" class="active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Settings
+            </a>
+        </nav>
+        <div class="sidebar-user" id="user-menu"></div>
+    </aside>
+
+    <div class="top-right-controls">
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" title="Toggle theme">
+            <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+    </div>
+
+    <main class="main-content">
+        <h1 class="page-title">Account Settings</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="preferences" onclick="showTab('preferences')">
+                <span class="tab-number">1</span> Preferences
+                <span class="tab-check" id="check-preferences" style="display:none;">✓</span>
+            </button>
+            <button class="tab-btn" data-tab="auto-apply" onclick="showTab('auto-apply')">
+                <span class="tab-number">2</span> Auto Apply
+                <span class="tab-check" id="check-auto-apply" style="display:none;">✓</span>
+            </button>
+            <button class="tab-btn" data-tab="personal-info" onclick="showTab('personal-info')">
+                <span class="tab-number">3</span> Personal Info
+                <span class="tab-check" id="check-personal-info" style="display:none;">✓</span>
+            </button>
+        </div>
+        <div id="tab-error" class="tab-error" style="display:none;"></div>
+
+        <!-- PREFERENCES TAB -->
+        <div id="tab-preferences" class="tab-content active">
+            <div class="section">
+                <div class="form-row">
+                    <div class="form-label">Language</div>
+                    <div class="form-control">
+                        <select name="language">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Resume Email<span class="required-indicator">*</span></div>
+                    <div class="form-control">
+                        <input type="email" name="resume_email" id="resume_email" placeholder="your@email.com" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">
+                        Base Resume<span class="required-indicator">*</span>
+                        <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                    </div>
+                    <div class="form-control">
+                        <select name="base_resume" id="base-resume-select" required>
+                            <option value="">Select a resume...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">AI Model</div>
+                    <div class="form-control">
+                        <select name="ai_model">
+                            <optgroup label="Claude (Anthropic)">
+                                <option value="claude-opus-4">Claude Opus 4.5 (Most Capable)</option>
+                                <option value="claude-sonnet-4">Claude Sonnet 4 (Recommended)</option>
+                                <option value="claude-haiku-3.5">Claude Haiku 3.5 (Fast)</option>
+                            </optgroup>
+                            <optgroup label="OpenAI">
+                                <option value="gpt-4o">GPT-4o (Latest)</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                <option value="o1">o1 (Reasoning)</option>
+                                <option value="o1-mini">o1-mini (Fast Reasoning)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tab-navigation">
+                    <div></div>
+                    <button class="btn btn-primary" onclick="nextTab('preferences')">Next: Auto Apply →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AUTO APPLY TAB -->
+        <div id="tab-auto-apply" class="tab-content">
+            <div class="section">
+                <p class="section-desc">These settings help us find the right jobs for you and complete applications on your behalf.</p>
+
+                <div class="form-row">
+                    <div class="form-label">Employment Status</div>
+                    <div class="form-control">
+                        <select name="employment_status">
+                            <option value="">Select status...</option>
+                            <option value="employed">Currently Employed</option>
+                            <option value="unemployed">Unemployed</option>
+                            <option value="freelance">Freelancer/Contractor</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Desired Job Titles<span class="required-indicator">*</span></div>
+                    <div class="form-control">
+                        <div class="tags-container" id="job-titles-container">
+                            <input type="text" class="tags-input" id="job-titles-input" placeholder="Type and press Enter...">
+                        </div>
+                        <div class="tag-limit">Maximum 5 job titles (at least 1 required)</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Experience Level<span class="required-indicator">*</span></div>
+                    <div class="form-control">
+                        <select name="experience_level" id="experience_level" required>
+                            <option value="">Select level...</option>
+                            <option value="entry">Entry Level (0-2 years)</option>
+                            <option value="mid">Mid Level (3-5 years)</option>
+                            <option value="senior">Senior Level (6-10 years)</option>
+                            <option value="lead">Lead/Principal (10+ years)</option>
+                            <option value="executive">Executive/Director</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Minimum Salary</div>
+                    <div class="form-control">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span id="currency-symbol">$</span>
+                            <input type="number" name="minimum_salary" placeholder="150000" style="flex:1;">
+                            <span id="currency-code" style="color:var(--text-muted);font-size:12px;">USD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Industry Preference</div>
+                    <div class="form-control">
+                        <select name="industry">
+                            <option value="">Select industry...</option>
+                            <option value="tech">Technology</option>
+                            <option value="finance">Finance</option>
+                            <option value="healthcare">Healthcare</option>
+                            <option value="retail">Retail</option>
+                            <option value="manufacturing">Manufacturing</option>
+                            <option value="any">Open to All</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Work Type</div>
+                    <div class="form-control">
+                        <div class="option-group multi-select" id="work-type-options">
+                            <button type="button" class="option-btn" data-value="all">All Types</button>
+                            <button type="button" class="option-btn" data-value="full-time">Full-time</button>
+                            <button type="button" class="option-btn" data-value="part-time">Part-time</button>
+                            <button type="button" class="option-btn" data-value="contract">Contract</button>
+                            <button type="button" class="option-btn" data-value="freelance">Freelance</button>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Select multiple or choose "All Types"</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Available to Start</div>
+                    <div class="form-control">
+                        <input type="date" name="available_date">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Willing to Relocate</div>
+                    <div class="form-control">
+                        <div class="option-group" id="relocate-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                            <button type="button" class="option-btn" data-value="depends">Depends on Role</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Preferred Locations</div>
+                    <div class="form-control">
+                        <select name="country" id="country-select" style="margin-bottom:10px;" onchange="onCountryChange()">
+                            <option value="">Select country...</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="AU">Australia</option>
+                            <option value="IN">India</option>
+                            <option value="SG">Singapore</option>
+                            <option value="AE">UAE</option>
+                            <option value="NL">Netherlands</option>
+                            <option value="IE">Ireland</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
+                        </select>
+                        <div class="tags-container city-tags" id="cities-container">
+                            <input type="text" class="tags-input" id="cities-input" placeholder="Add cities...">
+                        </div>
+                        <div style="display:flex;gap:16px;margin-top:10px;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" name="remote_ok" id="remote-ok"> Full remote
+                            </label>
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                <input type="checkbox" name="hybrid_ok" id="hybrid-ok"> In-person/Hybrid
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Work Authorization (US)</div>
+                    <div class="form-control">
+                        <div class="option-group" id="us-auth-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Visa Sponsorship Required</div>
+                    <div class="form-control">
+                        <div class="option-group" id="sponsorship-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Driver's License</div>
+                    <div class="form-control">
+                        <div class="option-group" id="license-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demographics Section -->
+            <div class="section">
+                <h2 class="section-title">Demographics (Optional)</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Gender</div>
+                    <div class="form-control">
+                        <select name="gender">
+                            <option value="">Prefer not to say</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="non_binary">Non-binary</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Race/Ethnicity</div>
+                    <div class="form-control">
+                        <select name="ethnicity">
+                            <option value="">Prefer not to say</option>
+                            <option value="asian">Asian</option>
+                            <option value="black">Black or African American</option>
+                            <option value="hispanic">Hispanic or Latino</option>
+                            <option value="white">White</option>
+                            <option value="native">American Indian or Alaska Native</option>
+                            <option value="pacific">Native Hawaiian or Pacific Islander</option>
+                            <option value="two_or_more">Two or more races</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Disability Status</div>
+                    <div class="form-control">
+                        <select name="disability_status">
+                            <option value="">Prefer not to say</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Veteran Status</div>
+                    <div class="form-control">
+                        <select name="veteran_status">
+                            <option value="">Prefer not to say</option>
+                            <option value="veteran">Veteran</option>
+                            <option value="protected">Protected Veteran</option>
+                            <option value="not_veteran">Not a Veteran</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Security Clearance</div>
+                    <div class="form-control">
+                        <div class="option-group" id="clearance-options">
+                            <button type="button" class="option-btn" data-value="yes">Yes</button>
+                            <button type="button" class="option-btn" data-value="no">No</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto Apply Mode Section -->
+            <div class="section">
+                <h2 class="section-title">How should we apply to jobs for you?</h2>
+
+                <div class="mode-cards" id="apply-mode-cards">
+                    <div class="mode-card selected" data-mode="hybrid">
+                        <div class="mode-radio"></div>
+                        <div class="mode-content">
+                            <span class="mode-badge">Best of both worlds</span>
+                            <div class="mode-title">Hybrid mode</div>
+                            <div class="mode-desc">We'll automatically apply to jobs that strongly match your preferences, saving you time. For other roles that may still interest you, you'll stay in control and decide whether to approve or skip.</div>
+                        </div>
+                    </div>
+                    <div class="mode-card" data-mode="auto">
+                        <div class="mode-radio"></div>
+                        <div class="mode-content">
+                            <span class="mode-badge">Save time, no approval needed</span>
+                            <div class="mode-title">Auto mode</div>
+                            <div class="mode-desc">We'll instantly apply to jobs that match your preferences on your behalf, so you can sit back while we handle everything.</div>
+                        </div>
+                    </div>
+                    <div class="mode-card" data-mode="review">
+                        <div class="mode-radio"></div>
+                        <div class="mode-content">
+                            <span class="mode-badge">Review and approve each job</span>
+                            <div class="mode-title">Review mode</div>
+                            <div class="mode-desc">We'll suggest roles based on your preferences - you decide which ones we apply to.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excluded Companies -->
+            <div class="section">
+                <h2 class="section-title">Excluded Companies</h2>
+                <p class="section-desc">Companies you don't want to apply to</p>
+                <div class="form-control">
+                    <div class="tags-container" id="excluded-companies-container">
+                        <input type="text" class="tags-input" id="excluded-companies-input" placeholder="Type company name and press Enter...">
+                    </div>
+                </div>
+
+                <div class="tab-navigation">
+                    <button class="btn btn-secondary" onclick="prevTab('auto-apply')">← Back: Preferences</button>
+                    <button class="btn btn-primary" onclick="nextTab('auto-apply')">Next: Personal Info →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERSONAL INFO TAB -->
+        <div id="tab-personal-info" class="tab-content">
+            <div class="section">
+                <div class="form-row">
+                    <div class="form-label">Full Name<span class="required-indicator">*</span></div>
+                    <div class="form-control">
+                        <input type="text" name="full_name" id="full_name" placeholder="John Doe" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Job Title</div>
+                    <div class="form-control">
+                        <input type="text" name="job_title" placeholder="Software Engineer">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Email<span class="required-indicator">*</span></div>
+                    <div class="form-control">
+                        <input type="email" name="email" id="personal_email" placeholder="john@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Phone Number<span class="required-indicator">*</span></div>
+                    <div class="form-control">
+                        <input type="tel" name="phone" id="phone" placeholder="(555) 123-4567" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">LinkedIn URL</div>
+                    <div class="form-control">
+                        <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/yourprofile">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">GitHub URL</div>
+                    <div class="form-control">
+                        <input type="url" name="github_url" placeholder="https://github.com/yourusername">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Portfolio URL</div>
+                    <div class="form-control">
+                        <input type="url" name="portfolio_url" placeholder="https://yourportfolio.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Date of Birth</div>
+                    <div class="form-control">
+                        <input type="date" name="date_of_birth">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Section -->
+            <div class="section">
+                <h2 class="section-title">Address</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Street Address</div>
+                    <div class="form-control">
+                        <input type="text" name="address_line1" placeholder="123 Main St">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Address Line 2</div>
+                    <div class="form-control">
+                        <input type="text" name="address_line2" placeholder="Apt 4B">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">City</div>
+                    <div class="form-control">
+                        <input type="text" name="city" placeholder="San Francisco">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">State</div>
+                    <div class="form-control">
+                        <input type="text" name="state" placeholder="CA">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Zip Code</div>
+                    <div class="form-control">
+                        <input type="text" name="postal_code" placeholder="94102">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Country</div>
+                    <div class="form-control">
+                        <select name="address_country" id="address-country-select">
+                            <option value="">Select country...</option>
+                            <option value="US">United States</option>
+                            <option value="CA">Canada</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="AU">Australia</option>
+                            <option value="IN">India</option>
+                            <option value="SG">Singapore</option>
+                            <option value="AE">UAE</option>
+                            <option value="NL">Netherlands</option>
+                            <option value="IE">Ireland</option>
+                            <option value="JP">Japan</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="section">
+                <h2 class="section-title">Documents</h2>
+
+                <div class="form-row">
+                    <div class="form-label">Resume</div>
+                    <div class="form-control">
+                        <div class="file-upload" id="resume-upload">
+                            <div class="file-upload-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            </div>
+                            <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
+                            <div class="file-upload-text">PDF, DOCX</div>
+                        </div>
+                        <input type="file" id="resume-file-input" accept=".pdf,.docx" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-label">Profile Photo</div>
+                    <div class="form-control">
+                        <div class="file-upload" id="photo-upload">
+                            <div class="file-upload-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
+                            <div class="file-upload-text">PNG, JPG, JPEG</div>
+                        </div>
+                        <input type="file" id="photo-file-input" accept=".png,.jpg,.jpeg" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="tab-navigation">
+                    <button class="btn btn-secondary" onclick="prevTab('personal-info')">← Back: Auto Apply</button>
+                    <button class="btn btn-primary" onclick="validateAndSave()">Save & Continue →</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
+    </main>
+
+    <!-- Save bar hidden - save is done via tab navigation -->
+    <div class="save-bar" id="save-bar" style="display:none;">
+        <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+    </div>
+
+    <script>
+        const API_BASE = window.location.hostname === 'localhost'
+            ? 'http://localhost:8000'
+            : 'https://cariara-backend.up.railway.app';
+
+        let settings = {};
+        let jobTitles = [];
+        let cities = [];
+        let excludedCompanies = [];
+        let selectedWorkTypes = [];
+
+        // Country to currency mapping
+        const countryCurrency = {
+            'US': { symbol: '$', code: 'USD', name: 'US Dollar' },
+            'CA': { symbol: '$', code: 'CAD', name: 'Canadian Dollar' },
+            'UK': { symbol: '£', code: 'GBP', name: 'British Pound' },
+            'DE': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'FR': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'AU': { symbol: '$', code: 'AUD', name: 'Australian Dollar' },
+            'IN': { symbol: '₹', code: 'INR', name: 'Indian Rupee' },
+            'SG': { symbol: '$', code: 'SGD', name: 'Singapore Dollar' },
+            'AE': { symbol: 'د.إ', code: 'AED', name: 'UAE Dirham' },
+            'NL': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'IE': { symbol: '€', code: 'EUR', name: 'Euro' },
+            'JP': { symbol: '¥', code: 'JPY', name: 'Japanese Yen' },
+            'BR': { symbol: 'R$', code: 'BRL', name: 'Brazilian Real' },
+            'MX': { symbol: '$', code: 'MXN', name: 'Mexican Peso' }
+        };
+
+        // Update currency display based on country
+        function updateCurrencyDisplay(countryCode) {
+            const currencySymbol = document.getElementById('currency-symbol');
+            const currencyCodeEl = document.getElementById('currency-code');
+            const currency = countryCurrency[countryCode] || countryCurrency['US'];
+            if (currencySymbol) currencySymbol.textContent = currency.symbol;
+            if (currencyCodeEl) currencyCodeEl.textContent = currency.code;
+        }
+
+        // Handle country change
+        function onCountryChange() {
+            const countrySelect = document.getElementById('country-select');
+            const countryCode = countrySelect.value;
+            updateCurrencyDisplay(countryCode);
+        }
+
+        // Auto-detect user's country using IP geolocation
+        async function detectUserCountry() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.country_code || 'US';
+                }
+            } catch (e) {
+                console.log('Could not detect country, defaulting to US');
+            }
+            return 'US';
+        }
+
+        // Load user's resumes for base resume dropdown
+        async function loadResumes() {
+            const select = document.getElementById('base-resume-select');
+            if (!select) return;
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`${API_BASE}/api/users/documents?type=resume`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const resumes = await response.json();
+                    select.innerHTML = '<option value="">Select a resume...</option>';
+                    resumes.forEach(resume => {
+                        const option = document.createElement('option');
+                        option.value = resume.id;
+                        option.textContent = `${resume.filename}${resume.is_default ? ' (Default)' : ''}`;
+                        if (settings.base_resume_id === resume.id) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load resumes:', e);
+            }
+        }
+
+        // Theme
+        function setTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            localStorage.setItem('jobtrails-theme', t);
+            // Update icon - show sun in dark mode (to switch to light), moon in light mode (to switch to dark)
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+            if (sunIcon && moonIcon) {
+                sunIcon.style.display = t === 'dark' ? 'block' : 'none';
+                moonIcon.style.display = t === 'light' ? 'block' : 'none';
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        setTheme(localStorage.getItem('jobtrails-theme') || 'dark');
+
+        // Mobile sidebar functions
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const btn = document.getElementById('mobile-menu-btn');
+            if (sidebar.classList.contains('mobile-open')) {
+                closeMobileSidebar();
+            } else {
+                sidebar.classList.add('mobile-open');
+                backdrop.classList.add('active');
+                btn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const btn = document.getElementById('mobile-menu-btn');
+            sidebar.classList.remove('mobile-open');
+            backdrop.classList.remove('active');
+            btn.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileSidebar());
+
+        // Tab order
+        const tabOrder = ['preferences', 'auto-apply', 'personal-info'];
+        let completedTabs = { preferences: false, 'auto-apply': false, 'personal-info': false };
+
+        // Tabs
+        function showTab(tabName, force = false) {
+            // Check if user can navigate to this tab (must complete previous tabs first)
+            const targetIndex = tabOrder.indexOf(tabName);
+            if (!force && targetIndex > 0) {
+                for (let i = 0; i < targetIndex; i++) {
+                    if (!completedTabs[tabOrder[i]]) {
+                        showTabError(`Please complete the "${tabOrder[i].replace('-', ' ')}" tab first.`);
+                        return;
+                    }
+                }
+            }
+
+            hideTabError();
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function showTabError(msg) {
+            const el = document.getElementById('tab-error');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideTabError() {
+            document.getElementById('tab-error').style.display = 'none';
+        }
+
+        function validatePreferences() {
+            const resumeEmail = document.getElementById('resume_email').value.trim();
+
+            if (!resumeEmail) {
+                showTabError('Please enter your resume email.');
+                return false;
+            }
+            // Base resume is optional - user can add it later
+            return true;
+        }
+
+        function validateAutoApply() {
+            // Allow proceeding without job titles (just show warning)
+            if (jobTitles.length === 0) {
+                // Show warning but allow proceeding
+                const proceed = confirm('No job titles added. Auto-apply features will be limited. Continue anyway?');
+                if (!proceed) {
+                    showTabError('Please add at least one desired job title for better job matching.');
+                    return false;
+                }
+            }
+            // Experience level is optional too
+            return true;
+        }
+
+        function validatePersonalInfo() {
+            const fullName = document.getElementById('full_name').value.trim();
+            const email = document.getElementById('personal_email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!fullName) {
+                showTabError('Please enter your full name.');
+                return false;
+            }
+            if (!email) {
+                showTabError('Please enter your email.');
+                return false;
+            }
+            if (!phone) {
+                showTabError('Please enter your phone number.');
+                return false;
+            }
+            return true;
+        }
+
+        function nextTab(currentTab) {
+            hideTabError();
+            let isValid = false;
+
+            if (currentTab === 'preferences') {
+                isValid = validatePreferences();
+                if (isValid) {
+                    completedTabs.preferences = true;
+                    markTabCompleted('preferences');
+                    // Save current tab and check where to go next
+                    saveCurrentTabAndNavigate('auto-apply');
+                }
+            } else if (currentTab === 'auto-apply') {
+                isValid = validateAutoApply();
+                if (isValid) {
+                    completedTabs['auto-apply'] = true;
+                    markTabCompleted('auto-apply');
+                    // Save current tab and check where to go next
+                    saveCurrentTabAndNavigate('personal-info');
+                }
+            }
+        }
+
+        function prevTab(currentTab) {
+            hideTabError();
+            if (currentTab === 'auto-apply') {
+                showTab('preferences', true);
+            } else if (currentTab === 'personal-info') {
+                showTab('auto-apply', true);
+            }
+        }
+
+        function markTabCompleted(tabName) {
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            btn.classList.add('completed');
+        }
+
+        // Save current tab settings and navigate intelligently
+        async function saveCurrentTabAndNavigate(suggestedNextTab) {
+            // Gather and save settings
+            document.querySelectorAll('[name]').forEach(el => {
+                if (el.type === 'checkbox') {
+                    settings[el.name] = el.checked;
+                } else {
+                    settings[el.name] = el.value || null;
+                }
+            });
+            settings.job_titles = jobTitles;
+            settings.preferred_cities = cities;
+            settings.excluded_companies = excludedCompanies;
+            if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
+                settings.work_type = selectedWorkTypes.length === 0 ? null : 'all';
+            } else {
+                settings.work_type = selectedWorkTypes.join(',');
+            }
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const r = await fetch(`${API_BASE}/api/users/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                if (r.ok) {
+                    toast('Settings saved');
+                    // Check if all tabs are complete
+                    if (allTabsComplete()) {
+                        toast('All settings complete! Redirecting...');
+                        setTimeout(() => {
+                            window.location.href = 'discover.html';
+                        }, 1000);
+                    } else {
+                        // Go to next incomplete tab
+                        const nextIncomplete = findNextIncompleteTab();
+                        if (nextIncomplete) {
+                            showTab(nextIncomplete, true);
+                        } else {
+                            showTab(suggestedNextTab, true);
+                        }
+                    }
+                } else if (r.status === 401) {
+                    window.location.href = 'login.html';
+                } else {
+                    toast('Failed to save', 'error');
+                }
+            } catch (e) {
+                toast('Error saving', 'error');
+            }
+        }
+
+        function allTabsComplete() {
+            // Re-check all validations
+            const prefsOk = validatePreferencesQuiet();
+            const autoApplyOk = validateAutoApplyQuiet();
+            const personalOk = validatePersonalInfoQuiet();
+            return prefsOk && autoApplyOk && personalOk;
+        }
+
+        function findNextIncompleteTab() {
+            if (!validatePreferencesQuiet()) return 'preferences';
+            if (!validateAutoApplyQuiet()) return 'auto-apply';
+            if (!validatePersonalInfoQuiet()) return 'personal-info';
+            return null;
+        }
+
+        // Quiet validators (don't show errors, just return boolean)
+        function validatePreferencesQuiet() {
+            const resumeEmail = document.getElementById('resume_email')?.value?.trim();
+            // Base resume is optional
+            return !!resumeEmail;
+        }
+
+        function validateAutoApplyQuiet() {
+            const experienceLevel = document.getElementById('experience_level')?.value;
+            return !!(jobTitles.length > 0 && experienceLevel);
+        }
+
+        function validatePersonalInfoQuiet() {
+            const fullName = document.getElementById('full_name')?.value?.trim();
+            const email = document.getElementById('personal_email')?.value?.trim();
+            const phone = document.getElementById('phone')?.value?.trim();
+            return !!(fullName && email && phone);
+        }
+
+        function validateAndSave() {
+            hideTabError();
+            if (!validatePersonalInfo()) return;
+
+            completedTabs['personal-info'] = true;
+            markTabCompleted('personal-info');
+
+            // Check if all tabs are complete and save
+            saveCurrentTabAndNavigate(null);
+        }
+
+        // Toast
+        function toast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Tags functionality
+        function setupTagsInput(inputId, containerId, tagsArray, maxTags = 5) {
+            const input = document.getElementById(inputId);
+            const container = document.getElementById(containerId);
+
+            function renderTags() {
+                const existingTags = container.querySelectorAll('.tag');
+                existingTags.forEach(tag => tag.remove());
+
+                tagsArray.forEach((tag, index) => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'tag';
+                    tagEl.innerHTML = `${tag}<button class="tag-remove" onclick="removeTag('${inputId}', ${index})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
+                    container.insertBefore(tagEl, input);
+                });
+            }
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && input.value.trim()) {
+                    e.preventDefault();
+                    if (tagsArray.length < maxTags) {
+                        tagsArray.push(input.value.trim());
+                        input.value = '';
+                        renderTags();
+                        triggerAutoSave(); // Auto-save when tag added
+                    } else {
+                        toast(`Maximum ${maxTags} items allowed`, 'error');
+                    }
+                }
+            });
+
+            renderTags();
+        }
+
+        window.removeTag = function(inputId, index) {
+            if (inputId === 'job-titles-input') {
+                jobTitles.splice(index, 1);
+                setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            } else if (inputId === 'cities-input') {
+                cities.splice(index, 1);
+                setupTagsInput('cities-input', 'cities-container', cities, 5);
+            } else if (inputId === 'excluded-companies-input') {
+                excludedCompanies.splice(index, 1);
+                setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+            }
+            triggerAutoSave(); // Auto-save when tag removed
+        };
+
+        // Option buttons (single select)
+        function setupOptionGroup(groupId, fieldName) {
+            const group = document.getElementById(groupId);
+            if (!group) return;
+
+            group.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    settings[fieldName] = btn.dataset.value;
+                });
+            });
+        }
+
+        // Multi-select option group (for work types)
+        function setupMultiSelectOptionGroup(groupId, fieldName) {
+            const group = document.getElementById(groupId);
+            if (!group) return;
+
+            group.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = btn.dataset.value;
+                    const allBtn = group.querySelector('[data-value="all"]');
+
+                    if (value === 'all') {
+                        // Toggle "All" - deselect others when All is selected
+                        if (btn.classList.contains('selected')) {
+                            btn.classList.remove('selected');
+                            selectedWorkTypes = [];
+                        } else {
+                            group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedWorkTypes = ['all'];
+                        }
+                    } else {
+                        // Toggle individual option
+                        if (btn.classList.contains('selected')) {
+                            btn.classList.remove('selected');
+                            selectedWorkTypes = selectedWorkTypes.filter(t => t !== value);
+                        } else {
+                            // Deselect "All" if selecting individual option
+                            if (allBtn) allBtn.classList.remove('selected');
+                            selectedWorkTypes = selectedWorkTypes.filter(t => t !== 'all');
+                            btn.classList.add('selected');
+                            selectedWorkTypes.push(value);
+                        }
+                    }
+
+                    // Store as array or 'all' or comma-separated string
+                    if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
+                        settings[fieldName] = selectedWorkTypes.length === 0 ? null : 'all';
+                    } else {
+                        settings[fieldName] = selectedWorkTypes.join(',');
+                    }
+                });
+            });
+        }
+
+        // Mode cards
+        function setupModeCards() {
+            const cards = document.querySelectorAll('.mode-card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    cards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    settings.apply_mode = card.dataset.mode;
+                });
+            });
+        }
+
+        // File uploads
+        function setupFileUpload(uploadId, inputId) {
+            const upload = document.getElementById(uploadId);
+            const input = document.getElementById(inputId);
+
+            upload.addEventListener('click', () => input.click());
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    upload.innerHTML = `
+                        <div class="file-uploaded">
+                            <div class="file-uploaded-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                            <div class="file-uploaded-name">${file.name}</div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // User menu
+        function initUserMenu() {
+            const um = document.getElementById('user-menu');
+            const uj = localStorage.getItem('user');
+            if (uj) {
+                try {
+                    const u = JSON.parse(uj);
+                    const n = u.name || u.email?.split('@')[0] || 'User';
+                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+                    um.innerHTML = `
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-avatar">${i}</div>
+                            <div>
+                                <div class="sidebar-user-name">${n}</div>
+                                <div class="sidebar-user-email">${u.email || ''}</div>
+                            </div>
+                        </div>
+                        <button class="sidebar-logout-btn" onclick="logout()">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                            Sign Out
+                        </button>`;
+                } catch (e) {}
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        // Load settings
+        async function loadSettings() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const r = await fetch(`${API_BASE}/api/users/settings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (r.ok) {
+                    settings = await r.json();
+                    await populateForm();
+                } else if (r.status === 401) {
+                    window.location.href = 'login.html';
+                }
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+            }
+        }
+
+        async function populateForm() {
+            // Populate text inputs and selects
+            document.querySelectorAll('[name]').forEach(el => {
+                if (settings[el.name] !== undefined && settings[el.name] !== null) {
+                    el.value = settings[el.name];
+                }
+            });
+
+            // Populate tags - use job_roles as fallback if job_titles is empty
+            if (settings.job_titles && settings.job_titles.length > 0) {
+                jobTitles = settings.job_titles;
+            } else if (settings.job_roles && settings.job_roles.length > 0) {
+                // Use job_roles as default job titles
+                jobTitles = settings.job_roles.slice(0, 5);
+            }
+            setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            if (settings.preferred_cities) {
+                cities = settings.preferred_cities;
+                setupTagsInput('cities-input', 'cities-container', cities, 10);
+            }
+            if (settings.excluded_companies) {
+                excludedCompanies = settings.excluded_companies;
+                setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+            }
+
+            // Populate single-select option groups
+            ['relocate-options', 'us-auth-options', 'sponsorship-options', 'license-options', 'clearance-options'].forEach(groupId => {
+                const group = document.getElementById(groupId);
+                if (group && settings[groupId.replace('-options', '').replace(/-/g, '_')]) {
+                    const val = settings[groupId.replace('-options', '').replace(/-/g, '_')];
+                    group.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.classList.toggle('selected', btn.dataset.value === val);
+                    });
+                }
+            });
+
+            // Populate work type (multi-select)
+            const workTypeGroup = document.getElementById('work-type-options');
+            if (workTypeGroup && settings.work_type) {
+                const workTypeValue = settings.work_type;
+                if (workTypeValue === 'all') {
+                    selectedWorkTypes = ['all'];
+                    workTypeGroup.querySelector('[data-value="all"]')?.classList.add('selected');
+                } else if (workTypeValue) {
+                    selectedWorkTypes = workTypeValue.split(',');
+                    selectedWorkTypes.forEach(type => {
+                        const btn = workTypeGroup.querySelector(`[data-value="${type}"]`);
+                        if (btn) btn.classList.add('selected');
+                    });
+                }
+            }
+
+            // Populate checkboxes
+            if (settings.remote_ok) document.getElementById('remote-ok').checked = true;
+            if (settings.hybrid_ok) document.getElementById('hybrid-ok').checked = true;
+
+            // Populate mode
+            if (settings.apply_mode) {
+                document.querySelectorAll('.mode-card').forEach(card => {
+                    card.classList.toggle('selected', card.dataset.mode === settings.apply_mode);
+                });
+            }
+
+            // Update currency based on country
+            const countrySelect = document.getElementById('country-select');
+            if (countrySelect && countrySelect.value) {
+                updateCurrencyDisplay(countrySelect.value);
+            } else if (!countrySelect.value) {
+                // Auto-detect country if not set
+                const detectedCountry = await detectUserCountry();
+                countrySelect.value = detectedCountry;
+                document.getElementById('address-country-select').value = detectedCountry;
+                updateCurrencyDisplay(detectedCountry);
+            }
+
+            // Load resumes for base resume dropdown
+            await loadResumes();
+
+            // Check which tabs are already completed based on existing data
+            checkTabCompletion();
+        }
+
+        function checkTabCompletion() {
+            // Check Preferences tab - only require resume email, base resume is optional
+            const resumeEmail = document.querySelector('[name="resume_email"]')?.value;
+            if (resumeEmail) {
+                completedTabs.preferences = true;
+                markTabCompleted('preferences');
+            }
+
+            // Check Auto Apply tab
+            const experienceLevel = document.querySelector('[name="experience_level"]')?.value;
+            if (jobTitles.length > 0 && experienceLevel) {
+                completedTabs['auto-apply'] = true;
+                markTabCompleted('auto-apply');
+            }
+
+            // Check Personal Info tab
+            const fullName = document.querySelector('[name="full_name"]')?.value;
+            const email = document.querySelector('[name="email"]')?.value;
+            const phone = document.querySelector('[name="phone"]')?.value;
+            if (fullName && email && phone) {
+                completedTabs['personal-info'] = true;
+                markTabCompleted('personal-info');
+            }
+        }
+
+        // Auto-save with debounce
+        let autoSaveTimeout = null;
+        let isSaving = false;
+
+        function triggerAutoSave() {
+            if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveSettings(true); // true = silent auto-save
+            }, 1500); // Save 1.5 seconds after last change
+        }
+
+        function showSaveIndicator(message = 'Saving...') {
+            let indicator = document.getElementById('auto-save-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'auto-save-indicator';
+                indicator.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--accent-purple);color:white;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;transition:opacity 0.3s;';
+                document.body.appendChild(indicator);
+            }
+            indicator.textContent = message;
+            indicator.style.opacity = '1';
+        }
+
+        function hideSaveIndicator() {
+            const indicator = document.getElementById('auto-save-indicator');
+            if (indicator) {
+                indicator.style.opacity = '0';
+                setTimeout(() => indicator.remove(), 300);
+            }
+        }
+
+        // Save settings - now uses smart navigation
+        async function saveSettings(silent = false) {
+            if (isSaving) return; // Prevent concurrent saves
+            isSaving = true;
+
+            if (silent) {
+                showSaveIndicator('Saving...');
+            }
+
+            // Gather all form data
+            document.querySelectorAll('[name]').forEach(el => {
+                if (el.type === 'checkbox') {
+                    settings[el.name] = el.checked;
+                } else {
+                    settings[el.name] = el.value || null;
+                }
+            });
+
+            // Add tags
+            settings.job_titles = jobTitles;
+            settings.preferred_cities = cities;
+            settings.excluded_companies = excludedCompanies;
+
+            // Handle work_type (from multi-select)
+            if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
+                settings.work_type = selectedWorkTypes.length === 0 ? null : 'all';
+            } else {
+                settings.work_type = selectedWorkTypes.join(',');
+            }
+
+            try {
+                const token = localStorage.getItem('access_token');
+                const r = await fetch(`${API_BASE}/api/users/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(settings)
+                });
+                if (r.ok) {
+                    if (silent) {
+                        // Auto-save: just show saved indicator
+                        showSaveIndicator('Saved!');
+                        setTimeout(hideSaveIndicator, 1500);
+                        checkTabCompletion(); // Update tab completion status
+                    } else {
+                        // Manual save: check if all tabs are complete
+                        if (allTabsComplete()) {
+                            toast('All settings saved! Redirecting...');
+                            setTimeout(() => {
+                                window.location.href = 'discover.html';
+                            }, 1000);
+                        } else {
+                            // Find next incomplete tab and go there
+                            const nextIncomplete = findNextIncompleteTab();
+                            if (nextIncomplete) {
+                                toast('Settings saved. Please complete remaining fields.');
+                                showTab(nextIncomplete, true);
+                            }
+                        }
+                    }
+                } else if (r.status === 401) {
+                    window.location.href = 'login.html';
+                } else {
+                    if (silent) {
+                        showSaveIndicator('Save failed');
+                        setTimeout(hideSaveIndicator, 2000);
+                    } else {
+                        toast('Failed to save settings', 'error');
+                    }
+                }
+            } catch (e) {
+                if (silent) {
+                    showSaveIndicator('Save error');
+                    setTimeout(hideSaveIndicator, 2000);
+                } else {
+                    toast('Error saving settings', 'error');
+                }
+            } finally {
+                isSaving = false;
+            }
+        }
+
+        function resetForm() {
+            if (confirm('Reset all changes?')) {
+                loadSettings();
+            }
+        }
+
+        // Mobile menu functions
+        function setupMobileMenu() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+
+            function closeMobileMenu() {
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            function openMobileMenu() {
+                sidebar.classList.add('mobile-open');
+                backdrop.classList.add('active');
+                mobileMenuBtn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    sidebar.classList.contains('mobile-open') ? closeMobileMenu() : openMobileMenu();
+                });
+            }
+            if (backdrop) backdrop.addEventListener('click', closeMobileMenu);
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', () => window.innerWidth <= 768 && closeMobileMenu());
+            });
+            window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileMenu());
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            setupMobileMenu();
+            initUserMenu();
+
+            setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
+            setupTagsInput('cities-input', 'cities-container', cities, 10);
+            setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+
+            // Multi-select for work types
+            setupMultiSelectOptionGroup('work-type-options', 'work_type');
+
+            // Single select for other option groups
+            setupOptionGroup('relocate-options', 'willing_to_relocate');
+            setupOptionGroup('us-auth-options', 'us_authorized');
+            setupOptionGroup('sponsorship-options', 'requires_sponsorship');
+            setupOptionGroup('license-options', 'drivers_license');
+            setupOptionGroup('clearance-options', 'security_clearance');
+
+            setupModeCards();
+
+            setupFileUpload('resume-upload', 'resume-file-input');
+            setupFileUpload('photo-upload', 'photo-file-input');
+
+            // Load settings (will also load resumes and detect country)
+            await loadSettings();
+
+            // Setup auto-save on all form field changes
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                el.addEventListener('change', triggerAutoSave);
+                if (el.type === 'text' || el.type === 'email' || el.type === 'tel' || el.type === 'number' || el.tagName === 'TEXTAREA') {
+                    el.addEventListener('input', triggerAutoSave);
+                }
+            });
+
+            // Auto-save when option buttons are clicked
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', () => setTimeout(triggerAutoSave, 100));
+            });
+
+            // Auto-save when mode cards are clicked
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.addEventListener('click', () => setTimeout(triggerAutoSave, 100));
+            });
+        });
+    </script>
+
+    <!-- Shared Sidebar JavaScript -->
+    <script src="/js/sidebar.js"></script>
+</body>
+</html>

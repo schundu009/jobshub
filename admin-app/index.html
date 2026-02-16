@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara Admin - Dashboard</title>
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/admin-layout.css">
+    <style>
+        /* Enterprise Dashboard Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .metric-card.success::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
+        .metric-card.warning::before { background: linear-gradient(90deg, #eab308, #fbbf24); }
+        .metric-card.info::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .metric-card.purple::before { background: var(--accent-gradient); }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: var(--bg-tertiary);
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .metric-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .metric-change.positive { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .metric-change.negative { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .metric-change.neutral { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title svg {
+            width: 20px;
+            height: 20px;
+            color: var(--accent-primary);
+        }
+
+        .data-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .status-item {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .status-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .status-count {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: capitalize;
+        }
+
+        .status-wishlist .status-count { color: #eab308; }
+        .status-applied .status-count { color: #3b82f6; }
+        .status-interviewing .status-count { color: #14b8a6; }
+        .status-offer .status-count { color: #22c55e; }
+        .status-rejected .status-count { color: #ef4444; }
+        .status-withdrawn .status-count { color: #6b7280; }
+
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .activity-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-default);
+            font-size: 14px;
+        }
+
+        .activity-table tr:hover {
+            background: var(--bg-hover);
+            cursor: pointer;
+        }
+
+        .activity-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .job-title-cell {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .company-cell {
+            color: var(--text-secondary);
+        }
+
+        .time-cell {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-primary);
+        }
+
+        .quick-action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 50%, var(--bg-tertiary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="index.html" style="text-decoration: none;">
+                <svg width="120" height="32" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#5eead4"/>
+                            <stop offset="50%" style="stop-color:#14b8a6"/>
+                            <stop offset="100%" style="stop-color:#0d9488"/>
+                        </linearGradient>
+                    </defs>
+                    <text x="0" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600" fill="url(#logoGradient)">Cariara</text>
+                </svg>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html" class="active">Dashboard</a></li>
+                    <li><a href="jobs.html">Jobs</a></li>
+                    <li><a href="companies.html">Companies</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="settings.html">Settings</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="quick-actions" style="margin-bottom: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+            <a href="jobs.html" class="quick-action-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Import Jobs
+            </a>
+            <a href="settings.html" class="quick-action-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Batch Refresh
+            </a>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="dashboard-grid">
+            <div class="metric-card purple">
+                <div class="metric-header">
+                    <span class="metric-label">Total Jobs</span>
+                    <div class="metric-icon">📋</div>
+                </div>
+                <div class="metric-value" id="total-jobs">-</div>
+                <span class="metric-change neutral" id="jobs-change">Loading...</span>
+            </div>
+
+            <div class="metric-card info">
+                <div class="metric-header">
+                    <span class="metric-label">Active Sources</span>
+                    <div class="metric-icon">🏢</div>
+                </div>
+                <div class="metric-value" id="total-companies">-</div>
+                <span class="metric-change neutral">Companies tracked</span>
+            </div>
+
+            <div class="metric-card success">
+                <div class="metric-header">
+                    <span class="metric-label">Jobs Today</span>
+                    <div class="metric-icon">📈</div>
+                </div>
+                <div class="metric-value" id="jobs-today">-</div>
+                <span class="metric-change positive" id="today-change">New listings</span>
+            </div>
+
+            <div class="metric-card warning">
+                <div class="metric-header">
+                    <span class="metric-label">Pending Review</span>
+                    <div class="metric-icon">⏳</div>
+                </div>
+                <div class="metric-value" id="pending-review">-</div>
+                <span class="metric-change neutral">In wishlist</span>
+            </div>
+        </div>
+
+        <div class="two-column">
+            <!-- Status Overview -->
+            <div class="data-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Application Pipeline
+                    </h3>
+                    <a href="analytics.html" style="font-size: 13px; color: var(--accent-primary); text-decoration: none;">View Analytics →</a>
+                </div>
+                <div class="status-grid" id="status-overview">
+                    <div class="status-item"><div class="loading-skeleton" style="height: 40px; width: 60px; margin: 0 auto 8px;"></div><div class="loading-skeleton" style="height: 14px; width: 80px; margin: 0 auto;"></div></div>
+                    <div class="status-item"><div class="loading-skeleton" style="height: 40px; width: 60px; margin: 0 auto 8px;"></div><div class="loading-skeleton" style="height: 14px; width: 80px; margin: 0 auto;"></div></div>
+                    <div class="status-item"><div class="loading-skeleton" style="height: 40px; width: 60px; margin: 0 auto 8px;"></div><div class="loading-skeleton" style="height: 14px; width: 80px; margin: 0 auto;"></div></div>
+                    <div class="status-item"><div class="loading-skeleton" style="height: 40px; width: 60px; margin: 0 auto 8px;"></div><div class="loading-skeleton" style="height: 14px; width: 80px; margin: 0 auto;"></div></div>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="data-card">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        System Status
+                    </h3>
+                </div>
+                <div id="system-status">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                            <span style="color: var(--text-secondary);">API</span>
+                            <span style="color: #22c55e; font-weight: 500;">● Healthy</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                            <span style="color: var(--text-secondary);">Redis</span>
+                            <span style="color: #22c55e; font-weight: 500;" id="redis-status">● Checking...</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                            <span style="color: var(--text-secondary);">Scrapers</span>
+                            <span style="color: var(--text-muted); font-weight: 500;" id="scraper-status">● Checking...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="data-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Recent Activity
+                </h3>
+                <a href="jobs.html" style="font-size: 13px; color: var(--accent-primary); text-decoration: none;">View All →</a>
+            </div>
+            <div id="recent-activity">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Added</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activity-tbody">
+                        <tr><td colspan="4"><div class="loading-skeleton" style="height: 20px; width: 100%;"></div></td></tr>
+                        <tr><td colspan="4"><div class="loading-skeleton" style="height: 20px; width: 100%;"></div></td></tr>
+                        <tr><td colspan="4"><div class="loading-skeleton" style="height: 20px; width: 100%;"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/admin-sidebar.js"></script>
+    <script>
+        async function loadDashboard() {
+            try {
+                const summary = await apiRequest('/analytics/summary');
+
+                // Update main metrics
+                document.getElementById('total-jobs').textContent = summary.total_jobs.toLocaleString();
+                document.getElementById('total-companies').textContent = summary.total_companies.toLocaleString();
+                document.getElementById('pending-review').textContent = (summary.status_counts.wishlist || 0).toLocaleString();
+
+                // Update jobs change text
+                document.getElementById('jobs-change').textContent = `${summary.total_companies} sources tracked`;
+
+                // Status overview
+                const statusOverview = document.getElementById('status-overview');
+                const statuses = ['wishlist', 'applied', 'interviewing', 'offer', 'rejected', 'withdrawn'];
+                let statusHtml = '';
+                statuses.forEach(status => {
+                    const count = summary.status_counts[status] || 0;
+                    statusHtml += `
+                        <div class="status-item status-${status}" onclick="window.location='jobs.html?status=${status}'">
+                            <div class="status-count">${count.toLocaleString()}</div>
+                            <div class="status-label">${status}</div>
+                        </div>
+                    `;
+                });
+                statusOverview.innerHTML = statusHtml;
+
+                // Recent activity
+                const activityTbody = document.getElementById('activity-tbody');
+                if (summary.recent_activity.length === 0) {
+                    activityTbody.innerHTML = `
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                    <p>No recent activity</p>
+                                    <a href="jobs.html" class="btn btn-primary" style="margin-top: 12px;">Import Jobs</a>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    let activityHtml = '';
+                    summary.recent_activity.forEach(job => {
+                        activityHtml += `
+                            <tr onclick="window.location='job_detail.html?id=${job.id}'">
+                                <td class="job-title-cell">${job.title}</td>
+                                <td class="company-cell">${job.company_name || '-'}</td>
+                                <td>${getStatusBadge(job.status)}</td>
+                                <td class="time-cell">${formatDate(job.created_at)}</td>
+                            </tr>
+                        `;
+                    });
+                    activityTbody.innerHTML = activityHtml;
+                }
+
+                // Load jobs today count
+                loadJobsToday();
+
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                document.getElementById('status-overview').innerHTML = '<p style="color: var(--error); padding: 20px; text-align: center;">Failed to load dashboard data. Check console for details.</p>';
+            }
+        }
+
+        async function loadJobsToday() {
+            try {
+                // Get jobs from last 24 hours
+                const response = await apiRequest('/jobs?posted_within_hours=24&limit=1&all=true');
+                document.getElementById('jobs-today').textContent = response.total.toLocaleString();
+                document.getElementById('today-change').textContent = `+${response.total} today`;
+                document.getElementById('today-change').className = response.total > 0 ? 'metric-change positive' : 'metric-change neutral';
+            } catch (e) {
+                document.getElementById('jobs-today').textContent = '-';
+            }
+        }
+
+        async function checkSystemHealth() {
+            try {
+                const response = await fetch(API_BASE.replace('/api', '') + '/health/redis');
+                const data = await response.json();
+
+                document.getElementById('redis-status').innerHTML = data.status === 'healthy'
+                    ? '<span style="color: #22c55e;">● Healthy</span>'
+                    : '<span style="color: #ef4444;">● Unhealthy</span>';
+
+                document.getElementById('scraper-status').innerHTML = '<span style="color: #22c55e;">● Active</span>';
+            } catch (e) {
+                document.getElementById('redis-status').innerHTML = '<span style="color: #ef4444;">● Error</span>';
+            }
+        }
+
+        // Check admin access
+        function checkAdminAccess() {
+            const token = localStorage.getItem('access_token');
+            const userJson = localStorage.getItem('user');
+
+            if (!token || !userJson) {
+                window.location.href = 'https://jobs.cariara.com/login.html';
+                return false;
+            }
+
+            try {
+                const user = JSON.parse(userJson);
+                const role = user.role || 'job_seeker';
+                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(role);
+
+                if (!isAdmin) {
+                    alert('Access denied. Admin privileges required.');
+                    window.location.href = 'https://jobs.cariara.com/discover.html';
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                window.location.href = 'https://jobs.cariara.com/login.html';
+                return false;
+            }
+        }
+
+        // Initialize everything after DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize admin layout first
+            initAdminLayout('dashboard', 'Dashboard');
+
+            // Check admin access
+            if (!checkAdminAccess()) {
+                return;
+            }
+
+            // Load dashboard data
+            await loadDashboard();
+            checkSystemHealth();
+        });
+    </script>
+</body>
+</html>

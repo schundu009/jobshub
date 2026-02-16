@@ -1,0 +1,700 @@
+/**
+ * Enterprise Sidebar Navigation
+ * Shared across all job seeker portal pages
+ * Version: 2.0 - Teal/White Theme
+ */
+
+/* =============================================================================
+   SIDEBAR CONTAINER - Dark Navy
+   ============================================================================= */
+
+.sidebar {
+    width: 240px;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.sidebar:hover {
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+}
+
+/* =============================================================================
+   SIDEBAR HEADER
+   ============================================================================= */
+
+.sidebar-header {
+    padding: 20px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.sidebar-header .logo {
+    height: 32px;
+    width: auto;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.sidebar-header:hover .logo {
+    transform: scale(1.02);
+}
+
+.sidebar-header .brand-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+/* =============================================================================
+   SIDEBAR NAVIGATION
+   ============================================================================= */
+
+.sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Section Titles */
+.nav-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 16px 14px 10px;
+    margin-top: 8px;
+    user-select: none;
+}
+
+.nav-section-title:first-child {
+    margin-top: 0;
+    padding-top: 4px;
+}
+
+/* Navigation Links */
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    color: #334155;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover ripple effect */
+.sidebar-nav a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #14b8a6;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.sidebar-nav a:hover::before {
+    opacity: 0.05;
+    transform: scale(1);
+}
+
+.sidebar-nav a:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+    transform: translateX(4px);
+}
+
+.sidebar-nav a:active {
+    transform: translateX(4px) scale(0.98);
+}
+
+/* Active state */
+.sidebar-nav a.active {
+    background: #14b8a6;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+}
+
+.sidebar-nav a.active::before {
+    display: none;
+}
+
+.sidebar-nav a.active:hover {
+    transform: none;
+}
+
+/* Icons */
+.sidebar-nav a svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-nav a:hover svg {
+    transform: scale(1.1);
+}
+
+.sidebar-nav a.active svg {
+    color: #ffffff;
+}
+
+.sidebar-nav a svg {
+    color: #64748b;
+}
+
+.sidebar-nav a:hover svg {
+    color: #0f172a;
+}
+
+/* Badge */
+.nav-badge {
+    background: #14b8a6;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(20, 184, 166, 0.3);
+}
+
+/* =============================================================================
+   USER SECTION
+   ============================================================================= */
+
+.sidebar-user {
+    padding: 16px;
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.sidebar-user-info:hover {
+    background: #f1f5f9;
+}
+
+.sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-user-info:hover .sidebar-user-avatar {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+}
+
+.sidebar-user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-user-name {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-email {
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Logout Button */
+.sidebar-logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sidebar-logout-btn:hover {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #ef4444;
+}
+
+.sidebar-logout-btn:active {
+    transform: scale(0.98);
+}
+
+.sidebar-logout-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-logout-btn:hover svg {
+    transform: translateX(2px);
+}
+
+/* =============================================================================
+   TOP RIGHT CONTROLS
+   ============================================================================= */
+
+.top-right-controls {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+    transform: scale(1.05);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.signout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.signout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.signout-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* =============================================================================
+   MOBILE HAMBURGER MENU
+   ============================================================================= */
+
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 250;
+    width: 48px;
+    height: 48px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-menu-btn:hover {
+    background: var(--bg-hover);
+    transform: scale(1.05);
+}
+
+.mobile-menu-btn:active {
+    transform: scale(0.95);
+}
+
+.mobile-menu-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.mobile-menu-btn .menu-close {
+    display: none;
+}
+
+.mobile-menu-btn.active .menu-open {
+    display: none;
+}
+
+.mobile-menu-btn.active .menu-close {
+    display: block;
+}
+
+/* Backdrop */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.sidebar-backdrop.active {
+    opacity: 1;
+}
+
+/* =============================================================================
+   MAIN CONTENT ADJUSTMENT
+   ============================================================================= */
+
+.main-content {
+    margin-left: 240px;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+/* =============================================================================
+   RESPONSIVE STYLES
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 220px;
+    }
+    .main-content {
+        margin-left: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        width: 280px;
+        max-width: 85vw;
+        box-shadow: none;
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar-backdrop {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding-top: 72px;
+    }
+
+    .sidebar-nav a {
+        padding: 14px 16px;
+        min-height: 48px;
+    }
+
+    .top-right-controls {
+        top: 16px;
+        right: 16px;
+        gap: 8px;
+    }
+
+    .theme-toggle,
+    .signout-btn {
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .signout-btn span {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-menu-btn {
+        top: 12px;
+        left: 12px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .main-content {
+        padding-top: 68px;
+    }
+
+    .top-right-controls {
+        top: 12px;
+        right: 12px;
+    }
+
+    .theme-toggle,
+    .signout-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .sidebar-header {
+        padding: 16px;
+    }
+
+    .sidebar-nav {
+        padding: 12px 8px;
+    }
+
+    .sidebar-user {
+        padding: 12px;
+    }
+}
+
+/* =============================================================================
+   LIGHT THEME OVERRIDES - Keep sidebar dark
+   ============================================================================= */
+
+[data-theme="light"] .sidebar {
+    background: #ffffff;
+    border-right-color: #e2e8f0;
+}
+
+[data-theme="light"] .sidebar-header {
+    background: #ffffff;
+    border-bottom-color: #e2e8f0;
+}
+
+[data-theme="light"] .sidebar-header .brand-name {
+    color: #0f172a;
+}
+
+[data-theme="light"] .sidebar-nav a {
+    color: #334155;
+}
+
+[data-theme="light"] .sidebar-nav a:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+[data-theme="light"] .sidebar-nav a.active {
+    background: #14b8a6;
+    color: #ffffff;
+}
+
+[data-theme="light"] .nav-section-title {
+    color: #64748b;
+}
+
+[data-theme="light"] .sidebar-header .logo {
+    filter: none;
+}
+
+[data-theme="light"] .sidebar-user {
+    background: #ffffff;
+    border-top-color: #e2e8f0;
+}
+
+[data-theme="light"] .sidebar-user-info:hover {
+    background: #f1f5f9;
+}
+
+[data-theme="light"] .sidebar-user-name {
+    color: #0f172a;
+}
+
+[data-theme="light"] .sidebar-user-email {
+    color: #64748b;
+}
+
+[data-theme="light"] .sidebar-logout-btn {
+    border-color: #e2e8f0;
+    color: #64748b;
+}
+
+/* =============================================================================
+   DARK THEME OVERRIDES - Dark navy sidebar
+   ============================================================================= */
+
+[data-theme="dark"] .sidebar {
+    background: #0f172a;
+    border-right-color: #1e293b;
+}
+
+[data-theme="dark"] .sidebar-header {
+    background: #0f172a;
+    border-bottom-color: #1e293b;
+}
+
+[data-theme="dark"] .sidebar-header .brand-name {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sidebar-header .logo {
+    filter: brightness(0) invert(1);
+}
+
+[data-theme="dark"] .sidebar-nav a {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .sidebar-nav a:hover {
+    background: #1e293b;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sidebar-nav a.active {
+    background: #14b8a6;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .nav-section-title {
+    color: #64748b;
+}
+
+[data-theme="dark"] .sidebar-nav a svg {
+    color: #64748b;
+}
+
+[data-theme="dark"] .sidebar-nav a:hover svg {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sidebar-user {
+    background: #0f172a;
+    border-top-color: #1e293b;
+}
+
+[data-theme="dark"] .sidebar-user-info:hover {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .sidebar-user-name {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .sidebar-user-email {
+    color: #64748b;
+}
+
+[data-theme="dark"] .sidebar-logout-btn {
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .sidebar-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}

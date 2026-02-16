@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Job Details</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 24px;
+            max-width: 1000px;
+        }
+        @media (max-width: 768px) {
+            .main-content { margin-left: 0; padding: 16px; }
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        .back-link svg { width: 16px; height: 16px; }
+        .job-header {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .job-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .job-company {
+            font-size: 16px;
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+        }
+        .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .job-meta-item svg { width: 16px; height: 16px; opacity: 0.7; }
+        .job-meta-item.salary { color: #22c55e; font-weight: 600; }
+
+        /* Apply Section */
+        .apply-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .apply-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .apply-section h3 svg { width: 20px; height: 20px; color: var(--accent-blue); }
+        .apply-options {
+            display: grid;
+            gap: 16px;
+        }
+        .apply-option-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .apply-option-row label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 100px;
+        }
+        .apply-option-row select {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .apply-option-row select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        .apply-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { background: var(--bg-hover); }
+        .btn-queue {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+        }
+        .btn-queue:hover { opacity: 0.9; }
+        .btn svg { width: 18px; height: 18px; }
+
+        /* Checkbox style */
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-blue);
+        }
+        .checkbox-row label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .job-description {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .job-description h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        .job-description-content {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+        .job-description-content p { margin-bottom: 12px; }
+        .job-description-content ul, .job-description-content ol {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        .job-description-content li { margin-bottom: 6px; }
+        .no-description {
+            text-align: center;
+            padding: 32px 20px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+        .no-description p {
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .fetch-desc-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        .fetch-desc-btn:hover {
+            background: var(--accent-blue-muted);
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+        }
+        .error {
+            text-align: center;
+            padding: 60px;
+            color: var(--accent-red);
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            z-index: 1000;
+        }
+        .toast.success { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .toast.error { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .toast.show { display: block; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.applied { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .status-badge.queued { background: rgba(20, 184, 166, 0.15); color: #14b8a6; }
+        .status-badge.new { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <a href="discover.html" class="back-link">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Back to Jobs
+        </a>
+
+        <div id="job-content">
+            <div class="loading">Loading job details...</div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('id');
+        let currentJob = null;
+        let userResumes = [];
+        let userCoverLetters = [];
+        let preflightData = null; // ATS support check data
+
+        async function loadJob() {
+            console.log('[JobDetail] Starting loadJob, jobId:', jobId);
+            if (!jobId) {
+                document.getElementById('job-content').innerHTML = '<div class="error">No job ID provided</div>';
+                return;
+            }
+
+            try {
+                console.log('[JobDetail] Fetching job data...');
+                // Load job details first, then documents/preflight
+                const job = await apiRequest(`/jobs/${jobId}`);
+                console.log('[JobDetail] Job loaded:', job?.title);
+
+                currentJob = job;
+
+                // These are optional - don't block on them
+                const [documents, preflight] = await Promise.all([
+                    apiRequest('/users/documents').catch(e => { console.log('[JobDetail] Documents fetch failed:', e.message); return []; }),
+                    apiRequest(`/auto-apply/preflight/${jobId}`).catch(e => { console.log('[JobDetail] Preflight failed:', e.message); return null; })
+                ]);
+
+                preflightData = preflight;
+
+                // Separate resumes and cover letters
+                userResumes = (documents || []).filter(d => d.document_type === 'resume');
+                userCoverLetters = (documents || []).filter(d => d.document_type === 'cover_letter');
+
+                console.log('[JobDetail] Rendering job...');
+                renderJob(job);
+                console.log('[JobDetail] Job rendered successfully');
+            } catch (error) {
+                console.error('[JobDetail] Error loading job:', error);
+                document.getElementById('job-content').innerHTML = `<div class="error">Failed to load job: ${error.message}</div>`;
+            }
+        }
+
+        function renderJob(job) {
+            try {
+                const location = job.location || 'Location not specified';
+                const department = job.department || '';
+                const postedDate = job.posted_date ? formatRelativeDate(job.posted_date) : '';
+                const salary = formatSalary(job.salary_min, job.salary_max);
+                const companyName = job.company?.name || job.company_name || 'Company';
+
+            // Build resume options
+            let resumeOptions = '<option value="">Use default resume</option>';
+            userResumes.forEach(r => {
+                const label = r.filename || r.name || `Resume ${r.id}`;
+                resumeOptions += `<option value="${r.id}">${escapeHtml(label)}</option>`;
+            });
+            if (userResumes.length === 0) {
+                resumeOptions = '<option value="">No resumes uploaded</option>';
+            }
+
+            // Build cover letter options
+            let coverLetterOptions = '<option value="ai">Generate with AI</option><option value="none">No cover letter</option>';
+            userCoverLetters.forEach(cl => {
+                const label = cl.filename || cl.name || `Cover Letter ${cl.id}`;
+                coverLetterOptions += `<option value="${cl.id}">${escapeHtml(label)}</option>`;
+            });
+
+            document.getElementById('job-content').innerHTML = `
+                <div class="job-header">
+                    <h1 class="job-title">${escapeHtml(job.title)}</h1>
+                    <div class="job-company">${escapeHtml(companyName)}</div>
+                    <div class="job-meta">
+                        <div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            ${escapeHtml(location)}
+                        </div>
+                        ${department ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            ${escapeHtml(department)}
+                        </div>` : ''}
+                        ${salary ? `<div class="job-meta-item salary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            ${salary}
+                        </div>` : ''}
+                        ${postedDate ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            ${postedDate}
+                        </div>` : ''}
+                        ${job.job_url ? `<div class="job-meta-item">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                            <a href="${escapeHtml(job.job_url)}" target="_blank" style="color: var(--accent-blue);">View Original Posting</a>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                <div class="apply-section">
+                    <h3>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Quick Apply
+                        ${preflightData?.ats_type ? `<span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:8px;">(${String(preflightData.ats_type).charAt(0).toUpperCase() + String(preflightData.ats_type).slice(1)})</span>` : ''}
+                    </h3>
+                    ${renderAutoApplySection(resumeOptions, coverLetterOptions, job)}
+                </div>
+
+                <div class="job-description">
+                    <h3>Job Description</h3>
+                    <div class="job-description-content" id="job-description-content">
+                        ${job.job_description || job.ai_summary || `
+                            <div class="no-description">
+                                <p>No description available.</p>
+                                <button onclick="fetchJobDescription(${job.id})" class="btn btn-secondary fetch-desc-btn" id="fetch-desc-btn">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Fetch Description
+                                </button>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+            } catch (err) {
+                console.error('Error rendering job:', err);
+                document.getElementById('job-content').innerHTML = `
+                    <div class="error">
+                        Error rendering job details. Please refresh the page.
+                        <br><br>
+                        ${job?.job_url ? `<a href="${job.job_url}" target="_blank" class="btn btn-primary">View Original Job Posting</a>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function renderAutoApplySection(resumeOptions, coverLetterOptions, job) {
+            try {
+                // Check if auto-apply is supported for this job's ATS
+                const atsSupported = preflightData?.ats_supported || false;
+                const atsType = preflightData?.ats_type || null;
+                const alreadySubmitted = preflightData?.already_submitted || false;
+                const existingStatus = preflightData?.existing_submission_status || null;
+
+                // If already submitted
+                if (alreadySubmitted && existingStatus === 'success') {
+                return `
+                    <div style="padding: 20px; text-align: center; color: #22c55e;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:48px;height:48px;margin-bottom:12px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p style="font-weight:600;font-size:16px;margin-bottom:8px;">Application Submitted!</p>
+                        <p style="color:var(--text-secondary);font-size:14px;">You've already applied to this job.</p>
+                    </div>
+                `;
+            }
+
+                // If ATS not supported (and we know the ATS type)
+                if (!atsSupported && atsType) {
+                    const supportedAts = 'Greenhouse, Lever, and Workday';
+                    const atsName = String(atsType).charAt(0).toUpperCase() + String(atsType).slice(1);
+                    return `
+                        <div style="padding: 16px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; margin-bottom: 16px;">
+                            <p style="color: #f59e0b; font-weight: 500; margin-bottom: 8px;">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:middle;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                Auto-apply not available for ${atsName}
+                            </p>
+                        <p style="color: var(--text-secondary); font-size: 13px;">
+                            Auto-apply currently supports ${supportedAts}. Please apply manually using the link below.
+                        </p>
+                    </div>
+                    <div class="apply-actions">
+                        ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-primary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            Apply Manually
+                        </a>` : '<p style="color:var(--text-muted);">No application URL available</p>'}
+                    </div>
+                `;
+            }
+
+            // ATS supported - show full auto-apply form
+            return `
+                <div class="apply-options">
+                    <div class="apply-option-row">
+                        <label>Resume:</label>
+                        <select id="resume-select">
+                            ${resumeOptions}
+                        </select>
+                        <a href="documents.html" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Upload
+                        </a>
+                    </div>
+                    <div class="apply-option-row">
+                        <label>Cover Letter:</label>
+                        <select id="cover-letter-select">
+                            ${coverLetterOptions}
+                        </select>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="use-ats-resume" checked>
+                        <label for="use-ats-resume">Use ATS-optimized resume format</label>
+                    </div>
+                </div>
+                <div class="apply-actions">
+                    ${job.job_url ? `<button onclick="openSmartApply()" class="btn btn-primary" style="background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        Smart Apply (AI)
+                    </button>` : ''}
+                    <button class="btn btn-secondary" id="auto-apply-btn" onclick="autoApply()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Quick Apply
+                    </button>
+                    <button class="btn btn-queue" id="queue-btn" onclick="addToQueue()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Add to Queue
+                    </button>
+                    ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-outline">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                        Manual
+                    </a>` : ''}
+                </div>
+            `;
+            } catch (err) {
+                console.error('Error rendering auto-apply section:', err);
+                // Fallback to manual apply
+                return `
+                    <div class="apply-actions">
+                        ${job && job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="btn btn-primary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            Apply Now
+                        </a>` : '<p style="color:var(--text-muted);">No application URL available</p>'}
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatSalary(min, max) {
+            if (!min && !max) return '';
+            const fmt = (n) => '$' + n.toLocaleString();
+            if (min && max) return `${fmt(min)} - ${fmt(max)}/yr`;
+            if (min) return `From ${fmt(min)}/yr`;
+            if (max) return `Up to ${fmt(max)}/yr`;
+            return '';
+        }
+
+        function formatRelativeDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return 'Posted today';
+            if (diffDays === 1) return 'Posted yesterday';
+            if (diffDays < 7) return `Posted ${diffDays} days ago`;
+            if (diffDays < 30) return `Posted ${Math.floor(diffDays / 7)} weeks ago`;
+            return `Posted ${date.toLocaleDateString()}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        async function autoApply() {
+            const btn = document.getElementById('auto-apply-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Submitting...';
+
+            try {
+                if (!getAccessToken()) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const resumeId = document.getElementById('resume-select').value || null;
+                const coverLetterOption = document.getElementById('cover-letter-select').value;
+                const useAtsResume = document.getElementById('use-ats-resume').checked;
+
+                let coverLetterId = null;
+                let useAiCoverLetter = false;
+
+                if (coverLetterOption === 'ai') {
+                    useAiCoverLetter = true;
+                } else if (coverLetterOption !== 'none') {
+                    coverLetterId = coverLetterOption;
+                }
+
+                const result = await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
+                    resume_id: resumeId ? parseInt(resumeId) : null,
+                    use_ai_cover_letter: useAiCoverLetter,
+                    process_immediately: false  // Queue for worker to process (more reliable)
+                });
+
+                // Check response for next steps
+                if (result.celery_error) {
+                    showToast('Application queued! Processing may be delayed - check Auto Apply page for status.', 'success');
+                } else {
+                    showToast('Application queued for processing! Check Auto Apply page for status.', 'success');
+                }
+                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Queued!';
+                btn.style.background = '#14b8a6';
+
+            } catch (error) {
+                showToast(error.message || 'Failed to submit application', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Auto Apply Now';
+            }
+        }
+
+        async function addToQueue() {
+            const btn = document.getElementById('queue-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="spinner"></div> Adding...';
+            }
+
+            try {
+                if (!getAccessToken()) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const resumeId = document.getElementById('resume-select')?.value || null;
+                const coverLetterOption = document.getElementById('cover-letter-select')?.value;
+
+                let useAiCoverLetter = false;
+                if (coverLetterOption === 'ai') {
+                    useAiCoverLetter = true;
+                }
+
+                // Use /submit endpoint with process_immediately: false to queue
+                await apiRequest(`/auto-apply/submit/${jobId}`, 'POST', {
+                    resume_id: resumeId ? parseInt(resumeId) : null,
+                    use_ai_cover_letter: useAiCoverLetter,
+                    process_immediately: false  // Queue for later processing
+                });
+
+                showToast('Job added to apply queue!', 'success');
+                if (btn) {
+                    btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Queued!';
+                    btn.style.background = '#14b8a6';
+                }
+            } catch (error) {
+                showToast(error.message || 'Failed to add to queue', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Add to Queue';
+                }
+            }
+        }
+
+        // Check authentication and role selection
+        async function init() {
+            if (!getAccessToken()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Check role selection
+            try {
+                const status = await apiRequest('/users/onboarding-status');
+                if (!status.roles_confirmed) {
+                    window.location.href = 'select-roles.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Failed to check status:', error);
+            }
+
+            loadJob();
+        }
+
+        // Fetch job description from URL
+        async function fetchJobDescription(jobId) {
+            const btn = document.getElementById('fetch-desc-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border:2px solid var(--border-color);border-top-color:var(--accent-blue);border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:6px;"></span>Fetching...';
+            }
+
+            try {
+                const response = await apiRequest(`/ingest/refetch-description/${jobId}`, 'POST');
+
+                if (response.new_description_length && response.new_description_length > 100) {
+                    showToast('Job description fetched successfully!', 'success');
+                    // Reload the page to show the new description
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast('Could not fetch description from job URL. Try viewing the original posting.', 'warning');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Retry Fetch';
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching description:', error);
+                showToast('Failed to fetch description: ' + (error.message || 'Unknown error'), 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 6px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Retry Fetch';
+                }
+            }
+        }
+
+        // Smart Apply Modal Functions
+        async function openSmartApply() {
+            const job = currentJob;
+            if (!job || !job.job_url) {
+                showToast('No job URL available', 'error');
+                return;
+            }
+
+            // Build autoapply base URL
+            const autoapplyBase = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:5001'
+                : 'https://cariara-autoapply.up.railway.app';
+
+            // Generate unique session ID
+            const sessionId = `jp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+            // Try to fetch and send resume to autoapply
+            try {
+                const resumeResponse = await apiRequest('/users/documents/default-resume');
+                if (resumeResponse && resumeResponse.content) {
+                    // Send resume to autoapply service
+                    try {
+                        await fetch(`${autoapplyBase}/api/resume/external`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                resume_text: resumeResponse.content,
+                                session_id: sessionId
+                            })
+                        });
+                        showToast('Resume synced with AutoApply', 'success');
+                    } catch (e) {
+                        console.warn('Could not sync resume with autoapply:', e);
+                    }
+                }
+            } catch (e) {
+                console.warn('No default resume found:', e);
+            }
+
+            // Build autoapply URL with parameters
+            const params = new URLSearchParams();
+            params.set('url', job.job_url);
+            params.set('session', sessionId);
+
+            const autoapplyUrl = `${autoapplyBase}/?${params.toString()}`;
+
+            // Open modal with iframe
+            const modal = document.getElementById('smart-apply-modal');
+            const iframe = document.getElementById('smart-apply-iframe');
+            iframe.src = autoapplyUrl;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSmartApply() {
+            const modal = document.getElementById('smart-apply-modal');
+            const iframe = document.getElementById('smart-apply-iframe');
+            modal.style.display = 'none';
+            iframe.src = 'about:blank';
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSmartApply();
+        });
+
+        init();
+    </script>
+
+    <!-- Smart Apply Modal -->
+    <div id="smart-apply-modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="position:relative; width:95%; max-width:1200px; height:90vh; background:var(--bg-primary); border-radius:16px; overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:var(--bg-secondary); border-bottom:1px solid var(--border-color);">
+                <h3 style="margin:0; font-size:18px; font-weight:600; color:var(--text-primary);">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px; height:20px; vertical-align:middle; margin-right:8px; color:#14b8a6;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Smart Apply (AI)
+                </h3>
+                <button onclick="closeSmartApply()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); padding:8px;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:24px; height:24px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <iframe id="smart-apply-iframe" src="about:blank" style="width:100%; height:calc(100% - 60px); border:none;"></iframe>
+        </div>
+    </div>
+</body>
+</html>

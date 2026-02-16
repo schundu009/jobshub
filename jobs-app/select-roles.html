@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cariara - Select Your Roles</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="/css/theme.css">
+    <style>
+        body {
+            background: var(--bg-primary) !important;
+        }
+        .roles-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg-primary);
+        }
+        .roles-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .roles-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .roles-header h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .roles-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 4px 0 0 0;
+        }
+        .detect-section {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .detect-section .detect-text {
+            text-align: left;
+        }
+        .detect-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .detect-section p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 2px 0 0 0;
+        }
+        .detect-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .detect-btn:hover:not(:disabled) {
+            background: var(--accent-purple-hover);
+            transform: translateY(-1px);
+        }
+        .detect-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .detect-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .detected-results {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .detected-role {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .detected-role-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .confidence-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .confidence-high { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); }
+        .confidence-medium { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+        .confidence-low { background: rgba(156, 163, 175, 0.2); color: var(--text-muted); }
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 500px) {
+            .roles-grid { grid-template-columns: 1fr; }
+        }
+        .role-option {
+            position: relative;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .role-option:hover {
+            border-color: var(--border-light);
+            background: var(--bg-hover);
+        }
+        .role-option.selected {
+            border-color: var(--accent-purple);
+            background: rgba(20, 184, 166, 0.1);
+        }
+        .role-option .check-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .role-option.selected .check-icon {
+            background: var(--accent-purple);
+        }
+        .role-option .check-icon svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .role-option.selected .check-icon svg {
+            opacity: 1;
+        }
+        .role-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .role-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .selection-count {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .selection-count span {
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .submit-btn:hover:not(:disabled) {
+            background: var(--accent-purple-hover);
+            transform: translateY(-1px);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .skip-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .skip-link:hover {
+            color: var(--text-secondary);
+        }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-red);
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+        }
+        .error-message.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="roles-container">
+        <div class="roles-card">
+            <div class="roles-header">
+                <h1>Select Your Job Roles</h1>
+            </div>
+
+            <div class="error-message" id="error-message"></div>
+
+            <div class="detect-section">
+                <div class="detect-text">
+                    <h3>Auto-Detect from Resume</h3>
+                </div>
+                <button class="detect-btn" id="detect-btn" onclick="detectRoles()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    Analyze
+                </button>
+            </div>
+            <div id="detected-results" class="detected-results" style="display: none;"></div>
+
+            <div class="roles-grid" id="roles-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <div class="selection-count">
+                <span id="selected-count">0</span> of 5 roles selected
+            </div>
+
+            <button class="submit-btn" id="submit-btn" onclick="saveRoles()" disabled>
+                Continue to Jobs
+            </button>
+
+            <div class="skip-link" onclick="skipForNow()">
+                Skip for now (show all jobs)
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        const AVAILABLE_ROLES = [
+            { slug: "devops", name: "DevOps Engineer" },
+            { slug: "sre", name: "Site Reliability Engineer" },
+            { slug: "cloud_architect", name: "Cloud/Infrastructure Architect" },
+            { slug: "platform", name: "Platform Engineer" },
+            { slug: "backend", name: "Backend Engineer" },
+            { slug: "fullstack", name: "Full Stack Engineer" },
+            { slug: "data", name: "Data Engineer" },
+            { slug: "ml", name: "ML/AI Engineer" },
+            { slug: "security", name: "Security Engineer" },
+            { slug: "frontend", name: "Frontend Engineer" },
+            { slug: "mobile", name: "Mobile Engineer" },
+        ];
+
+        let selectedRoles = new Set();
+        let detectedRoles = [];
+
+        // Check auth
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            renderRoles();
+            loadExistingRoles();
+        });
+
+        async function loadExistingRoles() {
+            try {
+                const data = await apiRequest('/users/job-roles');
+                if (data.selected_roles && data.selected_roles.length > 0) {
+                    data.selected_roles.forEach(role => selectedRoles.add(role));
+                    updateUI();
+                }
+                if (data.detected_roles && data.detected_roles.length > 0) {
+                    detectedRoles = data.detected_roles;
+                    showDetectedResults();
+                }
+            } catch (e) {
+                console.log('Could not load existing roles:', e);
+            }
+        }
+
+        function renderRoles() {
+            const grid = document.getElementById('roles-grid');
+            grid.innerHTML = AVAILABLE_ROLES.map(role => `
+                <div class="role-option" data-role="${role.slug}">
+                    <div class="check-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="role-name">${role.name}</div>
+                </div>
+            `).join('');
+
+            // Add click handlers after rendering
+            document.querySelectorAll('.role-option').forEach(el => {
+                el.addEventListener('click', () => toggleRole(el.dataset.role));
+            });
+        }
+
+        function toggleRole(slug) {
+            if (selectedRoles.has(slug)) {
+                selectedRoles.delete(slug);
+            } else if (selectedRoles.size < 5) {
+                selectedRoles.add(slug);
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update visual selection
+            document.querySelectorAll('.role-option').forEach(el => {
+                const role = el.dataset.role;
+                if (selectedRoles.has(role)) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+
+            // Update count
+            document.getElementById('selected-count').textContent = selectedRoles.size;
+
+            // Enable/disable submit
+            document.getElementById('submit-btn').disabled = selectedRoles.size === 0;
+        }
+
+        async function detectRoles() {
+            const btn = document.getElementById('detect-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner"></div> Analyzing...';
+
+            try {
+                const data = await apiRequest('/users/detect-roles');
+                detectedRoles = data.detected_roles || [];
+
+                if (detectedRoles.length === 0) {
+                    showError('Could not detect roles. Please select manually.');
+                } else {
+                    showDetectedResults();
+                    // Auto-select top roles
+                    detectedRoles.slice(0, 3).forEach(r => {
+                        if (selectedRoles.size < 5) {
+                            selectedRoles.add(r.role);
+                        }
+                    });
+                    updateUI();
+                }
+            } catch (e) {
+                showError(e.message || 'Failed to analyze resume. Make sure you have uploaded a resume.');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg> Analyze My Resume';
+        }
+
+        function showDetectedResults() {
+            const container = document.getElementById('detected-results');
+            if (detectedRoles.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            container.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">AI Recommendations:</div>' +
+                detectedRoles.map(r => {
+                    const conf = r.confidence * 100;
+                    const confClass = conf >= 70 ? 'confidence-high' : conf >= 50 ? 'confidence-medium' : 'confidence-low';
+                    return `
+                        <div class="detected-role">
+                            <div class="detected-role-info">
+                                <span style="font-weight:500;">${r.name}</span>
+                                <span class="confidence-badge ${confClass}">${Math.round(conf)}%</span>
+                            </div>
+                            <span style="font-size:11px;color:var(--text-muted);max-width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">${r.reason || ''}</span>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        async function saveRoles() {
+            if (selectedRoles.size === 0) return;
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
+
+            try {
+                await apiRequest('/users/job-roles', 'POST', {
+                    roles: Array.from(selectedRoles)
+                });
+
+                // Update user in localStorage
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                user.job_roles = Array.from(selectedRoles);
+                user.roles_confirmed = true;
+                localStorage.setItem('user', JSON.stringify(user));
+
+                // Redirect to discover
+                window.location.href = 'discover.html';
+            } catch (e) {
+                showError(e.message || 'Failed to save roles');
+                btn.disabled = false;
+                btn.textContent = 'Continue to Jobs';
+            }
+        }
+
+        function skipForNow() {
+            window.location.href = 'discover.html';
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-message');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+    </script>
+</body>
+</html>
