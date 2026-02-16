@@ -4,103 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cariara - Job Details</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/admin-layout.css">
     <style>
-        :root, [data-theme="light"] {
-            /* Teal Theme - Light (Default) */
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --bg-tertiary: #f1f5f9;
-            --bg-card: #ffffff;
-            --bg-hover: #f1f5f9;
-            --bg-elevated: #ffffff;
-            --accent-blue: #14b8a6;
-            --accent-blue-light: #5eead4;
-            --accent-green: #14b8a6;
-            --accent-green-light: #5eead4;
-            --accent-purple: #14b8a6;
-            --accent-purple-light: #5eead4;
-            --accent-red: #ef4444;
-            --accent-yellow: #14b8a6;
-            --accent-cyan: #14b8a6;
-            --text-primary: #0f172a;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --border-light: #cbd5e1;
-            --gradient-primary: linear-gradient(135deg, #5eead4 0%, #14b8a6 50%, #0d9488 100%);
-            --gradient-success: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-            --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.08);
-            --shadow-lg: 0 10px 15px rgba(15, 23, 42, 0.1);
-        }
-
-        [data-theme="dark"] {
-            /* Teal Theme - Dark */
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --bg-card: #1e293b;
-            --bg-hover: #334155;
-            --bg-elevated: #1e293b;
-            --accent-blue: #2dd4bf;
-            --accent-blue-light: #5eead4;
-            --accent-green: #2dd4bf;
-            --accent-green-light: #5eead4;
-            --accent-purple: #2dd4bf;
-            --accent-purple-light: #5eead4;
-            --accent-red: #ef4444;
-            --accent-yellow: #2dd4bf;
-            --accent-cyan: #2dd4bf;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-muted: #64748b;
-            --border-color: #334155;
-            --border-light: #475569;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
-            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Sidebar always dark navy */
-        .sidebar {
-            background: #0f172a !important;
-            border-right-color: #1e293b !important;
-        }
-        .sidebar-nav a {
-            color: #94a3b8 !important;
-        }
-        .sidebar-nav a:hover {
-            background: #1e293b !important;
-            color: #ffffff !important;
-        }
-        .sidebar-nav a.active {
-            background: #14b8a6 !important;
-            color: #ffffff !important;
-        }
-        .nav-section-title {
-            color: #64748b !important;
-        }
-        .sidebar-header .logo {
-            filter: brightness(0) invert(1);
-        }
-        .sidebar-header .brand-name {
-            color: #ffffff !important;
-        }
-        .sidebar-user-info {
-            background: #0f172a;
-        }
-        .sidebar-user-name {
-            color: #ffffff !important;
-        }
-        .sidebar-user-email {
-            color: #64748b !important;
-        }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
@@ -108,11 +19,11 @@
             min-height: 100vh;
         }
 
-        /* Sidebar */
+        /* Sidebar - Always Dark Navy */
         .sidebar {
-            width: 200px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
+            width: 220px;
+            background: #0f172a;
+            border-right: 1px solid #1e293b;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -124,69 +35,70 @@
 
         .sidebar-header {
             padding: 20px 24px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #1e293b;
             display: flex;
             align-items: center;
             gap: 12px;
+            background: #0f172a;
         }
 
         .sidebar-header .logo {
             height: 36px;
             width: auto;
+            filter: brightness(0) invert(1);
         }
 
         .sidebar-header .brand-name {
-            font-family: 'Playfair Display', Georgia, serif;
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: #ffffff;
             letter-spacing: -0.02em;
         }
 
         .sidebar-nav {
             flex: 1;
-            padding: 20px 16px;
+            padding: 16px 12px;
             overflow-y: auto;
+            background: #0f172a;
         }
 
         .sidebar-nav a {
             display: flex;
             align-items: center;
-            gap: 14px;
-            padding: 14px 18px;
-            color: var(--text-secondary);
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
             text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 6px;
-            font-size: 15px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 14px;
             font-weight: 500;
             transition: all 0.2s ease;
         }
 
         .sidebar-nav a:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
+            background: #1e293b;
+            color: #ffffff;
         }
 
         .sidebar-nav a.active {
-            background: var(--gradient-primary);
-            color: white;
-            box-shadow: var(--shadow-sm);
+            background: #14b8a6;
+            color: #ffffff;
         }
 
         .sidebar-nav a svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             flex-shrink: 0;
         }
 
         .nav-section-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 16px 18px 8px;
+            letter-spacing: 0.8px;
+            padding: 16px 14px 10px;
             margin-top: 8px;
         }
         .nav-section-title:first-child { margin-top: 0; padding-top: 4px; }
@@ -205,44 +117,50 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            background: var(--bg-tertiary);
+            width: 40px;
+            height: 40px;
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
         }
         .theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .theme-toggle svg { width: 18px; height: 18px; }
+        .theme-toggle svg { width: 20px; height: 20px; }
         .signout-btn {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-tertiary);
+            padding: 10px 16px;
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text-secondary);
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s ease;
         }
-        .signout-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .signout-btn svg { width: 16px; height: 16px; }
+        .signout-btn:hover { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+        .signout-btn svg { width: 18px; height: 18px; }
 
         .sidebar-user {
-            padding: 20px;
-            border-top: 1px solid var(--border-color);
+            padding: 16px;
+            border-top: 1px solid #1e293b;
+            background: #0f172a;
         }
 
         .sidebar-user-info {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 10px;
+        }
+        .sidebar-user-info:hover {
+            background: #1e293b;
         }
 
         .sidebar-user-avatar {
