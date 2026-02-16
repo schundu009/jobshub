@@ -182,8 +182,8 @@ a:hover {
 /* Sidebar - Dark Navy */
 .sidebar {
     width: 220px;
-    background: #0f172a !important;
-    border-right: 1px solid #1e293b !important;
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -196,20 +196,20 @@ a:hover {
 
 .sidebar-header {
     padding: 20px;
-    border-bottom: 1px solid #1e293b !important;
-    background: #0f172a !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #ffffff !important;
 }
 
 .sidebar-header h1 {
     font-size: 18px;
     font-weight: 600;
-    color: #ffffff !important;
+    color: #0f172a !important;
 }
 
 .sidebar-nav {
     flex: 1;
     padding: 12px 8px;
-    background: #0f172a !important;
+    background: #ffffff !important;
 }
 
 .sidebar-nav a {
@@ -217,7 +217,7 @@ a:hover {
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    color: #94a3b8 !important;
+    color: #334155 !important;
     text-decoration: none;
     border-radius: 4px;
     margin-bottom: 2px;
@@ -226,8 +226,8 @@ a:hover {
 }
 
 .sidebar-nav a:hover {
-    background: #1e293b !important;
-    color: #ffffff !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
 }
 
 .sidebar-nav a.active {
@@ -241,57 +241,57 @@ a:hover {
     opacity: 0.7;
 }
 
-/* Sidebar section titles - always light on dark */
+/* Sidebar section titles */
 .nav-section-title {
     color: #64748b !important;
 }
 
-/* Sidebar filter sections - always light on dark */
+/* Sidebar filter sections */
 .sidebar-filter-title {
     color: #64748b !important;
 }
 
 .sidebar-filter-item {
-    color: #94a3b8 !important;
+    color: #334155 !important;
 }
 
 .sidebar-filter-item:hover {
-    background: #1e293b !important;
-    color: #ffffff !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
 }
 
 .sidebar-filter-item.active {
-    background: rgba(20, 184, 166, 0.2) !important;
+    background: rgba(20, 184, 166, 0.15) !important;
     color: #14b8a6 !important;
 }
 
 .sidebar-filter-item .filter-count {
     color: #64748b !important;
-    background: #1e293b !important;
+    background: #f1f5f9 !important;
 }
 
 .sidebar-company-item {
-    color: #94a3b8 !important;
+    color: #334155 !important;
 }
 
 .sidebar-company-item:hover {
-    background: #1e293b !important;
-    color: #ffffff !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
 }
 
 .sidebar-company-item.active {
-    background: rgba(20, 184, 166, 0.2) !important;
+    background: rgba(20, 184, 166, 0.15) !important;
     color: #14b8a6 !important;
 }
 
 .sidebar-company-item .company-initial {
-    background: #1e293b !important;
+    background: #f1f5f9 !important;
     color: #14b8a6 !important;
 }
 
 .sidebar-company-item .company-count {
     color: #64748b !important;
-    background: #1e293b !important;
+    background: #f1f5f9 !important;
 }
 
 /* Main Content */

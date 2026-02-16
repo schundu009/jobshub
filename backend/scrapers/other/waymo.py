@@ -1,93 +1,142 @@
-"""Waymo job scraper - uses Workday API."""
+"""
+Waymo Jobs Scraper.
 
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+Uses Playwright for waymo.com/careers.
+"""
+
+from typing import Optional
+import re
+
+from scrapers.base import (
+    PlaywrightScraper,
+    ScraperConfig,
+    ScraperType,
+    ScrapedJob,
+    ScrapeResult,
+)
 from scrapers.registry import ScraperRegistry
-from typing import List, Optional
-from datetime import datetime
 
 
 @ScraperRegistry.register(category="other")
-class WaymoScraper(HTTPScraper):
-    """Scraper for Waymo careers (Workday)."""
+class WaymoPlaywrightScraper(PlaywrightScraper):
+    """Scraper for Waymo careers."""
 
     config = ScraperConfig(
         company_slug="waymo",
         company_name="Waymo",
         careers_url="https://waymo.com/careers/",
-        scraper_type=ScraperType.HTTP,
-        rate_limit=20,
-        max_pages=50,
+        scraper_type=ScraperType.PLAYWRIGHT,
+        rate_limit=5,
+        page_timeout=60,
+        max_pages=20,
     )
 
-    API_URL = "https://waymo.wd5.myworkdayjobs.com/wday/cxs/waymo/Waymo/jobs"
+    BASE_URL = "https://waymo.com/careers/"
 
     async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        offset = 0
-        limit = 20
+        all_jobs = []
+        page_num = 1
 
-        while offset < self.config.max_pages * limit:
-            payload = {
-                "appliedFacets": {},
-                "limit": limit,
-                "offset": offset,
-                "searchText": ""
-            }
-
-            data = await self.fetch_json(self.API_URL, method="POST", payload=payload)
-            if not data:
-                break
-
-            job_postings = data.get("jobPostings", [])
-            if not job_postings:
-                break
-
-            for job in job_postings:
-                parsed = self.parse_job(job)
-                if parsed:
-                    all_jobs.append(parsed)
-
-            total = data.get("total", 0)
-            offset += limit
-            if offset >= total:
-                break
-
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            jobs_found=len(all_jobs),
-            error_message=None
-        )
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        page = await self.get_page()
         try:
-            title = raw.get("title", "")
-            external_id = raw.get("bulletFields", [""])[0] if raw.get("bulletFields") else ""
-            location = raw.get("locationsText", "")
-            posted_on = raw.get("postedOn", "")
+            await page.goto(self.BASE_URL, wait_until="networkidle")
+            await page.wait_for_timeout(5000)
 
-            posted_date = None
-            if posted_on:
-                try:
-                    posted_date = datetime.strptime(posted_on, "%Y-%m-%dT%H:%M:%S.%f%z")
-                except:
-                    try:
-                        posted_date = datetime.strptime(posted_on.split("T")[0], "%Y-%m-%d")
-                    except:
-                        pass
+            # Look for job listings section
+            try:
+                await page.wait_for_selector(
+                    "a[href*='/job'], a[href*='/careers/'], [class*='job'], [class*='position'], [class*='opening']",
+                    timeout=15000
+                )
+            except:
+                self.logger.info("Job list not found")
 
-            job_path = raw.get("externalPath", "")
-            job_url = f"https://waymo.wd5.myworkdayjobs.com/en-US/Waymo{job_path}"
+            # Get all job links
+            cards = await page.query_selector_all(
+                "a[href*='/joinus/'], a[href*='/careers/'][href*='job'], [class*='job-card'] a, [class*='opening'] a"
+            )
+
+            if not cards:
+                # Try a broader search
+                cards = await page.query_selector_all("a[href*='careers']")
+
+            self.logger.info(f"Found {len(cards)} potential job links")
+
+            for card in cards:
+                job = await self._parse_job_card(card)
+                if job and job.external_job_id:
+                    if not any(j.external_job_id == job.external_job_id for j in all_jobs):
+                        all_jobs.append(job)
+
+            # Try scrolling to load more
+            for _ in range(5):
+                prev_count = len(all_jobs)
+                await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                await page.wait_for_timeout(2000)
+
+                new_cards = await page.query_selector_all("a[href*='/joinus/'], a[href*='job']")
+                for card in new_cards:
+                    job = await self._parse_job_card(card)
+                    if job and job.external_job_id:
+                        if not any(j.external_job_id == job.external_job_id for j in all_jobs):
+                            all_jobs.append(job)
+
+                if len(all_jobs) == prev_count:
+                    break
+
+            return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=page_num)
+
+        except Exception as e:
+            self.logger.error(f"Error scraping Waymo: {e}")
+            return ScrapeResult(success=False, jobs=all_jobs, error_message=str(e))
+        finally:
+            await self.release_page(page)
+
+    async def _parse_job_card(self, card) -> Optional[ScrapedJob]:
+        try:
+            href = await card.get_attribute("href")
+            if not href:
+                return None
+
+            # Filter out non-job pages
+            if '/careers' not in href and '/joinus' not in href and '/job' not in href:
+                return None
+
+            # Skip generic career pages
+            if href.endswith('/careers') or href.endswith('/careers/'):
+                return None
+
+            job_id = ""
+            match = re.search(r'/joinus/([^/]+)', href)
+            if match:
+                job_id = match.group(1)
+            else:
+                match = re.search(r'/([a-z0-9-]+)/?$', href)
+                if match and match.group(1) not in ['careers', 'jobs', 'about', 'joinus']:
+                    job_id = match.group(1)
+
+            if not job_id:
+                return None
+
+            job_url = href if href.startswith("http") else f"https://waymo.com{href}"
+
+            title = await card.text_content()
+            title = title.strip().split('\n')[0] if title else ""
+
+            # Try to get title from child elements
+            title_el = await card.query_selector("h2, h3, h4, [class*='title']")
+            if title_el:
+                title = await title_el.text_content()
 
             return ScrapedJob(
-                title=title,
-                location=location,
+                title=self.clean_text(title) or f"Waymo Position {job_id[:8]}",
+                location="",
                 job_url=job_url,
-                external_job_id=external_id or job_path,
-                job_description="",
-                department="",
-                posted_date=posted_date,
+                external_job_id=job_id,
             )
         except Exception as e:
-            self.logger.error(f"Error parsing job: {e}")
+            self.logger.warning(f"Error parsing: {e}")
             return None
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        return None

@@ -110,30 +110,54 @@
             --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.3);
         }
 
-        /* Sidebar always dark navy */
-        .sidebar {
-            background: #0f172a !important;
-            border-right-color: #1e293b !important;
+        /* Sidebar WHITE background in light theme */
+        .sidebar,
+        [data-theme="light"] .sidebar {
+            background: #ffffff !important;
+            border-right: 1px solid #e2e8f0 !important;
         }
-        .sidebar-nav a {
-            color: #94a3b8 !important;
+
+        .sidebar-nav a,
+        [data-theme="light"] .sidebar-nav a {
+            color: #334155 !important;
+            background: transparent !important;
         }
-        .sidebar-nav a:hover {
-            background: #1e293b !important;
-            color: #ffffff !important;
+        .sidebar-nav a:hover,
+        [data-theme="light"] .sidebar-nav a:hover {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
         }
-        .sidebar-nav a.active {
+        .sidebar-nav a.active,
+        [data-theme="light"] .sidebar-nav a.active {
             background: #14b8a6 !important;
             color: #ffffff !important;
         }
-        .nav-section-title {
+        .nav-section-title,
+        [data-theme="light"] .nav-section-title {
             color: #64748b !important;
+            background: transparent !important;
         }
-        .sidebar-header .logo {
-            filter: brightness(0) invert(1);
+        .sidebar-header,
+        [data-theme="light"] .sidebar-header {
+            background: #ffffff !important;
+            border-bottom: 1px solid #e2e8f0 !important;
         }
-        .sidebar-header .brand-name {
-            color: #ffffff !important;
+        .sidebar-header .logo,
+        [data-theme="light"] .sidebar-header .logo {
+            filter: none !important;
+        }
+        .sidebar-header .brand-name,
+        [data-theme="light"] .sidebar-header .brand-name {
+            color: #0f172a !important;
+        }
+        .sidebar-filters,
+        [data-theme="light"] .sidebar-filters {
+            background: #ffffff !important;
+        }
+        .sidebar-user,
+        [data-theme="light"] .sidebar-user {
+            background: #ffffff !important;
+            border-top: 1px solid #e2e8f0 !important;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -154,11 +178,11 @@
             display: none !important;
         }
 
-        /* Minimal Sidebar - Dark Navy */
+        /* Minimal Sidebar - White Background */
         .sidebar {
             width: 220px;
-            background: #0f172a !important;
-            border-right: 1px solid #1e293b !important;
+            background: #ffffff !important;
+            border-right: 1px solid #e2e8f0 !important;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -190,7 +214,7 @@
             font-family: 'Inter', -apple-system, sans-serif;
             font-size: 18px;
             font-weight: 600;
-            color: #ffffff !important;
+            color: #0f172a !important;
             letter-spacing: -0.02em;
             margin: 0;
         }
@@ -206,7 +230,7 @@
             align-items: center;
             gap: 14px;
             padding: 14px 18px;
-            color: #94a3b8 !important;
+            color: #334155 !important;
             text-decoration: none;
             border-radius: 12px;
             margin-bottom: 6px;
@@ -218,8 +242,8 @@
         }
 
         .sidebar-nav a:hover {
-            background: #1e293b !important;
-            color: #ffffff !important;
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
         }
 
         .sidebar-nav a.active {
@@ -256,9 +280,9 @@
         /* Sidebar User Section */
         .sidebar-user {
             padding: 16px;
-            border-top: 1px solid #1e293b !important;
+            border-top: 1px solid #e2e8f0 !important;
             flex-shrink: 0;
-            background: #0f172a !important;
+            background: #ffffff !important;
         }
 
         .sidebar-login-btn {
@@ -266,18 +290,18 @@
             align-items: center;
             gap: 10px;
             padding: 10px 14px;
-            background: #1e293b !important;
+            background: #14b8a6 !important;
             color: #ffffff !important;
             text-decoration: none;
             border-radius: 4px;
             font-size: 13px;
             font-weight: 500;
-            border: 1px solid #334155 !important;
+            border: none !important;
             justify-content: center;
         }
 
         .sidebar-login-btn:hover {
-            background: #334155 !important;
+            background: #0d9488 !important;
         }
 
         .sidebar-login-btn svg {
@@ -290,8 +314,8 @@
             align-items: center;
             gap: 14px;
             padding: 14px;
-            background: #1e293b !important;
-            border: 1px solid #334155 !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 12px;
             margin-bottom: 12px;
         }
@@ -319,7 +343,7 @@
         .sidebar-user-name {
             font-size: 14px;
             font-weight: 600;
-            color: #ffffff !important;
+            color: #0f172a !important;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -339,18 +363,18 @@
             gap: 10px;
             padding: 10px 14px;
             margin-top: 12px;
-            background: #1e293b !important;
-            border: 1px solid #334155 !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 8px;
-            color: #94a3b8 !important;
+            color: #334155 !important;
             text-decoration: none;
             font-size: 13px;
             font-weight: 500;
             transition: all 0.15s;
         }
         .sidebar-admin-link:hover {
-            background: #334155 !important;
-            color: #ffffff !important;
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
         }
         .sidebar-admin-link svg {
             width: 16px;
@@ -365,9 +389,9 @@
             width: 100%;
             padding: 12px;
             background: transparent !important;
-            border: 1px solid #334155 !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 10px;
-            color: #94a3b8 !important;
+            color: #64748b !important;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
@@ -375,8 +399,9 @@
         }
 
         .sidebar-logout-btn:hover {
-            background: #334155 !important;
-            color: #ffffff !important;
+            background: #f1f5f9 !important;
+            color: #ef4444 !important;
+            border-color: #fecaca !important;
         }
 
         .sidebar-logout-btn svg {
@@ -1392,7 +1417,7 @@
         /* Sidebar Filters Section */
         .sidebar-divider {
             height: 1px;
-            background: #1e293b !important;
+            background: #e2e8f0 !important;
             margin: 8px 16px;
         }
 
@@ -1401,6 +1426,7 @@
             padding: 8px 12px;
             overflow-y: auto;
             min-height: 0;
+            background: #ffffff !important;
         }
 
         .sidebar-filter-section {
@@ -1437,7 +1463,7 @@
             align-items: center;
             gap: 10px;
             padding: 8px 10px;
-            color: #94a3b8 !important;
+            color: #334155 !important;
             text-decoration: none;
             border-radius: 6px;
             font-size: 13px;
@@ -1450,12 +1476,12 @@
         }
 
         .sidebar-filter-item:hover {
-            background: #1e293b !important;
-            color: #ffffff !important;
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
         }
 
         .sidebar-filter-item.active {
-            background: rgba(20, 184, 166, 0.2) !important;
+            background: rgba(20, 184, 166, 0.15) !important;
             color: #14b8a6 !important;
         }
 
@@ -1479,7 +1505,7 @@
             font-size: 11px;
             font-weight: 600;
             color: #64748b !important;
-            background: #1e293b !important;
+            background: #f1f5f9 !important;
             padding: 2px 6px;
             border-radius: 10px;
             min-width: 24px;
@@ -1488,8 +1514,8 @@
 
         .sidebar-filter-item:hover .filter-count,
         .sidebar-filter-item.active .filter-count {
-            background: #334155 !important;
-            color: #cbd5e1 !important;
+            background: #e2e8f0 !important;
+            color: #334155 !important;
         }
 
         /* Sidebar Company Items */
@@ -1504,7 +1530,7 @@
             align-items: center;
             gap: 8px;
             padding: 6px 10px;
-            color: #94a3b8 !important;
+            color: #334155 !important;
             border-radius: 6px;
             font-size: 12px;
             cursor: pointer;
@@ -1516,12 +1542,12 @@
         }
 
         .sidebar-company-item:hover {
-            background: #1e293b !important;
-            color: #ffffff !important;
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
         }
 
         .sidebar-company-item.active {
-            background: rgba(20, 184, 166, 0.2) !important;
+            background: rgba(20, 184, 166, 0.15) !important;
             color: #14b8a6 !important;
         }
 
@@ -1529,7 +1555,7 @@
             width: 22px;
             height: 22px;
             border-radius: 5px;
-            background: #1e293b !important;
+            background: #f1f5f9 !important;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1556,7 +1582,7 @@
             font-size: 10px;
             font-weight: 600;
             color: #64748b !important;
-            background: #1e293b !important;
+            background: #f1f5f9 !important;
             padding: 2px 5px;
             border-radius: 8px;
             min-width: 20px;
@@ -1565,8 +1591,8 @@
 
         .sidebar-company-item:hover .company-count,
         .sidebar-company-item.active .company-count {
-            background: #334155 !important;
-            color: #cbd5e1 !important;
+            background: #e2e8f0 !important;
+            color: #334155 !important;
         }
 
         .sidebar-loading,

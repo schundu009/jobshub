@@ -1,93 +1,143 @@
-"""Delta Air Lines job scraper - uses Workday API."""
+"""
+Delta Airlines Jobs Scraper.
 
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+Uses Playwright for careers.delta.com.
+"""
+
+from typing import Optional
+import re
+
+from scrapers.base import (
+    PlaywrightScraper,
+    ScraperConfig,
+    ScraperType,
+    ScrapedJob,
+    ScrapeResult,
+)
 from scrapers.registry import ScraperRegistry
-from typing import List, Optional
-from datetime import datetime
 
 
 @ScraperRegistry.register(category="other")
-class DeltaScraper(HTTPScraper):
-    """Scraper for Delta Air Lines careers (Workday)."""
+class DeltaPlaywrightScraper(PlaywrightScraper):
+    """Scraper for Delta Airlines careers."""
 
     config = ScraperConfig(
         company_slug="delta",
-        company_name="Delta Air Lines",
-        careers_url="https://delta.avature.net/careers",
-        scraper_type=ScraperType.HTTP,
-        rate_limit=20,
+        company_name="Delta Airlines",
+        careers_url="https://careers.delta.com/us/en/search-results",
+        scraper_type=ScraperType.PLAYWRIGHT,
+        rate_limit=5,
+        page_timeout=60,
         max_pages=50,
     )
 
-    API_URL = "https://delta.wd5.myworkdayjobs.com/wday/cxs/delta/External/jobs"
+    BASE_URL = "https://careers.delta.com/us/en/search-results"
 
     async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        offset = 0
-        limit = 20
+        all_jobs = []
+        page_num = 1
 
-        while offset < self.config.max_pages * limit:
-            payload = {
-                "appliedFacets": {},
-                "limit": limit,
-                "offset": offset,
-                "searchText": ""
-            }
-
-            data = await self.fetch_json(self.API_URL, method="POST", payload=payload)
-            if not data:
-                break
-
-            job_postings = data.get("jobPostings", [])
-            if not job_postings:
-                break
-
-            for job in job_postings:
-                parsed = self.parse_job(job)
-                if parsed:
-                    all_jobs.append(parsed)
-
-            total = data.get("total", 0)
-            offset += limit
-            if offset >= total:
-                break
-
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            jobs_found=len(all_jobs),
-            error_message=None
-        )
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        page = await self.get_page()
         try:
-            title = raw.get("title", "")
-            external_id = raw.get("bulletFields", [""])[0] if raw.get("bulletFields") else ""
-            location = raw.get("locationsText", "")
-            posted_on = raw.get("postedOn", "")
+            await page.goto(self.BASE_URL, wait_until="networkidle")
+            await page.wait_for_timeout(5000)
 
-            posted_date = None
-            if posted_on:
+            while page_num <= self.config.max_pages:
                 try:
-                    posted_date = datetime.strptime(posted_on, "%Y-%m-%dT%H:%M:%S.%f%z")
+                    await page.wait_for_selector(
+                        "a[href*='/job/'], [class*='job-card'], [class*='job-list'] a",
+                        timeout=15000
+                    )
                 except:
-                    try:
-                        posted_date = datetime.strptime(posted_on.split("T")[0], "%Y-%m-%d")
-                    except:
-                        pass
+                    self.logger.info(f"Job list not found on page {page_num}")
+                    break
 
-            job_path = raw.get("externalPath", "")
-            job_url = f"https://delta.wd5.myworkdayjobs.com/en-US/External{job_path}"
+                cards = await page.query_selector_all(
+                    "a[href*='/job/'], [class*='job-card'] a, [class*='jobs-list'] a"
+                )
+
+                if not cards:
+                    break
+
+                self.logger.info(f"Found {len(cards)} job cards on page {page_num}")
+
+                for card in cards:
+                    job = await self._parse_job_card(card)
+                    if job and job.external_job_id:
+                        if not any(j.external_job_id == job.external_job_id for j in all_jobs):
+                            all_jobs.append(job)
+
+                # Pagination - Phenom uses specific pagination
+                next_btn = await page.query_selector(
+                    "button[aria-label='Next'], a[aria-label='Next'], "
+                    "[class*='pagination'] button:not([disabled]):last-child"
+                )
+                if next_btn:
+                    is_disabled = await next_btn.get_attribute("disabled")
+                    if not is_disabled:
+                        try:
+                            await next_btn.click()
+                            await page.wait_for_timeout(3000)
+                            page_num += 1
+                            continue
+                        except:
+                            pass
+
+                # Try scroll
+                prev_count = len(all_jobs)
+                for _ in range(3):
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    await page.wait_for_timeout(2000)
+                if len(all_jobs) == prev_count:
+                    break
+                page_num += 1
+
+            return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=page_num)
+
+        except Exception as e:
+            self.logger.error(f"Error scraping Delta: {e}")
+            return ScrapeResult(success=False, jobs=all_jobs, error_message=str(e))
+        finally:
+            await self.release_page(page)
+
+    async def _parse_job_card(self, card) -> Optional[ScrapedJob]:
+        try:
+            href = await card.get_attribute("href")
+            if not href or '/job/' not in href:
+                return None
+
+            # Extract job ID from Phenom URL like /us/en/job/123456/
+            job_id = ""
+            match = re.search(r'/job/(\d+)', href)
+            if match:
+                job_id = match.group(1)
+            if not job_id:
+                return None
+
+            job_url = href if href.startswith("http") else f"https://careers.delta.com{href}"
+
+            title = ""
+            title_el = await card.query_selector("h2, h3, h4, [class*='title']")
+            if title_el:
+                title = await title_el.text_content()
+            if not title:
+                title = await card.text_content()
+                title = title.split('\n')[0].strip() if title else ""
+
+            location = ""
+            loc_el = await card.query_selector("[class*='location']")
+            if loc_el:
+                location = await loc_el.text_content()
 
             return ScrapedJob(
-                title=title,
-                location=location,
+                title=self.clean_text(title) or f"Delta Position {job_id}",
+                location=self.clean_text(location) or "",
                 job_url=job_url,
-                external_job_id=external_id or job_path,
-                job_description="",
-                department="",
-                posted_date=posted_date,
+                external_job_id=job_id,
             )
         except Exception as e:
-            self.logger.error(f"Error parsing job: {e}")
+            self.logger.warning(f"Error parsing: {e}")
             return None
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        return None
