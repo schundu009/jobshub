@@ -14,123 +14,126 @@
     <!-- Shared Sidebar Styles -->
     <link rel="stylesheet" href="../css/sidebar.css">
     <style>
-        :root, [data-theme="dark"] {
-            /* Purple Theme - Dark */
-            --bg-primary: #0a0612;
-            --bg-secondary: #110d1a;
-            --bg-tertiary: #1a1425;
-            --bg-card: #110d1a;
-            --bg-hover: #1f1730;
-            --bg-elevated: #150f20;
-
-            /* Purple accent colors */
-            --accent-blue: #a78bfa;
-            --accent-blue-hover: #c4b5fd;
-            --accent-blue-light: #c4b5fd;
-            --accent-blue-muted: rgba(167, 139, 250, 0.15);
-            --accent-green: #a78bfa;
-            --accent-green-light: #c4b5fd;
-            --accent-yellow: #a78bfa;
-            --accent-yellow-light: #c4b5fd;
-            --accent-purple: #a78bfa;
-            --accent-purple-light: #c4b5fd;
-            --accent-red: #a78bfa;
-            --accent-orange: #a78bfa;
-            --accent-cyan: #a78bfa;
-            --accent-pink: #a78bfa;
-
-            /* Purple gradients */
-            --gradient-primary: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 50%, #7c3aed 100%);
-            --gradient-success: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-            --gradient-sidebar: #110d1a;
-
-            /* Text Colors */
-            --text-primary: #ffffff;
-            --text-secondary: #b8b0c8;
-            --text-muted: #6b6080;
-            --text-bright: #ffffff;
-
-            /* Border Colors - Purple tinted */
-            --border-color: #2d2540;
-            --border-light: #3d3355;
-            --border-focus: #7c3aed;
-
-            /* Shadows with purple glow */
-            --shadow-sm: 0 1px 2px rgba(124, 58, 237, 0.1);
-            --shadow-md: 0 4px 6px rgba(124, 58, 237, 0.15);
-            --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.2);
-            --shadow-glow: 0 0 20px rgba(167, 139, 250, 0.3);
-        }
-
-        [data-theme="light"] {
-            /* Purple Theme - Light */
-            --bg-primary: #faf9fc;
-            --bg-secondary: #f5f3f8;
-            --bg-tertiary: #ede9f4;
+        :root, [data-theme="light"] {
+            /* Teal Theme - Light (Default) */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
             --bg-card: #ffffff;
-            --bg-hover: #ebe7f2;
-            --bg-elevated: #f8f6fb;
+            --bg-hover: #f1f5f9;
+            --bg-elevated: #ffffff;
 
-            /* Purple accent colors */
-            --accent-blue: #7c3aed;
-            --accent-blue-hover: #6d28d9;
-            --accent-blue-light: #a78bfa;
-            --accent-blue-muted: rgba(124, 58, 237, 0.1);
-            --accent-green: #7c3aed;
-            --accent-green-light: #a78bfa;
-            --accent-yellow: #7c3aed;
-            --accent-yellow-light: #a78bfa;
-            --accent-purple: #7c3aed;
-            --accent-purple-light: #a78bfa;
-            --accent-red: #7c3aed;
-            --accent-orange: #7c3aed;
-            --accent-cyan: #7c3aed;
-            --accent-pink: #7c3aed;
+            /* Teal accent colors */
+            --accent-blue: #14b8a6;
+            --accent-blue-hover: #0d9488;
+            --accent-blue-light: #5eead4;
+            --accent-blue-muted: rgba(20, 184, 166, 0.15);
+            --accent-green: #14b8a6;
+            --accent-green-light: #5eead4;
+            --accent-yellow: #14b8a6;
+            --accent-yellow-light: #5eead4;
+            --accent-purple: #14b8a6;
+            --accent-purple-light: #5eead4;
+            --accent-red: #ef4444;
+            --accent-orange: #14b8a6;
+            --accent-cyan: #14b8a6;
+            --accent-pink: #14b8a6;
 
-            /* Purple gradients */
-            --gradient-primary: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-            --gradient-success: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
-            --gradient-sidebar: #f5f3f8;
+            /* Teal gradients */
+            --gradient-primary: linear-gradient(135deg, #5eead4 0%, #14b8a6 50%, #0d9488 100%);
+            --gradient-success: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            --gradient-sidebar: #0f172a;
 
-            /* Text Colors - Dark purple tones */
-            --text-primary: #1a1025;
-            --text-secondary: #4a3d5c;
-            --text-muted: #8a7aa0;
-            --text-bright: #1a1025;
+            /* Text Colors - Dark slate */
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --text-bright: #0f172a;
 
-            /* Border Colors - Light purple */
-            --border-color: #ddd6e8;
-            --border-light: #ccc2dc;
-            --border-focus: #7c3aed;
+            /* Border Colors - Light gray */
+            --border-color: #e2e8f0;
+            --border-light: #cbd5e1;
+            --border-focus: #14b8a6;
 
             /* Subtle shadows */
-            --shadow-sm: 0 1px 2px rgba(124, 58, 237, 0.05);
-            --shadow-md: 0 4px 6px rgba(124, 58, 237, 0.08);
-            --shadow-lg: 0 10px 15px rgba(124, 58, 237, 0.1);
-            --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.15);
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 10px 15px rgba(15, 23, 42, 0.1);
+            --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.15);
         }
 
-        /* Light theme sidebar fixes */
-        [data-theme="light"] .sidebar {
-            background: #ffffff;
-            border-right-color: #e5e0f0;
+        [data-theme="dark"] {
+            /* Teal Theme - Dark */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --bg-elevated: #1e293b;
+
+            /* Teal accent colors */
+            --accent-blue: #2dd4bf;
+            --accent-blue-hover: #5eead4;
+            --accent-blue-light: #5eead4;
+            --accent-blue-muted: rgba(45, 212, 191, 0.15);
+            --accent-green: #2dd4bf;
+            --accent-green-light: #5eead4;
+            --accent-yellow: #2dd4bf;
+            --accent-yellow-light: #5eead4;
+            --accent-purple: #2dd4bf;
+            --accent-purple-light: #5eead4;
+            --accent-red: #ef4444;
+            --accent-orange: #2dd4bf;
+            --accent-cyan: #2dd4bf;
+            --accent-pink: #2dd4bf;
+
+            /* Teal gradients */
+            --gradient-primary: linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #14b8a6 100%);
+            --gradient-success: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+            --gradient-sidebar: #0f172a;
+
+            /* Text Colors */
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --text-bright: #ffffff;
+
+            /* Border Colors - Dark slate */
+            --border-color: #334155;
+            --border-light: #475569;
+            --border-focus: #14b8a6;
+
+            /* Shadows with teal glow */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+            --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.3);
         }
-        [data-theme="light"] .sidebar-nav a {
-            color: #4a3d5c;
+
+        /* Sidebar always dark navy */
+        .sidebar {
+            background: #0f172a !important;
+            border-right-color: #1e293b !important;
         }
-        [data-theme="light"] .sidebar-nav a:hover {
-            background: #f5f0fa;
-            color: #1a1025;
+        .sidebar-nav a {
+            color: #94a3b8 !important;
         }
-        [data-theme="light"] .sidebar-nav a.active {
-            background: #ede5f8;
-            color: #7c3aed;
+        .sidebar-nav a:hover {
+            background: #1e293b !important;
+            color: #ffffff !important;
         }
-        [data-theme="light"] .nav-section-title {
-            color: #8a7aa0;
+        .sidebar-nav a.active {
+            background: #14b8a6 !important;
+            color: #ffffff !important;
         }
-        [data-theme="light"] .sidebar-header .logo {
-            filter: none;
+        .nav-section-title {
+            color: #64748b !important;
+        }
+        .sidebar-header .logo {
+            filter: brightness(0) invert(1);
+        }
+        .sidebar-header .brand-name {
+            color: #ffffff !important;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -151,11 +154,11 @@
             display: none !important;
         }
 
-        /* Minimal Sidebar */
+        /* Minimal Sidebar - Dark Navy */
         .sidebar {
             width: 220px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
+            background: #0f172a !important;
+            border-right: 1px solid #1e293b !important;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -981,8 +984,8 @@
 
         /* Active Roles Banner */
         .roles-banner {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(20, 184, 166, 0.3);
             border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 20px;
@@ -2232,9 +2235,9 @@
         }
 
         .type-onsite {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(168, 85, 247, 0.35) 100%);
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.25) 0%, rgba(13, 148, 136, 0.35) 100%);
             color: var(--accent-purple-light);
-            border: 1px solid rgba(139, 92, 246, 0.4);
+            border: 1px solid rgba(20, 184, 166, 0.4);
         }
         .type-hybrid {
             background: linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(6, 182, 212, 0.3) 100%);
@@ -2475,9 +2478,9 @@
             border: 1px solid rgba(79, 140, 255, 0.35);
         }
         .source-workday {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(167, 139, 250, 0.3) 100%);
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(20, 184, 166, 0.3) 100%);
             color: var(--accent-purple-light);
-            border: 1px solid rgba(139, 92, 246, 0.35);
+            border: 1px solid rgba(20, 184, 166, 0.35);
         }
         .source-apple {
             background: linear-gradient(135deg, rgba(139, 154, 181, 0.15) 0%, rgba(139, 154, 181, 0.25) 100%);
@@ -2595,9 +2598,9 @@
             <svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
                 <defs>
                     <linearGradient id="headerTextGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#c4b5fd"/>
-                        <stop offset="50%" style="stop-color:#a78bfa"/>
-                        <stop offset="100%" style="stop-color:#7c3aed"/>
+                        <stop offset="0%" style="stop-color:#5eead4"/>
+                        <stop offset="50%" style="stop-color:#14b8a6"/>
+                        <stop offset="100%" style="stop-color:#0d9488"/>
                     </linearGradient>
                 </defs>
                 <text x="0" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="600" fill="url(#headerTextGradient)">Cariara</text>
@@ -2883,7 +2886,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Applied</div>
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
-                    <div style="font-size: 28px; font-weight: 700; color: #8b5cf6;" id="analytics-interviewing">0</div>
+                    <div style="font-size: 28px; font-weight: 700; color: #14b8a6;" id="analytics-interviewing">0</div>
                     <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Interviewing</div>
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">

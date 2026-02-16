@@ -19,11 +19,11 @@
             font-size: 14px;
         }
 
-        /* Sidebar */
+        /* Sidebar - Dark Navy */
         .sidebar {
             width: 220px;
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
+            background: #0f172a !important;
+            border-right: 1px solid #1e293b !important;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -34,19 +34,20 @@
         }
         .sidebar-header {
             padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid #1e293b;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .sidebar-header .logo { height: 32px; width: auto; }
+        .sidebar-header .logo { height: 32px; width: auto; filter: brightness(0) invert(1); }
+        .sidebar-header .brand-name { color: #ffffff !important; }
         .sidebar-nav { flex: 1; padding: 12px; overflow-y: auto; }
         .sidebar-nav a {
             display: flex;
             align-items: center;
             gap: 10px;
             padding: 10px 14px;
-            color: var(--text-secondary);
+            color: #94a3b8 !important;
             text-decoration: none;
             border-radius: 8px;
             margin-bottom: 4px;
@@ -54,14 +55,14 @@
             font-weight: 500;
             transition: all 0.15s;
         }
-        .sidebar-nav a:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .sidebar-nav a.active { background: var(--bg-tertiary); color: var(--text-primary); }
+        .sidebar-nav a:hover { background: #1e293b !important; color: #ffffff !important; }
+        .sidebar-nav a.active { background: #14b8a6 !important; color: #ffffff !important; }
         .sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; transition: transform 0.2s; }
         .sidebar-nav a:hover svg { transform: scale(1.1); }
         .nav-section-title {
             font-size: 11px;
             font-weight: 600;
-            color: var(--text-muted);
+            color: #64748b !important;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 16px 14px 8px;
@@ -69,7 +70,7 @@
         }
         .nav-section-title:first-child { margin-top: 0; padding-top: 4px; }
         .nav-badge {
-            background: #ef4444;
+            background: #14b8a6;
             color: white;
             font-size: 11px;
             font-weight: 600;
@@ -77,23 +78,23 @@
             border-radius: 10px;
             margin-left: auto;
         }
-        .sidebar-user { padding: 16px; border-top: 1px solid var(--border-color); }
+        .sidebar-user { padding: 16px; border-top: 1px solid #1e293b; background: #0f172a; }
         .sidebar-user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .sidebar-user-avatar {
             width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
             display: flex; align-items: center; justify-content: center;
             color: white; font-weight: 600; font-size: 13px;
         }
-        .sidebar-user-name { font-weight: 500; color: var(--text-primary); font-size: 13px; }
-        .sidebar-user-email { font-size: 11px; color: var(--text-muted); }
+        .sidebar-user-name { font-weight: 500; color: #ffffff !important; font-size: 13px; }
+        .sidebar-user-email { font-size: 11px; color: #64748b !important; }
         .sidebar-logout-btn {
             display: flex; align-items: center; justify-content: center; gap: 6px;
             width: 100%; padding: 8px; background: transparent;
-            border: 1px solid var(--border-color); border-radius: 6px;
-            color: var(--text-secondary); font-size: 12px; cursor: pointer;
+            border: 1px solid #334155; border-radius: 6px;
+            color: #94a3b8; font-size: 12px; cursor: pointer;
         }
-        .sidebar-logout-btn:hover { background: var(--bg-hover); }
+        .sidebar-logout-btn:hover { background: #1e293b; color: #ffffff; }
         .sidebar-logout-btn svg { width: 14px; height: 14px; }
 
         /* Main Content */
@@ -330,7 +331,7 @@
         .mode-card:hover { border-color: var(--accent-blue); }
         .mode-card.selected {
             border-color: var(--accent-blue);
-            background: rgba(167, 139, 250, 0.1);
+            background: rgba(20, 184, 166, 0.1);
         }
         .mode-radio {
             width: 20px; height: 20px;
