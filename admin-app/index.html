@@ -522,7 +522,7 @@
             const userJson = localStorage.getItem('user');
 
             if (!token || !userJson) {
-                window.location.href = 'https://jobs.cariara.com/login.html';
+                window.location.href = '/login.html';
                 return false;
             }
 
@@ -533,12 +533,12 @@
 
                 if (!isAdmin) {
                     alert('Access denied. Admin privileges required.');
-                    window.location.href = 'https://jobs.cariara.com/discover.html';
+                    window.location.href = '/login.html';
                     return false;
                 }
                 return true;
             } catch (e) {
-                window.location.href = 'https://jobs.cariara.com/login.html';
+                window.location.href = '/login.html';
                 return false;
             }
         }
