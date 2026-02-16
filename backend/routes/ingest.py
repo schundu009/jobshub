@@ -21,6 +21,7 @@ import io
 import re
 import signal
 import threading
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 from database import get_db
@@ -1773,25 +1774,95 @@ async def fetch_all_missing_descriptions(
 
                 try:
                     description = ''
+                    job_url = job.job_url.lower()
 
-                    # For Eightfold URLs, try Playwright first (JS-rendered pages)
-                    if 'eightfold.ai' in job.job_url:
+                    # Eightfold - JS-rendered, needs Playwright
+                    if 'eightfold.ai' in job_url:
                         try:
                             description = ingestion_service.fetch_eightfold_description_sync(job.job_url)
                         except Exception as e:
                             logger.warning(f"Playwright fetch failed for {job.job_url}: {e}")
-
-                        # Fallback to HTTP method
                         if not description or len(description) < 100:
                             description = ingestion_service._fetch_eightfold_job_description(job.job_url)
-                    else:
-                        # Try generic fetch for other URLs
-                        description = ingestion_service.fetch_job_description_from_url(job.job_url)
 
-                        # If that fails, try ATS-specific methods
-                        if not description or len(description) < 100:
-                            if 'smartrecruiters.com' in job.job_url:
-                                description = ingestion_service._fetch_smartrecruiters_job_description(job.job_url)
+                    # Greenhouse - Use API with ?content=true
+                    elif 'greenhouse.io' in job_url:
+                        try:
+                            # Extract job ID from URL: /jobs/{id} or /job/{id}
+                            import re
+                            job_id_match = re.search(r'/jobs?/(\d+)', job.job_url)
+                            if job_id_match:
+                                job_id = job_id_match.group(1)
+                                api_url = f"https://boards-api.greenhouse.io/v1/boards/*/jobs/{job_id}"
+                                # Try to get company slug from URL
+                                slug_match = re.search(r'greenhouse\.io/([^/]+)', job.job_url)
+                                if slug_match:
+                                    slug = slug_match.group(1)
+                                    api_url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs/{job_id}"
+                                    req = urllib.request.Request(api_url, headers={'User-Agent': 'JobTrails/1.0'})
+                                    with urllib.request.urlopen(req, timeout=15, context=ingestion_service.ssl_context) as resp:
+                                        data = json.loads(resp.read().decode('utf-8'))
+                                        description = data.get('content', '')
+                                        if description:
+                                            description = ingestion_service.html_to_text(description)
+                        except Exception as e:
+                            logger.debug(f"Greenhouse API failed for {job.job_url}: {e}")
+                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+                    # Lever - Use API
+                    elif 'lever.co' in job_url:
+                        try:
+                            import re
+                            # Lever URLs: jobs.lever.co/{company}/{job_id}
+                            match = re.search(r'lever\.co/([^/]+)/([a-f0-9-]+)', job.job_url)
+                            if match:
+                                company, job_id = match.groups()
+                                api_url = f"https://api.lever.co/v0/postings/{company}/{job_id}"
+                                req = urllib.request.Request(api_url, headers={'User-Agent': 'JobTrails/1.0'})
+                                with urllib.request.urlopen(req, timeout=15, context=ingestion_service.ssl_context) as resp:
+                                    data = json.loads(resp.read().decode('utf-8'))
+                                    desc_html = data.get('descriptionHtml', '') or data.get('description', '')
+                                    if desc_html:
+                                        description = ingestion_service.html_to_text(desc_html)
+                        except Exception as e:
+                            logger.debug(f"Lever API failed for {job.job_url}: {e}")
+                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+                    # Ashby - Use API
+                    elif 'ashbyhq.com' in job_url:
+                        try:
+                            import re
+                            # Ashby URLs: jobs.ashbyhq.com/{company}/{job_id}
+                            match = re.search(r'ashbyhq\.com/([^/]+)/([a-f0-9-]+)', job.job_url)
+                            if match:
+                                company, job_id = match.groups()
+                                api_url = f"https://api.ashbyhq.com/posting-api/job-board/{company}/posting/{job_id}"
+                                req = urllib.request.Request(api_url, headers={'User-Agent': 'JobTrails/1.0'})
+                                with urllib.request.urlopen(req, timeout=15, context=ingestion_service.ssl_context) as resp:
+                                    data = json.loads(resp.read().decode('utf-8'))
+                                    description = data.get('descriptionHtml', '') or data.get('descriptionPlain', '')
+                                    if description:
+                                        description = ingestion_service.html_to_text(description)
+                        except Exception as e:
+                            logger.debug(f"Ashby API failed for {job.job_url}: {e}")
+                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
+
+                    # SmartRecruiters
+                    elif 'smartrecruiters.com' in job_url:
+                        description = ingestion_service._fetch_smartrecruiters_job_description(job.job_url)
+
+                    # GoHire
+                    elif 'gohire.io' in job_url:
+                        try:
+                            job_data = ingestion_service._fetch_gohire_job_page(job.job_url)
+                            if job_data:
+                                description = job_data.get('job_description', '')
+                        except Exception as e:
+                            logger.debug(f"GoHire fetch failed: {e}")
+
+                    # Generic fallback for other URLs
+                    else:
+                        description = ingestion_service.fetch_job_description_from_url(job.job_url)
 
                     if description and len(description) > 100:
                         job.job_description = description[:15000]
