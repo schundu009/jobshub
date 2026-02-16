@@ -749,6 +749,37 @@
                             Anthropic
                         </button>
                     </div>
+                    <!-- Default Provider & Model Settings -->
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-muted);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                </svg>
+                                <span style="color: var(--text-secondary); font-size: 12px;">Default Provider</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong id="default-provider-name" style="color: var(--text-primary); font-size: 14px;">OpenAI</strong>
+                                <button id="set-default-btn" class="btn-modern secondary" onclick="setDefaultProvider()" style="margin-left: auto; padding: 4px 10px; font-size: 11px;">
+                                    Set as Default
+                                </button>
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-muted);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span style="color: var(--text-secondary); font-size: 12px;">AI Model</span>
+                            </div>
+                            <select id="ai-model-select" onchange="setAIModel()" style="width: 100%; padding: 6px 10px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px;">
+                                <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
+                                <option value="gpt-4o">GPT-4o (Best)</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div id="api-key-display" class="api-key-display" style="display: none;">
                         <svg width="16" height="16" fill="none" stroke="#22c55e" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -1063,6 +1094,8 @@
                 if (e.key === 'Enter') saveApiKey();
             });
             await checkApiKeyStatus();
+            await loadDefaultProvider();
+            await loadAIModel();
             await loadJobAgeFilter();
             await loadScraperStatus();
             if (currentBatchJobId) checkBatchStatus(true);
@@ -1245,6 +1278,61 @@
 
         // API Provider State
         let currentProvider = 'openai';
+        let defaultProvider = 'openai';
+
+        async function loadDefaultProvider() {
+            try {
+                const response = await apiRequest('/settings/default-ai-provider');
+                defaultProvider = response.provider || 'openai';
+                updateDefaultProviderUI();
+            } catch (error) {
+                console.error('Failed to load default provider:', error);
+            }
+        }
+
+        function updateDefaultProviderUI() {
+            const nameEl = document.getElementById('default-provider-name');
+            const btnEl = document.getElementById('set-default-btn');
+
+            nameEl.textContent = defaultProvider === 'openai' ? 'OpenAI' : 'Anthropic';
+
+            // Hide "Set as Default" button if current provider is already default
+            if (currentProvider === defaultProvider) {
+                btnEl.style.display = 'none';
+            } else {
+                btnEl.style.display = 'inline-flex';
+            }
+        }
+
+        async function setDefaultProvider() {
+            try {
+                await apiRequest('/settings/default-ai-provider', 'POST', { provider: currentProvider });
+                defaultProvider = currentProvider;
+                updateDefaultProviderUI();
+                showAlert(`${currentProvider === 'openai' ? 'OpenAI' : 'Anthropic'} set as default AI provider`);
+            } catch (error) {
+                showAlert('Failed to set default provider: ' + error.message, 'error');
+            }
+        }
+
+        async function loadAIModel() {
+            try {
+                const response = await apiRequest('/settings/ai-model');
+                document.getElementById('ai-model-select').value = response.model;
+            } catch (error) {
+                console.error('Failed to load AI model:', error);
+            }
+        }
+
+        async function setAIModel() {
+            const model = document.getElementById('ai-model-select').value;
+            try {
+                await apiRequest('/settings/ai-model', 'POST', { model });
+                showAlert(`AI model set to ${model}`);
+            } catch (error) {
+                showAlert('Failed to set AI model: ' + error.message, 'error');
+            }
+        }
 
         function switchProvider(provider) {
             currentProvider = provider;
@@ -1270,6 +1358,7 @@
             // Clear input and refresh status for selected provider
             input.value = '';
             checkApiKeyStatus();
+            updateDefaultProviderUI();
         }
 
         async function checkApiKeyStatus() {

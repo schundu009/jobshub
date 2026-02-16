@@ -293,6 +293,112 @@ def get_security_settings(
     }
 
 
+# ============== Default AI Provider Settings ==============
+
+class DefaultProviderRequest(BaseModel):
+    provider: Literal["openai", "anthropic"] = Field(..., description="AI provider: 'openai' or 'anthropic'")
+
+
+def get_default_ai_provider(db: Session) -> str:
+    """Get the configured default AI provider from database."""
+    setting = db.query(AppSetting).filter(AppSetting.key == "default_ai_provider").first()
+    if setting and setting.value in ["openai", "anthropic"]:
+        return setting.value
+    return "openai"  # Default to OpenAI
+
+
+@router.get("/default-ai-provider")
+def get_default_provider(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get the default AI provider for AI features."""
+    provider = get_default_ai_provider(db)
+    return {"provider": provider}
+
+
+@router.post("/default-ai-provider")
+def set_default_provider(
+    request: DefaultProviderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Set the default AI provider for AI features."""
+    setting = db.query(AppSetting).filter(AppSetting.key == "default_ai_provider").first()
+
+    if setting:
+        setting.value = request.provider
+    else:
+        setting = AppSetting(
+            key="default_ai_provider",
+            value=request.provider,
+            description="Default AI provider for AI-powered features"
+        )
+        db.add(setting)
+
+    db.commit()
+    logger.info(f"Default AI provider set to {request.provider}")
+
+    return {"provider": request.provider, "message": f"Default provider set to {request.provider}"}
+
+
+# ============== AI Model Settings ==============
+
+VALID_AI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"]
+DEFAULT_AI_MODEL = "gpt-4o-mini"
+
+
+class AIModelRequest(BaseModel):
+    model: str = Field(..., description="AI model to use")
+
+
+@router.get("/ai-model")
+def get_ai_model_setting(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get the configured AI model."""
+    setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
+    current_model = setting.value if setting and setting.value in VALID_AI_MODELS else DEFAULT_AI_MODEL
+
+    return {
+        "model": current_model,
+        "available_models": [
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "description": "Fast & affordable"},
+            {"id": "gpt-4o", "name": "GPT-4o", "description": "Best quality"},
+            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "description": "High quality"},
+        ]
+    }
+
+
+@router.post("/ai-model")
+def set_ai_model(
+    request: AIModelRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Set the AI model to use for AI features."""
+    if request.model not in VALID_AI_MODELS:
+        raise HTTPException(status_code=400, detail=f"Invalid model. Must be one of: {VALID_AI_MODELS}")
+
+    setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
+
+    if setting:
+        setting.value = request.model
+    else:
+        setting = AppSetting(
+            key="ai_model",
+            value=request.model,
+            description="AI model for OpenAI-powered features"
+        )
+        db.add(setting)
+
+    db.commit()
+    logger.info(f"AI model set to {request.model}")
+
+    return {"model": request.model, "message": f"AI model set to {request.model}"}
+
+
 # ============== Job Age Filter Settings ==============
 
 # Default max job age in days

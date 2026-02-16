@@ -4,6 +4,44 @@ from openai import OpenAI
 client = None
 _cached_api_key = None
 
+# Available models
+OPENAI_MODELS = {
+    "gpt-4o-mini": "GPT-4o Mini (Fast, Cheap)",
+    "gpt-4o": "GPT-4o (Best Quality)",
+    "gpt-4-turbo": "GPT-4 Turbo (High Quality)",
+}
+DEFAULT_MODEL = "gpt-4o-mini"
+
+
+def get_db_setting(key: str, default: str = None) -> str:
+    """Get a setting from the database."""
+    try:
+        from database import SessionLocal
+        from models import AppSetting
+        db = SessionLocal()
+        try:
+            setting = db.query(AppSetting).filter(AppSetting.key == key).first()
+            if setting:
+                return setting.value
+        finally:
+            db.close()
+    except Exception:
+        pass
+    return default
+
+
+def get_default_provider() -> str:
+    """Get the default AI provider from database."""
+    return get_db_setting("default_ai_provider", "openai")
+
+
+def get_ai_model() -> str:
+    """Get the configured AI model from database."""
+    model = get_db_setting("ai_model", DEFAULT_MODEL)
+    if model in OPENAI_MODELS:
+        return model
+    return DEFAULT_MODEL
+
 
 def get_openai_api_key():
     """Get OpenAI API key from environment or database."""
@@ -13,24 +51,16 @@ def get_openai_api_key():
         return env_key
 
     # Check database
-    try:
-        from database import SessionLocal
-        from models import AppSetting
-        db = SessionLocal()
-        try:
-            setting = db.query(AppSetting).filter(AppSetting.key == "openai_api_key").first()
-            if setting:
-                return setting.value
-        finally:
-            db.close()
-    except Exception:
-        pass
-
-    return None
+    return get_db_setting("openai_api_key")
 
 
 def get_client():
     global client, _cached_api_key
+
+    # Check default provider
+    provider = get_default_provider()
+    if provider == "anthropic":
+        raise ValueError("Anthropic is set as default but not yet implemented. Please set OpenAI as default or configure an OpenAI key.")
 
     api_key = get_openai_api_key()
     if not api_key:
@@ -92,7 +122,7 @@ Sincerely,
 """
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=get_ai_model(),
         messages=[
             {"role": "system", "content": "You are an expert career coach who writes compelling, personalized cover letters that help candidates stand out."},
             {"role": "user", "content": prompt}
@@ -137,7 +167,7 @@ Instructions:
 """
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=get_ai_model(),
         messages=[
             {"role": "system", "content": "You are an experienced hiring manager and interview coach who helps candidates prepare for job interviews."},
             {"role": "user", "content": prompt}
@@ -185,7 +215,7 @@ SUMMARY:
 """
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=get_ai_model(),
         messages=[
             {"role": "system", "content": "You are an expert ATS (Applicant Tracking System) analyst and career coach who helps candidates optimize their resumes for specific jobs."},
             {"role": "user", "content": prompt}
@@ -281,7 +311,7 @@ Be specific and reference actual content from the resume when possible.
 """
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=get_ai_model(),
         messages=[
             {"role": "system", "content": "You are a professional resume writer and career coach with expertise in creating impactful resumes that get interviews."},
             {"role": "user", "content": prompt}
@@ -338,7 +368,7 @@ Note: Base this on general knowledge. For the most current information, the cand
 """
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=get_ai_model(),
         messages=[
             {"role": "system", "content": "You are a career coach helping candidates prepare for interviews by researching companies. Provide helpful, accurate information based on general knowledge about well-known companies, and general industry insights for less known companies."},
             {"role": "user", "content": prompt}
@@ -414,7 +444,7 @@ RULES:
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=get_ai_model(),
             messages=[
                 {"role": "system", "content": "You are an expert job analyst who creates clear, accurate summaries of job postings. Focus on extracting the most important information that helps candidates evaluate fit."},
                 {"role": "user", "content": prompt}
@@ -473,7 +503,7 @@ Output the complete rewritten resume in a clean, professional format. Do not inc
 """
 
     response = openai_client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=get_ai_model(),
         messages=[
             {"role": "system", "content": "You are a professional resume writer specializing in ATS optimization. You transform resumes to maximize their chances of passing ATS screening and impressing recruiters for specific job postings."},
             {"role": "user", "content": prompt}
