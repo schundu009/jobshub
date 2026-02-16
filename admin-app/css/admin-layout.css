@@ -6,11 +6,11 @@
     min-height: 100vh;
 }
 
-/* Sidebar - Dark Navy */
+/* Sidebar - Theme Responsive */
 .admin-sidebar {
     width: 220px;
-    background: #0f172a;
-    border-right: 1px solid #1e293b;
+    background: var(--bg-elevated);
+    border-right: 1px solid var(--border-default);
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -22,7 +22,7 @@
 
 .admin-sidebar-header {
     padding: 24px 20px;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid var(--border-default);
 }
 
 .admin-logo {
@@ -39,7 +39,7 @@
 .admin-logo-text {
     font-size: 22px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-primary);
 }
 
 /* Navigation */
@@ -56,7 +56,7 @@
 .admin-nav-label {
     font-size: 11px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 0 12px;
@@ -68,7 +68,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    color: #94a3b8;
+    color: var(--text-secondary);
     text-decoration: none;
     border-radius: 8px;
     font-size: 14px;
@@ -78,8 +78,8 @@
 }
 
 .admin-nav-item:hover {
-    background: #1e293b;
-    color: #ffffff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .admin-nav-item.active {
@@ -111,7 +111,7 @@
 /* Sidebar Footer */
 .admin-sidebar-footer {
     padding: 16px 20px;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid var(--border-default);
 }
 
 .admin-user {
@@ -141,7 +141,7 @@
 .admin-user-name {
     font-size: 14px;
     font-weight: 500;
-    color: #ffffff;
+    color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -149,7 +149,7 @@
 
 .admin-user-role {
     font-size: 12px;
-    color: #64748b;
+    color: var(--text-muted);
 }
 
 /* Main Content Area - White Background */
@@ -884,29 +884,91 @@
     color: var(--error);
 }
 
+/* Admin User Section */
+.admin-user-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-default);
+}
+
+.admin-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.admin-user-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-user-email {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Admin Logout Button */
 .admin-logout-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
     border-radius: 6px;
     background: transparent;
-    border: 1px solid #334155;
-    color: #94a3b8;
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
-    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .admin-logout-btn:hover {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: #ffffff;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
 }
 
 .admin-logout-btn svg {
     width: 16px;
     height: 16px;
+}
+
+/* Admin Signout Button in Topbar */
+.admin-signout-btn:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #ef4444 !important;
 }

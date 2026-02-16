@@ -84,15 +84,8 @@ function renderAdminSidebar(activePageId) {
                 ${navHtml}
             </nav>
             <div class="admin-sidebar-footer">
-                <div class="admin-user">
-                    <div class="admin-user-avatar" id="admin-avatar">A</div>
-                    <div class="admin-user-info">
-                        <div class="admin-user-name" id="admin-user-name">Admin</div>
-                        <div class="admin-user-role" id="admin-user-role">Administrator</div>
-                    </div>
-                    <button class="admin-logout-btn" onclick="adminLogout()" title="Sign Out">
-                        ${getNavIcon('logout', 18)}
-                    </button>
+                <div class="admin-user-section" id="admin-user-section">
+                    <!-- User info will be populated by JS -->
                 </div>
             </div>
         </aside>
@@ -117,10 +110,16 @@ function renderAdminTopbar(title, breadcrumb = null) {
                 ${breadcrumbHtml}
             </div>
             <div class="admin-topbar-right">
-                <button class="admin-topbar-btn" onclick="toggleTheme()" title="Toggle theme">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="admin-topbar-btn" onclick="toggleTheme()" title="Toggle theme" id="theme-toggle-btn">
+                    <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                     </svg>
+                    <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </button>
+                <button class="admin-topbar-btn admin-signout-btn" onclick="adminLogout()" title="Sign Out">
+                    ${getNavIcon('logout', 20)}
                 </button>
                 <a href="https://jobs.cariara.com/" class="admin-topbar-btn" title="Job Seeker Portal" target="_blank">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,24 +184,71 @@ function adminLogout() {
 
 // Update user info in sidebar
 function updateAdminUserInfo() {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const nameEl = document.getElementById('admin-user-name');
-    const roleEl = document.getElementById('admin-user-role');
-    const avatarEl = document.getElementById('admin-avatar');
+    const userSection = document.getElementById('admin-user-section');
+    if (!userSection) return;
 
-    if (nameEl && user.name) {
-        nameEl.textContent = user.name;
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const name = user.name || 'Admin';
+    const email = user.email || '';
+    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'A';
+    const role = user.role || 'admin';
+    const roleDisplay = role === 'admin' ? 'Administrator' : role.charAt(0).toUpperCase() + role.slice(1);
+
+    userSection.innerHTML = `
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">${initials}</div>
+            <div class="admin-user-details">
+                <div class="admin-user-name">${name}</div>
+                <div class="admin-user-email">${email || roleDisplay}</div>
+            </div>
+        </div>
+        <button class="admin-logout-btn" onclick="adminLogout()" title="Sign Out">
+            ${getNavIcon('logout', 16)}
+            <span>Sign Out</span>
+        </button>
+    `;
+}
+
+// Theme toggle function
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    // Update theme icons
+    updateThemeIcons(newTheme);
+}
+
+function updateThemeIcons(theme) {
+    const moonIcon = document.getElementById('theme-icon-moon');
+    const sunIcon = document.getElementById('theme-icon-sun');
+
+    if (moonIcon && sunIcon) {
+        if (theme === 'dark') {
+            moonIcon.style.display = 'none';
+            sunIcon.style.display = 'block';
+        } else {
+            moonIcon.style.display = 'block';
+            sunIcon.style.display = 'none';
+        }
     }
-    if (roleEl && user.role) {
-        roleEl.textContent = user.role === 'admin' ? 'Administrator' : user.role;
-    }
-    if (avatarEl && user.name) {
-        avatarEl.textContent = user.name.charAt(0).toUpperCase();
-    }
+}
+
+// Initialize theme on page load
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcons(savedTheme);
 }
 
 function initAdminLayout(pageId, pageTitle, breadcrumb = null) {
     try {
+        // Initialize theme first
+        initTheme();
+
         // Remove existing header if present
         const existingHeader = document.querySelector('header');
         if (existingHeader) {
