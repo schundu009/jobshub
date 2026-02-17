@@ -598,6 +598,69 @@ ROLE_PROFILES: List[Dict[str, Any]] = [
     },
 
     # ===========================================
+    # HPC / GPU Infrastructure
+    # ===========================================
+    {
+        "slug": "hpc",
+        "name": "HPC / GPU Infrastructure Engineer",
+        "description": "High performance computing, TPU/GPU infrastructure, distributed computing, and AI/ML infrastructure",
+        "title_patterns": {
+            "strong_match": [
+                "hpc engineer", "gpu engineer", "gpu infrastructure",
+                "high performance computing", "tpu engineer", "cuda engineer",
+                "ml infrastructure", "ai infrastructure", "compute infrastructure",
+                "distributed computing engineer", "hpc systems engineer"
+            ],
+            "weak_match": [
+                "infrastructure engineer", "systems engineer", "platform engineer",
+                "ml platform engineer", "ai platform engineer", "cluster engineer",
+                "research infrastructure", "scientific computing"
+            ],
+            "exclude": [
+                "frontend", "mobile engineer", "ios engineer", "android engineer",
+                "ui/ux", "product designer", "graphic designer", "sales", "marketing", "hr",
+                "accountant", "accounting", "product manager",
+                "recruiter", "talent", "people operations",
+                "finance", "legal", "counsel", "attorney", "paralegal",
+                "customer success", "customer support", "solutions engineer",
+                "business analyst", "business development", "account manager",
+                "project manager", "program manager", "scrum master"
+            ]
+        },
+        "positive_keywords": {
+            "high": [
+                "gpu", "cuda", "tpu", "hpc", "high performance computing",
+                "nvidia", "a100", "h100", "v100", "gpu cluster",
+                "distributed training", "model training", "ml infrastructure",
+                "ai infrastructure", "compute cluster", "slurm", "pbs"
+            ],
+            "medium": [
+                "pytorch", "tensorflow", "jax", "triton", "nccl",
+                "infiniband", "rdma", "nvlink", "gpu memory",
+                "kubernetes", "ray", "horovod", "deepspeed",
+                "mlops", "model serving", "inference", "batch processing"
+            ],
+            "low": [
+                "python", "c++", "linux", "docker", "containerization",
+                "scheduling", "resource management", "performance optimization",
+                "parallel computing", "mpi", "openmp", "vectorization",
+                "benchmarking", "profiling", "memory optimization"
+            ]
+        },
+        "negative_keywords": [
+            "react", "angular", "vue", "swift", "kotlin", "ios sdk",
+            "android sdk", "flutter", "ui design", "ux research",
+            "salesforce", "tableau", "accounting", "financial reporting"
+        ],
+        "seniority_config": {
+            "preferred": ["senior", "staff", "lead", "principal"],
+            "acceptable": ["mid"],
+            "exclude": []
+        },
+        "relevance_threshold": 30.0
+    },
+
+    # ===========================================
     # Full Stack Engineering
     # ===========================================
     {
