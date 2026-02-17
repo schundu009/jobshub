@@ -6,7 +6,6 @@
     <title>Smart Apply - AI-Powered Job Applications</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/sidebar.css">
     <style>
         html, body {
             height: 100%;
@@ -19,6 +18,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            margin-left: 0;
+            width: 100%;
         }
 
         .smart-apply-container {
@@ -171,8 +172,6 @@
     </style>
 </head>
 <body>
-    <div id="sidebar-container"></div>
-
     <div class="main-content">
         <div class="smart-apply-container">
             <div class="smart-apply-header">
@@ -204,7 +203,6 @@
     </div>
 
     <script src="/js/app.js"></script>
-    <script src="/js/jobs-sidebar.js"></script>
     <script>
         // Production URL for Railway deployment, falls back to localhost for development
         const AUTOAPPLY_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -213,11 +211,6 @@
         let connected = false;
 
         document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize sidebar
-            if (typeof initJobsSidebar === 'function') {
-                initJobsSidebar('smart-apply');
-            }
-
             // Check for URL parameters
             const params = new URLSearchParams(window.location.search);
             const jobUrl = params.get('url');
