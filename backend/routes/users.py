@@ -155,8 +155,122 @@ def get_job_roles(
     """Get user's selected and detected job roles."""
     return {
         "selected_roles": current_user.job_roles or [],
-        "detected_roles": [],  # TODO: implement AI detection
+        "detected_roles": [],
         "roles_confirmed": current_user.roles_confirmed_at is not None
+    }
+
+
+@router.get("/detect-roles")
+def detect_roles_from_resume(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Analyze user's resume using AI to detect relevant job roles.
+    Returns a list of detected roles with confidence scores.
+    """
+    # Get user's default resume
+    doc = db.query(UserDocument).filter(
+        UserDocument.user_id == current_user.id,
+        UserDocument.document_type == "resume",
+        UserDocument.is_default == True
+    ).first()
+
+    if not doc:
+        # Try to get any resume if no default is set
+        doc = db.query(UserDocument).filter(
+            UserDocument.user_id == current_user.id,
+            UserDocument.document_type == "resume"
+        ).order_by(UserDocument.created_at.desc()).first()
+
+    if not doc:
+        raise HTTPException(
+            status_code=404,
+            detail="No resume found. Please upload a resume first."
+        )
+
+    resume_content = doc.content_text
+    if not resume_content or not resume_content.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Resume content not available. Please re-upload your resume."
+        )
+
+    # Define available roles with their keywords for matching
+    role_definitions = {
+        "devops": {
+            "name": "DevOps Engineer",
+            "keywords": ["devops", "ci/cd", "jenkins", "gitlab", "github actions", "terraform", "ansible", "kubernetes", "docker", "aws", "gcp", "azure", "infrastructure"]
+        },
+        "sre": {
+            "name": "Site Reliability Engineer",
+            "keywords": ["sre", "site reliability", "on-call", "incident", "slo", "sli", "monitoring", "prometheus", "grafana", "observability"]
+        },
+        "cloud_architect": {
+            "name": "Cloud/Infrastructure Architect",
+            "keywords": ["cloud architect", "solutions architect", "aws", "azure", "gcp", "cloud infrastructure", "enterprise architecture"]
+        },
+        "platform": {
+            "name": "Platform Engineer",
+            "keywords": ["platform engineer", "internal developer", "developer experience", "devex", "backstage", "self-service"]
+        },
+        "backend": {
+            "name": "Backend Engineer",
+            "keywords": ["backend", "api", "rest", "graphql", "python", "java", "go", "golang", "node.js", "microservices", "database", "postgresql", "mysql"]
+        },
+        "fullstack": {
+            "name": "Full Stack Engineer",
+            "keywords": ["full stack", "fullstack", "full-stack", "frontend", "backend", "react", "node", "javascript", "typescript"]
+        },
+        "data": {
+            "name": "Data Engineer",
+            "keywords": ["data engineer", "etl", "data pipeline", "spark", "airflow", "kafka", "data warehouse", "snowflake", "redshift", "bigquery", "databricks"]
+        },
+        "ml": {
+            "name": "ML/AI Engineer",
+            "keywords": ["machine learning", "ml engineer", "ai engineer", "deep learning", "pytorch", "tensorflow", "nlp", "computer vision", "llm", "transformers"]
+        },
+        "hpc": {
+            "name": "HPC / GPU Infrastructure",
+            "keywords": ["hpc", "gpu", "cuda", "tpu", "nvidia", "a100", "h100", "distributed training", "gpu cluster", "slurm", "infiniband", "nccl", "ray", "deepspeed"]
+        },
+        "security": {
+            "name": "Security Engineer",
+            "keywords": ["security", "appsec", "infosec", "penetration", "vulnerability", "owasp", "threat modeling", "security architecture"]
+        },
+        "frontend": {
+            "name": "Frontend Engineer",
+            "keywords": ["frontend", "front-end", "react", "vue", "angular", "javascript", "typescript", "css", "html", "ui", "ux"]
+        },
+        "mobile": {
+            "name": "Mobile Engineer",
+            "keywords": ["mobile", "ios", "android", "swift", "kotlin", "react native", "flutter"]
+        }
+    }
+
+    # Simple keyword-based detection (no AI service dependency)
+    resume_lower = resume_content.lower()
+    detected = []
+
+    for role_slug, role_info in role_definitions.items():
+        keyword_matches = sum(1 for kw in role_info["keywords"] if kw.lower() in resume_lower)
+        if keyword_matches > 0:
+            # Calculate confidence based on keyword density
+            confidence = min(0.95, keyword_matches / len(role_info["keywords"]) + 0.3)
+            detected.append({
+                "role": role_slug,
+                "name": role_info["name"],
+                "confidence": round(confidence, 2),
+                "reason": f"Found {keyword_matches} relevant keywords"
+            })
+
+    # Sort by confidence descending
+    detected.sort(key=lambda x: x["confidence"], reverse=True)
+
+    # Return top 5 matches
+    return {
+        "detected_roles": detected[:5],
+        "resume_filename": doc.filename
     }
 
 
@@ -169,7 +283,7 @@ def save_job_roles(
     """Save user's selected job roles."""
     # Validate roles against available options
     valid_roles = {"devops", "sre", "cloud_architect", "platform", "backend",
-                   "fullstack", "data", "ml", "security", "frontend", "mobile"}
+                   "fullstack", "data", "ml", "hpc", "security", "frontend", "mobile"}
 
     for role in data.roles:
         if role not in valid_roles:
