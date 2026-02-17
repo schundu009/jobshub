@@ -13,9 +13,10 @@ git add -A && git commit -m "Your message" && git push origin main
 **DO NOT** consider a task complete until changes are committed and pushed.
 
 ### Production URLs
-- **Frontend**: https://www.cariara.com/jobs/
+- **Jobs Portal**: https://jobs.cariara.com
+- **Admin Portal**: https://admin.cariara.com
 - **Backend API**: https://cariara-backend.up.railway.app
-- **Admin Portal**: https://www.cariara.com/admin/
+- **Main Site**: https://www.cariara.com (redirects to jobs portal)
 
 Railway and Vercel auto-deploy from `main` branch within 1-2 minutes.
 
@@ -28,8 +29,11 @@ source venv/bin/activate
 # Start backend (with auto-reload)
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 
-# Serve frontend (separate terminal)
-cd frontend && python3 -m http.server 3000
+# Serve jobs frontend (separate terminal)
+cd jobs-app && python3 -m http.server 3000
+
+# Serve admin frontend (separate terminal)
+cd admin-app && python3 -m http.server 3001
 
 # Run tests
 pytest
