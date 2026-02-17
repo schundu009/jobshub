@@ -16,7 +16,6 @@ git add -A && git commit -m "Your message" && git push origin main
 - **Jobs Portal**: https://jobs.cariara.com
 - **Admin Portal**: https://admin.cariara.com
 - **Backend API**: https://cariara-backend.up.railway.app
-- **Main Site**: https://www.cariara.com (redirects to jobs portal)
 
 Railway and Vercel auto-deploy from `main` branch within 1-2 minutes.
 
