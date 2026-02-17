@@ -17,12 +17,15 @@
         .main-content {
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .smart-apply-container {
             display: flex;
             flex-direction: column;
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             background: var(--bg-primary);
         }
 
@@ -34,6 +37,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 16px;
+            flex-shrink: 0;
         }
 
         .smart-apply-header h1 {
@@ -92,12 +96,15 @@
         .iframe-container {
             flex: 1;
             position: relative;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .iframe-container iframe {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
 
         .loading-overlay {
