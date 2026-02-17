@@ -8,10 +8,21 @@
     <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="/css/sidebar.css">
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .main-content {
+            height: 100vh;
+            overflow: hidden;
+        }
+
         .smart-apply-container {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 60px);
+            height: 100%;
             background: var(--bg-primary);
         }
 
@@ -58,7 +69,7 @@
 
         .job-url-input input:focus {
             outline: none;
-            border-color: var(--accent-purple);
+            border-color: var(--accent-primary);
         }
 
         .btn-apply {
@@ -111,7 +122,7 @@
             width: 40px;
             height: 40px;
             border: 3px solid var(--border-color);
-            border-top-color: var(--accent-purple);
+            border-top-color: var(--accent-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -144,7 +155,7 @@
 
         .btn-retry {
             padding: 10px 20px;
-            background: var(--accent-purple);
+            background: var(--accent-primary);
             color: white;
             border: none;
             border-radius: 8px;
