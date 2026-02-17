@@ -5,21 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cariara - Redirecting...</title>
     <script>
-        // Smart redirect based on auth status and role
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const token = localStorage.getItem('access_token');
-
-        if (token && user.role === 'admin') {
-            window.location.href = '/admin/index.html';
-        } else if (token) {
-            window.location.href = '/jobs/discover.html';
-        } else {
-            // Not logged in - go to jobs portal (main entry point)
-            window.location.href = '/jobs/discover.html';
-        }
+        // Redirect to jobs portal (main entry point)
+        window.location.href = 'https://jobs.cariara.com';
     </script>
 </head>
 <body>
-    <p>Redirecting...</p>
+    <p>Redirecting to Cariara Jobs...</p>
 </body>
 </html>
