@@ -2860,11 +2860,11 @@
                 <option value="500000">Up to $500k</option>
             </select>
             <select class="filter-select" id="match-filter">
-                <option value="">Match %</option>
+                <option value="" selected>Match %</option>
                 <option value="90">90%+</option>
                 <option value="80">80%+</option>
                 <option value="70">70%+</option>
-                <option value="60" selected>60%+</option>
+                <option value="60">60%+</option>
                 <option value="50">50%+</option>
                 <option value="40">40%+</option>
                 <option value="30">30%+</option>
@@ -4138,11 +4138,11 @@
                 salaryMaxFilter.classList.remove('active');
             }
 
-            // Check match filter (only show if not default 60%)
+            // Check match filter
             const matchFilter = document.getElementById('match-filter');
-            if (matchFilter.value && matchFilter.value !== '60') {
+            if (matchFilter.value) {
                 const matchText = matchFilter.options[matchFilter.selectedIndex].text;
-                tags.push({ text: `Match: ${matchText}`, clear: () => { matchFilter.value = '60'; applyFilters(); updateActiveFilters(); } });
+                tags.push({ text: `Match: ${matchText}`, clear: () => { matchFilter.value = ''; applyFilters(); updateActiveFilters(); } });
                 matchFilter.classList.add('active');
             } else {
                 matchFilter.classList.remove('active');
@@ -4215,7 +4215,7 @@
             document.getElementById('time-range-filter').value = '48';  // Default: 2 days
             document.getElementById('salary-min-filter').value = '';
             document.getElementById('salary-max-filter').value = '';
-            document.getElementById('match-filter').value = '60';  // Default: 60%
+            document.getElementById('match-filter').value = '';  // No match filter by default
             document.getElementById('exclude-govt').checked = false;
             document.getElementById('exclude-citizenship').checked = false;
             document.getElementById('exclude-no-desc').checked = false;
