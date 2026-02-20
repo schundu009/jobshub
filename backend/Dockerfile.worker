@@ -38,4 +38,4 @@ RUN playwright install chromium
 COPY backend/ .
 
 # Run Celery worker with all queues including browser scrapers
-CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=2", "-Q", "default,scrapers_http,scrapers_browser,scrapers_orchestrator,maintenance"]
+CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=4", "-Q", "default,scrapers_http,scrapers_browser,scrapers_orchestrator,maintenance"]
