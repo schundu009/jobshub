@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     db_pool_size: int = 5
     db_max_overflow: int = 10
     db_pool_timeout: int = 30
-    db_pool_recycle: int = 300  # Recycle connections every 5 minutes
+    db_pool_recycle: int = 60  # Recycle connections every 60 seconds (Railway may drop idle connections)
 
     # ==========================================================================
     # REDIS

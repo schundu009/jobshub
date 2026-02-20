@@ -151,16 +151,36 @@ def save_scraped_jobs(
                     jobs_new += 1
                 except IntegrityError:
                     # Duplicate key - rollback only to savepoint, not entire transaction
-                    savepoint.rollback()
+                    try:
+                        savepoint.rollback()
+                    except Exception:
+                        pass  # Ignore rollback errors - connection may already be bad
                     logger.debug(f"Duplicate job skipped: {scraped_job.title} ({external_id})")
                     jobs_updated += 1  # Count as update since job exists
+                    continue
+                except Exception as e:
+                    # Any other database error - try to rollback savepoint
+                    try:
+                        savepoint.rollback()
+                    except Exception:
+                        pass
+                    logger.warning(f"Database error saving job, skipping: {e}")
                     continue
 
         except Exception as e:
             logger.error(f"Error saving job '{scraped_job.title}': {e}")
             continue
 
-    db.commit()
+    # Commit with error handling
+    try:
+        db.commit()
+    except Exception as e:
+        logger.error(f"Failed to commit jobs for {company_slug}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        return 0, 0
 
     logger.info(
         f"Saved jobs for {company_slug}: {jobs_new} new, {jobs_updated} updated"
