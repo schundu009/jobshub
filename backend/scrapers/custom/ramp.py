@@ -1,6 +1,7 @@
 """Ramp job scraper - Ashby API (migrated from Greenhouse)."""
 
-from scrapers.base import HTTPScraper, AshbyMixin, ScraperConfig, ScraperType
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.custom.remaining_scrapers import AshbyMixin
 from scrapers.registry import ScraperRegistry
 
 

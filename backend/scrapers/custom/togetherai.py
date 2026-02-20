@@ -1,6 +1,7 @@
 """Together AI job scraper - uses Greenhouse API (migrated from Ashby)."""
 
-from scrapers.base import HTTPScraper, GreenhouseMixin, ScraperConfig, ScraperType
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.custom.remaining_scrapers import GreenhouseMixin
 from scrapers.registry import ScraperRegistry
 
 
