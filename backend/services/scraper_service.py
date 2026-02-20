@@ -143,13 +143,15 @@ def save_scraped_jobs(
                     date_found=datetime.utcnow().date(),
                 )
                 db.add(job)
-                # Flush to catch duplicate key violations early
+                # Use savepoint to catch duplicate key violations without rolling back entire transaction
                 try:
+                    # Create a savepoint before flush
+                    savepoint = db.begin_nested()
                     db.flush()
                     jobs_new += 1
                 except IntegrityError:
-                    # Duplicate key - another concurrent process inserted this job
-                    db.rollback()
+                    # Duplicate key - rollback only to savepoint, not entire transaction
+                    savepoint.rollback()
                     logger.debug(f"Duplicate job skipped: {scraped_job.title} ({external_id})")
                     jobs_updated += 1  # Count as update since job exists
                     continue
