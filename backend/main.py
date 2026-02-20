@@ -654,6 +654,32 @@ def run_migrations():
 
         conn.commit()
 
+        # Create scraper_configs table for scraper health tracking
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS scraper_configs (
+                    id SERIAL PRIMARY KEY,
+                    company_slug VARCHAR(100) UNIQUE NOT NULL,
+                    is_enabled BOOLEAN DEFAULT TRUE,
+                    config_overrides JSONB DEFAULT '{}',
+                    last_success_at TIMESTAMP,
+                    last_failure_at TIMESTAMP,
+                    consecutive_failures INTEGER DEFAULT 0,
+                    total_runs INTEGER DEFAULT 0,
+                    total_jobs_found INTEGER DEFAULT 0,
+                    schedule_cron VARCHAR(100),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scraper_configs_company_slug ON scraper_configs(company_slug)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_scraper_configs_is_enabled ON scraper_configs(is_enabled)"))
+            logger.info("Created scraper_configs table")
+        except Exception as e:
+            logger.warning(f"Could not create scraper_configs table: {e}")
+
+        conn.commit()
+
         # Add AI summary fields to jobs table
         try:
             # Check existing columns for jobs table
