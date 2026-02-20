@@ -86,12 +86,25 @@ def record_scraper_run(
 
 def is_scraper_enabled(db: Session, company_slug: str) -> bool:
     """Check if a scraper is enabled."""
-    config = db.query(ScraperConfigDB).filter(
-        ScraperConfigDB.company_slug == company_slug
-    ).first()
+    try:
+        config = db.query(ScraperConfigDB).filter(
+            ScraperConfigDB.company_slug == company_slug
+        ).first()
 
-    if config:
-        return config.is_enabled
+        if config:
+            return config.is_enabled
+    except Exception as e:
+        # Session may be corrupted, try with fresh session
+        logger.warning(f"Session error checking scraper {company_slug}, retrying: {e}")
+        fresh_db = SessionLocal()
+        try:
+            config = fresh_db.query(ScraperConfigDB).filter(
+                ScraperConfigDB.company_slug == company_slug
+            ).first()
+            if config:
+                return config.is_enabled
+        finally:
+            fresh_db.close()
 
     # Default to enabled if no config exists
     return True
@@ -280,6 +293,9 @@ def scrape_all_companies() -> dict:
 
     db = get_db()
     try:
+        # Expire all cached objects to prevent stale state
+        db.expire_all()
+
         http_tasks = []
         browser_tasks = []
 
