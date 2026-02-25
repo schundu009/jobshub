@@ -104,6 +104,8 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     # Determine redirect URL based on portal (separate domains)
     if portal == "jobs":
         base_url = "https://jobs.cariara.com/login.html"
+    elif portal == "ascend":
+        base_url = "https://ascend.cariara.com/login"
     else:
         base_url = "https://admin.cariara.com/login.html"
 
@@ -176,7 +178,12 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
 
     except Exception as e:
         # Redirect to login with error
-        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else "https://admin.cariara.com/login.html"
+        if portal == "jobs":
+            error_base = "https://jobs.cariara.com/login.html"
+        elif portal == "ascend":
+            error_base = "https://ascend.cariara.com/login"
+        else:
+            error_base = "https://admin.cariara.com/login.html"
         error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
@@ -242,7 +249,7 @@ async def github_callback(request: Request, db: Session = Depends(get_db)):
             return create_frontend_redirect(user, portal)
 
     except Exception as e:
-        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else "https://admin.cariara.com/login.html"
+        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else ("https://ascend.cariara.com/login" if portal == "ascend" else "https://admin.cariara.com/login.html")
         error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
@@ -351,6 +358,6 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
             return create_frontend_redirect(user, portal)
 
     except Exception as e:
-        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else "https://admin.cariara.com/login.html"
+        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else ("https://ascend.cariara.com/login" if portal == "ascend" else "https://admin.cariara.com/login.html")
         error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
