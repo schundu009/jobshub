@@ -105,7 +105,7 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     if portal == "jobs":
         base_url = "https://jobs.cariara.com/login.html"
     elif portal == "ascend":
-        base_url = "https://ascend.cariara.com/login"
+        base_url = "https://capra.cariara.com/login"
     else:
         base_url = "https://admin.cariara.com/login.html"
 
