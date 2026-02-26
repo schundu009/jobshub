@@ -121,19 +121,9 @@ async def create_frontend_redirect(user: User, portal: str = "admin") -> Redirec
     # Encode job_roles as JSON string (URL encoded)
     job_roles_json = urllib.parse.quote(json.dumps(user.job_roles or []))
 
-    # Check subscription status for jobs portal
-    has_jobs_access = "false"
-    plan_type = "free"
-    if portal == "jobs":
-        try:
-            from services.subscription_service import verify_subscription
-            sub_status = await verify_subscription(user.id)
-            has_jobs_access = "true" if sub_status.get("hasAccess") else "false"
-            plan_type = sub_status.get("planType", "free")
-        except Exception as e:
-            # Log error but don't block login
-            import logging
-            logging.warning(f"Failed to check subscription for user {user.id}: {e}")
+    # Subscription check disabled - allow all authenticated users
+    has_jobs_access = "true"
+    plan_type = "pro"  # Grant access to all users
 
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
