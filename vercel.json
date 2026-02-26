@@ -13,7 +13,7 @@
       ]
     },
     {
-      "source": "/(.*)/css/(.*)",
+      "source": "/css/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -22,7 +22,7 @@
       ]
     },
     {
-      "source": "/(.*)/js/(.*)",
+      "source": "/js/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -31,63 +31,13 @@
       ]
     },
     {
-      "source": "/(.*)/images/(.*)",
+      "source": "/images/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "admin.cariara.com"
-        }
-      ],
-      "destination": "/admin-app/index.html"
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "admin.cariara.com"
-        }
-      ],
-      "destination": "/admin-app/:path*"
-    },
-    {
-      "source": "/",
-      "has": [
-        {
-          "type": "host",
-          "value": "jobs.cariara.com"
-        }
-      ],
-      "destination": "/jobs-app/discover.html"
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        {
-          "type": "host",
-          "value": "jobs.cariara.com"
-        }
-      ],
-      "destination": "/jobs-app/:path*"
-    },
-    {
-      "source": "/",
-      "destination": "/jobs-app/discover.html"
-    },
-    {
-      "source": "/:path*",
-      "destination": "/jobs-app/:path*"
     }
   ]
 }
