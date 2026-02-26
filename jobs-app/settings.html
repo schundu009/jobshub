@@ -666,11 +666,6 @@
 
             <!-- OTHER Section -->
             <div class="nav-section-title">Other</div>
-            <a href="auto-apply.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Auto Apply
-                <span class="nav-badge" id="auto-apply-count" style="display:none;">0</span>
-            </a>
             <a href="documents.html">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Resumes
@@ -698,12 +693,8 @@
                 <span class="tab-number">1</span> Preferences
                 <span class="tab-check" id="check-preferences" style="display:none;">✓</span>
             </button>
-            <button class="tab-btn" data-tab="auto-apply" onclick="showTab('auto-apply')">
-                <span class="tab-number">2</span> Auto Apply
-                <span class="tab-check" id="check-auto-apply" style="display:none;">✓</span>
-            </button>
             <button class="tab-btn" data-tab="personal-info" onclick="showTab('personal-info')">
-                <span class="tab-number">3</span> Personal Info
+                <span class="tab-number">2</span> Personal Info
                 <span class="tab-check" id="check-personal-info" style="display:none;">✓</span>
             </button>
         </div>
@@ -765,287 +756,6 @@
                 <div class="tab-navigation">
                     <div></div>
                     <button class="btn btn-primary" onclick="nextTab('preferences')">Next: Auto Apply →</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- AUTO APPLY TAB -->
-        <div id="tab-auto-apply" class="tab-content">
-            <div class="section">
-                <p class="section-desc">These settings help us find the right jobs for you and complete applications on your behalf.</p>
-
-                <div class="form-row">
-                    <div class="form-label">Employment Status</div>
-                    <div class="form-control">
-                        <select name="employment_status">
-                            <option value="">Select status...</option>
-                            <option value="employed">Currently Employed</option>
-                            <option value="unemployed">Unemployed</option>
-                            <option value="freelance">Freelancer/Contractor</option>
-                            <option value="student">Student</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Desired Job Titles<span class="required-indicator">*</span></div>
-                    <div class="form-control">
-                        <div class="tags-container" id="job-titles-container">
-                            <input type="text" class="tags-input" id="job-titles-input" placeholder="Type and press Enter...">
-                        </div>
-                        <div class="tag-limit">Maximum 5 job titles (at least 1 required)</div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Experience Level<span class="required-indicator">*</span></div>
-                    <div class="form-control">
-                        <select name="experience_level" id="experience_level" required>
-                            <option value="">Select level...</option>
-                            <option value="entry">Entry Level (0-2 years)</option>
-                            <option value="mid">Mid Level (3-5 years)</option>
-                            <option value="senior">Senior Level (6-10 years)</option>
-                            <option value="lead">Lead/Principal (10+ years)</option>
-                            <option value="executive">Executive/Director</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Minimum Salary</div>
-                    <div class="form-control">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <span id="currency-symbol">$</span>
-                            <input type="number" name="minimum_salary" placeholder="150000" style="flex:1;">
-                            <span id="currency-code" style="color:var(--text-muted);font-size:12px;">USD</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Industry Preference</div>
-                    <div class="form-control">
-                        <select name="industry">
-                            <option value="">Select industry...</option>
-                            <option value="tech">Technology</option>
-                            <option value="finance">Finance</option>
-                            <option value="healthcare">Healthcare</option>
-                            <option value="retail">Retail</option>
-                            <option value="manufacturing">Manufacturing</option>
-                            <option value="any">Open to All</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Work Type</div>
-                    <div class="form-control">
-                        <div class="option-group multi-select" id="work-type-options">
-                            <button type="button" class="option-btn" data-value="all">All Types</button>
-                            <button type="button" class="option-btn" data-value="full-time">Full-time</button>
-                            <button type="button" class="option-btn" data-value="part-time">Part-time</button>
-                            <button type="button" class="option-btn" data-value="contract">Contract</button>
-                            <button type="button" class="option-btn" data-value="freelance">Freelance</button>
-                        </div>
-                        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Select multiple or choose "All Types"</div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Available to Start</div>
-                    <div class="form-control">
-                        <input type="date" name="available_date">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Willing to Relocate</div>
-                    <div class="form-control">
-                        <div class="option-group" id="relocate-options">
-                            <button type="button" class="option-btn" data-value="yes">Yes</button>
-                            <button type="button" class="option-btn" data-value="no">No</button>
-                            <button type="button" class="option-btn" data-value="depends">Depends on Role</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Preferred Locations</div>
-                    <div class="form-control">
-                        <select name="country" id="country-select" style="margin-bottom:10px;" onchange="onCountryChange()">
-                            <option value="">Select country...</option>
-                            <option value="US">United States</option>
-                            <option value="CA">Canada</option>
-                            <option value="UK">United Kingdom</option>
-                            <option value="DE">Germany</option>
-                            <option value="FR">France</option>
-                            <option value="AU">Australia</option>
-                            <option value="IN">India</option>
-                            <option value="SG">Singapore</option>
-                            <option value="AE">UAE</option>
-                            <option value="NL">Netherlands</option>
-                            <option value="IE">Ireland</option>
-                            <option value="JP">Japan</option>
-                            <option value="BR">Brazil</option>
-                            <option value="MX">Mexico</option>
-                        </select>
-                        <div class="tags-container city-tags" id="cities-container">
-                            <input type="text" class="tags-input" id="cities-input" placeholder="Add cities...">
-                        </div>
-                        <div style="display:flex;gap:16px;margin-top:10px;">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                                <input type="checkbox" name="remote_ok" id="remote-ok"> Full remote
-                            </label>
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                                <input type="checkbox" name="hybrid_ok" id="hybrid-ok"> In-person/Hybrid
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Work Authorization (US)</div>
-                    <div class="form-control">
-                        <div class="option-group" id="us-auth-options">
-                            <button type="button" class="option-btn" data-value="yes">Yes</button>
-                            <button type="button" class="option-btn" data-value="no">No</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Visa Sponsorship Required</div>
-                    <div class="form-control">
-                        <div class="option-group" id="sponsorship-options">
-                            <button type="button" class="option-btn" data-value="yes">Yes</button>
-                            <button type="button" class="option-btn" data-value="no">No</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Driver's License</div>
-                    <div class="form-control">
-                        <div class="option-group" id="license-options">
-                            <button type="button" class="option-btn" data-value="yes">Yes</button>
-                            <button type="button" class="option-btn" data-value="no">No</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Demographics Section -->
-            <div class="section">
-                <h2 class="section-title">Demographics (Optional)</h2>
-
-                <div class="form-row">
-                    <div class="form-label">Gender</div>
-                    <div class="form-control">
-                        <select name="gender">
-                            <option value="">Prefer not to say</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="non_binary">Non-binary</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Race/Ethnicity</div>
-                    <div class="form-control">
-                        <select name="ethnicity">
-                            <option value="">Prefer not to say</option>
-                            <option value="asian">Asian</option>
-                            <option value="black">Black or African American</option>
-                            <option value="hispanic">Hispanic or Latino</option>
-                            <option value="white">White</option>
-                            <option value="native">American Indian or Alaska Native</option>
-                            <option value="pacific">Native Hawaiian or Pacific Islander</option>
-                            <option value="two_or_more">Two or more races</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Disability Status</div>
-                    <div class="form-control">
-                        <select name="disability_status">
-                            <option value="">Prefer not to say</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Veteran Status</div>
-                    <div class="form-control">
-                        <select name="veteran_status">
-                            <option value="">Prefer not to say</option>
-                            <option value="veteran">Veteran</option>
-                            <option value="protected">Protected Veteran</option>
-                            <option value="not_veteran">Not a Veteran</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-label">Security Clearance</div>
-                    <div class="form-control">
-                        <div class="option-group" id="clearance-options">
-                            <button type="button" class="option-btn" data-value="yes">Yes</button>
-                            <button type="button" class="option-btn" data-value="no">No</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Auto Apply Mode Section -->
-            <div class="section">
-                <h2 class="section-title">How should we apply to jobs for you?</h2>
-
-                <div class="mode-cards" id="apply-mode-cards">
-                    <div class="mode-card selected" data-mode="hybrid">
-                        <div class="mode-radio"></div>
-                        <div class="mode-content">
-                            <span class="mode-badge">Best of both worlds</span>
-                            <div class="mode-title">Hybrid mode</div>
-                            <div class="mode-desc">We'll automatically apply to jobs that strongly match your preferences, saving you time. For other roles that may still interest you, you'll stay in control and decide whether to approve or skip.</div>
-                        </div>
-                    </div>
-                    <div class="mode-card" data-mode="auto">
-                        <div class="mode-radio"></div>
-                        <div class="mode-content">
-                            <span class="mode-badge">Save time, no approval needed</span>
-                            <div class="mode-title">Auto mode</div>
-                            <div class="mode-desc">We'll instantly apply to jobs that match your preferences on your behalf, so you can sit back while we handle everything.</div>
-                        </div>
-                    </div>
-                    <div class="mode-card" data-mode="review">
-                        <div class="mode-radio"></div>
-                        <div class="mode-content">
-                            <span class="mode-badge">Review and approve each job</span>
-                            <div class="mode-title">Review mode</div>
-                            <div class="mode-desc">We'll suggest roles based on your preferences - you decide which ones we apply to.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Excluded Companies -->
-            <div class="section">
-                <h2 class="section-title">Excluded Companies</h2>
-                <p class="section-desc">Companies you don't want to apply to</p>
-                <div class="form-control">
-                    <div class="tags-container" id="excluded-companies-container">
-                        <input type="text" class="tags-input" id="excluded-companies-input" placeholder="Type company name and press Enter...">
-                    </div>
-                </div>
-
-                <div class="tab-navigation">
-                    <button class="btn btn-secondary" onclick="prevTab('auto-apply')">← Back: Preferences</button>
-                    <button class="btn btn-primary" onclick="nextTab('auto-apply')">Next: Personal Info →</button>
                 </div>
             </div>
         </div>
@@ -1355,8 +1065,8 @@
         window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileSidebar());
 
         // Tab order
-        const tabOrder = ['preferences', 'auto-apply', 'personal-info'];
-        let completedTabs = { preferences: false, 'auto-apply': false, 'personal-info': false };
+        const tabOrder = ['preferences', 'personal-info'];
+        let completedTabs = { preferences: false, 'personal-info': false };
 
         // Tabs
         function showTab(tabName, force = false) {
@@ -1399,20 +1109,6 @@
             return true;
         }
 
-        function validateAutoApply() {
-            // Allow proceeding without job titles (just show warning)
-            if (jobTitles.length === 0) {
-                // Show warning but allow proceeding
-                const proceed = confirm('No job titles added. Auto-apply features will be limited. Continue anyway?');
-                if (!proceed) {
-                    showTabError('Please add at least one desired job title for better job matching.');
-                    return false;
-                }
-            }
-            // Experience level is optional too
-            return true;
-        }
-
         function validatePersonalInfo() {
             const fullName = document.getElementById('full_name').value.trim();
             const email = document.getElementById('personal_email').value.trim();
@@ -1442,15 +1138,7 @@
                 if (isValid) {
                     completedTabs.preferences = true;
                     markTabCompleted('preferences');
-                    // Save current tab and check where to go next
-                    saveCurrentTabAndNavigate('auto-apply');
-                }
-            } else if (currentTab === 'auto-apply') {
-                isValid = validateAutoApply();
-                if (isValid) {
-                    completedTabs['auto-apply'] = true;
-                    markTabCompleted('auto-apply');
-                    // Save current tab and check where to go next
+                    // Save current tab and navigate to personal-info
                     saveCurrentTabAndNavigate('personal-info');
                 }
             }
@@ -1458,10 +1146,8 @@
 
         function prevTab(currentTab) {
             hideTabError();
-            if (currentTab === 'auto-apply') {
+            if (currentTab === 'personal-info') {
                 showTab('preferences', true);
-            } else if (currentTab === 'personal-info') {
-                showTab('auto-apply', true);
             }
         }
 
@@ -1530,14 +1216,12 @@
         function allTabsComplete() {
             // Re-check all validations
             const prefsOk = validatePreferencesQuiet();
-            const autoApplyOk = validateAutoApplyQuiet();
             const personalOk = validatePersonalInfoQuiet();
-            return prefsOk && autoApplyOk && personalOk;
+            return prefsOk && personalOk;
         }
 
         function findNextIncompleteTab() {
             if (!validatePreferencesQuiet()) return 'preferences';
-            if (!validateAutoApplyQuiet()) return 'auto-apply';
             if (!validatePersonalInfoQuiet()) return 'personal-info';
             return null;
         }
@@ -1547,11 +1231,6 @@
             const resumeEmail = document.getElementById('resume_email')?.value?.trim();
             // Base resume is optional
             return !!resumeEmail;
-        }
-
-        function validateAutoApplyQuiet() {
-            const experienceLevel = document.getElementById('experience_level')?.value;
-            return !!(jobTitles.length > 0 && experienceLevel);
         }
 
         function validatePersonalInfoQuiet() {
@@ -1855,13 +1534,6 @@
             if (resumeEmail) {
                 completedTabs.preferences = true;
                 markTabCompleted('preferences');
-            }
-
-            // Check Auto Apply tab
-            const experienceLevel = document.querySelector('[name="experience_level"]')?.value;
-            if (jobTitles.length > 0 && experienceLevel) {
-                completedTabs['auto-apply'] = true;
-                markTabCompleted('auto-apply');
             }
 
             // Check Personal Info tab
