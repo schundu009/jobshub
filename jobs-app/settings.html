@@ -1708,6 +1708,10 @@
                 return;
             }
 
+            // Check subscription status - require Quarterly Pro
+            const hasAccess = await checkSubscriptionAccess();
+            if (!hasAccess) return;
+
             setupMobileMenu();
             initUserMenu();
 
@@ -1755,5 +1759,6 @@
 
     <!-- Shared Sidebar JavaScript -->
     <script src="/js/sidebar.js"></script>
+    <script src="/js/subscription-gate.js"></script>
 </body>
 </html>

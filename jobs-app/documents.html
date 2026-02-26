@@ -708,7 +708,11 @@
             window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileMenu());
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check subscription status - require Quarterly Pro
+            const hasAccess = await checkSubscriptionAccess();
+            if (!hasAccess) return;
+
             setupMobileMenu();
             initUserMenu();
             setupFileUpload('resume-input', 'resume-upload-area', 'resumes-list', 'resume');
@@ -720,5 +724,6 @@
 
     <!-- Shared Sidebar JavaScript -->
     <script src="/js/sidebar.js"></script>
+    <script src="/js/subscription-gate.js"></script>
 </body>
 </html>

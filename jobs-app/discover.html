@@ -3008,6 +3008,7 @@
     <!-- AG Grid JS -->
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
     <script src="/js/app.js"></script>
+    <script src="/js/subscription-gate.js"></script>
     <script>
         // Authentication removed - will be implemented separately for user portal
 
@@ -3730,6 +3731,10 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Require authentication - redirect to login if not logged in
             if (!requireAuth()) return;
+
+            // Check subscription status - require Quarterly Pro
+            const hasAccess = await checkSubscriptionAccess();
+            if (!hasAccess) return;
 
             // Check role selection and onboarding status
             try {

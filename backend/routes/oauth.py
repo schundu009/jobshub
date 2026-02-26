@@ -94,7 +94,7 @@ def get_or_create_oauth_user(
     return user
 
 
-def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
+async def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
     """Create redirect to frontend with tokens in URL fragment."""
     import urllib.parse
     import json
@@ -121,6 +121,20 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
     # Encode job_roles as JSON string (URL encoded)
     job_roles_json = urllib.parse.quote(json.dumps(user.job_roles or []))
 
+    # Check subscription status for jobs portal
+    has_jobs_access = "false"
+    plan_type = "free"
+    if portal == "jobs":
+        try:
+            from services.subscription_service import verify_subscription
+            sub_status = await verify_subscription(user.id)
+            has_jobs_access = "true" if sub_status.get("hasAccess") else "false"
+            plan_type = sub_status.get("planType", "free")
+        except Exception as e:
+            # Log error but don't block login
+            import logging
+            logging.warning(f"Failed to check subscription for user {user.id}: {e}")
+
     # Redirect to frontend with tokens in URL fragment (not query params for security)
     redirect_url = (
         f"{base_url}"
@@ -133,6 +147,8 @@ def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectRespo
         f"&onboarding_completed={onboarding_completed}"
         f"&roles_confirmed={roles_confirmed}"
         f"&job_roles={job_roles_json}"
+        f"&has_jobs_access={has_jobs_access}"
+        f"&plan_type={plan_type}"
     )
     return RedirectResponse(url=redirect_url)
 
@@ -174,7 +190,7 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
         google_id = user_info.get("sub")
 
         user = get_or_create_oauth_user(db, email, name, "google", google_id)
-        return create_frontend_redirect(user, portal)
+        return await create_frontend_redirect(user, portal)
 
     except Exception as e:
         # Redirect to login with error
@@ -246,7 +262,7 @@ async def github_callback(request: Request, db: Session = Depends(get_db)):
             github_id = str(user_data.get("id"))
 
             user = get_or_create_oauth_user(db, email, name, "github", github_id)
-            return create_frontend_redirect(user, portal)
+            return await create_frontend_redirect(user, portal)
 
     except Exception as e:
         error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else ("https://ascend.cariara.com/login" if portal == "ascend" else "https://admin.cariara.com/login.html")
@@ -355,7 +371,7 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
                 name = f"{given_name} {family_name}".strip() or email.split("@")[0]
 
             user = get_or_create_oauth_user(db, email, name, "linkedin", linkedin_id)
-            return create_frontend_redirect(user, portal)
+            return await create_frontend_redirect(user, portal)
 
     except Exception as e:
         error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else ("https://ascend.cariara.com/login" if portal == "ascend" else "https://admin.cariara.com/login.html")

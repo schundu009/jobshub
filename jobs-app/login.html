@@ -280,6 +280,8 @@
                 const userRole = params.get('user_role') || 'user';
                 const onboardingCompleted = params.get('onboarding_completed') === 'true';
                 const rolesConfirmed = params.get('roles_confirmed') === 'true';
+                const hasJobsAccess = params.get('has_jobs_access') === 'true';
+                const planType = params.get('plan_type') || 'free';
                 // job_roles comes as URL-encoded JSON from OAuth callback
                 let jobRoles = [];
                 try {
@@ -300,7 +302,18 @@
                     job_roles: jobRoles,
                 };
                 localStorage.setItem('user', JSON.stringify(user));
+                // Cache subscription status from OAuth response
+                localStorage.setItem('subscription_status', JSON.stringify({
+                    hasAccess: hasJobsAccess,
+                    planType: planType,
+                    timestamp: Date.now()
+                }));
                 history.replaceState(null, '', window.location.pathname);
+                // Check subscription access first
+                if (!hasJobsAccess) {
+                    window.location.href = 'upgrade.html';
+                    return true;
+                }
                 // Jobs portal redirect flow: onboarding -> role selection -> discover
                 if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';

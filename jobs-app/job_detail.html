@@ -254,6 +254,7 @@
 
     <script src="/js/app.js"></script>
     <script src="/js/sidebar.js"></script>
+    <script src="/js/subscription-gate.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const jobId = urlParams.get('id');
@@ -398,15 +399,49 @@
             return textarea.value;
         }
 
-        // Format job description - decode HTML entities and sanitize
+        // Format job description - decode HTML entities and handle various formats
         function formatJobDescription(description) {
             if (!description) return '';
-            // Decode HTML entities
-            let decoded = decodeHtml(description);
-            // If it's plain text (no HTML tags), convert newlines to <br>
-            if (!/<[a-z][\s\S]*>/i.test(decoded)) {
-                decoded = decoded.replace(/\n/g, '<br>');
+
+            // Handle case where description might be an object (shouldn't happen but safety check)
+            if (typeof description === 'object') {
+                console.warn('Job description is an object, converting to string');
+                description = JSON.stringify(description, null, 2);
             }
+
+            // Convert to string if not already
+            description = String(description);
+
+            // Check if it looks like a JSON string and try to parse it
+            if (description.trim().startsWith('{') || description.trim().startsWith('[')) {
+                try {
+                    const parsed = JSON.parse(description);
+                    // If it parsed as JSON, extract content or stringify prettily
+                    if (parsed.content) description = parsed.content;
+                    else if (parsed.description) description = parsed.description;
+                    else if (parsed.text) description = parsed.text;
+                    else description = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    // Not valid JSON, continue with original
+                }
+            }
+
+            // Decode HTML entities (may need multiple passes for double-encoding)
+            let decoded = decodeHtml(description);
+            // Check if still encoded and decode again
+            if (decoded.includes('&lt;') || decoded.includes('&gt;') || decoded.includes('&amp;')) {
+                decoded = decodeHtml(decoded);
+            }
+
+            // If it's plain text (no HTML tags), convert newlines to <br> and wrap in paragraphs
+            if (!/<[a-z][\s\S]*>/i.test(decoded)) {
+                // Split by double newlines for paragraphs, single newlines for line breaks
+                decoded = decoded
+                    .split(/\n\n+/)
+                    .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                    .join('');
+            }
+
             return decoded;
         }
 
@@ -523,6 +558,10 @@
                 window.location.href = 'login.html';
                 return;
             }
+
+            // Check subscription status - require Quarterly Pro
+            const hasAccess = await checkSubscriptionAccess();
+            if (!hasAccess) return;
 
             // Check role selection
             try {
