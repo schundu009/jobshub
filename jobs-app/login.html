@@ -396,6 +396,31 @@
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('token', data.access_token); // For compatibility with app.js
                 localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Check subscription status before proceeding
+                btn.textContent = 'Checking access...';
+                try {
+                    const subResponse = await fetch(`${API_BASE}/auth/subscription-status`, {
+                        headers: { 'Authorization': `Bearer ${data.access_token}` }
+                    });
+                    if (subResponse.ok) {
+                        const subData = await subResponse.json();
+                        // Cache subscription status
+                        localStorage.setItem('subscription_status', JSON.stringify({
+                            hasAccess: subData.hasAccess,
+                            planType: subData.planType,
+                            timestamp: Date.now()
+                        }));
+                        if (!subData.hasAccess) {
+                            window.location.href = 'upgrade.html';
+                            return;
+                        }
+                    }
+                } catch (subError) {
+                    console.error('Subscription check failed:', subError);
+                    // Continue with normal flow if check fails (fail open)
+                }
+
                 // Jobs portal redirect flow: onboarding -> role selection -> discover
                 const onboardingCompleted = data.user?.onboarding_completed || false;
                 const rolesConfirmed = data.user?.roles_confirmed_at || data.user?.roles_confirmed || false;
