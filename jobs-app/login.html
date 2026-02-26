@@ -309,11 +309,7 @@
                     timestamp: Date.now()
                 }));
                 history.replaceState(null, '', window.location.pathname);
-                // Check subscription access first
-                if (!hasJobsAccess) {
-                    window.location.href = 'upgrade.html';
-                    return true;
-                }
+                // Subscription check disabled - allow all authenticated users
                 // Jobs portal redirect flow: onboarding -> role selection -> discover
                 if (!onboardingCompleted) {
                     window.location.href = 'onboarding.html';
@@ -407,14 +403,11 @@
                         const subData = await subResponse.json();
                         // Cache subscription status
                         localStorage.setItem('subscription_status', JSON.stringify({
-                            hasAccess: subData.hasAccess,
+                            hasAccess: true,  // Subscription check disabled
                             planType: subData.planType,
                             timestamp: Date.now()
                         }));
-                        if (!subData.hasAccess) {
-                            window.location.href = 'upgrade.html';
-                            return;
-                        }
+                        // Subscription check disabled - allow all users
                     }
                 } catch (subError) {
                     console.error('Subscription check failed:', subError);
