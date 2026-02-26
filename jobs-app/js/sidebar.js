@@ -86,13 +86,16 @@ function initSidebarUserMenu() {
     const userMenu = document.getElementById('user-menu');
     if (!userMenu) return;
 
+    // Get login icon from CariaraIcons or fallback to inline SVG
+    const loginIcon = typeof CariaraIcons !== 'undefined'
+        ? CariaraIcons.login
+        : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>`;
+
     const userJson = localStorage.getItem('user');
     if (!userJson) {
         userMenu.innerHTML = `
             <a href="login.html" class="sidebar-logout-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                </svg>
+                ${loginIcon}
                 Sign In
             </a>
         `;
@@ -216,10 +219,54 @@ function hideNavTooltip(element) {
 }
 
 // =============================================================================
+// ICON INJECTION
+// =============================================================================
+
+function injectNavigationIcons() {
+    if (typeof CariaraIcons === 'undefined') return;
+
+    // Inject icons for nav links with data-icon attribute
+    document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
+        const iconName = link.dataset.icon;
+        const icon = CariaraIcons[iconName];
+        if (icon && !link.querySelector('svg')) {
+            link.insertAdjacentHTML('afterbegin', icon);
+        }
+    });
+
+    // Inject mobile menu icons
+    const menuOpen = document.querySelector('.menu-open');
+    const menuClose = document.querySelector('.menu-close');
+    if (menuOpen && !menuOpen.querySelector('svg')) menuOpen.innerHTML = CariaraIcons.menu;
+    if (menuClose && !menuClose.querySelector('svg')) menuClose.innerHTML = CariaraIcons.close;
+
+    // Inject theme icons
+    const sunIcon = document.getElementById('theme-icon-sun');
+    const moonIcon = document.getElementById('theme-icon-moon');
+    if (sunIcon && !sunIcon.querySelector('svg')) sunIcon.innerHTML = CariaraIcons.sun;
+    if (moonIcon && !moonIcon.querySelector('svg')) moonIcon.innerHTML = CariaraIcons.moon;
+
+    // Inject logout icons
+    document.querySelectorAll('.logout-icon').forEach(el => {
+        if (!el.querySelector('svg')) el.innerHTML = CariaraIcons.logout;
+    });
+
+    // Inject filter section icons
+    document.querySelectorAll('.filter-icon[data-icon], .companies-icon[data-icon]').forEach(el => {
+        const iconName = el.dataset.icon;
+        const icon = CariaraIcons[iconName];
+        if (icon && !el.querySelector('svg')) {
+            el.insertAdjacentHTML('afterbegin', icon);
+        }
+    });
+}
+
+// =============================================================================
 // INITIALIZATION
 // =============================================================================
 
 function initSidebar() {
+    injectNavigationIcons();
     initMobileSidebar();
     initSidebarUserMenu();
     highlightActiveNavLink();

@@ -240,8 +240,8 @@
     <div id="sidebar-container"></div>
 
     <main class="main-content">
-        <a href="discover.html" class="back-link">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <a href="discover.html" class="back-link" id="back-link">
+            <span class="back-icon"></span>
             Back to Jobs
         </a>
 
@@ -253,7 +253,19 @@
     <div id="toast" class="toast"></div>
 
     <script src="/js/app.js"></script>
+    <!-- Premium Icon Library -->
+    <script src="/js/icons.js"></script>
     <script src="/js/sidebar.js"></script>
+
+    <script>
+        // Initialize premium icons
+        (function() {
+            if (typeof CariaraIcons !== 'undefined') {
+                const backIcon = document.querySelector('.back-icon');
+                if (backIcon) backIcon.innerHTML = CariaraIcons.chevronLeft;
+            }
+        })();
+    </script>
     <script src="/js/subscription-gate.js"></script>
     <script>
         const urlParams = new URLSearchParams(window.location.search);

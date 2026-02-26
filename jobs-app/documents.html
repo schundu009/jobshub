@@ -361,12 +361,12 @@
         <nav class="sidebar-nav">
             <!-- APPLICATION Section -->
             <div class="nav-section-title">Application</div>
-            <a href="discover.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>Search</a>
+            <a href="discover.html" class="nav-link" data-icon="search">Search</a>
 
             <!-- OTHER Section -->
             <div class="nav-section-title">Other</div>
-            <a href="documents.html" class="active"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Resumes</a>
-            <a href="settings.html"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+            <a href="documents.html" class="active nav-link" data-icon="document">Resumes</a>
+            <a href="settings.html" class="nav-link" data-icon="settings">Settings</a>
         </nav>
         <div class="sidebar-user" id="user-menu"></div>
     </aside>
@@ -389,14 +389,14 @@
         <div class="section">
             <div class="section-title">Resumes</div>
             <div class="file-upload-area" id="resume-upload-area">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <span class="upload-icon"></span>
                 <p>Drop or click to upload</p>
                 <small>PDF, DOC, DOCX (Max 5MB)</small>
                 <input type="file" id="resume-input" accept=".pdf,.doc,.docx,.txt,.rtf">
             </div>
             <div class="documents-list" id="resumes-list">
                 <div class="empty-state">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span class="empty-resume-icon"></span>
                     <p>No resumes</p>
                 </div>
             </div>
@@ -405,14 +405,14 @@
         <div class="section">
             <div class="section-title">Cover Letters</div>
             <div class="file-upload-area" id="cover-letter-upload-area">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <span class="upload-icon"></span>
                 <p>Drop or click to upload</p>
                 <small>PDF, DOC, DOCX (Max 5MB)</small>
                 <input type="file" id="cover-letter-input" accept=".pdf,.doc,.docx,.txt,.rtf">
             </div>
             <div class="documents-list" id="cover-letters-list">
                 <div class="empty-state">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span class="empty-letter-icon"></span>
                     <p>No cover letters</p>
                 </div>
             </div>
@@ -547,8 +547,8 @@
                                 <div class="sidebar-user-email">${u.email || ''}</div>
                             </div>
                         </div>
-                        <button class="sidebar-logout-btn" onclick="handleLogout()">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <button class="sidebar-logout-btn logout-btn" onclick="handleLogout()">
+                            <span class="logout-icon"></span>
                             Sign Out
                         </button>`;
                 } catch (e) {}
@@ -622,16 +622,20 @@
 
         function renderDocuments(docs, listId, docType) {
             const list = document.getElementById(listId);
+            const emptyIcon = typeof CariaraIcons !== 'undefined'
+                ? (docType === 'resume' ? CariaraIcons.document : CariaraIcons.mail)
+                : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+            const docIcon = typeof CariaraIcons !== 'undefined'
+                ? CariaraIcons.document
+                : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+
             if (!docs || docs.length === 0) {
-                const icon = docType === 'resume'
-                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>'
-                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>';
-                list.innerHTML = `<div class="empty-state"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24">${icon}</svg><p>No ${docType === 'resume' ? 'resumes' : 'cover letters'}</p></div>`;
+                list.innerHTML = `<div class="empty-state">${emptyIcon}<p>No ${docType === 'resume' ? 'resumes' : 'cover letters'}</p></div>`;
                 return;
             }
             list.innerHTML = docs.map(doc => `
                 <div class="document-item">
-                    <div class="doc-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
+                    <div class="doc-icon">${docIcon}</div>
                     <div class="doc-info">
                         <div class="doc-name">${doc.filename}</div>
                         <div class="doc-meta">${formatDate(doc.created_at)} &middot; ${formatFileSize(doc.file_size)}</div>
@@ -722,8 +726,65 @@
         });
     </script>
 
+    <!-- Premium Icon Library -->
+    <script src="/js/icons.js"></script>
     <!-- Shared Sidebar JavaScript -->
     <script src="/js/sidebar.js"></script>
     <script src="/js/subscription-gate.js"></script>
+
+    <script>
+        // Replace inline icons with premium CariaraIcons
+        (function() {
+            if (typeof CariaraIcons !== 'undefined') {
+                // Navigation link icons
+                document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
+                    const iconName = link.dataset.icon;
+                    const icon = CariaraIcons[iconName];
+                    if (icon) {
+                        link.insertAdjacentHTML('afterbegin', icon);
+                    }
+                });
+
+                // Mobile menu icons
+                const menuBtn = document.querySelector('.mobile-menu-btn');
+                if (menuBtn) {
+                    menuBtn.innerHTML = `
+                        <span class="menu-open">${CariaraIcons.menu}</span>
+                        <span class="menu-close" style="display:none;">${CariaraIcons.close}</span>
+                    `;
+                }
+
+                // Theme icons
+                const themeToggle = document.querySelector('.theme-toggle');
+                if (themeToggle) {
+                    themeToggle.innerHTML = `
+                        ${CariaraIcons.get('sun', { id: 'theme-icon-sun', style: 'display:none;' })}
+                        ${CariaraIcons.get('moon', { id: 'theme-icon-moon' })}
+                    `;
+                }
+
+                // Upload icons
+                document.querySelectorAll('.upload-icon').forEach(el => {
+                    el.innerHTML = CariaraIcons.upload;
+                });
+
+                // Empty state icons
+                document.querySelectorAll('.empty-resume-icon').forEach(el => {
+                    el.innerHTML = CariaraIcons.document;
+                });
+                document.querySelectorAll('.empty-letter-icon').forEach(el => {
+                    el.innerHTML = CariaraIcons.mail;
+                });
+
+                // Logout icons (dynamically rendered)
+                const observer = new MutationObserver(() => {
+                    document.querySelectorAll('.logout-icon').forEach(el => {
+                        if (!el.innerHTML) el.innerHTML = CariaraIcons.logout;
+                    });
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+        })();
+    </script>
 </body>
 </html>

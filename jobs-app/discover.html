@@ -2579,12 +2579,8 @@
 <body>
     <!-- Mobile Menu Button -->
     <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu" onclick="toggleMobileSidebar()">
-        <svg class="menu-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-        <svg class="menu-close" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
+        <span class="menu-open"></span>
+        <span class="menu-close" style="display:none;"></span>
     </button>
 
     <!-- Mobile Sidebar Backdrop -->
@@ -2598,21 +2594,12 @@
         <div class="sidebar-nav">
             <!-- APPLICATION Section -->
             <div class="nav-section-title">Application</div>
-            <a href="discover.html" class="active">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                Search
-            </a>
+            <a href="discover.html" class="active nav-link" data-icon="search">Search</a>
 
             <!-- OTHER Section -->
             <div class="nav-section-title">Other</div>
-            <a href="documents.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                Resumes
-            </a>
-            <a href="settings.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Settings
-            </a>
+            <a href="documents.html" class="nav-link" data-icon="document">Resumes</a>
+            <a href="settings.html" class="nav-link" data-icon="settings">Settings</a>
         </div>
 
         <!-- Divider -->
@@ -2622,8 +2609,7 @@
         <div class="sidebar-filters">
             <!-- Job Type Filters -->
             <div class="sidebar-filter-section">
-                <div class="sidebar-filter-title">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                <div class="sidebar-filter-title filter-icon" data-icon="filter">
                     Job Types
                 </div>
                 <div class="sidebar-filter-list" id="sidebar-role-filters">
@@ -2633,8 +2619,7 @@
 
             <!-- Top Companies -->
             <div class="sidebar-filter-section">
-                <div class="sidebar-filter-title">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                <div class="sidebar-filter-title companies-icon" data-icon="star">
                     Top Companies
                 </div>
                 <div class="sidebar-company-list" id="sidebar-companies">
@@ -2649,12 +2634,12 @@
     <!-- Top Right Controls -->
     <div class="top-right-controls">
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-            <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            <span id="theme-icon-sun" style="display:none;"></span>
+            <span id="theme-icon-moon"></span>
         </button>
         <button class="signout-btn" onclick="logout()">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            Sign Out
+            <span class="logout-icon"></span>
+            <span>Sign Out</span>
         </button>
     </div>
 
@@ -3008,7 +2993,59 @@
     <!-- AG Grid JS -->
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
     <script src="/js/app.js"></script>
+    <!-- Premium Icon Library -->
+    <script src="/js/icons.js"></script>
     <script src="/js/subscription-gate.js"></script>
+
+    <script>
+        // Initialize premium CariaraIcons
+        (function() {
+            if (typeof CariaraIcons !== 'undefined') {
+                // Navigation link icons
+                document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
+                    const iconName = link.dataset.icon;
+                    const icon = CariaraIcons[iconName];
+                    if (icon) {
+                        link.insertAdjacentHTML('afterbegin', icon);
+                    }
+                });
+
+                // Filter section icons
+                document.querySelectorAll('.filter-icon[data-icon]').forEach(el => {
+                    const iconName = el.dataset.icon;
+                    const icon = CariaraIcons[iconName];
+                    if (icon) {
+                        el.insertAdjacentHTML('afterbegin', icon);
+                    }
+                });
+                document.querySelectorAll('.companies-icon[data-icon]').forEach(el => {
+                    const iconName = el.dataset.icon;
+                    const icon = CariaraIcons[iconName];
+                    if (icon) {
+                        el.insertAdjacentHTML('afterbegin', icon);
+                    }
+                });
+
+                // Theme icons
+                const sunIcon = document.getElementById('theme-icon-sun');
+                const moonIcon = document.getElementById('theme-icon-moon');
+                if (sunIcon) sunIcon.innerHTML = CariaraIcons.sun;
+                if (moonIcon) moonIcon.innerHTML = CariaraIcons.moon;
+
+                // Logout icon
+                document.querySelectorAll('.logout-icon').forEach(el => {
+                    el.innerHTML = CariaraIcons.logout;
+                });
+
+                // Mobile menu icons
+                const menuOpen = document.querySelector('.menu-open');
+                const menuClose = document.querySelector('.menu-close');
+                if (menuOpen) menuOpen.innerHTML = CariaraIcons.menu;
+                if (menuClose) menuClose.innerHTML = CariaraIcons.close;
+            }
+        })();
+    </script>
+
     <script>
         // Authentication removed - will be implemented separately for user portal
 
@@ -3736,23 +3773,14 @@
             const hasAccess = await checkSubscriptionAccess();
             if (!hasAccess) return;
 
-            // Check role selection and onboarding status
+            // Check onboarding status (role selection is now optional)
             try {
                 const status = await apiRequest('/users/onboarding-status');
-
-                // First check role selection
-                if (!status.roles_confirmed) {
-                    window.location.href = 'select-roles.html';
-                    return;
-                }
-
-                // Then check onboarding
-                if (!status.onboarding_completed) {
-                    window.location.href = 'onboarding.html';
-                    return;
-                }
+                // Onboarding and role selection are optional - don't block job viewing
+                console.log('[Init] Onboarding status:', status);
             } catch (error) {
                 console.error('Failed to check onboarding status:', error);
+                // Continue anyway - don't block job viewing
             }
 
             // Initialize roles banner and sidebar role filters
