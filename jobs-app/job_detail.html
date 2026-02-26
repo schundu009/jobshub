@@ -357,7 +357,7 @@
                 <div class="job-description">
                     <h3>Job Description</h3>
                     <div class="job-description-content" id="job-description-content">
-                        ${job.job_description || job.ai_summary || `
+                        ${formatJobDescription(job.job_description) || formatJobDescription(job.ai_summary) || `
                             <div class="no-description">
                                 <p>No description available.</p>
                                 <button onclick="fetchJobDescription(${job.id})" class="btn btn-secondary fetch-desc-btn" id="fetch-desc-btn">
@@ -388,6 +388,26 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Decode HTML entities (e.g., &lt; &gt; &amp; &quot;) back to actual HTML
+        function decodeHtml(html) {
+            if (!html) return '';
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = html;
+            return textarea.value;
+        }
+
+        // Format job description - decode HTML entities and sanitize
+        function formatJobDescription(description) {
+            if (!description) return '';
+            // Decode HTML entities
+            let decoded = decodeHtml(description);
+            // If it's plain text (no HTML tags), convert newlines to <br>
+            if (!/<[a-z][\s\S]*>/i.test(decoded)) {
+                decoded = decoded.replace(/\n/g, '<br>');
+            }
+            return decoded;
         }
 
         function formatSalary(min, max) {

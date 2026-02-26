@@ -381,3 +381,24 @@ def logout_all_sessions(current_user: User = Depends(get_current_user)):
         "message": "Logged out from all sessions successfully",
         "user_id": current_user.id
     }
+
+
+@router.get("/subscription-status")
+async def get_subscription_status(current_user: User = Depends(get_current_user)):
+    """
+    Check if user has access to the jobs portal.
+
+    Returns subscription status from capra-backend, which tracks
+    whether the user has an active quarterly_pro subscription.
+    """
+    from services.subscription_service import verify_subscription
+
+    result = await verify_subscription(current_user.id)
+    return {
+        "user_id": current_user.id,
+        "hasAccess": result.get("hasAccess", False),
+        "planType": result.get("planType", "free"),
+        "status": result.get("status", "none"),
+        "currentPeriodEnd": result.get("currentPeriodEnd"),
+        "upgradeUrl": "https://capra.cariara.com"
+    }
