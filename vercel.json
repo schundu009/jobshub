@@ -80,6 +80,14 @@
         }
       ],
       "destination": "/jobs-app/:path*"
+    },
+    {
+      "source": "/",
+      "destination": "/jobs-app/discover.html"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/jobs-app/:path*"
     }
   ]
 }
