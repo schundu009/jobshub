@@ -24,6 +24,10 @@
     {
       "source": "/",
       "destination": "/jobs-app/discover.html"
+    },
+    {
+      "source": "/:path((?!admin-app|jobs-app).*)",
+      "destination": "/jobs-app/:path"
     }
   ],
   "headers": [
