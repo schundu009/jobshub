@@ -3600,11 +3600,12 @@
             const applyStyle = 'color:var(--accent-blue);font-size:11px;text-decoration:none;cursor:pointer;padding:4px 10px;background:var(--accent-blue-muted);border-radius:4px;font-weight:500;';
             if (jobUrl) {
                 return `<div style="display:flex;gap:8px;align-items:center;">
-                    <a href="smart-apply.html?job_id=${jobId}" style="${applyStyle}" onclick="event.stopPropagation()">Apply</a>
+                    <a href="job_detail.html?id=${jobId}" style="${applyStyle}" onclick="event.stopPropagation()">View</a>
+                    <a href="${jobUrl}" target="_blank" style="${applyStyle}" onclick="event.stopPropagation()">Apply</a>
                 </div>`;
             }
             return `<div style="display:flex;gap:8px;align-items:center;">
-                    <span style="color:var(--text-muted);font-size:11px;">No URL</span>
+                    <a href="job_detail.html?id=${jobId}" style="${applyStyle}" onclick="event.stopPropagation()">View</a>
                 </div>`;
         }
 
@@ -4686,7 +4687,7 @@
             // Action buttons
             document.getElementById('detail-view-btn').href = job.job_url || '#';
             document.getElementById('detail-apply-btn').onclick = () => {
-                window.open(`/smart-apply.html?job_id=${job.id}`, '_blank');
+                window.location.href = `job_detail.html?id=${job.id}`;
             };
         }
 

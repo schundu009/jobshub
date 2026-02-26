@@ -435,3 +435,181 @@ def generate_ats_resume_docx(
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate ATS resume: {str(e)}")
+
+
+# ============== Job-specific endpoints (for job detail page) ==============
+
+from models import UserDocument
+
+
+def get_user_default_resume(user_id: int, db: Session) -> str:
+    """Get the user's default resume text."""
+    # First try to find the default resume
+    default_resume = db.query(UserDocument).filter(
+        UserDocument.user_id == user_id,
+        UserDocument.document_type == "resume",
+        UserDocument.is_default == True
+    ).first()
+
+    if not default_resume:
+        # Fall back to most recent resume
+        default_resume = db.query(UserDocument).filter(
+            UserDocument.user_id == user_id,
+            UserDocument.document_type == "resume"
+        ).order_by(UserDocument.created_at.desc()).first()
+
+    if not default_resume:
+        return None
+
+    return default_resume.content_text
+
+
+@router.post("/tailor-resume/{job_id}")
+def tailor_resume_for_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate an ATS-optimized resume tailored for a specific job.
+    Uses the user's default resume automatically.
+    """
+    # Fetch the job
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Allow access to public jobs (user_id is null) or user's own jobs
+    if job.user_id is not None and job.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this job")
+
+    if not job.job_description:
+        raise HTTPException(status_code=400, detail="Job description is required for resume tailoring")
+
+    # Get user's default resume
+    resume_text = get_user_default_resume(current_user.id, db)
+    if not resume_text:
+        raise HTTPException(
+            status_code=400,
+            detail="No resume found. Please upload a resume in the Documents section first."
+        )
+
+    # Get company name if available
+    company_name = job.company.name if job.company else None
+
+    try:
+        # Generate the ATS-optimized resume
+        ats_resume = ai_service.generate_ats_tailored_resume(
+            resume_text=resume_text,
+            job_title=job.title,
+            job_description=job.job_description,
+            company_name=company_name
+        )
+
+        # Convert to DOCX for download
+        docx_file = create_resume_docx(ats_resume)
+
+        # Create filename
+        safe_company = re.sub(r'[^\w\s-]', '', company_name or 'Company')[:30]
+        safe_title = re.sub(r'[^\w\s-]', '', job.title or 'Resume')[:30]
+        filename = f"Resume_{safe_company}_{safe_title}.docx".replace(' ', '_')
+
+        return StreamingResponse(
+            docx_file,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate tailored resume: {str(e)}")
+
+
+def create_cover_letter_docx(cover_letter_text: str, job_title: str = "Position", company_name: str = "Company") -> io.BytesIO:
+    """Convert cover letter text to a formatted DOCX file."""
+    from docx import Document
+    from docx.shared import Pt, Inches
+
+    doc = Document()
+
+    # Set margins
+    for section in doc.sections:
+        section.top_margin = Inches(1)
+        section.bottom_margin = Inches(1)
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
+
+    # Add the cover letter content
+    paragraphs = cover_letter_text.strip().split('\n\n')
+
+    for para_text in paragraphs:
+        if para_text.strip():
+            p = doc.add_paragraph(para_text.strip())
+            p.paragraph_format.space_after = Pt(12)
+
+    # Save to BytesIO
+    file_stream = io.BytesIO()
+    doc.save(file_stream)
+    file_stream.seek(0)
+    return file_stream
+
+
+@router.post("/generate-cover-letter/{job_id}")
+def generate_cover_letter_for_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate a cover letter tailored for a specific job.
+    Uses the user's default resume automatically.
+    """
+    # Fetch the job
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    # Allow access to public jobs (user_id is null) or user's own jobs
+    if job.user_id is not None and job.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this job")
+
+    if not job.job_description:
+        raise HTTPException(status_code=400, detail="Job description is required for cover letter generation")
+
+    # Get user's default resume
+    resume_text = get_user_default_resume(current_user.id, db)
+    if not resume_text:
+        raise HTTPException(
+            status_code=400,
+            detail="No resume found. Please upload a resume in the Documents section first."
+        )
+
+    # Get company name if available
+    company_name = job.company.name if job.company else "the company"
+
+    try:
+        # Generate the cover letter
+        cover_letter = ai_service.generate_cover_letter(
+            job_title=job.title,
+            company_name=company_name,
+            job_description=job.job_description,
+            resume_text=resume_text
+        )
+
+        # Convert to DOCX for download
+        docx_file = create_cover_letter_docx(cover_letter, job.title, company_name)
+
+        # Create filename
+        safe_company = re.sub(r'[^\w\s-]', '', company_name or 'Company')[:30]
+        safe_title = re.sub(r'[^\w\s-]', '', job.title or 'Position')[:30]
+        filename = f"Cover_Letter_{safe_company}_{safe_title}.docx".replace(' ', '_')
+
+        return StreamingResponse(
+            docx_file,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate cover letter: {str(e)}")
