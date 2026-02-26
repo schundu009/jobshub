@@ -13,12 +13,5 @@
         }
       ]
     }
-  ],
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://jobs.cariara.com/$1",
-      "permanent": true
-    }
   ]
 }
