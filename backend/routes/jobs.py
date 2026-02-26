@@ -21,8 +21,22 @@ import re
 import hashlib
 from datetime import date, datetime, timedelta
 
+import html
+
 from database import get_db
 from models import Job, Company, User, RoleProfile, JobRelevanceScore
+
+
+def decode_job_description(description: str) -> str:
+    """Decode HTML entities in job descriptions."""
+    if not description:
+        return description
+    # Decode HTML entities (e.g., &lt; -> <, &gt; -> >, &amp; -> &)
+    decoded = html.unescape(description)
+    # Check if still encoded (double-encoding) and decode again
+    if '&lt;' in decoded or '&gt;' in decoded or '&amp;' in decoded:
+        decoded = html.unescape(decoded)
+    return decoded
 from services.relevance_service import (
     compute_job_relevance,
     filter_relevant_jobs,
@@ -288,7 +302,7 @@ def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None, inclu
 
     # Only include full description if explicitly requested (reduces response size significantly)
     if include_description:
-        result["job_description"] = job.job_description
+        result["job_description"] = decode_job_description(job.job_description)
 
     if relevance:
         result["relevance"] = {
@@ -720,7 +734,7 @@ async def get_job(
         "salary_min": job.salary_min,
         "salary_max": job.salary_max,
         "job_url": job.job_url,
-        "job_description": job.job_description,
+        "job_description": decode_job_description(job.job_description),
         "status": job.status,
         "date_found": job.date_found,
         "date_applied": job.date_applied,
