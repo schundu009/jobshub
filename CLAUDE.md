@@ -158,6 +158,9 @@ Implementation in `backend/services/auto_apply/` with ATS-specific classes.
 
 ## Common Issues
 
+### Vercel Routing / Redirect Loop on jobs.cariara.com
+The root Vercel project serves jobs.cariara.com. **NEVER create an `index.html` in the repo root** - this causes redirect loops. The root `vercel.json` must have `outputDirectory: "jobs-app"` to serve the correct content.
+
 ### Railway SSL Errors
 For internal PostgreSQL connections, ensure `sslmode=disable`:
 ```python
