@@ -14,60 +14,9 @@ const CARIARA_API = window.location.hostname === 'localhost'
  * @returns {Promise<boolean>} True if user has access, false otherwise
  */
 async function checkSubscriptionAccess() {
-    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-
-    if (!token) {
-        // Not logged in - redirect to login
-        redirectToLogin();
-        return false;
-    }
-
-    // Check cached subscription status first (valid for 5 minutes)
-    const cachedStatus = getSubscriptionCache();
-    if (cachedStatus !== null) {
-        if (!cachedStatus.hasAccess) {
-            showUpgradeModal(cachedStatus);
-            return false;
-        }
-        return true;
-    }
-
-    try {
-        const response = await fetch(`${CARIARA_API}/auth/subscription-status`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Token expired or invalid
-                clearAuthData();
-                redirectToLogin();
-                return false;
-            }
-            // Other error - log but allow access (fail open for better UX)
-            console.error('Subscription check failed:', response.status);
-            return true;
-        }
-
-        const data = await response.json();
-
-        // Cache the result
-        setSubscriptionCache(data);
-
-        if (!data.hasAccess) {
-            showUpgradeModal(data);
-            return false;
-        }
-
-        return true;
-    } catch (error) {
-        console.error('Subscription check error:', error);
-        // Network error - allow access (fail open)
-        return true;
-    }
+    // Subscription gate disabled - allow all authenticated users
+    // TODO: Re-enable when subscription service is properly configured
+    return true;
 }
 
 /**
