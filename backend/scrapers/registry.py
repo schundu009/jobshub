@@ -224,7 +224,7 @@ class ScraperRegistry:
             return
 
         scrapers_path = Path(__file__).parent
-        categories = ["big_tech", "enterprise", "finance", "other", "custom"]
+        categories = ["big_tech", "enterprise", "finance", "other", "custom", "apify"]
 
         for category in categories:
             category_path = scrapers_path / category

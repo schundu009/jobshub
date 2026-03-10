@@ -127,6 +127,10 @@ class Settings(BaseSettings):
     openai_api_key: str = os.environ.get("OPENAI_API_KEY", "")
     sentry_dsn: str = os.environ.get("SENTRY_DSN", "")
 
+    # Apify API (for cloud-based job scraping)
+    apify_api_token: str = os.environ.get("APIFY_API_TOKEN", "")
+    apify_webhook_secret: str = os.environ.get("APIFY_WEBHOOK_SECRET", "apify-cariara-2024")
+
     # ==========================================================================
     # ENVIRONMENT
     # ==========================================================================
