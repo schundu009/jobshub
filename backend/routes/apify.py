@@ -434,3 +434,21 @@ async def webhook_trigger_apify(
         "status": "error",
         "error": result.get("error"),
     }
+
+
+@router.get("/debug")
+def debug_apify_config():
+    """Debug endpoint to check Apify configuration (temporary)."""
+    import os
+
+    service = get_apify_service()
+    token = os.environ.get("APIFY_API_TOKEN", "")
+
+    return {
+        "apify_available": APIFY_AVAILABLE,
+        "token_set": bool(token),
+        "token_length": len(token) if token else 0,
+        "token_prefix": token[:10] + "..." if len(token) > 10 else token,
+        "is_configured": service.is_configured,
+        "service_token_set": bool(service.api_token),
+    }
