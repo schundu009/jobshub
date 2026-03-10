@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Build ARG to bust cache when needed
+ARG CACHE_BUST=20260310v3
+
 WORKDIR /app
 
 # Install system dependencies for Playwright
@@ -28,9 +31,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-# Cache bust: 20260310-v2
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN echo "Cache bust: $CACHE_BUST" && pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright browsers (deps already installed above)
 RUN playwright install chromium
