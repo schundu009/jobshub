@@ -469,6 +469,7 @@ def debug_apify_config():
 async def test_save_job(db: Session = Depends(get_db)):
     """Test saving a single fake job to verify database works."""
     import uuid
+    import traceback
 
     test_job = {
         "title": f"Test Job {uuid.uuid4().hex[:8]}",
@@ -479,13 +480,48 @@ async def test_save_job(db: Session = Depends(get_db)):
         "description": "This is a test job to verify database saving works.",
     }
 
-    saved, created = save_apify_jobs(db, [test_job], "test")
+    # Try manual save to see exact error
+    error_msg = None
+    try:
+        import re
+        company_name = test_job["company_name"]
+        slug = re.sub(r'[^a-z0-9]+', '-', company_name.lower()).strip('-')
 
-    return {
-        "test_job": test_job,
-        "saved": saved,
-        "companies_created": created,
-    }
+        # Create company
+        company = db.query(Company).filter(Company.name == company_name).first()
+        if not company:
+            company = Company(name=company_name, slug=slug, source="test")
+            db.add(company)
+            db.flush()
+
+        # Create job
+        job = Job(
+            title=test_job["title"],
+            company_id=company.id,
+            location=test_job["location"],
+            job_url=test_job["job_url"],
+            external_job_id=test_job["external_job_id"],
+            description=test_job["description"],
+            source="test",
+            is_active=True,
+            status="wishlist",
+        )
+        db.add(job)
+        db.commit()
+
+        return {
+            "success": True,
+            "job_id": job.id,
+            "company_id": company.id,
+        }
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}"
+        db.rollback()
+
+        return {
+            "success": False,
+            "error": error_msg,
+        }
 
 
 @router.post("/test-sample")
