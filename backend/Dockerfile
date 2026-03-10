@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 # Build ARG to bust cache when needed
-ARG CACHE_BUST=20260310v4
+ARG CACHE_BUST=20260310v5
 
 WORKDIR /app
 
