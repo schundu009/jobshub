@@ -465,6 +465,29 @@ def debug_apify_config():
     }
 
 
+@router.post("/test-save")
+async def test_save_job(db: Session = Depends(get_db)):
+    """Test saving a single fake job to verify database works."""
+    import uuid
+
+    test_job = {
+        "title": f"Test Job {uuid.uuid4().hex[:8]}",
+        "company_name": "Test Company Apify",
+        "location": "Test City, TS",
+        "job_url": f"https://example.com/job/{uuid.uuid4().hex}",
+        "external_job_id": f"test-{uuid.uuid4().hex}",
+        "description": "This is a test job to verify database saving works.",
+    }
+
+    saved, created = save_apify_jobs(db, [test_job], "test")
+
+    return {
+        "test_job": test_job,
+        "saved": saved,
+        "companies_created": created,
+    }
+
+
 @router.post("/test-sample")
 async def test_apify_sample(db: Session = Depends(get_db)):
     """Test endpoint to fetch sample jobs, save them, and return details."""
