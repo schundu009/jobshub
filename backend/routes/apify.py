@@ -160,11 +160,17 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
             jobs_saved += 1
 
         except Exception as e:
-            logger.warning(f"Failed to save job: {e}")
+            logger.error(f"Failed to save job: {e}", exc_info=True)
             continue
 
-    db.commit()
-    logger.info(f"save_apify_jobs: Saved {jobs_saved} new jobs, {companies_created} companies, skipped {skipped_existing} existing")
+    try:
+        db.commit()
+        logger.info(f"save_apify_jobs: Saved {jobs_saved} new jobs, {companies_created} companies, skipped {skipped_existing} existing")
+    except Exception as e:
+        logger.error(f"Failed to commit: {e}", exc_info=True)
+        db.rollback()
+        return 0, 0
+
     return jobs_saved, companies_created
 
 
@@ -460,8 +466,8 @@ def debug_apify_config():
 
 
 @router.post("/test-sample")
-async def test_apify_sample():
-    """Test endpoint to fetch sample jobs and return parsed data."""
+async def test_apify_sample(db: Session = Depends(get_db)):
+    """Test endpoint to fetch sample jobs, save them, and return details."""
     service = get_apify_service()
 
     if not service.is_configured:
@@ -471,14 +477,21 @@ async def test_apify_sample():
         actor_key="indeed_jobs",
         input_override={
             "searchQueries": ["python developer"],
-            "location": "New York",
+            "location": "Boston",  # Use different location for fresh jobs
             "maxItems": 5,
         },
         wait_for_finish=True,
     )
 
+    jobs = result.get("jobs", [])
+
+    # Try to save and report results
+    saved, created = save_apify_jobs(db, jobs, "indeed")
+
     return {
         "status": result.get("status"),
         "jobs_found": result.get("jobs_found", 0),
-        "sample_jobs": result.get("jobs", [])[:3],  # Return first 3 for inspection
+        "jobs_saved": saved,
+        "companies_created": created,
+        "sample_jobs": jobs[:2],  # Return first 2 for inspection
     }
