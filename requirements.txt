@@ -28,7 +28,7 @@ authlib>=1.3.0
 itsdangerous>=2.1.0
 httpx>=0.27.0
 
-# Scraper dependencies
+# Scraper dependencies (cache-bust: 20260310)
 aiohttp>=3.9.0
 playwright>=1.40.0
 beautifulsoup4>=4.12.0
