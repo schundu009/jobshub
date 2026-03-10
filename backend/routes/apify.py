@@ -115,7 +115,7 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
                 if existing:
                     # Update existing job
                     existing.title = job_data.get("title", existing.title)
-                    existing.description = job_data.get("job_description") or job_data.get("description") or existing.description
+                    existing.job_description = job_data.get("job_description") or job_data.get("description") or existing.job_description
                     existing.location = job_data.get("location") or existing.location
                     existing.updated_at = datetime.utcnow()
                     skipped_existing += 1
@@ -128,12 +128,10 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
                 location=job_data.get("location", ""),
                 job_url=job_data.get("job_url", ""),
                 external_job_id=external_job_id,
-                description=job_data.get("job_description") or job_data.get("description", ""),
+                job_description=job_data.get("job_description") or job_data.get("description", ""),
                 department=job_data.get("department", ""),
                 salary_min=job_data.get("salary_min"),
                 salary_max=job_data.get("salary_max"),
-                employment_type=job_data.get("employment_type", ""),
-                remote_type=job_data.get("remote_type"),
                 source=source,
                 is_active=True,
                 status="wishlist",
@@ -496,7 +494,7 @@ async def test_save_job(db: Session = Depends(get_db)):
             location=test_job["location"],
             job_url=test_job["job_url"],
             external_job_id=test_job["external_job_id"],
-            description=test_job["description"],
+            job_description=test_job["description"],
             source="test",
             is_active=True,
             status="wishlist",
