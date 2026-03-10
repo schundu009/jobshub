@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from middleware.auth import get_current_user
 from models import User, Job, Company
-from services.apify_service import get_apify_service, APIFY_ACTORS
+from services.apify_service import get_apify_service, APIFY_ACTORS, APIFY_AVAILABLE
 
 logger = logging.getLogger(__name__)
 

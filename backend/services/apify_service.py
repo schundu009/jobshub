@@ -20,7 +20,13 @@ from datetime import datetime
 from typing import Optional, Any
 from dataclasses import dataclass
 
-from apify_client import ApifyClient
+# Try to import apify_client, but don't fail if not installed
+try:
+    from apify_client import ApifyClient
+    APIFY_AVAILABLE = True
+except ImportError:
+    ApifyClient = None
+    APIFY_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +118,8 @@ class ApifyService:
     @property
     def client(self) -> ApifyClient:
         """Get or create Apify client."""
+        if not APIFY_AVAILABLE:
+            raise ValueError("apify-client package not installed. Run: pip install apify-client")
         if not self._client:
             if not self.api_token:
                 raise ValueError("Apify API token not configured. Set APIFY_API_TOKEN environment variable.")
@@ -121,7 +129,7 @@ class ApifyService:
     @property
     def is_configured(self) -> bool:
         """Check if Apify is configured."""
-        return bool(self.api_token)
+        return APIFY_AVAILABLE and bool(self.api_token)
 
     def list_available_actors(self) -> list[dict]:
         """List available job scraping actors."""
