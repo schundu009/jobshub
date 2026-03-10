@@ -91,15 +91,10 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
                 ).first()
 
                 if not company:
-                    # Create company
-                    import re
-                    slug = re.sub(r'[^a-z0-9]+', '-', company_name.lower()).strip('-')
-
+                    # Create company - use only fields that exist in the model
                     company = Company(
                         name=company_name,
-                        slug=slug,
-                        careers_url=job_data.get("job_url", "").split("/job")[0] if job_data.get("job_url") else None,
-                        source=source,
+                        website=job_data.get("job_url", "").split("/job")[0] if job_data.get("job_url") else None,
                     )
                     db.add(company)
                     db.flush()
@@ -490,7 +485,7 @@ async def test_save_job(db: Session = Depends(get_db)):
         # Create company
         company = db.query(Company).filter(Company.name == company_name).first()
         if not company:
-            company = Company(name=company_name, slug=slug, source="test")
+            company = Company(name=company_name)
             db.add(company)
             db.flush()
 
