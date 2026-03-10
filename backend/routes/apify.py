@@ -75,6 +75,9 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
     jobs_saved = 0
     companies_created = 0
     companies_cache = {}
+    skipped_existing = 0
+
+    logger.info(f"save_apify_jobs: Processing {len(jobs)} jobs from {source}")
 
     for job_data in jobs:
         try:
@@ -120,6 +123,7 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
                     existing.description = job_data.get("job_description") or job_data.get("description") or existing.description
                     existing.location = job_data.get("location") or existing.location
                     existing.updated_at = datetime.utcnow()
+                    skipped_existing += 1
                     continue
 
             # Create new job
@@ -160,6 +164,7 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
             continue
 
     db.commit()
+    logger.info(f"save_apify_jobs: Saved {jobs_saved} new jobs, {companies_created} companies, skipped {skipped_existing} existing")
     return jobs_saved, companies_created
 
 
@@ -451,4 +456,29 @@ def debug_apify_config():
         "token_prefix": token[:10] + "..." if len(token) > 10 else token,
         "is_configured": service.is_configured,
         "service_token_set": bool(service.api_token),
+    }
+
+
+@router.post("/test-sample")
+async def test_apify_sample():
+    """Test endpoint to fetch sample jobs and return parsed data."""
+    service = get_apify_service()
+
+    if not service.is_configured:
+        return {"error": "Apify not configured"}
+
+    result = await service.run_actor(
+        actor_key="indeed_jobs",
+        input_override={
+            "searchQueries": ["python developer"],
+            "location": "New York",
+            "maxItems": 5,
+        },
+        wait_for_finish=True,
+    )
+
+    return {
+        "status": result.get("status"),
+        "jobs_found": result.get("jobs_found", 0),
+        "sample_jobs": result.get("jobs", [])[:3],  # Return first 3 for inspection
     }
