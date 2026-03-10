@@ -31,6 +31,7 @@ celery_app = Celery(
         "tasks.scraper_tasks",
         "tasks.maintenance_tasks",
         "tasks.auto_apply_tasks",
+        "tasks.apify_tasks",
     ],
 )
 
@@ -60,6 +61,9 @@ celery_app.conf.update(
         "tasks.auto_apply_tasks.submit_application": {"queue": "scrapers_browser"},
         "tasks.auto_apply_tasks.process_pending_applications": {"queue": "maintenance"},
         "tasks.auto_apply_tasks.reset_daily_application_counts": {"queue": "maintenance"},
+        "tasks.apify_tasks.scrape_apify_indeed": {"queue": "scrapers_http"},
+        "tasks.apify_tasks.scrape_apify_linkedin": {"queue": "scrapers_http"},
+        "tasks.apify_tasks.scrape_all_apify": {"queue": "scrapers_orchestrator"},
     },
 
     # Define queues
@@ -127,6 +131,12 @@ celery_app.conf.update(
             "task": "tasks.maintenance_tasks.fetch_missing_descriptions",
             "schedule": crontab(minute="*/30"),
             "options": {"queue": "maintenance"},
+        },
+        # Run Apify scrapers every 4 hours (offset from company scrapers)
+        "apify-scrape-all": {
+            "task": "tasks.apify_tasks.scrape_all_apify",
+            "schedule": crontab(minute=30, hour="2,6,10,14,18,22"),
+            "options": {"queue": "scrapers_orchestrator"},
         },
     },
 )
