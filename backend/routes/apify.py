@@ -440,3 +440,81 @@ async def webhook_trigger_apify(
     }
 
 
+@router.post("/webhook/bulk-scrape")
+async def webhook_bulk_scrape(
+    background_tasks: BackgroundTasks,
+    secret: str = Query(..., description="Webhook secret"),
+):
+    """
+    Trigger bulk Fortune 500 company scrapes in background.
+
+    No auth required, uses secret.
+    """
+    import os
+    expected_secret = os.environ.get("APIFY_WEBHOOK_SECRET", "apify-cariara-2024")
+
+    if secret != expected_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+    service = get_apify_service()
+
+    if not service.is_configured:
+        raise HTTPException(status_code=400, detail="Apify not configured")
+
+    # Top Fortune 500 companies to scrape
+    companies = [
+        "Google", "Microsoft", "Amazon", "Apple", "Meta", "Netflix", "Nvidia",
+        "Salesforce", "Adobe", "Oracle", "IBM", "Intel", "Cisco",
+        "LinkedIn", "Uber", "Airbnb", "Stripe", "Coinbase",
+        "Tesla", "SpaceX", "OpenAI", "Anthropic", "Palantir",
+        "Goldman Sachs", "JPMorgan", "Morgan Stanley",
+        "Walmart", "Target", "Shopify",
+        "Datadog", "Snowflake", "MongoDB", "Cloudflare",
+        "CrowdStrike", "Palo Alto Networks", "Okta",
+        "Atlassian", "Zoom", "Twilio", "DocuSign",
+    ]
+
+    async def run_bulk():
+        from database import SessionLocal
+        total_saved = 0
+        total_companies = 0
+
+        for company in companies:
+            try:
+                query = f"{company} software engineer"
+                logger.info(f"Bulk scrape: {query}")
+
+                result = await service.run_actor(
+                    actor_key="indeed_jobs",
+                    input_override={
+                        "searchQueries": [query],
+                        "location": "United States",
+                        "maxItems": 50,
+                    },
+                    wait_for_finish=True,
+                    timeout_secs=120,
+                )
+
+                if result.get("status") == "success":
+                    jobs = result.get("jobs", [])
+                    with SessionLocal() as db:
+                        saved, created = save_apify_jobs(db, jobs, "indeed")
+                        total_saved += saved
+                        total_companies += created
+                        logger.info(f"Bulk scrape {company}: {saved} jobs, {created} companies")
+
+            except Exception as e:
+                logger.warning(f"Bulk scrape {company} failed: {e}")
+                continue
+
+        logger.info(f"Bulk scrape complete: {total_saved} jobs, {total_companies} companies")
+
+    background_tasks.add_task(run_bulk)
+
+    return {
+        "status": "started",
+        "message": f"Started bulk scrape for {len(companies)} companies in background",
+        "companies": companies,
+    }
+
+
