@@ -144,15 +144,54 @@ def scrape_apify_indeed(search_queries: list[str] = None, max_items: int = 100):
             "machine learning engineer",
         ]
 
-        # Top tech company searches
-        top_companies = [
-            "Google", "Microsoft", "Amazon", "Apple", "Meta",
-            "Netflix", "Nvidia", "Salesforce", "Adobe", "Oracle",
-            "LinkedIn", "Uber", "Airbnb", "Stripe", "Coinbase",
-            "OpenAI", "Anthropic", "Tesla", "SpaceX", "Palantir",
+        # Fortune 500 + Top Tech Companies (comprehensive list)
+        fortune_500_companies = [
+            # Big Tech (FAANG+)
+            "Google", "Microsoft", "Amazon", "Apple", "Meta", "Netflix", "Nvidia",
+            # Tech Giants
+            "Salesforce", "Adobe", "Oracle", "IBM", "Intel", "Cisco", "SAP",
+            "VMware", "ServiceNow", "Workday", "Snowflake", "Databricks",
+            # Social/Consumer Tech
+            "LinkedIn", "Twitter", "Snap", "Pinterest", "Reddit", "Discord",
+            # Ride-sharing/Delivery
+            "Uber", "Lyft", "DoorDash", "Instacart",
+            # Travel/Hospitality
+            "Airbnb", "Booking", "Expedia", "Tripadvisor",
+            # Fintech
+            "Stripe", "Square", "PayPal", "Visa", "Mastercard", "American Express",
+            "Goldman Sachs", "JPMorgan", "Morgan Stanley", "Citadel", "Jane Street",
+            "Capital One", "Robinhood", "Coinbase", "Plaid",
+            # E-commerce/Retail
+            "Walmart", "Target", "Costco", "Home Depot", "Best Buy", "Wayfair", "Shopify",
+            # Healthcare/Pharma
+            "UnitedHealth", "CVS", "Johnson & Johnson", "Pfizer", "Merck", "Abbott",
+            # Automotive/Mobility
+            "Tesla", "GM", "Ford", "Rivian", "Lucid", "Waymo", "Cruise",
+            # Aerospace/Defense
+            "SpaceX", "Boeing", "Lockheed Martin", "Raytheon", "Northrop Grumman",
+            # AI/ML Companies
+            "OpenAI", "Anthropic", "DeepMind", "Cohere", "Hugging Face", "Scale AI",
+            # Data/Analytics
+            "Palantir", "Splunk", "Tableau", "Alteryx", "Datadog", "New Relic",
+            # Cloud/Infrastructure
+            "Cloudflare", "Akamai", "Fastly", "DigitalOcean", "MongoDB", "Elastic",
+            # Security
+            "CrowdStrike", "Palo Alto Networks", "Fortinet", "Okta", "Zscaler",
+            # Enterprise Software
+            "Atlassian", "Zoom", "Slack", "Dropbox", "Box", "DocuSign", "Twilio",
+            # Gaming
+            "Electronic Arts", "Activision", "Roblox", "Unity", "Epic Games",
+            # Media/Entertainment
+            "Disney", "Warner Bros", "Comcast", "Paramount", "Sony",
+            # Telecom
+            "Verizon", "AT&T", "T-Mobile",
+            # Consulting/Services
+            "Accenture", "Deloitte", "McKinsey", "BCG", "Bain",
+            # Energy
+            "ExxonMobil", "Chevron", "ConocoPhillips",
         ]
 
-        company_queries = [f"{company} software engineer" for company in top_companies]
+        company_queries = [f"{company} software engineer" for company in fortune_500_companies]
         search_queries = role_queries + company_queries
 
     service = get_apify_service()
