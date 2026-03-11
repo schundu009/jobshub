@@ -133,7 +133,8 @@ def scrape_apify_indeed(search_queries: list[str] = None, max_items: int = 100):
     import asyncio
 
     if search_queries is None:
-        search_queries = [
+        # Role-based searches
+        role_queries = [
             "software engineer",
             "backend engineer",
             "frontend developer",
@@ -142,6 +143,17 @@ def scrape_apify_indeed(search_queries: list[str] = None, max_items: int = 100):
             "product manager",
             "machine learning engineer",
         ]
+
+        # Top tech company searches
+        top_companies = [
+            "Google", "Microsoft", "Amazon", "Apple", "Meta",
+            "Netflix", "Nvidia", "Salesforce", "Adobe", "Oracle",
+            "LinkedIn", "Uber", "Airbnb", "Stripe", "Coinbase",
+            "OpenAI", "Anthropic", "Tesla", "SpaceX", "Palantir",
+        ]
+
+        company_queries = [f"{company} software engineer" for company in top_companies]
+        search_queries = role_queries + company_queries
 
     service = get_apify_service()
 
