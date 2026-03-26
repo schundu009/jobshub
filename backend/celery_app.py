@@ -96,8 +96,8 @@ celery_app.conf.update(
         },
         "tasks.scraper_tasks.scrape_company_browser": {
             "rate_limit": "5/m",
-            "soft_time_limit": 120,  # Browser scrapers: 2 min soft
-            "time_limit": 180,  # 3 min hard
+            "soft_time_limit": 300,  # Browser scrapers: 5 min soft
+            "time_limit": 360,  # 6 min hard
         },
         "tasks.scraper_tasks.scrape_all_companies": {
             "soft_time_limit": 300,  # Orchestrator: 5 min soft
