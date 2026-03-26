@@ -49,9 +49,11 @@ def save_apify_jobs_to_db(jobs: list[dict], source: str) -> tuple[int, int]:
                             posted_date = parser.parse(posted_date)
                         except Exception:
                             posted_date = None
-                    if isinstance(posted_date, datetime) and posted_date < cutoff_date:
-                        jobs_skipped_old += 1
-                        continue
+                    if isinstance(posted_date, datetime):
+                        posted_naive = posted_date.replace(tzinfo=None) if posted_date.tzinfo else posted_date
+                        if posted_naive < cutoff_date:
+                            jobs_skipped_old += 1
+                            continue
 
                 # Get company name
                 raw_data = job_data.get("raw_data", {}) or {}

@@ -107,9 +107,15 @@ def save_scraped_jobs(
     for scraped_job in jobs:
         try:
             # Skip jobs older than MAX_JOB_AGE_DAYS
-            if scraped_job.posted_date and scraped_job.posted_date < cutoff_date:
-                jobs_skipped_old += 1
-                continue
+            if scraped_job.posted_date:
+                try:
+                    # Strip timezone info for comparison (some scrapers return tz-aware dates)
+                    posted = scraped_job.posted_date.replace(tzinfo=None) if scraped_job.posted_date.tzinfo else scraped_job.posted_date
+                    if posted < cutoff_date:
+                        jobs_skipped_old += 1
+                        continue
+                except Exception:
+                    pass  # If date comparison fails, don't skip the job
 
             # Generate external ID if not provided
             external_id = scraped_job.external_job_id or scraped_job.generate_id()
