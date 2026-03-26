@@ -939,13 +939,15 @@ async def webhook_trigger_scrapers(
 async def webhook_run_scrapers_sync(
     secret: str = Query(..., description="Webhook secret key"),
     limit: int = Query(default=50, ge=1, le=200, description="Max scrapers to run"),
-    db: Session = Depends(get_db),
 ):
     """
     Run HTTP scrapers synchronously via webhook (no Celery worker needed).
     Use this when workers are down or for immediate scraping.
+    No auth required - uses secret key for verification.
     """
     import os
+    from database import SessionLocal
+
     expected_secret = os.environ.get("SCRAPER_WEBHOOK_SECRET", "cariara-scrape-2024")
 
     if secret != expected_secret:
@@ -985,14 +987,16 @@ async def webhook_run_scrapers_sync(
             jobs_updated = 0
 
             if result.success and result.jobs:
-                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-                result.jobs_new = jobs_new
-                result.jobs_updated = jobs_updated
-
-            try:
-                record_scraper_run(db, company_slug, result)
-            except Exception:
-                pass
+                db = SessionLocal()
+                try:
+                    jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                    result.jobs_new = jobs_new
+                    result.jobs_updated = jobs_updated
+                    record_scraper_run(db, company_slug, result)
+                except Exception:
+                    pass
+                finally:
+                    db.close()
 
             duration = (datetime.utcnow() - start_time).total_seconds()
 
