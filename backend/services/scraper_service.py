@@ -21,7 +21,7 @@ from scrapers.registry import ScraperRegistry
 logger = logging.getLogger(__name__)
 
 # Only save jobs posted within this many days
-MAX_JOB_AGE_DAYS = 7
+MAX_JOB_AGE_DAYS = 30
 
 
 def get_or_create_company(
