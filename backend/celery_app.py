@@ -51,6 +51,9 @@ celery_app.conf.update(
     # Worker settings
     worker_prefetch_multiplier=1,  # Don't prefetch, process one at a time
     worker_concurrency=4,  # Number of concurrent workers
+    worker_max_tasks_per_child=50,  # Restart child after 50 tasks (prevents memory leaks)
+    worker_max_memory_per_child=512_000,  # Restart child if >512MB (prevents OOM)
+    worker_lost_wait=30,  # Wait 30s before declaring worker lost
 
     # Task routing - separate queues for different task types
     task_routes={
@@ -80,13 +83,25 @@ celery_app.conf.update(
     task_default_exchange="default",
     task_default_routing_key="default",
 
-    # Rate limits
+    # Task timeouts (hard kill if task exceeds these)
+    task_soft_time_limit=120,  # Soft limit: 2 min (raises SoftTimeLimitExceeded)
+    task_time_limit=180,  # Hard limit: 3 min (kills the task)
+
+    # Rate limits and per-task overrides
     task_annotations={
         "tasks.scraper_tasks.scrape_company_http": {
-            "rate_limit": "10/m",  # 10 HTTP scrapers per minute
+            "rate_limit": "10/m",
+            "soft_time_limit": 60,  # HTTP scrapers: 1 min soft
+            "time_limit": 90,  # 1.5 min hard
         },
         "tasks.scraper_tasks.scrape_company_browser": {
-            "rate_limit": "5/m",  # 5 browser scrapers per minute
+            "rate_limit": "5/m",
+            "soft_time_limit": 120,  # Browser scrapers: 2 min soft
+            "time_limit": 180,  # 3 min hard
+        },
+        "tasks.scraper_tasks.scrape_all_companies": {
+            "soft_time_limit": 300,  # Orchestrator: 5 min soft
+            "time_limit": 360,  # 6 min hard
         },
     },
 

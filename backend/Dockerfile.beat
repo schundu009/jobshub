@@ -12,5 +12,9 @@ COPY backend/ .
 # Create a writable directory for the schedule file
 RUN mkdir -p /app/data && chmod 777 /app/data
 
-# Run Celery beat scheduler with schedule file in writable location
-CMD ["celery", "-A", "celery_app", "beat", "--loglevel=info", "-s", "/app/data/celerybeat-schedule"]
+# Copy entrypoint script
+COPY backend/beat_entrypoint.sh /app/beat_entrypoint.sh
+RUN chmod +x /app/beat_entrypoint.sh
+
+# Run beat via entrypoint (auto-restarts on crash)
+CMD ["/app/beat_entrypoint.sh"]

@@ -37,5 +37,9 @@ RUN playwright install chromium
 # Copy backend application code
 COPY backend/ .
 
-# Run Celery worker with all queues including browser scrapers
-CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info", "--concurrency=4", "-Q", "default,scrapers_http,scrapers_browser,scrapers_orchestrator,maintenance"]
+# Copy entrypoint script
+COPY backend/worker_entrypoint.sh /app/worker_entrypoint.sh
+RUN chmod +x /app/worker_entrypoint.sh
+
+# Run worker via entrypoint (auto-restarts on crash)
+CMD ["/app/worker_entrypoint.sh"]

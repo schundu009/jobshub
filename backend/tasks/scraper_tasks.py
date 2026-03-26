@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Optional
 
 from celery import shared_task, group, chain
+from celery.exceptions import SoftTimeLimitExceeded
 from sqlalchemy.orm import Session
 
 from celery_app import celery_app
@@ -179,6 +180,10 @@ def scrape_company_http(self, company_slug: str) -> dict:
             "error": result.error_message,
         }
 
+    except SoftTimeLimitExceeded:
+        logger.warning(f"Scraper {company_slug} timed out (soft limit)")
+        return {"status": "timeout", "company_slug": company_slug, "error": "soft time limit exceeded"}
+
     except Exception as e:
         logger.exception(f"Error scraping {company_slug}")
         # Record the failure - never let this crash the worker
@@ -292,6 +297,10 @@ def scrape_company_browser(self, company_slug: str) -> dict:
             "duration_seconds": result.duration_seconds,
             "error": result.error_message,
         }
+
+    except SoftTimeLimitExceeded:
+        logger.warning(f"Browser scraper {company_slug} timed out (soft limit)")
+        return {"status": "timeout", "company_slug": company_slug, "error": "soft time limit exceeded"}
 
     except Exception as e:
         logger.exception(f"Error scraping {company_slug}")
