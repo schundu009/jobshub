@@ -935,6 +935,94 @@ async def webhook_trigger_scrapers(
         raise HTTPException(status_code=500, detail=f"Failed to dispatch: {str(e)}")
 
 
+@router.post("/webhook/run-sync")
+async def webhook_run_scrapers_sync(
+    secret: str = Query(..., description="Webhook secret key"),
+    limit: int = Query(default=50, ge=1, le=200, description="Max scrapers to run"),
+    db: Session = Depends(get_db),
+):
+    """
+    Run HTTP scrapers synchronously via webhook (no Celery worker needed).
+    Use this when workers are down or for immediate scraping.
+    """
+    import os
+    expected_secret = os.environ.get("SCRAPER_WEBHOOK_SECRET", "cariara-scrape-2024")
+
+    if secret != expected_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+    from datetime import datetime
+    from scrapers.base import ScraperType
+    from scrapers.rate_limiter import get_rate_limiter
+    from services.scraper_service import save_scraped_jobs
+    from tasks.scraper_tasks import record_scraper_run
+
+    all_scrapers = list_all_scrapers()
+    http_scrapers = [
+        s for s in all_scrapers
+        if s.get('scraper_type') == 'http'
+    ][:limit]
+
+    results = []
+    total_jobs_found = 0
+    total_jobs_new = 0
+
+    rate_limiter = get_rate_limiter()
+
+    for scraper_info in http_scrapers:
+        company_slug = scraper_info['slug']
+        start_time = datetime.utcnow()
+
+        try:
+            scraper_cls = ScraperRegistry.get(company_slug)
+            if not scraper_cls:
+                continue
+
+            scraper = scraper_cls(rate_limiter=rate_limiter)
+            result = await scraper.run()
+
+            jobs_new = 0
+            jobs_updated = 0
+
+            if result.success and result.jobs:
+                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                result.jobs_new = jobs_new
+                result.jobs_updated = jobs_updated
+
+            try:
+                record_scraper_run(db, company_slug, result)
+            except Exception:
+                pass
+
+            duration = (datetime.utcnow() - start_time).total_seconds()
+
+            results.append({
+                "company_slug": company_slug,
+                "status": "success" if result.success else "failed",
+                "jobs_found": result.jobs_found,
+                "jobs_new": jobs_new,
+                "duration_seconds": round(duration, 2),
+            })
+
+            total_jobs_found += result.jobs_found
+            total_jobs_new += jobs_new
+
+        except Exception as e:
+            results.append({
+                "company_slug": company_slug,
+                "status": "error",
+                "error": str(e)[:100],
+            })
+
+    return {
+        "status": "completed",
+        "scrapers_run": len(results),
+        "total_jobs_found": total_jobs_found,
+        "total_jobs_new": total_jobs_new,
+        "results": results
+    }
+
+
 # ============== Scraper Maintenance Endpoints ==============
 
 @router.post("/maintenance/reset-failures")
