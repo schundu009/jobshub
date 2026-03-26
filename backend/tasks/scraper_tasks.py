@@ -110,7 +110,7 @@ def is_scraper_enabled(db: Session, company_slug: str) -> bool:
     return True
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
+@celery_app.task(bind=True, max_retries=2, default_retry_delay=60)
 def scrape_company_http(self, company_slug: str) -> dict:
     """
     Run an HTTP scraper for a company.
@@ -147,15 +147,27 @@ def scrape_company_http(self, company_slug: str) -> dict:
         logger.info(f"Starting HTTP scrape for {company_slug}")
         result = asyncio.run(scraper.run())
 
-        # Save jobs if successful
+        # Save jobs if successful - use fresh DB connection to avoid stale sessions
         if result.success and result.jobs:
-            from services.scraper_service import save_scraped_jobs
-            jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-            result.jobs_new = jobs_new
-            result.jobs_updated = jobs_updated
+            save_db = get_db()
+            try:
+                from services.scraper_service import save_scraped_jobs
+                jobs_new, jobs_updated = save_scraped_jobs(save_db, company_slug, result.jobs)
+                result.jobs_new = jobs_new
+                result.jobs_updated = jobs_updated
+            except Exception as save_err:
+                logger.error(f"Error saving jobs for {company_slug}: {save_err}")
+            finally:
+                save_db.close()
 
-        # Record the run
-        record_scraper_run(db, company_slug, result, task_id=self.request.id)
+        # Record the run with a fresh connection
+        record_db = get_db()
+        try:
+            record_scraper_run(record_db, company_slug, result, task_id=self.request.id)
+        except Exception as rec_err:
+            logger.error(f"Error recording run for {company_slug}: {rec_err}")
+        finally:
+            record_db.close()
 
         return {
             "status": "success" if result.success else "failed",
@@ -169,23 +181,33 @@ def scrape_company_http(self, company_slug: str) -> dict:
 
     except Exception as e:
         logger.exception(f"Error scraping {company_slug}")
-        # Record the failure
-        result = ScrapeResult(
-            success=False,
-            error_message=str(e),
-            started_at=datetime.utcnow(),
-            completed_at=datetime.utcnow(),
-        )
-        record_scraper_run(db, company_slug, result, task_id=self.request.id)
+        # Record the failure - never let this crash the worker
+        try:
+            fail_db = get_db()
+            fail_result = ScrapeResult(
+                success=False,
+                error_message=str(e),
+                started_at=datetime.utcnow(),
+                completed_at=datetime.utcnow(),
+            )
+            record_scraper_run(fail_db, company_slug, fail_result, task_id=self.request.id)
+            fail_db.close()
+        except Exception:
+            logger.error(f"Failed to record error for {company_slug}")
 
-        # Retry on transient errors
-        raise self.retry(exc=e)
+        # Only retry on transient errors, not on persistent DB issues
+        if self.request.retries < self.max_retries:
+            raise self.retry(exc=e)
+        return {"status": "error", "company_slug": company_slug, "error": str(e)}
 
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=120)
+@celery_app.task(bind=True, max_retries=2, default_retry_delay=120)
 def scrape_company_browser(self, company_slug: str) -> dict:
     """
     Run a Playwright scraper for a company.
@@ -202,8 +224,13 @@ def scrape_company_browser(self, company_slug: str) -> dict:
         if not is_scraper_enabled(db, company_slug):
             logger.info(f"Scraper {company_slug} is disabled, skipping")
             return {"status": "skipped", "reason": "disabled"}
+    except Exception as e:
+        logger.warning(f"Error checking if {company_slug} is enabled: {e}")
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
 
     # Get the scraper
     rate_limiter = get_rate_limiter()
@@ -234,20 +261,27 @@ def scrape_company_browser(self, company_slug: str) -> dict:
             logger.error(f"Error for {company_slug}: {error}")
             return {"status": "error", "reason": error}
 
-        # Get a FRESH database connection after browser operation
-        db = get_db()
-        try:
-            # Save jobs if successful
-            if result.success and result.jobs:
+        # Save jobs with a FRESH database connection
+        if result.success and result.jobs:
+            save_db = get_db()
+            try:
                 from services.scraper_service import save_scraped_jobs
-                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                jobs_new, jobs_updated = save_scraped_jobs(save_db, company_slug, result.jobs)
                 result.jobs_new = jobs_new
                 result.jobs_updated = jobs_updated
+            except Exception as save_err:
+                logger.error(f"Error saving jobs for {company_slug}: {save_err}")
+            finally:
+                save_db.close()
 
-            # Record the run
-            record_scraper_run(db, company_slug, result, task_id=self.request.id)
+        # Record the run with a fresh connection
+        record_db = get_db()
+        try:
+            record_scraper_run(record_db, company_slug, result, task_id=self.request.id)
+        except Exception as rec_err:
+            logger.error(f"Error recording run for {company_slug}: {rec_err}")
         finally:
-            db.close()
+            record_db.close()
 
         return {
             "status": "success" if result.success else "failed",
@@ -261,19 +295,23 @@ def scrape_company_browser(self, company_slug: str) -> dict:
 
     except Exception as e:
         logger.exception(f"Error scraping {company_slug}")
-        result = ScrapeResult(
-            success=False,
-            error_message=str(e),
-            started_at=datetime.utcnow(),
-            completed_at=datetime.utcnow(),
-        )
-        # Get fresh connection to record failure
-        db = get_db()
+        # Record failure - never let this crash the worker
         try:
-            record_scraper_run(db, company_slug, result, task_id=self.request.id)
-        finally:
-            db.close()
-        raise self.retry(exc=e)
+            fail_db = get_db()
+            fail_result = ScrapeResult(
+                success=False,
+                error_message=str(e),
+                started_at=datetime.utcnow(),
+                completed_at=datetime.utcnow(),
+            )
+            record_scraper_run(fail_db, company_slug, fail_result, task_id=self.request.id)
+            fail_db.close()
+        except Exception:
+            logger.error(f"Failed to record error for {company_slug}")
+
+        if self.request.retries < self.max_retries:
+            raise self.retry(exc=e)
+        return {"status": "error", "company_slug": company_slug, "error": str(e)}
 
 
 @celery_app.task
@@ -288,48 +326,59 @@ def scrape_all_companies() -> dict:
     """
     logger.info("Starting scrape_all_companies orchestration")
 
-    # Load all scrapers
-    all_scrapers = ScraperRegistry.get_all()
-
-    db = get_db()
     try:
-        # Expire all cached objects to prevent stale state
-        db.expire_all()
+        # Load all scrapers
+        all_scrapers = ScraperRegistry.get_all()
 
-        http_tasks = []
-        browser_tasks = []
+        db = get_db()
+        try:
+            # Expire all cached objects to prevent stale state
+            db.expire_all()
 
-        for slug, scraper_cls in all_scrapers.items():
-            # Check if enabled
-            if not is_scraper_enabled(db, slug):
-                logger.info(f"Skipping disabled scraper: {slug}")
-                continue
+            http_tasks = []
+            browser_tasks = []
 
-            if scraper_cls.config.scraper_type == ScraperType.HTTP:
-                http_tasks.append(scrape_company_http.s(slug))
-            else:
-                browser_tasks.append(scrape_company_browser.s(slug))
+            for slug, scraper_cls in all_scrapers.items():
+                # Check if enabled - don't let one bad check stop the whole run
+                try:
+                    if not is_scraper_enabled(db, slug):
+                        logger.info(f"Skipping disabled scraper: {slug}")
+                        continue
+                except Exception as e:
+                    logger.warning(f"Error checking scraper {slug}, including it anyway: {e}")
 
-        # Dispatch tasks
-        # HTTP tasks can run more in parallel
-        if http_tasks:
-            group(http_tasks).apply_async(queue="scrapers_http")
-            logger.info(f"Dispatched {len(http_tasks)} HTTP scraper tasks")
+                if scraper_cls.config.scraper_type == ScraperType.HTTP:
+                    http_tasks.append(scrape_company_http.s(slug))
+                else:
+                    browser_tasks.append(scrape_company_browser.s(slug))
 
-        # Browser tasks should be more limited
-        if browser_tasks:
-            group(browser_tasks).apply_async(queue="scrapers_browser")
-            logger.info(f"Dispatched {len(browser_tasks)} browser scraper tasks")
+            # Dispatch tasks
+            # HTTP tasks can run more in parallel
+            if http_tasks:
+                group(http_tasks).apply_async(queue="scrapers_http")
+                logger.info(f"Dispatched {len(http_tasks)} HTTP scraper tasks")
 
-        return {
-            "status": "dispatched",
-            "http_tasks": len(http_tasks),
-            "browser_tasks": len(browser_tasks),
-            "total": len(http_tasks) + len(browser_tasks),
-        }
+            # Browser tasks should be more limited
+            if browser_tasks:
+                group(browser_tasks).apply_async(queue="scrapers_browser")
+                logger.info(f"Dispatched {len(browser_tasks)} browser scraper tasks")
 
-    finally:
-        db.close()
+            return {
+                "status": "dispatched",
+                "http_tasks": len(http_tasks),
+                "browser_tasks": len(browser_tasks),
+                "total": len(http_tasks) + len(browser_tasks),
+            }
+
+        finally:
+            try:
+                db.close()
+            except Exception:
+                pass
+
+    except Exception as e:
+        logger.exception("Fatal error in scrape_all_companies")
+        return {"status": "error", "error": str(e)}
 
 
 @celery_app.task

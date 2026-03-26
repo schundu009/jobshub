@@ -8,7 +8,7 @@ Provides:
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -19,6 +19,9 @@ from scrapers.base import ScrapedJob
 from scrapers.registry import ScraperRegistry
 
 logger = logging.getLogger(__name__)
+
+# Only save jobs posted within this many days
+MAX_JOB_AGE_DAYS = 7
 
 
 def get_or_create_company(
@@ -98,9 +101,16 @@ def save_scraped_jobs(
 
     jobs_new = 0
     jobs_updated = 0
+    jobs_skipped_old = 0
+    cutoff_date = datetime.utcnow() - timedelta(days=MAX_JOB_AGE_DAYS)
 
     for scraped_job in jobs:
         try:
+            # Skip jobs older than MAX_JOB_AGE_DAYS
+            if scraped_job.posted_date and scraped_job.posted_date < cutoff_date:
+                jobs_skipped_old += 1
+                continue
+
             # Generate external ID if not provided
             external_id = scraped_job.external_job_id or scraped_job.generate_id()
 
@@ -184,6 +194,7 @@ def save_scraped_jobs(
 
     logger.info(
         f"Saved jobs for {company_slug}: {jobs_new} new, {jobs_updated} updated"
+        + (f", {jobs_skipped_old} skipped (older than {MAX_JOB_AGE_DAYS} days)" if jobs_skipped_old else "")
     )
 
     return jobs_new, jobs_updated

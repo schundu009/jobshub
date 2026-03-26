@@ -7,12 +7,13 @@ broad coverage from LinkedIn, Indeed, and Glassdoor.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from celery import shared_task
 
 from database import SessionLocal
 from services.apify_service import get_apify_service, APIFY_ACTORS
+from services.scraper_service import MAX_JOB_AGE_DAYS
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +33,26 @@ def save_apify_jobs_to_db(jobs: list[dict], source: str) -> tuple[int, int]:
 
     jobs_saved = 0
     companies_created = 0
+    jobs_skipped_old = 0
     companies_cache = {}
+    cutoff_date = datetime.utcnow() - timedelta(days=MAX_JOB_AGE_DAYS)
 
     with SessionLocal() as db:
         for job_data in jobs:
             try:
+                # Skip jobs older than MAX_JOB_AGE_DAYS
+                posted_date = job_data.get("posted_date")
+                if posted_date:
+                    if isinstance(posted_date, str):
+                        try:
+                            from dateutil import parser
+                            posted_date = parser.parse(posted_date)
+                        except Exception:
+                            posted_date = None
+                    if isinstance(posted_date, datetime) and posted_date < cutoff_date:
+                        jobs_skipped_old += 1
+                        continue
+
                 # Get company name
                 raw_data = job_data.get("raw_data", {}) or {}
                 company_name = raw_data.get("company_name") or job_data.get("company_name", "Unknown")
