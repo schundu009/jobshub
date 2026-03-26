@@ -28,11 +28,11 @@ class Settings(BaseSettings):
     # Read DATABASE_URL from environment first (Railway sets this)
     database_url: str = os.environ.get("DATABASE_URL", "postgresql://chundu@localhost:5432/jobtrails")
 
-    # Connection pool settings
-    db_pool_size: int = 5
-    db_max_overflow: int = 10
+    # Connection pool settings (sized for 4 concurrent Celery workers + API)
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
     db_pool_timeout: int = 30
-    db_pool_recycle: int = 60  # Recycle connections every 60 seconds (Railway may drop idle connections)
+    db_pool_recycle: int = 30  # Recycle connections every 30s (Railway may drop idle connections)
 
     # ==========================================================================
     # REDIS
