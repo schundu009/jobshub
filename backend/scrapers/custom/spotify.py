@@ -20,7 +20,11 @@ class SpotifyScraper(HTTPScraper):
         max_pages=20,
     )
 
+    # Spotify uses a custom Next.js site with no public API.
+    # Jobs load client-side only — requires Playwright browser scraper.
+    # Disabled until browser OOM issues are resolved on Railway.
     API_URL = "https://ghr.wd5.myworkdayjobs.com/wday/cxs/ghr/Spotify/jobs"
+    _disabled = True
 
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
