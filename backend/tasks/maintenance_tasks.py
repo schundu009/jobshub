@@ -231,6 +231,95 @@ def generate_scraper_health_report() -> dict:
 
 
 @celery_app.task
+def check_scraper_health_and_notify() -> dict:
+    """
+    Check scraper health and send email alert if too many failures
+    or no new jobs in the last 24 hours.
+    """
+    import os
+    logger.info("Running scraper health check with notification")
+
+    db = get_db()
+    try:
+        cutoff = datetime.utcnow() - timedelta(hours=24)
+
+        # Count recent runs
+        from sqlalchemy import func
+        total_runs = db.query(func.count(ScraperRun.id)).filter(ScraperRun.started_at > cutoff).scalar() or 0
+        success_runs = db.query(func.count(ScraperRun.id)).filter(ScraperRun.started_at > cutoff, ScraperRun.success == True).scalar() or 0
+        new_jobs = db.query(func.coalesce(func.sum(ScraperRun.jobs_new), 0)).filter(ScraperRun.started_at > cutoff, ScraperRun.success == True).scalar() or 0
+        active_jobs = db.query(func.count(Job.id)).filter(Job.is_active == True).scalar() or 0
+
+        success_rate = (success_runs / max(total_runs, 1)) * 100
+        is_healthy = success_rate >= 50 and new_jobs > 0 and total_runs > 0
+
+        report = {
+            "total_runs_24h": total_runs,
+            "success_runs_24h": success_runs,
+            "success_rate": round(success_rate, 1),
+            "new_jobs_24h": int(new_jobs),
+            "active_jobs": active_jobs,
+            "is_healthy": is_healthy,
+            "checked_at": datetime.utcnow().isoformat(),
+        }
+
+        # Send email alert if unhealthy
+        if not is_healthy:
+            alert_email = os.environ.get("ALERT_EMAIL", "schundu007@gmail.com")
+            subject = f"[ALERT] Cariara Job Scraper {'DOWN' if total_runs == 0 else 'DEGRADED'}"
+            body = (
+                f"Scraper Health Alert\n"
+                f"====================\n\n"
+                f"Status: {'NO SCRAPES RAN' if total_runs == 0 else 'HIGH FAILURE RATE' if success_rate < 50 else 'NO NEW JOBS'}\n"
+                f"Success rate: {success_rate:.0f}% ({success_runs}/{total_runs})\n"
+                f"New jobs (24h): {int(new_jobs)}\n"
+                f"Active jobs: {active_jobs}\n"
+                f"Time: {datetime.utcnow().isoformat()}\n\n"
+                f"Action: Check Railway logs for cariara-worker service.\n"
+                f"Dashboard: https://railway.app\n"
+            )
+            _send_alert_email(alert_email, subject, body)
+            logger.warning(f"Scraper health alert sent: {subject}")
+        else:
+            logger.info(f"Scrapers healthy: {success_rate:.0f}% success, {int(new_jobs)} new jobs")
+
+        return report
+    finally:
+        db.close()
+
+
+def _send_alert_email(to_email: str, subject: str, body: str):
+    """Send alert email via SMTP or log if not configured."""
+    import os
+    import smtplib
+    from email.mime.text import MIMEText
+
+    smtp_host = os.environ.get("SMTP_HOST")
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
+
+    if not smtp_host:
+        # Fallback: just log the alert
+        logger.error(f"EMAIL ALERT (SMTP not configured): {subject}\n{body}")
+        return
+
+    try:
+        msg = MIMEText(body)
+        msg["Subject"] = subject
+        msg["From"] = smtp_user or "alerts@cariara.com"
+        msg["To"] = to_email
+
+        with smtplib.SMTP(smtp_host, int(os.environ.get("SMTP_PORT", 587))) as server:
+            server.starttls()
+            if smtp_user and smtp_pass:
+                server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        logger.info(f"Alert email sent to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send alert email: {e}")
+
+
+@celery_app.task
 def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5) -> dict:
     """
     Fetch descriptions for jobs that have empty or missing descriptions.
