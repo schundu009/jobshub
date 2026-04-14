@@ -263,24 +263,55 @@ def check_scraper_health_and_notify() -> dict:
             "checked_at": datetime.utcnow().isoformat(),
         }
 
-        # Send email alert if unhealthy
+        # Get top failures for detail
+        recent_fails = db.query(ScraperRun).filter(
+            ScraperRun.started_at > cutoff, ScraperRun.success == False
+        ).order_by(ScraperRun.started_at.desc()).limit(10).all()
+        fail_details = "\n".join(
+            f"  - {r.company_slug}: {(r.error_message or 'unknown')[:60]}"
+            for r in recent_fails
+        )
+
+        # Get top successes
+        recent_success = db.query(ScraperRun).filter(
+            ScraperRun.started_at > cutoff, ScraperRun.success == True, ScraperRun.jobs_new > 0
+        ).order_by(ScraperRun.jobs_new.desc()).limit(5).all()
+        success_details = "\n".join(
+            f"  - {r.company_slug}: {r.jobs_found} found, {r.jobs_new} new"
+            for r in recent_success
+        )
+
+        alert_email = os.environ.get("ALERT_EMAIL", "chundubabu@gmail.com")
+
         if not is_healthy:
-            alert_email = os.environ.get("ALERT_EMAIL", "schundu007@gmail.com")
-            subject = f"[ALERT] Cariara Job Scraper {'DOWN' if total_runs == 0 else 'DEGRADED'}"
+            subject = f"[ALERT] Cariara Scraper {'DOWN' if total_runs == 0 else 'DEGRADED'} — {success_rate:.0f}% success"
             body = (
                 f"Scraper Health Alert\n"
                 f"====================\n\n"
                 f"Status: {'NO SCRAPES RAN' if total_runs == 0 else 'HIGH FAILURE RATE' if success_rate < 50 else 'NO NEW JOBS'}\n"
                 f"Success rate: {success_rate:.0f}% ({success_runs}/{total_runs})\n"
-                f"New jobs (24h): {int(new_jobs)}\n"
-                f"Active jobs: {active_jobs}\n"
+                f"New jobs (last 6h): {int(new_jobs)}\n"
+                f"Active jobs total: {active_jobs}\n"
                 f"Time: {datetime.utcnow().isoformat()}\n\n"
-                f"Action: Check Railway logs for cariara-worker service.\n"
-                f"Dashboard: https://railway.app\n"
+                f"Recent failures:\n{fail_details}\n\n"
+                f"Action: Check Railway logs → cariara-worker\n"
             )
             _send_alert_email(alert_email, subject, body)
             logger.warning(f"Scraper health alert sent: {subject}")
         else:
+            # Send success summary too so you know it's working
+            subject = f"[OK] Cariara Scraper Healthy — {int(new_jobs)} new jobs, {success_rate:.0f}% success"
+            body = (
+                f"Scraper Health Report\n"
+                f"=====================\n\n"
+                f"Status: HEALTHY\n"
+                f"Success rate: {success_rate:.0f}% ({success_runs}/{total_runs})\n"
+                f"New jobs (last 6h): {int(new_jobs)}\n"
+                f"Active jobs total: {active_jobs}\n"
+                f"Time: {datetime.utcnow().isoformat()}\n\n"
+                f"Top scrapers:\n{success_details}\n"
+            )
+            _send_alert_email(alert_email, subject, body)
             logger.info(f"Scrapers healthy: {success_rate:.0f}% success, {int(new_jobs)} new jobs")
 
         return report

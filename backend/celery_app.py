@@ -141,10 +141,10 @@ celery_app.conf.update(
             "schedule": crontab(minute=0, hour=0),
             "options": {"queue": "maintenance"},
         },
-        # Check scraper health and send alert email if broken — daily at 8 AM UTC
+        # Check scraper health after each scrape cycle (every 6h + 30min delay for scrapers to finish)
         "check-scraper-health": {
             "task": "tasks.maintenance_tasks.check_scraper_health_and_notify",
-            "schedule": crontab(minute=0, hour=8),
+            "schedule": crontab(minute=30, hour="0,6,12,18"),
             "options": {"queue": "maintenance"},
         },
         # Fetch missing job descriptions every 30 minutes
