@@ -147,12 +147,12 @@ celery_app.conf.update(
             "schedule": crontab(minute="*/30"),
             "options": {"queue": "maintenance"},
         },
-        # Run Apify scrapers every 4 hours (offset from company scrapers)
-        "apify-scrape-all": {
-            "task": "tasks.apify_tasks.scrape_all_apify",
-            "schedule": crontab(minute=30, hour="2,6,10,14,18,22"),
-            "options": {"queue": "scrapers_orchestrator"},
-        },
+        # Apify scrapers disabled — too expensive. Using direct HTTP scrapers only.
+        # "apify-scrape-all": {
+        #     "task": "tasks.apify_tasks.scrape_all_apify",
+        #     "schedule": crontab(minute=30, hour="2,6,10,14,18,22"),
+        #     "options": {"queue": "scrapers_orchestrator"},
+        # },
     },
 )
 

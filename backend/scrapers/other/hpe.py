@@ -1,44 +1,41 @@
-"""HPE (Hewlett Packard Enterprise) job scraper."""
+"""HPE (Hewlett Packard Enterprise) job scraper - Workday API."""
 
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
 from scrapers.registry import ScraperRegistry
 from typing import List, Optional
 from datetime import datetime
+import asyncio
 
 
 @ScraperRegistry.register(category="other")
 class HPEScraper(HTTPScraper):
-    """Scraper for HPE careers."""
+    """Scraper for HPE careers (Workday)."""
 
     config = ScraperConfig(
         company_slug="hpe",
         company_name="HPE",
-        careers_url="https://careers.hpe.com/",
+        careers_url="https://careers.hpe.com/us/en/search-results",
         scraper_type=ScraperType.HTTP,
         rate_limit=20,
-        max_pages=50,
+        max_pages=40,
     )
 
-    API_URL = "https://careers.hpe.com/api/jobs"
+    API_URL = "https://hpe.wd5.myworkdayjobs.com/wday/cxs/hpe/Jobsathpe/jobs"
 
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
-        page = 1
+        offset = 0
+        limit = 50
 
-        while page <= self.config.max_pages:
-            params = {
-                "page": page,
-                "limit": 20,
-                "sortBy": "posted_date",
-                "descending": "true"
-            }
+        while True:
+            payload = {"limit": limit, "offset": offset, "searchText": ""}
+            data = await self.fetch_json(self.API_URL, method="POST", json=payload)
 
-            data = await self.fetch_json(self.API_URL, params=params)
             if not data:
                 break
 
-            jobs = data.get("jobs", data) if isinstance(data, dict) else data
-            if not jobs or not isinstance(jobs, list):
+            jobs = data.get("jobPostings", [])
+            if not jobs:
                 break
 
             for job in jobs:
@@ -46,44 +43,35 @@ class HPEScraper(HTTPScraper):
                 if parsed:
                     all_jobs.append(parsed)
 
-            if len(jobs) < 20:
+            if len(jobs) < limit:
                 break
-            page += 1
+            offset += limit
+            if offset >= 2000:
+                break
+            await asyncio.sleep(0.2)
 
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            jobs_found=len(all_jobs),
-            error_message=None
-        )
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
-            title = raw.get("title", raw.get("jobTitle", ""))
-            job_id = str(raw.get("id", raw.get("jobId", "")))
-            location = raw.get("location", raw.get("locationText", ""))
-            if isinstance(location, list):
-                location = ", ".join(location)
-
-            posted_str = raw.get("postedDate", raw.get("posted_date", ""))
+            title = raw.get("title", "")
+            bullet = raw.get("bulletFields", [])
+            job_id = bullet[0] if bullet else ""
+            location = raw.get("locationsText", "")
+            posted_on = raw.get("postedOn", "")
             posted_date = None
-            if posted_str:
+            if posted_on:
                 try:
-                    posted_date = datetime.fromisoformat(posted_str.replace("Z", "+00:00"))
+                    posted_date = datetime.strptime(posted_on, "%Y-%m-%d")
                 except:
                     pass
-
-            job_url = raw.get("url", raw.get("applyUrl", f"https://careers.hpe.com/job/{job_id}"))
+            external_path = raw.get("externalPath", "")
+            job_url = f"https://hpe.wd5.myworkdayjobs.com/Jobsathpe{external_path}"
 
             return ScrapedJob(
-                title=title,
-                location=location,
-                job_url=job_url,
-                external_job_id=job_id,
-                job_description=raw.get("description", ""),
-                department=raw.get("department", raw.get("category", "")),
+                title=title, location=location, job_url=job_url, external_job_id=job_id,
                 posted_date=posted_date,
             )
         except Exception as e:
-            self.logger.error(f"Error parsing job: {e}")
+            self.logger.error(f"Error parsing HPE job: {e}")
             return None
