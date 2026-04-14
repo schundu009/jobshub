@@ -55,6 +55,10 @@ class ZoomScraper(HTTPScraper):
 
         return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
 
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        """Required abstract method implementation — delegates to async version."""
+        return None  # Not used directly; scrape() calls parse_job_with_description
+
     async def parse_job_with_description(self, raw: dict) -> Optional[ScrapedJob]:
         """Parse job and fetch full description from job detail endpoint."""
         try:

@@ -260,7 +260,28 @@ def scrape_company_browser(self, company_slug: str) -> dict:
         return await scraper.run(), None
 
     try:
-        result, error = asyncio.run(run_with_browser())
+        try:
+            result, error = asyncio.run(run_with_browser())
+        except Exception as browser_err:
+            err_msg = str(browser_err)
+            if "Connection closed" in err_msg or "Browser" in err_msg:
+                logger.error(f"Browser launch failed for {company_slug}: {err_msg}")
+                # Record failure but don't retry browser errors — they're likely OOM
+                fail_db = get_db()
+                try:
+                    fail_result = ScrapeResult(
+                        success=False,
+                        error_message=f"Browser crash: {err_msg[:200]}",
+                        started_at=datetime.utcnow(),
+                        completed_at=datetime.utcnow(),
+                    )
+                    record_scraper_run(fail_db, company_slug, fail_result, task_id=self.request.id)
+                except Exception:
+                    pass
+                finally:
+                    fail_db.close()
+                return {"status": "failed", "company_slug": company_slug, "error": f"Browser crash: {err_msg[:200]}"}
+            raise
 
         if error:
             logger.error(f"Error for {company_slug}: {error}")

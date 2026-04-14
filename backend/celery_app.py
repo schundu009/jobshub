@@ -50,8 +50,8 @@ celery_app.conf.update(
 
     # Worker settings
     worker_prefetch_multiplier=1,  # Don't prefetch, process one at a time
-    worker_concurrency=4,  # Number of concurrent workers
-    worker_max_tasks_per_child=50,  # Restart child after 50 tasks (prevents memory leaks)
+    worker_concurrency=2,  # Reduced from 4 to prevent OOM on Railway
+    worker_max_tasks_per_child=25,  # Restart child more often to prevent memory leaks
     worker_max_memory_per_child=512_000,  # Restart child if >512MB (prevents OOM)
     worker_lost_wait=30,  # Wait 30s before declaring worker lost
 

@@ -88,6 +88,14 @@ class BrowserPool:
                     "--no-sandbox",
                     "--disable-setuid-sandbox",
                     "--disable-gpu",
+                    "--disable-extensions",
+                    "--disable-background-networking",
+                    "--disable-default-apps",
+                    "--disable-sync",
+                    "--disable-translate",
+                    "--single-process",
+                    "--no-zygote",
+                    "--js-flags=--max-old-space-size=256",
                 ],
             )
 
