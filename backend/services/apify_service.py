@@ -45,9 +45,9 @@ class ApifyActorConfig:
 # Actor IDs verified as of 2026-04-15
 APIFY_ACTORS = {
     "linkedin_jobs": ApifyActorConfig(
-        actor_id="hMvNSpz3JnHgl5jkh",  # apify/linkedin-jobs-scraper (official, paid)
+        actor_id="BHzefUZlZRKWxkTck",  # bebity/linkedin-jobs-scraper (requires paid rental)
         name="LinkedIn Jobs Scraper",
-        description="Scrape job listings from LinkedIn without login",
+        description="Scrape job listings from LinkedIn without login. Requires paid actor rental on Apify.",
         default_input={
             "searchQueries": ["software engineer"],
             "location": "United States",
@@ -72,24 +72,12 @@ APIFY_ACTORS = {
         },
         job_parser="parse_indeed_job"
     ),
-    "glassdoor_jobs": ApifyActorConfig(
-        actor_id="hMvNSpz3JnHgl5jkh",  # Use LinkedIn scraper as Glassdoor fallback
-        name="Glassdoor Jobs Scraper (via LinkedIn)",
-        description="Glassdoor actor deprecated — using LinkedIn as source",
-        default_input={
-            "searchQueries": ["software engineer"],
-            "location": "United States",
-            "maxItems": 50,
-            "proxy": {
-                "useApifyProxy": True,
-                "apifyProxyGroups": ["RESIDENTIAL"]
-            }
-        },
-        job_parser="parse_linkedin_job"
-    ),
 }
-# NOTE: linkedin_jobs_advanced removed — actor required incompatible input schema (urls instead of searchTerms)
-# NOTE: glassdoor actor (bebity/glassdoor-scraper) was removed from Apify marketplace — fallback to LinkedIn
+# REMOVED ACTORS:
+# - glassdoor_jobs: bebity/glassdoor-scraper was removed from Apify marketplace. No reliable replacement found.
+# - linkedin_jobs_advanced: curious_coder/linkedin-jobs-scraper requires incompatible input (urls instead of searchTerms)
+# - linkedin_jobs: bebity/linkedin-jobs-scraper requires a PAID actor rental ($49/mo on Apify).
+#   Set APIFY_API_TOKEN and rent the actor at https://apify.com/bebity/linkedin-jobs-scraper to enable.
 
 
 class ApifyService:
