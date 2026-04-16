@@ -212,3 +212,92 @@ class VerkadaScraper(GreenhouseMixin, HTTPScraper):
 class SpaceXScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="spacex", company_name="SpaceX", careers_url="https://spacex.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/spacex/jobs"
+
+# ── Infrastructure / DevOps-heavy companies (added 2026-04-15) ──────────
+
+@ScraperRegistry.register(category="custom")
+class DatadogScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="datadog", company_name="Datadog", careers_url="https://datadog.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/datadog/jobs"
+
+@ScraperRegistry.register(category="custom")
+class PagerDutyScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="pagerduty", company_name="PagerDuty", careers_url="https://pagerduty.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/pagerduty/jobs"
+
+@ScraperRegistry.register(category="custom")
+class CloudflareScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="cloudflare", company_name="Cloudflare", careers_url="https://cloudflare.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs"
+
+@ScraperRegistry.register(category="custom")
+class ElasticScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="elastic", company_name="Elastic", careers_url="https://elastic.co/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/elastic/jobs"
+
+@ScraperRegistry.register(category="custom")
+class NewRelicScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="newrelic", company_name="New Relic", careers_url="https://newrelic.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/newrelic/jobs"
+
+@ScraperRegistry.register(category="custom")
+class FastlyScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="fastly", company_name="Fastly", careers_url="https://fastly.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/fastly/jobs"
+
+@ScraperRegistry.register(category="custom")
+class MongoDBScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="mongodb", company_name="MongoDB", careers_url="https://mongodb.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/mongodb/jobs"
+
+@ScraperRegistry.register(category="custom")
+class CockroachLabsScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="cockroachlabs", company_name="Cockroach Labs", careers_url="https://cockroachlabs.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/cockroachlabs/jobs"
+
+@ScraperRegistry.register(category="custom")
+class TwilioScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="twilio", company_name="Twilio", careers_url="https://twilio.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/twilio/jobs"
+
+# ── Major tech companies with high volume ────────────────────────────────
+
+@ScraperRegistry.register(category="custom")
+class AirbnbScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="airbnb", company_name="Airbnb", careers_url="https://airbnb.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/airbnb/jobs"
+
+@ScraperRegistry.register(category="custom")
+class LyftScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="lyft", company_name="Lyft", careers_url="https://lyft.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/lyft/jobs"
+
+@ScraperRegistry.register(category="custom")
+class InstacartScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="instacart", company_name="Instacart", careers_url="https://instacart.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/instacart/jobs"
+
+@ScraperRegistry.register(category="custom")
+class PinterestScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="pinterest", company_name="Pinterest", careers_url="https://pinterest.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/pinterest/jobs"
+
+@ScraperRegistry.register(category="custom")
+class RedditScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="reddit", company_name="Reddit", careers_url="https://reddit.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/reddit/jobs"
+
+@ScraperRegistry.register(category="custom")
+class BlockScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="block", company_name="Block (Square)", careers_url="https://block.xyz/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/block/jobs"
+
+@ScraperRegistry.register(category="custom")
+class BrexScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="brex", company_name="Brex", careers_url="https://brex.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/brex/jobs"
+
+@ScraperRegistry.register(category="custom")
+class GitLabScraper(GreenhouseMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="gitlab", company_name="GitLab", careers_url="https://gitlab.com/jobs", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/gitlab/jobs"
