@@ -42,9 +42,10 @@ class ApifyActorConfig:
 
 
 # Popular Apify actors for job scraping
+# Actor IDs verified as of 2026-04-15
 APIFY_ACTORS = {
     "linkedin_jobs": ApifyActorConfig(
-        actor_id="bebity/linkedin-jobs-scraper",
+        actor_id="hMvNSpz3JnHgl5jkh",  # apify/linkedin-jobs-scraper (official, paid)
         name="LinkedIn Jobs Scraper",
         description="Scrape job listings from LinkedIn without login",
         default_input={
@@ -58,17 +59,6 @@ APIFY_ACTORS = {
         },
         job_parser="parse_linkedin_job"
     ),
-    "linkedin_jobs_advanced": ApifyActorConfig(
-        actor_id="curious_coder/linkedin-jobs-scraper",
-        name="Advanced LinkedIn Jobs Scraper",
-        description="Extract real-time job postings at scale",
-        default_input={
-            "searchTerms": ["software engineer"],
-            "location": "United States",
-            "rows": 100,
-        },
-        job_parser="parse_linkedin_job_advanced"
-    ),
     "indeed_jobs": ApifyActorConfig(
         actor_id="misceres/indeed-scraper",
         name="Indeed Jobs Scraper",
@@ -78,21 +68,28 @@ APIFY_ACTORS = {
             "maxItems": 100,
             "position": "software engineer",
             "location": "United States",
+            "maxConcurrency": 5,
         },
         job_parser="parse_indeed_job"
     ),
     "glassdoor_jobs": ApifyActorConfig(
-        actor_id="bebity/glassdoor-scraper",
-        name="Glassdoor Jobs Scraper",
-        description="Scrape job listings from Glassdoor",
+        actor_id="hMvNSpz3JnHgl5jkh",  # Use LinkedIn scraper as Glassdoor fallback
+        name="Glassdoor Jobs Scraper (via LinkedIn)",
+        description="Glassdoor actor deprecated — using LinkedIn as source",
         default_input={
             "searchQueries": ["software engineer"],
             "location": "United States",
-            "maxItems": 100,
+            "maxItems": 50,
+            "proxy": {
+                "useApifyProxy": True,
+                "apifyProxyGroups": ["RESIDENTIAL"]
+            }
         },
-        job_parser="parse_glassdoor_job"
+        job_parser="parse_linkedin_job"
     ),
 }
+# NOTE: linkedin_jobs_advanced removed — actor required incompatible input schema (urls instead of searchTerms)
+# NOTE: glassdoor actor (bebity/glassdoor-scraper) was removed from Apify marketplace — fallback to LinkedIn
 
 
 class ApifyService:

@@ -1,4 +1,4 @@
-"""xAI job scraper - Lever API."""
+"""xAI job scraper - Greenhouse API (migrated from Lever)."""
 
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
 from scrapers.registry import ScraperRegistry
@@ -8,7 +8,7 @@ from datetime import datetime
 
 @ScraperRegistry.register(category="custom")
 class XAIScraper(HTTPScraper):
-    """Scraper for xAI careers (Lever)."""
+    """Scraper for xAI careers (Greenhouse)."""
 
     config = ScraperConfig(
         company_slug="xai",
@@ -19,16 +19,16 @@ class XAIScraper(HTTPScraper):
         max_pages=10,
     )
 
-    API_URL = "https://api.lever.co/v0/postings/xai"
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/xai/jobs"
 
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
-        data = await self.fetch_json(self.API_URL)
+        data = await self.fetch_json(self.API_URL, params={"content": "true"})
 
         if not data:
             return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data returned")
 
-        for job in data:
+        for job in data.get("jobs", []):
             parsed = self.parse_job(job)
             if parsed:
                 all_jobs.append(parsed)
@@ -37,19 +37,22 @@ class XAIScraper(HTTPScraper):
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
-            title = raw.get("text", "")
             job_id = str(raw.get("id", ""))
-            categories = raw.get("categories", {})
-            location = categories.get("location", "")
-            department = categories.get("team", "")
-            created_at = raw.get("createdAt", 0)
-            posted_date = datetime.fromtimestamp(created_at / 1000) if created_at else None
-            job_url = raw.get("hostedUrl", f"https://jobs.lever.co/xai/{job_id}")
-            description = raw.get("descriptionPlain", "")
+            location_data = raw.get("location", {})
+            location = location_data.get("name", "") if isinstance(location_data, dict) else str(location_data)
+            updated_at = raw.get("updated_at", "")
+            posted_date = datetime.fromisoformat(updated_at.replace("Z", "+00:00")) if updated_at else None
+            departments = raw.get("departments", [])
+            department = departments[0].get("name", "") if departments else ""
 
             return ScrapedJob(
-                title=title, location=location, job_url=job_url, external_job_id=job_id,
-                job_description=description, department=department, posted_date=posted_date,
+                title=raw.get("title", ""),
+                location=location,
+                job_url=raw.get("absolute_url", f"https://boards.greenhouse.io/xai/jobs/{job_id}"),
+                external_job_id=job_id,
+                job_description=raw.get("content", ""),
+                department=department,
+                posted_date=posted_date,
             )
         except Exception as e:
             self.logger.error(f"Error parsing job: {e}")

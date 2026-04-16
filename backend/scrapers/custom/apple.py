@@ -21,13 +21,21 @@ class AppleScraper(HTTPScraper):
 
     API_URL = "https://jobs.apple.com/api/role/search"
 
+    CUSTOM_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Origin": "https://jobs.apple.com",
+        "Referer": "https://jobs.apple.com/en-us/search",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
         page = 0
 
         while True:
             params = {"page": page, "locale": "en-us", "sort": "newest"}
-            data = await self.fetch_json(self.API_URL, params=params)
+            data = await self.fetch_json(self.API_URL, params=params, headers=self.CUSTOM_HEADERS)
 
             if not data:
                 break

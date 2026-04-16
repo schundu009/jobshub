@@ -145,10 +145,12 @@ class LinkedInJobsScraper(ApifyScraper):
         )
 
 
-@ScraperRegistry.register(category="apify")
+# Disabled: curious_coder/linkedin-jobs-scraper actor requires incompatible input (urls instead of searchTerms)
+# and the free tier was exhausted. Using the main linkedin_jobs actor instead.
+# @ScraperRegistry.register(category="apify")
 class LinkedInJobsAdvancedScraper(ApifyScraper):
     """
-    Advanced LinkedIn Jobs scraper using curious_coder actor.
+    Advanced LinkedIn Jobs scraper using curious_coder actor. [DISABLED]
 
     Provides more detailed job data and better scaling.
     """
