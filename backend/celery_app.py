@@ -105,8 +105,8 @@ celery_app.conf.update(
         },
         # Apify actors can take 10+ minutes — give them ample time
         "tasks.apify_tasks.scrape_apify_indeed": {
-            "soft_time_limit": 720,  # 12 min soft
-            "time_limit": 780,  # 13 min hard
+            "soft_time_limit": 3300,  # 55 min soft (200+ queries × up to 300s each)
+            "time_limit": 3600,  # 60 min hard
         },
         "tasks.apify_tasks.scrape_apify_linkedin": {
             "soft_time_limit": 720,  # 12 min soft

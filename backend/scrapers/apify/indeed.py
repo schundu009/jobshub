@@ -119,55 +119,5 @@ class IndeedJobsScraper(ApifyScraper):
         )
 
 
-@ScraperRegistry.register(category="apify")
-class GlassdoorJobsScraper(ApifyScraper):
-    """
-    Glassdoor Jobs scraper using Apify platform.
-
-    Scrapes job listings from Glassdoor.
-    """
-
-    config = ApifyScraperConfig(
-        company_slug="glassdoor-jobs",
-        company_name="Glassdoor Jobs",
-        careers_url="https://www.glassdoor.com/Job",
-        scraper_type=ScraperType.HTTP,
-        actor_key="glassdoor_jobs",
-        default_search_queries=[
-            "software engineer",
-        ],
-        default_location="United States",
-        max_items=100,
-        timeout_secs=600,
-    )
-
-    def get_actor_input(self, **kwargs) -> dict:
-        """Get Glassdoor-specific actor input."""
-        search_queries = kwargs.get("search_queries", self.config.default_search_queries)
-        location = kwargs.get("location", self.config.default_location)
-        max_items = kwargs.get("max_items", self.config.max_items)
-
-        return {
-            "searchQueries": search_queries if isinstance(search_queries, list) else [search_queries],
-            "location": location,
-            "maxItems": max_items,
-        }
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        """Parse Glassdoor job data."""
-        title = (raw.get("jobTitle") or raw.get("title", "")).strip()
-        if not title:
-            return None
-
-        company_name = raw.get("employer") or raw.get("companyName") or "Unknown Company"
-
-        return ScrapedJob(
-            title=title,
-            location=raw.get("location", ""),
-            job_url=raw.get("jobUrl") or raw.get("url", ""),
-            external_job_id=str(raw.get("jobId") or raw.get("id", "")),
-            job_description=raw.get("description", ""),
-            posted_date=raw.get("postedDate"),
-            employment_type=raw.get("employmentType", ""),
-            raw_data={"company_name": company_name},
-        )
+# GlassdoorJobsScraper removed — bebity/glassdoor-scraper was pulled from Apify marketplace.
+# actor_key="glassdoor_jobs" no longer exists in APIFY_ACTORS, causing "Unknown actor" errors.

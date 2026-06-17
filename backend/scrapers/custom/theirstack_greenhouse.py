@@ -48,15 +48,8 @@ class TalentifyIoScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="talentify", company_name="Talentify.io", careers_url="https://talentify.io/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/talentify/jobs"
 
-@ScraperRegistry.register(category="custom")
-class PandologicScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="pandologic", company_name="PandoLogic", careers_url="https://pandologic.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/pandologic/jobs"
-
-@ScraperRegistry.register(category="custom")
-class ShopeeScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="shopee", company_name="Shopee", careers_url="https://shopee.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/shopee/jobs"
+# PandologicScraper — Greenhouse board 404 (migrated off Greenhouse)
+# ShopeeScraper — Greenhouse board 404 (migrated off Greenhouse)
 
 @ScraperRegistry.register(category="custom")
 class CarvanaScraper(GreenhouseMixin, HTTPScraper):
@@ -78,20 +71,14 @@ class OktaScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="okta", company_name="Okta", careers_url="https://okta.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/okta/jobs"
 
-@ScraperRegistry.register(category="custom")
-class OutlierAiScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="outlier", company_name="Outlier AI", careers_url="https://outlier.ai/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/outlier/jobs"
+# OutlierAiScraper — Greenhouse board 404 (migrated off Greenhouse)
 
 @ScraperRegistry.register(category="custom")
 class DoordashScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="doordash", company_name="DoorDash", careers_url="https://doordash.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/doordash/jobs"
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/doordashusa/jobs"
 
-@ScraperRegistry.register(category="custom")
-class WarbyParkerScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="warbyparker", company_name="Warby Parker", careers_url="https://warbyparker.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/warbyparker/jobs"
+# WarbyParkerScraper — Greenhouse board 404 (migrated off Greenhouse)
 
 @ScraperRegistry.register(category="custom")
 class TwilioScraper(GreenhouseMixin, HTTPScraper):
@@ -158,20 +145,14 @@ class PinterestScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="pinterest", company_name="Pinterest", careers_url="https://pinterest.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/pinterest/jobs"
 
-@ScraperRegistry.register(category="custom")
-class VivianHealthScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="vivian", company_name="Vivian Health", careers_url="https://vivian.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/vivian/jobs"
+# VivianHealthScraper — Greenhouse board 404 (moved to Ashby: ashbyhq.com/vivian-health)
 
 @ScraperRegistry.register(category="custom")
 class LushCosmeticsScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="lush", company_name="Lush Cosmetics", careers_url="https://lush.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/lush/jobs"
 
-@ScraperRegistry.register(category="custom")
-class LightspeedScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="lightspeedhq", company_name="Lightspeed", careers_url="https://lightspeedhq.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/lightspeedhq/jobs"
+# LightspeedScraper — Greenhouse board 404 (moved to Ashby: api.ashbyhq.com/posting-api/job-board/lightspeed)
 
 @ScraperRegistry.register(category="custom")
 class RipplematchScraper(GreenhouseMixin, HTTPScraper):
