@@ -25,7 +25,7 @@ from collections import defaultdict
 from typing import Optional
 
 from database import create_tables
-from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify
+from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
 # auto_apply routes disabled - users now apply manually with downloaded CV/CL
 from config import settings as app_settings
 from services.redis_service import redis_service
@@ -834,6 +834,7 @@ app.include_router(internal_auth.router)
 # app.include_router(auto_apply.router)  # Disabled - users now apply manually
 app.include_router(celery_management.router)
 app.include_router(apify.router)
+app.include_router(auto_heal.router)
 
 # Static files for frontend
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
