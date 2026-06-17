@@ -54,15 +54,8 @@ class GreenhouseMixin:
 
 
 
-@ScraperRegistry.register(category="custom")
-class VarsityTutorsANerdyCompanyScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="varsitytutors", company_name="Varsity Tutors, a Nerdy Company", careers_url="https://varsitytutors.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/varsitytutors/jobs"
-
-@ScraperRegistry.register(category="custom")
-class TalentifyIoScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="talentify", company_name="Talentify.io", careers_url="https://talentify.io/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/talentify/jobs"
+# VarsityTutorsANerdyCompanyScraper — Greenhouse board 404 (migrated off Greenhouse)
+# TalentifyIoScraper — Greenhouse board 404 (migrated off Greenhouse)
 
 # PandologicScraper — Greenhouse board 404 (migrated off Greenhouse)
 # ShopeeScraper — Greenhouse board 404 (migrated off Greenhouse)

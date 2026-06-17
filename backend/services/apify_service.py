@@ -166,10 +166,7 @@ class ApifyService:
             actor_client = self.client.actor(config.actor_id)
 
             if wait_for_finish:
-                run_result = actor_client.call(
-                    run_input=actor_input,
-                    timeout_secs=timeout_secs,
-                )
+                run_result = actor_client.call(run_input=actor_input)
             else:
                 run_result = actor_client.start(run_input=actor_input)
                 return {

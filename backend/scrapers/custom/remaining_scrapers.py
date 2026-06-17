@@ -14,7 +14,7 @@ class WorkdayMixin:
         limit = 50
         while True:
             payload = {"limit": limit, "offset": offset, "searchText": ""}
-            data = await self.fetch_json(self.API_URL, method="POST", json=payload)
+            data = await self.fetch_json(self.API_URL, method="POST", json_data=payload)
             if not data:
                 break
             jobs = data.get("jobPostings", [])
