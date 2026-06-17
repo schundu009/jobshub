@@ -454,3 +454,102 @@ def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5
 
     finally:
         db.close()
+
+
+@celery_app.task(name="tasks.maintenance_tasks.auto_heal_scrapers")
+def auto_heal_scrapers() -> dict:
+    """
+    Auto-heal Greenhouse scrapers failing due to stale board slugs.
+
+    For each enabled scraper with >= 3 consecutive failures, tries up to 8
+    slug variants against the Greenhouse API. On success, writes the working
+    URL to config_overrides.url_override in the DB (no deploy required).
+    After 10 failures with no slug match, disables the scraper automatically.
+    """
+    import httpx
+
+    logger.info("Running auto_heal_scrapers")
+
+    healed = []
+    disabled = []
+    unresolved = []
+
+    db = get_db()
+    try:
+        candidates = db.query(ScraperConfigDB).filter(
+            ScraperConfigDB.consecutive_failures >= 3,
+            ScraperConfigDB.is_enabled == True,
+        ).all()
+
+        logger.info(f"auto_heal_scrapers: {len(candidates)} scrapers to inspect")
+
+        for cfg in candidates:
+            slug = cfg.company_slug
+            overrides = cfg.config_overrides or {}
+
+            scraper_type = overrides.get("scraper_type", "greenhouse")
+            if scraper_type != "greenhouse":
+                unresolved.append({"slug": slug, "reason": f"type={scraper_type}, manual fix needed"})
+                continue
+
+            if overrides.get("url_override") and not overrides.get("auto_disabled"):
+                continue
+
+            variants = [
+                slug,
+                slug + "inc",
+                slug + "-inc",
+                slug + "usa",
+                slug + "-usa",
+                slug.replace("hq", ""),
+                slug + "hq",
+                slug.replace("-", ""),
+            ]
+            seen: set = set()
+            variants = [v for v in variants if v and not (v in seen or seen.add(v))]
+
+            found_url = None
+            for variant in variants:
+                url = f"https://boards-api.greenhouse.io/v1/boards/{variant}/jobs"
+                try:
+                    r = httpx.get(url, timeout=8, follow_redirects=True)
+                    if r.status_code == 200:
+                        found_url = url
+                        logger.info(f"auto_heal: {slug} -> working slug '{variant}'")
+                        break
+                except Exception as e:
+                    logger.debug(f"auto_heal variant {variant} error: {e}")
+
+            if found_url:
+                new_overrides = {**overrides, "url_override": found_url}
+                new_overrides.pop("auto_disabled", None)
+                new_overrides.pop("auto_disabled_reason", None)
+                cfg.config_overrides = new_overrides
+                cfg.consecutive_failures = 0
+                db.commit()
+                healed.append({"slug": slug, "url": found_url})
+            elif cfg.consecutive_failures >= 10:
+                new_overrides = {
+                    **overrides,
+                    "auto_disabled": True,
+                    "auto_disabled_reason": "404 after slug exhaustion",
+                }
+                cfg.config_overrides = new_overrides
+                cfg.is_enabled = False
+                db.commit()
+                disabled.append({"slug": slug, "failures": cfg.consecutive_failures})
+                logger.warning(f"auto_heal: disabled {slug} after {cfg.consecutive_failures} failures")
+            else:
+                unresolved.append({"slug": slug, "failures": cfg.consecutive_failures})
+
+    except Exception:
+        logger.exception("auto_heal_scrapers failed")
+        db.rollback()
+    finally:
+        db.close()
+
+    logger.info(
+        f"auto_heal_scrapers done: {len(healed)} healed, "
+        f"{len(disabled)} disabled, {len(unresolved)} unresolved"
+    )
+    return {"healed": healed, "disabled": disabled, "unresolved": unresolved}

@@ -7,10 +7,26 @@ from datetime import datetime
 
 class GreenhouseMixin:
     """Mixin for Greenhouse job board scraping."""
-    
+
+    def _resolve_api_url(self) -> str:
+        """Return url_override from DB config if set, else fall back to class-level API_URL."""
+        try:
+            from database import SessionLocal
+            from models import ScraperConfigDB
+            with SessionLocal() as db:
+                cfg = db.query(ScraperConfigDB).filter_by(
+                    company_slug=self.config.company_slug
+                ).first()
+                if cfg and cfg.config_overrides and cfg.config_overrides.get("url_override"):
+                    return cfg.config_overrides["url_override"]
+        except Exception:
+            pass
+        return self.API_URL
+
     async def scrape(self) -> ScrapeResult:
         all_jobs: List[ScrapedJob] = []
-        data = await self.fetch_json(self.API_URL, params={"content": "true"})
+        api_url = self._resolve_api_url()
+        data = await self.fetch_json(api_url, params={"content": "true"})
         if not data:
             return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data")
         for job in data.get("jobs", []):

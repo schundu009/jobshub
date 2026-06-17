@@ -166,6 +166,12 @@ celery_app.conf.update(
             "schedule": crontab(minute="*/30"),
             "options": {"queue": "maintenance"},
         },
+        # Auto-heal broken Greenhouse scrapers daily after health check runs
+        "auto-heal-scrapers": {
+            "task": "tasks.maintenance_tasks.auto_heal_scrapers",
+            "schedule": crontab(minute=45, hour=1),
+            "options": {"queue": "maintenance"},
+        },
         # Apify scrapers — once daily to stay within $5/month free tier
         "apify-scrape-all": {
             "task": "tasks.apify_tasks.scrape_all_apify",
