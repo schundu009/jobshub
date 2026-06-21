@@ -2154,6 +2154,14 @@
             padding: 0 16px;
             display: flex;
             align-items: center;
+            overflow: hidden;
+        }
+
+        /* Ensure cell renderer content stays within cell bounds */
+        .ag-theme-alpine .ag-cell > * {
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .ag-theme-alpine .ag-cell:last-child {
@@ -3552,9 +3560,9 @@
             const metaLine = metaParts.join(' • ');
 
             // No link - row click will show details in panel
-            return `<div class="role-cell" style="display:flex;flex-direction:column;gap:2px;padding:4px 0;">
-                <div class="role-title" style="color:var(--text-primary);font-weight:500;font-size:13px;line-height:1.3;">${title}</div>
-                <div style="color:var(--text-muted);font-size:11px;line-height:1.3;">${metaLine}</div>
+            return `<div class="role-cell" style="display:flex;flex-direction:column;gap:2px;padding:4px 0;width:100%;min-width:0;overflow:hidden;">
+                <div class="role-title" style="color:var(--text-primary);font-weight:500;font-size:13px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</div>
+                <div style="color:var(--text-muted);font-size:11px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${metaLine}</div>
             </div>`;
         }
 
@@ -3592,9 +3600,9 @@
             const showMatch = currentRole && score > 0;
             const matchHtml = showMatch ? `<div style="color:var(--text-secondary);font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
 
-            return `<div style="display:flex;flex-direction:column;padding:4px 0;">
+            return `<div style="display:flex;flex-direction:column;padding:4px 0;width:100%;min-width:0;overflow:hidden;">
                 ${matchHtml}
-                <div style="color:var(--text-secondary);font-size:11px;line-height:1.4;overflow:hidden;">${displayText || '-'}</div>
+                <div style="color:var(--text-secondary);font-size:11px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayText || '-'}</div>
             </div>`;
         }
 
