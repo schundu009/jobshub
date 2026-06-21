@@ -252,18 +252,15 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
     def _get_endpoint_pattern(self, request: Request) -> str:
         """Get the route pattern instead of the actual path for better grouping."""
-        # Try to match against registered routes
-        for route in request.app.routes:
-            match, _ = route.matches(request.scope)
-            if match == Match.FULL:
-                return route.path
-
-        # Fallback to path, but normalize IDs
-        path = request.url.path
-        # Replace numeric IDs with placeholder
+        try:
+            for route in request.app.routes:
+                match, _ = route.matches(request.scope)
+                if match == Match.FULL:
+                    return route.path
+        except Exception:
+            pass
         import re
-        path = re.sub(r'/\d+', '/{id}', path)
-        return path
+        return re.sub(r'/\d+', '/{id}', request.url.path)
 
 
 def track_time(metric_name: str = None):
