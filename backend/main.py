@@ -883,6 +883,32 @@ def health_check():
     return {"status": "healthy", "version": "2.1.2"}
 
 
+@app.get("/health/db")
+def db_health_check():
+    """DB connectivity check — diagnoses Railway 500s on router routes."""
+    from sqlalchemy import text
+    from database import engine, SessionLocal
+    result = {"engine_created": engine is not None, "db_url_tail": None, "ping": None, "error": None}
+    try:
+        from config import settings as _s
+        url = _s.database_url
+        result["db_url_tail"] = url.split("@")[-1] if "@" in url else url[:40]
+    except Exception as e:
+        result["error"] = f"config: {e}"
+        return result
+    if engine is None:
+        result["error"] = "engine is None — DB failed to initialise"
+        return result
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        result["ping"] = "ok"
+    except Exception as e:
+        result["ping"] = "failed"
+        result["error"] = str(e)
+    return result
+
+
 @app.get("/health/redis")
 def redis_health():
     """Detailed Redis health check."""

@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # Connection pool settings (sized for 4 concurrent Celery workers + API)
     db_pool_size: int = 10
     db_max_overflow: int = 20
-    db_pool_timeout: int = 30
+    db_pool_timeout: int = 5
     db_pool_recycle: int = 30  # Recycle connections every 30s (Railway may drop idle connections)
 
     # ==========================================================================
