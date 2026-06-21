@@ -495,10 +495,8 @@
             margin-left: 220px;
             padding: 24px;
             background: var(--bg-primary);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            min-height: 100vh;
+            overflow-y: auto;
             position: relative;
         }
 
@@ -982,11 +980,6 @@
         /* Main Container */
         .discover-container {
             max-width: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            overflow: hidden;
         }
 
         /* Freshness Indicator - Premium */
@@ -1794,8 +1787,8 @@
         .grid-detail-layout {
             display: flex;
             gap: 16px;
-            flex: 1;
-            min-height: 0;
+            height: calc(100vh - 350px);
+            min-height: 500px;
         }
 
         .grid-section {
