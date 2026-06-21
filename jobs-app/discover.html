@@ -3687,7 +3687,8 @@
                 field: 'job_description',
                 cellRenderer: descriptionCellRenderer,
                 flex: 1,
-                minWidth: 120,
+                minWidth: 160,
+                maxWidth: 480,
                 sortable: false,
                 tooltipValueGetter: (params) => {
                     const job = params.data;
@@ -3710,9 +3711,9 @@
                     return plainText || job?.keywords?.join(', ') || '';
                 }
             },
-            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 85, sortable: true, sort: 'desc', suppressSizeToFit: true },
-            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 80, filter: true, sortable: true, suppressSizeToFit: true },
-            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 90, sortable: false, filter: false, suppressSizeToFit: true, pinned: 'right' }
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 90, sortable: true, sort: 'desc', suppressSizeToFit: true },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 115, filter: true, sortable: true, suppressSizeToFit: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 100, sortable: false, filter: false, suppressSizeToFit: true, pinned: 'right' }
         ];
 
         // Grid Options
