@@ -6,6 +6,7 @@ Provides:
 - get_or_create_company: Get or create a company record
 - Job deduplication and update logic
 """
+import re
 
 import logging
 from datetime import datetime, timedelta
@@ -64,6 +65,24 @@ def get_or_create_company(
     return company
 
 
+# Feeds that list other companies' jobs. Each job carries its real employer in
+# raw_data["company_name"]; filing it under the feed ("The Muse") hid the
+# employer on every listing.
+AGGREGATOR_SLUGS = {"themuse", "remoteok", "arbeitnow"}
+
+
+def employer_name(company_slug: str, scraped_job: ScrapedJob) -> Optional[str]:
+    """The real employer for an aggregator's job, else None (use the feed's company)."""
+    if company_slug not in AGGREGATOR_SLUGS:
+        return None
+    name = ((scraped_job.raw_data or {}).get("company_name") or "").strip()
+    return name or None
+
+
+def employer_slug(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "unknown"
+
+
 def save_scraped_jobs(
     db: Session,
     company_slug: str,
@@ -102,6 +121,7 @@ def save_scraped_jobs(
     jobs_new = 0
     jobs_updated = 0
     jobs_skipped_old = 0
+    employer_cache: dict = {}
     cutoff_date = datetime.utcnow() - timedelta(days=MAX_JOB_AGE_DAYS)
 
     for scraped_job in jobs:
@@ -120,15 +140,28 @@ def save_scraped_jobs(
             # Generate external ID if not provided
             external_id = scraped_job.external_job_id or scraped_job.generate_id()
 
-            # Try to find existing job
-            existing = db.query(Job).filter(
-                Job.company_id == company.id,
-                Job.external_job_id == external_id,
-            ).first()
+            # An aggregator's job goes under its real employer. Match existing rows
+            # by feed + id so rows already filed under the feed are moved, not duplicated.
+            employer = employer_name(company_slug, scraped_job)
+            job_company = company
+            if employer:
+                if employer not in employer_cache:
+                    employer_cache[employer] = get_or_create_company(db, employer_slug(employer), company_name=employer)
+                job_company = employer_cache[employer]
+                existing = db.query(Job).filter(
+                    Job.source == company_slug,
+                    Job.external_job_id == external_id,
+                ).first()
+            else:
+                existing = db.query(Job).filter(
+                    Job.company_id == company.id,
+                    Job.external_job_id == external_id,
+                ).first()
 
             if existing:
                 # Update existing job
                 existing.title = scraped_job.title
+                existing.company_id = job_company.id
                 existing.location = scraped_job.location or existing.location
                 existing.job_url = scraped_job.job_url
                 existing.job_description = scraped_job.job_description or existing.job_description
@@ -144,7 +177,7 @@ def save_scraped_jobs(
                 # Create new job
                 job = Job(
                     title=scraped_job.title,
-                    company_id=company.id,
+                    company_id=job_company.id,
                     location=scraped_job.location,
                     job_url=scraped_job.job_url,
                     job_description=scraped_job.job_description,

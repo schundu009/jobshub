@@ -8,6 +8,16 @@ from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, S
 from scrapers.registry import ScraperRegistry
 from typing import List, Optional
 from datetime import datetime
+import re
+
+
+def muse_contents_to_html(contents: Optional[str]) -> Optional[str]:
+    """The posting's full HTML. The Muse marks section headings as a bold line;
+    make those <h2> so the job page splits the posting into sections. A bold
+    line ending in punctuation ("Click Here.") is a link or sentence, not a heading."""
+    if not contents:
+        return None
+    return re.sub(r"<b>\s*([^<]{0,79}[^<.!?,;\s])\s*</b>\s*(?:<br\s*/?>\s*)+", r"<h2>\1</h2>", contents, flags=re.I).strip() or None
 
 
 @ScraperRegistry.register(category="custom")
@@ -144,6 +154,7 @@ class TheMuseScraper(HTTPScraper):
                 external_job_id=str(raw.get("id", "")),
                 department=department,
                 posted_date=posted_date,
+                job_description=muse_contents_to_html(raw.get("contents")),
                 raw_data={"company_name": company_name},
             )
         except Exception as e:
