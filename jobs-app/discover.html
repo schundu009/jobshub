@@ -2753,7 +2753,7 @@
                 <option value="500000">Up to $500k</option>
             </select>
             <select class="filter-select" id="match-filter">
-                <option value="" selected>Match %</option>
+                <option value="" selected>Skill Match</option>
                 <option value="90">90%+</option>
                 <option value="80">80%+</option>
                 <option value="70">70%+</option>
@@ -3277,6 +3277,7 @@
         let allJobs = [];
         let processedJobs = [];
         let currentRole = '';
+        let resumeSkills = [];
         let selectedCompanies = new Set();
 
         // Role keyword configurations
@@ -3570,7 +3571,7 @@
 
         function descriptionCellRenderer(params) {
             const job = params.data;
-            const score = job.relevance_score || 0;
+            const score = job.skill_match_score;
 
             // Show AI summary if available, otherwise show job description
             let displayText = '';
@@ -3600,7 +3601,7 @@
             }
 
             const showMatch = job.has_match_score && score != null;
-            const matchHtml = showMatch ? `<div style="color:var(--text-secondary);font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
+            const matchHtml = showMatch ? `<div style="color:var(--text-secondary);font-size:10px;font-weight:500;margin-bottom:2px;">Skill Match: ${Math.round(score)}%</div>` : '';
 
             return `<div style="display:flex;flex-direction:column;padding:4px 0;width:100%;min-width:0;overflow:hidden;">
                 ${matchHtml}
@@ -3797,6 +3798,29 @@
             } catch (error) {
                 console.error('Failed to check onboarding status:', error);
                 // Continue anyway - don't block job viewing
+            }
+
+            // Use the actual saved resume as the source for the Match % score.
+            // The old hard-coded fallback could disagree with the score filter.
+            try {
+                const userSettings = await apiRequest('/users/settings');
+                let resume = null;
+                if (userSettings.base_resume_id) {
+                    try {
+                        resume = await apiRequest(`/users/documents/${encodeURIComponent(userSettings.base_resume_id)}/content`);
+                    } catch (error) {
+                        console.warn('Could not load the selected base resume; using the default resume:', error);
+                    }
+                }
+                if (!resume) resume = await apiRequest('/users/documents/default-resume');
+                const resumeText = (resume.content || '').toLowerCase();
+                resumeSkills = [...new Set([
+                    ...extractSkillsFromDescription(resumeText),
+                    ...extractTechStack(resumeText).map(skill => skill.toLowerCase())
+                ])];
+            } catch (error) {
+                console.warn('Could not load resume skills for matching:', error);
+                resumeSkills = getUserSkillsFromStorage();
             }
 
             // Initialize roles banner and sidebar role filters
@@ -4336,8 +4360,9 @@
                     if (salaryMaxFilter && (offerMin ?? offerMax) > salaryMaxFilter) return false;
                 }
 
-                // A match filter only applies to jobs that have a role-based score.
-                if (matchMinFilter && (node.data.relevance_score == null || node.data.relevance_score < matchMinFilter)) {
+                // Match % and the detail-panel Skill Match use the same resume
+                // skill overlap score, never the separate role relevance score.
+                if (matchMinFilter && (node.data.skill_match_score == null || node.data.skill_match_score < matchMinFilter)) {
                     return false;
                 }
 
@@ -4506,14 +4531,16 @@
                 // An explicit sidebar selection overrides saved roles. Otherwise,
                 // score against every saved role and keep the best match.
                 const matchFilterControl = document.getElementById('match-filter');
-                const hasScoringRole = Boolean(currentRole || savedRoles.length > 0);
-                matchFilterControl.disabled = !hasScoringRole;
-                matchFilterControl.title = hasScoringRole
-                    ? 'Filter by relevance score for your selected role(s)'
-                    : 'Choose a role to calculate match scores';
-                if (!hasScoringRole) matchFilterControl.value = '';
+                const hasResumeSkills = getUserSkillsFromStorage().length > 0;
+                matchFilterControl.disabled = !hasResumeSkills;
+                matchFilterControl.title = hasResumeSkills
+                    ? 'Filter by skills found in your saved resume'
+                    : 'Upload a resume with detectable skills to filter by skill match';
+                if (!hasResumeSkills) matchFilterControl.value = '';
                 const matchFilterValue = Number(matchFilterControl.value) || 0;
-                const minimumScore = matchFilterValue > 0 ? Math.min(matchFilterValue, 20) : 20;
+                // Backend relevance is a different metric. Leave it unfiltered
+                // when the user selected a resume-skill threshold.
+                const minimumScore = matchFilterValue > 0 ? 0 : 20;
                 const query = new URLSearchParams({
                     active_only: 'true',
                     posted_within_hours: String(timeRangeHours)
@@ -4542,6 +4569,7 @@
 
                 processedJobs = allJobs.map(job => {
                     const salary = extractSalary(job);
+                    const skillMatch = getJobSkillMatch(job);
                     // Backend scores are authoritative, including a valid score of zero.
                     const backendScore = job.relevance?.score ?? job.relevance_score ?? job.score;
                     const hasBackendScore = backendScore != null && Number.isFinite(Number(backendScore));
@@ -4553,7 +4581,10 @@
                         tech_stack: extractTechStack(job.job_description),
                         relevance_score: relevance?.score ?? null,
                         is_relevant: relevance?.isRelevant ?? false,
-                        has_match_score: hasBackendScore || Boolean(roleConfig),
+                        has_match_score: hasResumeSkills,
+                        skill_match_score: skillMatch.score,
+                        skill_match_matched: skillMatch.matched,
+                        skill_match_total: skillMatch.total,
                         salary_display: formatSalary(salary, job.location),
                         salary_min_val: salary?.min ?? null,
                         salary_max_val: salary?.max ?? null,
@@ -4752,13 +4783,11 @@
                 techStackContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 12px;">No tech stack detected</span>';
             }
 
-            // Keep the headline score consistent with the skills shown below.
+            // Keep the headline score identical to the score used by the filter.
             const skillsMatch = populateSkillsAnalysis(job);
-            const score = skillsMatch.total
-                ? Math.round((skillsMatch.matched / skillsMatch.total) * 100)
-                : 0;
-            document.getElementById('detail-match-score').textContent = `${score}%`;
-            document.getElementById('detail-match-bar').style.width = `${score}%`;
+            const score = skillsMatch.score;
+            document.getElementById('detail-match-score').textContent = score == null ? '—' : `${score}%`;
+            document.getElementById('detail-match-bar').style.width = `${score ?? 0}%`;
 
             // Action buttons
             document.getElementById('detail-view-btn').href = job.job_url || '#';
@@ -4770,28 +4799,13 @@
         function populateSkillsAnalysis(job) {
             const tbody = document.getElementById('detail-skills-tbody');
             const desc = (job.job_description || '').toLowerCase();
-            const title = (job.title || '').toLowerCase();
-            const text = title + ' ' + desc;
-
-            // Get user's skills from resume (simplified - in production this would come from user profile)
             const userSkills = getUserSkillsFromStorage();
+            const { skills, matchedSkills, matched, total, score } = getJobSkillMatch(job);
 
-            // Extract required skills from job
-            const extractedSkills = extractSkillsFromDescription(desc);
-            const techStack = job.tech_stack || extractTechStack(job.job_description) || [];
+            const rows = skills.map(skill => {
+                const isMatch = matchedSkills.has(skill.toLowerCase());
 
-            // Combine all skills
-            const allSkills = [...new Set([...extractedSkills, ...techStack])].slice(0, 20);
-
-            let matchedCount = 0;
-            const rows = allSkills.map(skill => {
-                const isMatch = userSkills.some(us =>
-                    us.toLowerCase().includes(skill.toLowerCase()) ||
-                    skill.toLowerCase().includes(us.toLowerCase())
-                );
-                if (isMatch) matchedCount++;
-
-                const category = techStack.includes(skill) ? 'Tech' : 'Required';
+                const category = (job.tech_stack || extractTechStack(desc) || []).some(tech => tech.toLowerCase() === skill.toLowerCase()) ? 'Tech' : 'Required';
                 return `
                     <tr>
                         <td>${skill}</td>
@@ -4803,9 +4817,29 @@
 
             tbody.innerHTML = rows || '<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No skills detected</td></tr>';
 
-            document.getElementById('detail-skills-matched').textContent = matchedCount;
-            document.getElementById('detail-skills-total').textContent = allSkills.length;
-            return { matched: matchedCount, total: allSkills.length };
+            document.getElementById('detail-skills-matched').textContent = matched;
+            document.getElementById('detail-skills-total').textContent = total;
+            return { matched, total, score };
+        }
+
+        function getJobSkillMatch(job) {
+            const desc = (job.job_description || '').toLowerCase();
+            const techStack = job.tech_stack || extractTechStack(desc) || [];
+            const skills = [...new Set([
+                ...extractSkillsFromDescription(desc),
+                ...techStack
+            ].map(skill => String(skill).toLowerCase()))].slice(0, 20);
+            const userSkills = new Set(getUserSkillsFromStorage().map(skill => String(skill).toLowerCase()));
+            const matchedSkills = new Set(skills.filter(skill => userSkills.has(skill)));
+            const total = skills.length;
+            const matched = matchedSkills.size;
+            return {
+                skills,
+                matchedSkills,
+                matched,
+                total,
+                score: total && userSkills.size ? Math.round(matched / total * 100) : null
+            };
         }
 
         function extractSkillsFromDescription(desc) {
@@ -4834,17 +4868,16 @@
         }
 
         function getUserSkillsFromStorage() {
-            // Try to get from localStorage or return default common skills
+            // Prefer skills extracted from the user's selected/default resume.
+            if (resumeSkills.length) return resumeSkills;
             try {
                 const stored = localStorage.getItem('userSkills');
-                if (stored) return JSON.parse(stored);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) return parsed.map(String);
+                }
             } catch (e) {}
-
-            // Default skills (would come from user profile in production)
-            return [
-                'Kubernetes', 'Docker', 'AWS', 'Python', 'Go', 'Terraform',
-                'CI/CD', 'Linux', 'Microservices', 'Prometheus', 'Grafana'
-            ];
+            return [];
         }
 
         // Add CSS keyframes for spinner and loading progress
