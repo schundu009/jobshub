@@ -139,3 +139,10 @@ html body .gh-card h3 { margin: 16px 0 8px; font-size: 18px; line-height: 24px; 
 .gh-foot nav { display: flex; gap: 20px; flex-wrap: wrap; }
 .gh-foot nav a { color: var(--c-ink-3) !important; font-size: 13px; }
 .gh-foot nav a:hover { color: var(--c-ink) !important; }
+@media (max-width: 480px) {
+  .gh-actions { flex-wrap: nowrap; gap: 4px; }
+  .gh-signin { padding: 8px; }
+  .gh-actions .gh-btn-sm { padding: 0 14px; }
+  .gh-bar .c-brand-word { height: 19px; }
+  .gh-bar .c-brand-product { font-size: 17px; }
+}
