@@ -67,3 +67,18 @@ html[data-theme] .sidebar-filter-item.active, html[data-theme] .sidebar-company-
 .sidebar-user-avatar { background:#1967d2; color:#fff; box-shadow:none; }
 .discover-header h1 { margin:0; font-size:28px; font-weight:500; letter-spacing:-.7px; }
 h1, h2, h3 { font-family:Arial, Helvetica, sans-serif; }
+/* Keep job descriptions readable without letting the role column consume all space. */
+.ag-theme-alpine .job-description-preview {
+  display:-webkit-box; width:100%; min-width:0; overflow:hidden;
+  color:var(--text-secondary); font-size:12px; line-height:1.4;
+  white-space:normal; overflow-wrap:anywhere;
+  -webkit-box-orient:vertical; -webkit-line-clamp:2;
+}
+.ag-theme-alpine .posted-date-label { white-space:nowrap; font-size:12px; }
+.ag-theme-alpine .ag-header-cell-label { white-space:nowrap; }
+.ag-theme-alpine .ag-cell[col-id="posted_date"] { justify-content:center; }
+.ag-theme-alpine .ag-cell[col-id="actions"] > * { overflow:visible; }
+.ag-theme-alpine .ag-cell[col-id="actions"] a { text-decoration:none; }
+@media(max-width:768px) {
+  .ag-theme-alpine .ag-cell[col-id="job_description"] { display:none; }
+}

@@ -3595,13 +3595,13 @@
 
             return `<div style="display:flex;flex-direction:column;padding:4px 0;width:100%;min-width:0;overflow:hidden;">
                 ${matchHtml}
-                <div style="color:var(--text-secondary);font-size:11px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayText || '-'}</div>
+                <div class="job-description-preview">${displayText || '-'}</div>
             </div>`;
         }
 
         function postedCellRenderer(params) {
             const posted = getPostedText(params.value);
-            return `<span style="color:var(--text-secondary);font-size:12px;font-weight:400;">${posted.text}</span>`;
+            return `<span class="posted-date-label ${posted.class}">${posted.text}</span>`;
         }
 
         function salaryCellRenderer(params) {
@@ -3665,23 +3665,23 @@
                 headerName: 'Role',
                 field: 'title',
                 cellRenderer: roleCellRenderer,
-                flex: 2,
-                minWidth: 200,
+                flex: 1.35,
+                minWidth: 300,
+                maxWidth: 760,
                 filter: true,
                 sortable: true,
                 tooltipValueGetter: (params) => {
                     const job = params.data;
                     return `${job.title}\n${job.company_name || ''} • ${job.location || ''} • ${job.salary_display || ''}`;
                 },
-                headerTooltip: 'Job Title, Company, Location, Salary'
             },
             {
                 headerName: 'Description',
                 field: 'job_description',
                 cellRenderer: descriptionCellRenderer,
-                flex: 1,
-                minWidth: 160,
-                maxWidth: 480,
+                flex: 1.15,
+                minWidth: 280,
+                maxWidth: 680,
                 sortable: false,
                 tooltipValueGetter: (params) => {
                     const job = params.data;
@@ -3704,9 +3704,9 @@
                     return plainText || job?.keywords?.join(', ') || '';
                 }
             },
-            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 90, sortable: true, sort: 'desc', suppressSizeToFit: true },
-            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 100, filter: true, sortable: true, suppressSizeToFit: true },
-            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 155, sortable: false, filter: false, suppressSizeToFit: true }
+            { headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer, width: 118, minWidth: 112, sortable: true, sort: 'desc', suppressSizeToFit: true },
+            { headerName: 'Type', field: 'job_type', cellRenderer: typeCellRenderer, width: 112, minWidth: 104, filter: true, sortable: true, suppressSizeToFit: true },
+            { headerName: 'Action', field: 'actions', cellRenderer: actionsCellRenderer, width: 164, minWidth: 156, sortable: false, filter: false, suppressSizeToFit: true }
         ];
 
         // Grid Options
@@ -3715,6 +3715,7 @@
             rowData: [],
             defaultColDef: {
                 resizable: true,
+                suppressMenu: true,
                 wrapText: false,
                 autoHeight: false
             },
@@ -3727,7 +3728,7 @@
             suppressCellFocus: true,
             enableCellTextSelection: true,
             ensureDomOrder: true,
-            tooltipShowDelay: 300,
+            tooltipShowDelay: 700,
             rowSelection: 'multiple',
             suppressRowClickSelection: true,
             suppressHorizontalScroll: false,
