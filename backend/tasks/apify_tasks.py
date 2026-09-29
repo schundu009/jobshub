@@ -30,11 +30,13 @@ def save_apify_jobs_to_db(jobs: list[dict], source: str) -> tuple[int, int]:
         Tuple of (jobs_saved, companies_created)
     """
     from models import Job, Company
+    from services.company_resolver import CompanyResolver
 
     jobs_saved = 0
     companies_created = 0
     jobs_skipped_old = 0
     companies_cache = {}
+    resolver = None
     cutoff_date = datetime.utcnow() - timedelta(days=MAX_JOB_AGE_DAYS)
 
     with SessionLocal() as db:
@@ -60,17 +62,15 @@ def save_apify_jobs_to_db(jobs: list[dict], source: str) -> tuple[int, int]:
                 company_name = raw_data.get("company_name") or job_data.get("company_name", "Unknown")
 
                 if company_name not in companies_cache:
-                    company = db.query(Company).filter(
-                        Company.name == company_name
-                    ).first()
-
-                    if not company:
-                        company = Company(
-                            name=company_name,
-                            website=job_data.get("job_url", "").split("/job")[0] if job_data.get("job_url") else None,
-                        )
-                        db.add(company)
-                        db.flush()
+                    # Normalized-name match ('Snap Inc.' == 'Snap'); one resolver per batch
+                    if resolver is None:
+                        resolver = CompanyResolver(db)
+                    before = resolver.find(company_name)
+                    company = before or resolver.get_or_create(
+                        company_name,
+                        website=job_data.get("job_url", "").split("/job")[0] if job_data.get("job_url") else None,
+                    )
+                    if before is None:
                         companies_created += 1
 
                     companies_cache[company_name] = company

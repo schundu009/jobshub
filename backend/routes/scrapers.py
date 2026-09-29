@@ -13,10 +13,14 @@ Security features:
 - Input validation and length limits
 """
 
-from datetime import datetime
+import logging
+import os
+import secrets
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field, field_validator
 import re
 from sqlalchemy.orm import Session
@@ -27,8 +31,12 @@ from scrapers.registry import ScraperRegistry, list_all_scrapers
 from services.scraper_service import get_scraper_stats, get_all_scraper_stats
 from services.redis_service import redis_service
 from utils.security import validate_url_ssrf_safe
-from middleware.auth import get_current_user
+from middleware.auth import get_current_admin
 
+logger = logging.getLogger(__name__)
+
+# Every endpoint except the secret-protected webhooks is admin-only
+# (Depends(get_current_admin) per route; the webhooks carry their own secret).
 router = APIRouter(prefix="/api/scrapers", tags=["scrapers"])
 
 
@@ -54,6 +62,10 @@ class ScraperStatus(BaseModel):
     last_error: Optional[str] = None
     active_jobs: int
     total_jobs: int
+    # Scrapers switched off in code (ScraperConfig(enabled=False)) are listed
+    # too, with is_enabled=False and the reason, so they don't silently vanish.
+    disabled_reason: Optional[str] = None
+    has_scraper: bool = True
 
 
 class ScraperRunInfo(BaseModel):
@@ -70,8 +82,10 @@ class ScraperRunInfo(BaseModel):
 
 class TriggerResponse(BaseModel):
     status: str
-    task_id: Optional[str]
+    task_id: Optional[str] = None
     message: str
+    count: Optional[int] = None
+    queued: Optional[int] = None
 
 
 class ConfigUpdate(BaseModel):
@@ -110,13 +124,136 @@ class DetectBoardResponse(BaseModel):
     error: Optional[str]
 
 
+# ============== Webhook Trigger (No Auth) ==============
+# Registered before the /{company_slug}/... routes: otherwise
+# POST /webhook/run-sync matches /{company_slug}/run-sync (slug "webhook").
+
+def _check_webhook_secret(secret: str) -> None:
+    """
+    Webhooks are authenticated by SCRAPER_WEBHOOK_SECRET only. There is no
+    default: with the env var unset the webhooks are disabled (503).
+    """
+    expected = os.environ.get("SCRAPER_WEBHOOK_SECRET", "")
+    if not expected:
+        raise HTTPException(status_code=503, detail="webhook disabled")
+    if not secrets.compare_digest(secret or "", expected):
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+
+@router.post("/webhook/trigger")
+def webhook_trigger_scrapers(
+    secret: str = Query(..., description="Webhook secret key"),
+):
+    """
+    Trigger scrapers via webhook. Requires secret key.
+    Use this for external triggers (e.g., cron jobs, CI/CD).
+    """
+    _check_webhook_secret(secret)
+
+    try:
+        from tasks.scraper_tasks import scrape_all_companies
+        # force=True: an explicit external trigger bypasses the interval gate.
+        task = scrape_all_companies.apply_async(kwargs={"force": True}, queue="scrapers_orchestrator")
+        return {
+            "status": "dispatched",
+            "task_id": task.id,
+            "message": "Scraper tasks dispatched via webhook"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to dispatch: {str(e)}")
+
+
+@router.post("/webhook/run-sync")
+async def webhook_run_scrapers_sync(
+    secret: str = Query(..., description="Webhook secret key"),
+    limit: int = Query(default=50, ge=1, le=200, description="Max scrapers to run"),
+):
+    """
+    Run HTTP scrapers in-process via webhook (no Celery worker needed).
+    Use this when workers are down or for immediate scraping.
+    No auth required - uses secret key for verification.
+    """
+    _check_webhook_secret(secret)
+
+    from database import SessionLocal
+    from scrapers.rate_limiter import get_rate_limiter
+    from services.scraper_service import save_scraped_jobs
+    from tasks.scraper_tasks import record_scraper_run
+
+    all_scrapers = list_all_scrapers()
+    http_scrapers = [
+        s for s in all_scrapers
+        if s.get('scraper_type') == 'http'
+    ][:limit]
+
+    results = []
+    total_jobs_found = 0
+    total_jobs_new = 0
+
+    rate_limiter = get_rate_limiter()
+
+    def _persist(company_slug, result):
+        db = SessionLocal()
+        try:
+            if result.success and result.jobs:
+                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+                result.jobs_new = jobs_new
+                result.jobs_updated = jobs_updated
+            record_scraper_run(db, company_slug, result)
+        finally:
+            db.close()
+
+    for scraper_info in http_scrapers:
+        company_slug = scraper_info['slug']
+        start_time = datetime.utcnow()
+
+        try:
+            scraper_cls = ScraperRegistry.get(company_slug)
+            if not scraper_cls:
+                continue
+
+            scraper = scraper_cls(rate_limiter=rate_limiter)
+            result = await scraper.run()
+            await run_in_threadpool(_persist, company_slug, result)
+
+            duration = (datetime.utcnow() - start_time).total_seconds()
+
+            results.append({
+                "company_slug": company_slug,
+                "status": "success" if result.success else "failed",
+                "jobs_found": result.jobs_found,
+                "jobs_new": result.jobs_new,
+                "duration_seconds": round(duration, 2),
+            })
+
+            total_jobs_found += result.jobs_found
+            total_jobs_new += result.jobs_new
+
+        except Exception as e:
+            logger.exception(f"webhook run-sync failed for {company_slug}")
+            results.append({
+                "company_slug": company_slug,
+                "status": "error",
+                "error": str(e)[:100],
+            })
+
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+    return {
+        "status": "completed",
+        "scrapers_run": len(results),
+        "total_jobs_found": total_jobs_found,
+        "total_jobs_new": total_jobs_new,
+        "results": results
+    }
+
+
 # ============== Endpoints ==============
 
 @router.get("/", response_model=list[ScraperInfo])
 def list_scrapers(
     category: Optional[str] = Query(None, description="Filter by category"),
     scraper_type: Optional[str] = Query(None, description="Filter by type (http, playwright)"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
 ):
     """
     List all available scrapers.
@@ -135,7 +272,7 @@ def list_scrapers(
 
 
 @router.get("/categories")
-def list_categories(current_user: User = Depends(get_current_user)):
+def list_categories(current_user: User = Depends(get_current_admin)):
     """List all scraper categories."""
     return {"categories": ScraperRegistry.list_categories()}
 
@@ -146,7 +283,7 @@ SCRAPER_STATUS_CACHE_TTL = 60  # seconds
 
 @router.get("/status", response_model=list[ScraperStatus])
 def get_all_status(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -165,6 +302,20 @@ def get_all_status(
         for stats in get_all_scraper_stats(db, slugs)
     ]
 
+    enabled_slugs = set(slugs)
+    disabled = {
+        slug: info for slug, info in ScraperRegistry.get_disabled().items()
+        if slug not in enabled_slugs
+    }
+    if disabled:
+        disabled_stats = get_all_scraper_stats(
+            db, list(disabled), names={slug: info.get("company_name") or slug for slug, info in disabled.items()}
+        )
+        for stats in disabled_stats:
+            stats["is_enabled"] = False
+            stats["disabled_reason"] = disabled[stats["company_slug"]].get("reason") or "disabled in code"
+            statuses.append(ScraperStatus(**stats).model_dump())
+
     redis_service.cache_set(SCRAPER_STATUS_CACHE_KEY, statuses, SCRAPER_STATUS_CACHE_TTL)
     return statuses
 
@@ -172,7 +323,7 @@ def get_all_status(
 @router.get("/{company_slug}")
 def get_scraper_detail(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -201,7 +352,7 @@ def get_scraper_runs(
     company_slug: str,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
     """
@@ -230,7 +381,7 @@ def get_scraper_runs(
 @router.post("/{company_slug}/run", response_model=TriggerResponse)
 def trigger_scraper(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -268,13 +419,14 @@ def trigger_scraper(
 
 
 @router.post("/run-all", response_model=TriggerResponse)
-def trigger_all_scrapers(current_user: User = Depends(get_current_user)):
+def trigger_all_scrapers(current_user: User = Depends(get_current_admin)):
     """
     Trigger scraping for all enabled companies.
     """
     from tasks.scraper_tasks import scrape_all_companies
 
-    task = scrape_all_companies.delay()
+    # force=True: a manual "run all" bypasses the scrape-interval gate.
+    task = scrape_all_companies.apply_async(kwargs={"force": True}, queue="scrapers_orchestrator")
 
     return TriggerResponse(
         status="dispatched",
@@ -283,13 +435,73 @@ def trigger_all_scrapers(current_user: User = Depends(get_current_user)):
     )
 
 
+def _warning_slugs(db: Session) -> list[str]:
+    """
+    Enabled scrapers in "warning" state (same rules as the admin UI):
+    2-4 consecutive failures, last success > 7 days ago, or runs but never a
+    success. Scrapers that have never run count too. One query for all configs.
+    """
+    cutoff = datetime.utcnow() - timedelta(days=7)
+    configs = {c.company_slug: c for c in db.query(ScraperConfigDB).all()}
+    warning = []
+    for slug in ScraperRegistry.list_slugs():
+        config = configs.get(slug)
+        if config is None:
+            warning.append(slug)
+            continue
+        if not config.is_enabled:
+            continue
+        if 2 <= (config.consecutive_failures or 0) < 5:
+            warning.append(slug)
+        elif config.last_success_at and config.last_success_at < cutoff:
+            warning.append(slug)
+        elif not config.last_success_at and (config.total_runs or 0) > 0:
+            warning.append(slug)
+    return warning
+
+
+def _dispatch_scrape(slug: str):
+    """Queue one scraper on the Celery queue that matches its type. Returns the AsyncResult."""
+    from tasks.scraper_tasks import scrape_company_http, scrape_company_browser
+    from scrapers.base import ScraperType
+
+    scraper_cls = ScraperRegistry.get(slug)
+    if scraper_cls.config.scraper_type == ScraperType.HTTP:
+        return scrape_company_http.apply_async(args=[slug], queue="scrapers_http")
+    return scrape_company_browser.apply_async(args=[slug], queue="scrapers_browser")
+
+
+def _dispatch_many(slugs: list[str]) -> tuple[int, int]:
+    """Queue many scrapers; returns (http_count, browser_count). Raises 503 if Celery is unreachable."""
+    from scrapers.base import ScraperType
+
+    http_count = browser_count = 0
+    try:
+        for slug in slugs:
+            scraper_cls = ScraperRegistry.get(slug)
+            if not scraper_cls:
+                continue
+            _dispatch_scrape(slug)
+            if scraper_cls.config.scraper_type == ScraperType.HTTP:
+                http_count += 1
+            else:
+                browser_count += 1
+    except Exception as e:
+        logger.exception("Failed to queue scraper tasks")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Could not queue scraper tasks (Celery/Redis unavailable): {str(e)[:200]}",
+        )
+    return http_count, browser_count
+
+
 @router.post("/run-warning", response_model=TriggerResponse)
 def trigger_warning_scrapers(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Trigger scraping for all warning scrapers (including stale ones).
+    Queue a scrape for every warning scraper (including stale ones).
 
     Warning scrapers are those with:
     - 2+ consecutive failures, OR
@@ -297,77 +509,29 @@ def trigger_warning_scrapers(
 
     This dispatches Celery tasks so it works for both HTTP and Playwright scrapers.
     """
-    from datetime import timedelta
-    from tasks.scraper_tasks import scrape_company_http, scrape_company_browser
-    from scrapers.base import ScraperType
-
-    slugs = ScraperRegistry.list_slugs()
-    warning_slugs = []
-    cutoff = datetime.utcnow() - timedelta(days=7)
-
-    for slug in slugs:
-        config = db.query(ScraperConfigDB).filter(
-            ScraperConfigDB.company_slug == slug
-        ).first()
-
-        # Skip disabled scrapers
-        if config and not config.is_enabled:
-            continue
-
-        is_warning = False
-
-        if config:
-            # Check consecutive failures
-            if 2 <= (config.consecutive_failures or 0) < 5:
-                is_warning = True
-            # Check if stale (last success > 7 days ago)
-            elif config.last_success_at and config.last_success_at < cutoff:
-                is_warning = True
-            elif not config.last_success_at:
-                # Never succeeded - treat as warning if has been attempted
-                if config.total_runs and config.total_runs > 0:
-                    is_warning = True
-        else:
-            # No config means never run - check if it should run
-            is_warning = True
-
-        if is_warning:
-            warning_slugs.append(slug)
-
+    warning_slugs = _warning_slugs(db)
     if not warning_slugs:
         return TriggerResponse(
             status="no_action",
-            task_id=None,
             message="No warning scrapers found",
+            count=0,
+            queued=0,
         )
 
-    # Dispatch tasks based on scraper type
-    http_count = 0
-    browser_count = 0
-
-    for slug in warning_slugs:
-        scraper_cls = ScraperRegistry.get(slug)
-        if not scraper_cls:
-            continue
-
-        if scraper_cls.config.scraper_type == ScraperType.HTTP:
-            scrape_company_http.delay(slug)
-            http_count += 1
-        else:
-            scrape_company_browser.delay(slug)
-            browser_count += 1
-
+    http_count, browser_count = _dispatch_many(warning_slugs)
+    queued = http_count + browser_count
     return TriggerResponse(
-        status="dispatched",
-        task_id=None,
-        message=f"Dispatched {http_count} HTTP and {browser_count} browser scraper tasks for {len(warning_slugs)} warning scrapers",
+        status="queued",
+        message=f"Queued {queued} warning scrapers ({http_count} HTTP, {browser_count} browser)",
+        count=len(warning_slugs),
+        queued=queued,
     )
 
 
 @router.post("/run-category/{category}", response_model=TriggerResponse)
 def trigger_category(
     category: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Trigger scraping for all companies in a category.
@@ -390,7 +554,7 @@ def trigger_category(
 def update_scraper_config(
     company_slug: str,
     update: ConfigUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
     """
@@ -429,7 +593,7 @@ def update_scraper_config(
 @router.post("/{company_slug}/enable")
 def enable_scraper(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Enable a scraper."""
@@ -444,7 +608,7 @@ def enable_scraper(
 @router.post("/{company_slug}/disable")
 def disable_scraper(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Disable a scraper."""
@@ -458,7 +622,7 @@ def disable_scraper(
 
 @router.get("/health/report")
 def get_health_report(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -478,7 +642,7 @@ def get_health_report(
 @router.post("/custom/detect", response_model=DetectBoardResponse)
 async def detect_job_board(
     request: CustomCompanyRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Detect the job board type from a careers URL.
@@ -502,7 +666,7 @@ async def detect_job_board(
 @router.post("/custom/add", response_model=CustomCompanyResponse)
 async def add_custom_company(
     request: CustomCompanyRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -585,7 +749,7 @@ async def add_custom_company(
 @router.delete("/custom/{company_slug}")
 def delete_custom_scraper(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -621,427 +785,145 @@ def delete_custom_scraper(
 # ============== Synchronous Scraper Endpoints (No Celery) ==============
 
 class SyncScrapeResponse(BaseModel):
-    status: str
+    status: str  # success | failed | queued
     company_slug: str
     jobs_found: int
     jobs_new: int
     jobs_updated: int
     duration_seconds: float
     error: Optional[str] = None
+    task_id: Optional[str] = None
 
 
 @router.post("/{company_slug}/run-sync", response_model=SyncScrapeResponse)
 async def run_scraper_sync(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Run a scraper synchronously without Celery.
+    Run one scraper now and return its result.
 
-    Use this when Celery workers are not available.
-    Only HTTP scrapers are supported (browser scrapers require Celery).
+    HTTP scrapers run in-process (the blocking DB writes go to the threadpool).
+    Playwright scrapers need a browser, so they are queued on Celery instead and
+    the response has status "queued". Failures come back as status "failed"
+    with an error message rather than a 500.
     """
-    import asyncio
-    from datetime import datetime
     from scrapers.base import ScraperType
-    from scrapers.rate_limiter import get_rate_limiter
-    from services.scraper_service import save_scraped_jobs
 
     scraper_cls = ScraperRegistry.get(company_slug)
     if not scraper_cls:
         raise HTTPException(status_code=404, detail="Scraper not found")
 
-    # Check scraper type
-    scraper_config = scraper_cls.get_default_config()
-    if scraper_config.scraper_type == ScraperType.BROWSER:
-        raise HTTPException(
-            status_code=400,
-            detail="Browser scrapers require Celery. Use /run endpoint instead."
-        )
-
     start_time = datetime.utcnow()
 
+    def _response(status: str, error: Optional[str] = None, result=None, task_id=None) -> SyncScrapeResponse:
+        return SyncScrapeResponse(
+            status=status,
+            company_slug=company_slug,
+            jobs_found=result.jobs_found if result else 0,
+            jobs_new=result.jobs_new if result else 0,
+            jobs_updated=result.jobs_updated if result else 0,
+            duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+            error=error,
+            task_id=task_id,
+        )
+
     try:
-        # Create and run scraper
-        rate_limiter = get_rate_limiter()
-        scraper = scraper_cls(rate_limiter=rate_limiter)
+        if scraper_cls.config.scraper_type != ScraperType.HTTP:
+            task = _dispatch_scrape(company_slug)
+            return _response("queued", task_id=task.id)
+
+        from scrapers.rate_limiter import get_rate_limiter
+        from services.scraper_service import save_scraped_jobs
+        from tasks.scraper_tasks import record_scraper_run
+
+        scraper = scraper_cls(rate_limiter=get_rate_limiter())
         result = await scraper.run()
 
-        jobs_new = 0
-        jobs_updated = 0
-
-        # Save jobs if successful
         if result.success and result.jobs:
-            jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
+            jobs_new, jobs_updated = await run_in_threadpool(
+                save_scraped_jobs, db, company_slug, result.jobs
+            )
+            result.jobs_new = jobs_new
+            result.jobs_updated = jobs_updated
 
-        duration = (datetime.utcnow() - start_time).total_seconds()
+        await run_in_threadpool(record_scraper_run, db, company_slug, result)
+        redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
-        # Record the run
-        from tasks.scraper_tasks import record_scraper_run
-        result.jobs_new = jobs_new
-        result.jobs_updated = jobs_updated
-        record_scraper_run(db, company_slug, result)
-
-        return SyncScrapeResponse(
-            status="success" if result.success else "failed",
-            company_slug=company_slug,
-            jobs_found=result.jobs_found,
-            jobs_new=jobs_new,
-            jobs_updated=jobs_updated,
-            duration_seconds=duration,
-            error=result.error_message
+        return _response(
+            "success" if result.success else "failed",
+            error=result.error_message,
+            result=result,
         )
 
     except Exception as e:
-        duration = (datetime.utcnow() - start_time).total_seconds()
-        return SyncScrapeResponse(
-            status="error",
-            company_slug=company_slug,
-            jobs_found=0,
-            jobs_new=0,
-            jobs_updated=0,
-            duration_seconds=duration,
-            error=str(e)
-        )
+        logger.exception(f"run-sync failed for {company_slug}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        return _response("failed", error=str(e)[:500])
 
 
-@router.post("/run-warning-sync")
-async def run_warning_scrapers_sync(
-    limit: int = Query(default=100, ge=1, le=300, description="Max scrapers to run"),
-    current_user: User = Depends(get_current_user),
+@router.post("/run-warning-sync", response_model=TriggerResponse)
+def run_warning_scrapers_sync(
+    limit: int = Query(default=100, ge=1, le=300, description="Max scrapers to queue"),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Run all warning HTTP scrapers synchronously without Celery.
-
-    Warning scrapers are those with:
-    - 2+ consecutive failures (but <5), OR
-    - Last success more than 7 days ago
-
-    Browser/Playwright scrapers are skipped (require Celery).
+    Queue warning scrapers on Celery (kept for old clients; used to run them
+    inline and block the request for minutes).
     """
-    from datetime import timedelta
-    from scrapers.base import ScraperType
-    from scrapers.rate_limiter import get_rate_limiter
-    from services.scraper_service import save_scraped_jobs
-    from tasks.scraper_tasks import record_scraper_run
-
-    slugs = ScraperRegistry.list_slugs()
-    warning_slugs = []
-    cutoff = datetime.utcnow() - timedelta(days=7)
-
-    for slug in slugs:
-        config = db.query(ScraperConfigDB).filter(
-            ScraperConfigDB.company_slug == slug
-        ).first()
-
-        # Skip disabled scrapers
-        if config and not config.is_enabled:
-            continue
-
-        is_warning = False
-
-        if config:
-            if 2 <= (config.consecutive_failures or 0) < 5:
-                is_warning = True
-            elif config.last_success_at and config.last_success_at < cutoff:
-                is_warning = True
-            elif not config.last_success_at and config.total_runs and config.total_runs > 0:
-                is_warning = True
-        else:
-            is_warning = True
-
-        if is_warning:
-            warning_slugs.append(slug)
-
-    # Filter to HTTP only and apply limit
-    http_scrapers = []
-    browser_skipped = 0
-
-    for slug in warning_slugs:
-        scraper_cls = ScraperRegistry.get(slug)
-        if scraper_cls and scraper_cls.config.scraper_type == ScraperType.HTTP:
-            http_scrapers.append(slug)
-        else:
-            browser_skipped += 1
-
-    http_scrapers = http_scrapers[:limit]
-
-    results = []
-    total_jobs_found = 0
-    total_jobs_new = 0
-
-    rate_limiter = get_rate_limiter()
-
-    for company_slug in http_scrapers:
-        start_time = datetime.utcnow()
-
-        try:
-            scraper_cls = ScraperRegistry.get(company_slug)
-            if not scraper_cls:
-                continue
-
-            scraper = scraper_cls(rate_limiter=rate_limiter)
-            result = await scraper.run()
-
-            jobs_new = 0
-            jobs_updated = 0
-
-            if result.success and result.jobs:
-                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-                result.jobs_new = jobs_new
-                result.jobs_updated = jobs_updated
-
-            record_scraper_run(db, company_slug, result)
-
-            duration = (datetime.utcnow() - start_time).total_seconds()
-
-            results.append({
-                "company_slug": company_slug,
-                "status": "success" if result.success else "failed",
-                "jobs_found": result.jobs_found,
-                "jobs_new": jobs_new,
-                "duration_seconds": round(duration, 2),
-                "error": result.error_message[:100] if result.error_message else None,
-            })
-
-            total_jobs_found += result.jobs_found
-            total_jobs_new += jobs_new
-
-        except Exception as e:
-            results.append({
-                "company_slug": company_slug,
-                "status": "error",
-                "error": str(e)[:100],
-            })
-
-    return {
-        "status": "completed",
-        "warning_scrapers_found": len(warning_slugs),
-        "http_scrapers_run": len(results),
-        "browser_scrapers_skipped": browser_skipped,
-        "total_jobs_found": total_jobs_found,
-        "total_jobs_new": total_jobs_new,
-        "results": results
-    }
+    warning_slugs = _warning_slugs(db)[:limit]
+    http_count, browser_count = _dispatch_many(warning_slugs)
+    queued = http_count + browser_count
+    return TriggerResponse(
+        status="queued",
+        message=f"Queued {queued} warning scrapers ({http_count} HTTP, {browser_count} browser)",
+        count=len(warning_slugs),
+        queued=queued,
+    )
 
 
-@router.post("/run-all-sync")
-async def run_all_scrapers_sync(
-    limit: int = Query(default=50, ge=1, le=200, description="Max scrapers to run"),
-    current_user: User = Depends(get_current_user),
+@router.post("/run-all-sync", response_model=TriggerResponse)
+def run_all_scrapers_sync(
+    limit: int = Query(default=50, ge=1, le=500, description="Max scrapers to queue"),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
-    Run all HTTP scrapers synchronously without Celery.
-
-    Processes scrapers sequentially. Limited to HTTP scrapers only.
-    Use limit parameter to control how many scrapers to run.
+    Queue enabled scrapers on Celery (kept for old clients; used to run them
+    inline and block the request for minutes).
     """
-    from datetime import datetime
-    from scrapers.base import ScraperType
-    from scrapers.rate_limiter import get_rate_limiter
-    from services.scraper_service import save_scraped_jobs
-    from tasks.scraper_tasks import record_scraper_run
-
-    all_scrapers = list_all_scrapers()
-    http_scrapers = [
-        s for s in all_scrapers
-        if s.get('scraper_type') == 'http'
-    ][:limit]
-
-    results = []
-    total_jobs_found = 0
-    total_jobs_new = 0
-
-    rate_limiter = get_rate_limiter()
-
-    for scraper_info in http_scrapers:
-        company_slug = scraper_info['slug']
-        start_time = datetime.utcnow()
-
-        try:
-            scraper_cls = ScraperRegistry.get(company_slug)
-            if not scraper_cls:
-                continue
-
-            scraper = scraper_cls(rate_limiter=rate_limiter)
-            result = await scraper.run()
-
-            jobs_new = 0
-            jobs_updated = 0
-
-            if result.success and result.jobs:
-                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-                result.jobs_new = jobs_new
-                result.jobs_updated = jobs_updated
-
-            record_scraper_run(db, company_slug, result)
-
-            duration = (datetime.utcnow() - start_time).total_seconds()
-
-            results.append({
-                "company_slug": company_slug,
-                "status": "success" if result.success else "failed",
-                "jobs_found": result.jobs_found,
-                "jobs_new": jobs_new,
-                "duration_seconds": round(duration, 2),
-            })
-
-            total_jobs_found += result.jobs_found
-            total_jobs_new += jobs_new
-
-        except Exception as e:
-            results.append({
-                "company_slug": company_slug,
-                "status": "error",
-                "error": str(e)[:100],
-            })
-
-    return {
-        "status": "completed",
-        "scrapers_run": len(results),
-        "total_jobs_found": total_jobs_found,
-        "total_jobs_new": total_jobs_new,
-        "results": results
+    disabled = {
+        slug for (slug,) in db.query(ScraperConfigDB.company_slug).filter(
+            ScraperConfigDB.is_enabled == False  # noqa: E712
+        ).all()
     }
-
-
-# ============== Webhook Trigger (No Auth) ==============
-
-@router.post("/webhook/trigger")
-def webhook_trigger_scrapers(
-    secret: str = Query(..., description="Webhook secret key"),
-):
-    """
-    Trigger scrapers via webhook. Requires secret key.
-    Use this for external triggers (e.g., cron jobs, CI/CD).
-    """
-    import os
-    expected_secret = os.environ.get("SCRAPER_WEBHOOK_SECRET", "cariara-scrape-2024")
-
-    if secret != expected_secret:
-        raise HTTPException(status_code=403, detail="Invalid secret")
-
-    try:
-        from tasks.scraper_tasks import scrape_all_companies
-        task = scrape_all_companies.delay()
-        return {
-            "status": "dispatched",
-            "task_id": task.id,
-            "message": "Scraper tasks dispatched via webhook"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to dispatch: {str(e)}")
-
-
-@router.post("/webhook/run-sync")
-async def webhook_run_scrapers_sync(
-    secret: str = Query(..., description="Webhook secret key"),
-    limit: int = Query(default=50, ge=1, le=200, description="Max scrapers to run"),
-):
-    """
-    Run HTTP scrapers synchronously via webhook (no Celery worker needed).
-    Use this when workers are down or for immediate scraping.
-    No auth required - uses secret key for verification.
-    """
-    import os
-    from database import SessionLocal
-
-    expected_secret = os.environ.get("SCRAPER_WEBHOOK_SECRET", "cariara-scrape-2024")
-
-    if secret != expected_secret:
-        raise HTTPException(status_code=403, detail="Invalid secret")
-
-    from datetime import datetime
-    from scrapers.base import ScraperType
-    from scrapers.rate_limiter import get_rate_limiter
-    from services.scraper_service import save_scraped_jobs
-    from tasks.scraper_tasks import record_scraper_run
-
-    all_scrapers = list_all_scrapers()
-    http_scrapers = [
-        s for s in all_scrapers
-        if s.get('scraper_type') == 'http'
-    ][:limit]
-
-    results = []
-    total_jobs_found = 0
-    total_jobs_new = 0
-
-    rate_limiter = get_rate_limiter()
-
-    for scraper_info in http_scrapers:
-        company_slug = scraper_info['slug']
-        start_time = datetime.utcnow()
-
-        try:
-            scraper_cls = ScraperRegistry.get(company_slug)
-            if not scraper_cls:
-                continue
-
-            scraper = scraper_cls(rate_limiter=rate_limiter)
-            result = await scraper.run()
-
-            jobs_new = 0
-            jobs_updated = 0
-
-            if result.success and result.jobs:
-                db = SessionLocal()
-                try:
-                    jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-                    result.jobs_new = jobs_new
-                    result.jobs_updated = jobs_updated
-                    record_scraper_run(db, company_slug, result)
-                except Exception:
-                    pass
-                finally:
-                    db.close()
-
-            duration = (datetime.utcnow() - start_time).total_seconds()
-
-            results.append({
-                "company_slug": company_slug,
-                "status": "success" if result.success else "failed",
-                "jobs_found": result.jobs_found,
-                "jobs_new": jobs_new,
-                "duration_seconds": round(duration, 2),
-            })
-
-            total_jobs_found += result.jobs_found
-            total_jobs_new += jobs_new
-
-        except Exception as e:
-            results.append({
-                "company_slug": company_slug,
-                "status": "error",
-                "error": str(e)[:100],
-            })
-
-    return {
-        "status": "completed",
-        "scrapers_run": len(results),
-        "total_jobs_found": total_jobs_found,
-        "total_jobs_new": total_jobs_new,
-        "results": results
-    }
+    slugs = [s for s in ScraperRegistry.list_slugs() if s not in disabled][:limit]
+    http_count, browser_count = _dispatch_many(slugs)
+    queued = http_count + browser_count
+    return TriggerResponse(
+        status="queued",
+        message=f"Queued {queued} scrapers ({http_count} HTTP, {browser_count} browser)",
+        count=len(slugs),
+        queued=queued,
+    )
 
 
 # ============== Scraper Maintenance Endpoints ==============
 
 @router.post("/maintenance/reset-failures")
 def reset_all_failure_counts(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Reset failure counts for all scrapers.
     Use this after fixing scraper issues to give them a fresh start.
     """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     updated = db.query(ScraperConfigDB).filter(
         ScraperConfigDB.consecutive_failures > 0
     ).update({"consecutive_failures": 0})
@@ -1059,15 +941,12 @@ def reset_all_failure_counts(
 @router.post("/maintenance/disable-critical")
 def disable_critical_scrapers(
     threshold: int = Query(default=10, ge=5, description="Failure threshold to consider critical"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Disable all scrapers with consecutive failures above threshold.
     """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     # Get critical scrapers
     critical = db.query(ScraperConfigDB).filter(
         ScraperConfigDB.consecutive_failures >= threshold
@@ -1092,7 +971,7 @@ def disable_critical_scrapers(
 @router.post("/{company_slug}/reset-failures")
 def reset_scraper_failures(
     company_slug: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Reset failure count for a specific scraper."""
@@ -1124,7 +1003,7 @@ def reset_scraper_failures(
 
 @router.get("/maintenance/summary")
 def get_maintenance_summary(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Get a summary of scraper health for maintenance purposes."""

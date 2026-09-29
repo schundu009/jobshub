@@ -384,11 +384,17 @@ def process_pending_applications():
     Process pending applications from the queue.
 
     This task runs periodically to pick up queued applications
-    and submit them.
+    and submit them. Returns early when AppSetting auto_apply_enabled is false
+    (admin Settings > Schedules).
     """
     db = get_db()
 
     try:
+        from services import app_settings
+        if not app_settings.get_bool(db, app_settings.AUTO_APPLY_ENABLED_KEY, True):
+            logger.info("process_pending_applications skipped: auto_apply_enabled=false")
+            return {"status": "skipped", "reason": "auto_apply_disabled"}
+
         # Get pending submissions
         pending = db.query(ApplicationSubmission).filter(
             ApplicationSubmission.status == "pending"

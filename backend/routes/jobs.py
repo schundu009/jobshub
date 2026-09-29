@@ -46,7 +46,7 @@ from services.relevance_service import (
     RelevanceResult
 )
 from services.role_profiles_data import get_profile_by_slug, get_all_profiles
-from middleware.auth import get_current_user, get_current_user_optional
+from middleware.auth import get_current_user, get_current_user_optional, is_admin as current_user_is_admin
 
 # Redis caching
 try:
@@ -868,6 +868,21 @@ def create_job(
     return {"id": db_job.id, "message": "Job created successfully"}
 
 
+def _editable_job(db: Session, job_id: int, user: User) -> Job:
+    """
+    Admins may edit/delete any job; other users only their own.
+    Shared rows (user_id NULL) are admin-only (403), others' rows are 404.
+    """
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if current_user_is_admin(user) or job.user_id == user.id:
+        return job
+    if job.user_id is None:
+        raise HTTPException(status_code=403, detail="Only admins can modify shared jobs")
+    raise HTTPException(status_code=404, detail="Job not found")
+
+
 @router.put("/{job_id}")
 def update_job(
     job_id: int,
@@ -875,13 +890,8 @@ def update_job(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Update an existing job."""
-    db_job = db.query(Job).filter(
-        Job.id == job_id,
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    ).first()
-    if not db_job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    """Update an existing job. Shared (scraped) jobs are admin-only."""
+    db_job = _editable_job(db, job_id, current_user)
 
     # If updating company_id, verify user owns the company
     update_data = job.model_dump(exclude_unset=True)
@@ -896,10 +906,6 @@ def update_job(
     for key, value in update_data.items():
         setattr(db_job, key, value)
 
-    # Take ownership of shared jobs when updating
-    if db_job.user_id is None:
-        db_job.user_id = current_user.id
-
     db.commit()
     db.refresh(db_job)
     return {"message": "Job updated successfully"}
@@ -911,14 +917,8 @@ def delete_job(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Delete a job."""
-    # Only allow deleting user's own jobs
-    db_job = db.query(Job).filter(
-        Job.id == job_id,
-        Job.user_id == current_user.id
-    ).first()
-    if not db_job:
-        raise HTTPException(status_code=404, detail="Job not found")
+    """Delete a job. Users delete their own jobs; admins any job."""
+    db_job = _editable_job(db, job_id, current_user)
 
     db.delete(db_job)
     db.commit()

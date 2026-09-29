@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from models import Company, Job
 from scrapers.base import ScrapedJob
 from scrapers.registry import ScraperRegistry
+from services.company_resolver import CompanyResolver, normalize_company_key
 
 logger = logging.getLogger(__name__)
 
@@ -30,39 +31,30 @@ def get_or_create_company(
     company_slug: str,
     company_name: Optional[str] = None,
     website: Optional[str] = None,
+    resolver: Optional[CompanyResolver] = None,
 ) -> Company:
     """
-    Get an existing company or create a new one.
+    Get an existing shared company or create a new one.
+
+    Matches by normalized name (see services.company_resolver), so 'Snap Inc.',
+    'snap' and 'Snap' resolve to one row. For registry scrapers the configured
+    ScraperConfig.company_name is preferred as the row's name.
 
     Args:
         db: Database session
-        company_slug: Company slug (used as identifier)
+        company_slug: Company slug (used when no name is given)
         company_name: Display name (optional)
         website: Company website (optional)
+        resolver: Reuse one CompanyResolver across a batch (optional)
 
     Returns:
         Company record
     """
-    # Try to find by name first
     name = company_name or company_slug.replace("-", " ").replace("_", " ").title()
-
-    company = db.query(Company).filter(
-        Company.name.ilike(name)
-    ).first()
-
-    if company:
-        return company
-
-    # Create new company
-    company = Company(
-        name=name,
-        website=website,
-    )
-    db.add(company)
-    db.flush()  # Get the ID without committing
-
-    logger.info(f"Created new company: {name} (ID: {company.id})")
-    return company
+    resolver = resolver or CompanyResolver(db)
+    metadata = ScraperRegistry.get_metadata(company_slug)
+    prefer = metadata["company_name"] if metadata and not company_name else None
+    return resolver.get_or_create(name, website=website, prefer_name=prefer or company_name)
 
 
 # Feeds that list other companies' jobs. Each job carries its real employer in
@@ -110,12 +102,14 @@ def save_scraped_jobs(
     company_name = metadata["company_name"] if metadata else None
     careers_url = metadata["careers_url"] if metadata else None
 
-    # Get or create company
+    # Get or create company (normalized-name match; one resolver for the batch)
+    resolver = CompanyResolver(db)
     company = get_or_create_company(
         db,
         company_slug,
         company_name=company_name,
         website=careers_url,
+        resolver=resolver,
     )
 
     jobs_new = 0
@@ -146,7 +140,9 @@ def save_scraped_jobs(
             job_company = company
             if employer:
                 if employer not in employer_cache:
-                    employer_cache[employer] = get_or_create_company(db, employer_slug(employer), company_name=employer)
+                    employer_cache[employer] = get_or_create_company(
+                        db, employer_slug(employer), company_name=employer, resolver=resolver
+                    )
                 job_company = employer_cache[employer]
                 existing = db.query(Job).filter(
                     Job.source == company_slug,
@@ -257,9 +253,7 @@ def mark_jobs_inactive(
     if not metadata:
         return
 
-    company = db.query(Company).filter(
-        Company.name.ilike(metadata["company_name"])
-    ).first()
+    company = CompanyResolver(db).find(metadata["company_name"], prefer_name=metadata["company_name"])
 
     if not company:
         return
@@ -304,9 +298,7 @@ def get_scraper_stats(db: Session, company_slug: str) -> dict:
     metadata = ScraperRegistry.get_metadata(company_slug)
     company_name = metadata["company_name"] if metadata else company_slug
 
-    company = db.query(Company).filter(
-        Company.name.ilike(company_name)
-    ).first()
+    company = CompanyResolver(db).find(company_name, prefer_name=company_name)
 
     active_jobs = 0
     total_jobs = 0
@@ -351,7 +343,11 @@ def get_scraper_stats(db: Session, company_slug: str) -> dict:
     }
 
 
-def get_all_scraper_stats(db: Session, company_slugs: list[str]) -> list[dict]:
+def get_all_scraper_stats(
+    db: Session,
+    company_slugs: list[str],
+    names: Optional[dict[str, str]] = None,
+) -> list[dict]:
     """
     Bulk version of get_scraper_stats for many scrapers (no recent_runs list).
 
@@ -379,21 +375,33 @@ def get_all_scraper_stats(db: Session, company_slugs: list[str]) -> list[dict]:
         ).all()
     }
 
-    # Company display names from the registry (in-memory)
-    names = {}
+    # Company display names from the registry (in-memory), unless given
+    # (disabled scrapers aren't in the registry's metadata).
+    names = dict(names or {})
     for slug in company_slugs:
-        metadata = ScraperRegistry.get_metadata(slug)
-        names[slug] = metadata["company_name"] if metadata else slug
+        if slug not in names:
+            metadata = ScraperRegistry.get_metadata(slug)
+            names[slug] = metadata["company_name"] if metadata else slug
 
-    # 2. Company name -> id (case-insensitive exact match, lowest id wins)
-    lowered = sorted({n.lower() for n in names.values() if n})
+    # 2. Normalized company key -> id among shared companies. Exact-name rows
+    #    win over other spellings, then the lowest id ('Snap Inc.' and 'snap'
+    #    both count for the Snap scraper until merge_duplicate_companies runs).
+    wanted = {normalize_company_key(n): n for n in names.values() if n}
     company_ids: dict[str, int] = {}
-    if lowered:
-        rows = db.query(Company.id, func.lower(Company.name)).filter(
-            func.lower(Company.name).in_(lowered)
+    exact: set[str] = set()
+    if wanted:
+        rows = db.query(Company.id, Company.name).filter(
+            Company.user_id.is_(None)
         ).order_by(Company.id).all()
-        for cid, lname in rows:
-            company_ids.setdefault(lname, cid)
+        for cid, cname in rows:
+            key = normalize_company_key(cname)
+            if key not in wanted:
+                continue
+            if cname == wanted[key] and key not in exact:
+                company_ids[key] = cid
+                exact.add(key)
+            else:
+                company_ids.setdefault(key, cid)
 
     # 3. Job counts per company
     job_counts: dict[int, tuple[int, int]] = {}
@@ -432,7 +440,7 @@ def get_all_scraper_stats(db: Session, company_slugs: list[str]) -> list[dict]:
     for slug in company_slugs:
         config = configs.get(slug)
         company_name = names[slug]
-        cid = company_ids.get(company_name.lower()) if company_name else None
+        cid = company_ids.get(normalize_company_key(company_name)) if company_name else None
         total_jobs, active_jobs = job_counts.get(cid, (0, 0)) if cid else (0, 0)
         results.append({
             "company_slug": slug,

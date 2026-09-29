@@ -17,7 +17,8 @@ import re
 
 from database import get_db
 from models import Company, Job, User
-from middleware.auth import get_current_user
+from middleware.auth import get_current_user, is_admin
+from services.company_resolver import registry_company_keys, normalize_company_key
 
 router = APIRouter(prefix="/api/companies", tags=["companies"])
 
@@ -92,9 +93,14 @@ def get_all_companies(
         ).group_by(Job.company_id).all()
     )
 
+    # has_scraper: a registry scraper covers this company ("tracked"); False for
+    # one-off employers that arrived via aggregator feeds / ATS sources.
+    scraper_keys = registry_company_keys()
+
     result = []
     for company in companies:
         result.append({
+            "has_scraper": company.user_id is None and normalize_company_key(company.name) in scraper_keys,
             "id": company.id,
             "name": company.name,
             "website": company.website,
@@ -150,6 +156,21 @@ def create_company(
     return {"id": db_company.id, "message": "Company created successfully"}
 
 
+def _editable_company(db: Session, company_id: int, user: User) -> Company:
+    """
+    Admins may edit/delete any company; other users only their own.
+    Shared rows (user_id NULL) are admin-only (403), others' rows are 404.
+    """
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    if is_admin(user) or company.user_id == user.id:
+        return company
+    if company.user_id is None:
+        raise HTTPException(status_code=403, detail="Only admins can modify shared companies")
+    raise HTTPException(status_code=404, detail="Company not found")
+
+
 @router.put("/{company_id}")
 def update_company(
     company_id: int,
@@ -157,20 +178,11 @@ def update_company(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    db_company = db.query(Company).filter(
-        Company.id == company_id,
-        or_(Company.user_id == current_user.id, Company.user_id == None)
-    ).first()
-    if not db_company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    db_company = _editable_company(db, company_id, current_user)
 
     update_data = company.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_company, key, value)
-
-    # Take ownership of shared companies when updating
-    if db_company.user_id is None:
-        db_company.user_id = current_user.id
 
     db.commit()
     db.refresh(db_company)
@@ -183,14 +195,23 @@ def delete_company(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Only allow deleting user's own companies
-    db_company = db.query(Company).filter(
-        Company.id == company_id,
-        Company.user_id == current_user.id
-    ).first()
-    if not db_company:
-        raise HTTPException(status_code=404, detail="Company not found")
+    db_company = _editable_company(db, company_id, current_user)
 
+    job_count = db.query(func.count(Job.id)).filter(Job.company_id == db_company.id).scalar() or 0
+    if job_count:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Company has {job_count} jobs; delete or move them first "
+                   "(duplicates: run scripts/merge_duplicate_companies.py)",
+        )
+
+    from models import Contact, IngestionSource
+    db.query(Contact).filter(Contact.company_id == db_company.id).update(
+        {"company_id": None}, synchronize_session=False
+    )
+    db.query(IngestionSource).filter(IngestionSource.company_id == db_company.id).update(
+        {"company_id": None}, synchronize_session=False
+    )
     db.delete(db_company)
     db.commit()
     return {"message": "Company deleted successfully"}

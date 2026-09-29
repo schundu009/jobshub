@@ -35,6 +35,58 @@ celery_app = Celery(
     ],
 )
 
+# Scrape cadence. Beat checks every hour; scrape_all_companies itself skips
+# unless AppSetting scraper_interval_hours (admin Settings > Schedules,
+# default settings.scraper_schedule_hours) has passed since its last run.
+SCRAPE_INTERVAL_HOURS = max(1, min(24, int(settings.scraper_schedule_hours or 6)))
+
+BEAT_SCHEDULE = {
+    "scrape-all-companies": {
+        "task": "tasks.scraper_tasks.scrape_all_companies",
+        "schedule": crontab(minute=0),
+        "options": {"queue": "scrapers_orchestrator"},
+    },
+    # Clean up old scraper runs daily at 3 AM
+    "cleanup-old-runs": {
+        "task": "tasks.maintenance_tasks.cleanup_old_scraper_runs",
+        "schedule": crontab(minute=0, hour=3),
+        "options": {"queue": "maintenance"},
+    },
+    # Mark stale jobs as inactive daily at 4 AM
+    "mark-stale-jobs": {
+        "task": "tasks.maintenance_tasks.mark_stale_jobs_inactive",
+        "schedule": crontab(minute=0, hour=4),
+        "options": {"queue": "maintenance"},
+    },
+    # Health check 30 min after each default scrape cycle.
+    "check-scraper-health": {
+        "task": "tasks.maintenance_tasks.check_scraper_health_and_notify",
+        "schedule": crontab(minute=30, hour=f"*/{SCRAPE_INTERVAL_HOURS}"),
+        "options": {"queue": "maintenance"},
+    },
+    # Fetch missing job descriptions every 30 minutes (skips when disabled in Schedules)
+    "fetch-missing-descriptions": {
+        "task": "tasks.maintenance_tasks.fetch_missing_descriptions",
+        "schedule": crontab(minute="*/30"),
+        "options": {"queue": "maintenance"},
+    },
+    # Auto-heal broken ATS scrapers daily after health check runs
+    "auto-heal-scrapers": {
+        "task": "tasks.maintenance_tasks.auto_heal_scrapers",
+        "schedule": crontab(minute=45, hour=1),
+        "options": {"queue": "maintenance"},
+    },
+    # Apify scrapers — once daily to stay within $5/month free tier
+    "apify-scrape-all": {
+        "task": "tasks.apify_tasks.scrape_all_apify",
+        "schedule": crontab(minute=30, hour=3),
+        "options": {"queue": "scrapers_orchestrator"},
+    },
+    # Auto-apply beat entries (process-pending-applications every 15 min,
+    # reset-daily-application-counts at midnight) are removed while the
+    # auto-apply router is disabled in main.py. Re-add them with the router.
+}
+
 # Celery configuration
 celery_app.conf.update(
     # Task settings
@@ -99,9 +151,24 @@ celery_app.conf.update(
             "soft_time_limit": 300,  # Browser scrapers: 5 min soft
             "time_limit": 360,  # 6 min hard
         },
+        # Long-running maintenance/orchestration tasks. The 120/180s defaults
+        # killed them mid-run, and with acks_late + reject_on_worker_lost a
+        # killed task was redelivered forever - so these get 25/30 min and are
+        # NOT re-queued when the worker dies.
         "tasks.scraper_tasks.scrape_all_companies": {
-            "soft_time_limit": 300,  # Orchestrator: 5 min soft
-            "time_limit": 360,  # 6 min hard
+            "soft_time_limit": 1500,
+            "time_limit": 1800,
+            "reject_on_worker_lost": False,
+        },
+        "tasks.maintenance_tasks.fetch_missing_descriptions": {
+            "soft_time_limit": 1500,
+            "time_limit": 1800,
+            "reject_on_worker_lost": False,
+        },
+        "tasks.maintenance_tasks.auto_heal_scrapers": {
+            "soft_time_limit": 1500,
+            "time_limit": 1800,
+            "reject_on_worker_lost": False,
         },
         # Apify actors can take 10+ minutes — give them ample time
         "tasks.apify_tasks.scrape_apify_indeed": {
@@ -118,67 +185,19 @@ celery_app.conf.update(
         },
     },
 
+    # Redis re-delivers a message that stays unacked longer than the visibility
+    # timeout (default 1h). With ~250 scrapers fanned out at 10/m (and
+    # countdown-staggered), tasks can wait well over an hour, so they were being
+    # delivered twice. 4h covers a full cycle.
+    broker_transport_options={"visibility_timeout": 4 * 60 * 60},
+    result_backend_transport_options={"visibility_timeout": 4 * 60 * 60},
+
     # Retry settings
     task_acks_late=True,  # Acknowledge after task completes
     task_reject_on_worker_lost=True,  # Re-queue if worker dies
 
     # Beat schedule for periodic tasks
-    beat_schedule={
-        # Run all scrapers every 6 hours
-        "scrape-all-companies": {
-            "task": "tasks.scraper_tasks.scrape_all_companies",
-            "schedule": crontab(minute=0, hour=f"*/{settings.scraper_schedule_hours}"),
-            "options": {"queue": "scrapers_orchestrator"},
-        },
-        # Clean up old scraper runs daily at 3 AM
-        "cleanup-old-runs": {
-            "task": "tasks.maintenance_tasks.cleanup_old_scraper_runs",
-            "schedule": crontab(minute=0, hour=3),
-            "options": {"queue": "maintenance"},
-        },
-        # Mark stale jobs as inactive daily at 4 AM
-        "mark-stale-jobs": {
-            "task": "tasks.maintenance_tasks.mark_stale_jobs_inactive",
-            "schedule": crontab(minute=0, hour=4),
-            "options": {"queue": "maintenance"},
-        },
-        # Process pending auto-apply applications every 15 minutes
-        "process-pending-applications": {
-            "task": "tasks.auto_apply_tasks.process_pending_applications",
-            "schedule": crontab(minute="*/15"),
-            "options": {"queue": "maintenance"},
-        },
-        # Reset daily application counts at midnight
-        "reset-daily-application-counts": {
-            "task": "tasks.auto_apply_tasks.reset_daily_application_counts",
-            "schedule": crontab(minute=0, hour=0),
-            "options": {"queue": "maintenance"},
-        },
-        # Check scraper health after each scrape cycle (every 6h + 30min delay for scrapers to finish)
-        "check-scraper-health": {
-            "task": "tasks.maintenance_tasks.check_scraper_health_and_notify",
-            "schedule": crontab(minute=30, hour="0,6,12,18"),
-            "options": {"queue": "maintenance"},
-        },
-        # Fetch missing job descriptions every 30 minutes
-        "fetch-missing-descriptions": {
-            "task": "tasks.maintenance_tasks.fetch_missing_descriptions",
-            "schedule": crontab(minute="*/30"),
-            "options": {"queue": "maintenance"},
-        },
-        # Auto-heal broken Greenhouse scrapers daily after health check runs
-        "auto-heal-scrapers": {
-            "task": "tasks.maintenance_tasks.auto_heal_scrapers",
-            "schedule": crontab(minute=45, hour=1),
-            "options": {"queue": "maintenance"},
-        },
-        # Apify scrapers — once daily to stay within $5/month free tier
-        "apify-scrape-all": {
-            "task": "tasks.apify_tasks.scrape_all_apify",
-            "schedule": crontab(minute=30, hour=3),
-            "options": {"queue": "scrapers_orchestrator"},
-        },
-    },
+    beat_schedule=BEAT_SCHEDULE,
 )
 
 

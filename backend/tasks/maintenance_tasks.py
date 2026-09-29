@@ -351,7 +351,7 @@ def _send_alert_email(to_email: str, subject: str, body: str):
 
 
 @celery_app.task
-def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5) -> dict:
+def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5) -> dict:
     """
     Fetch descriptions for jobs that have empty or missing descriptions.
 
@@ -359,7 +359,8 @@ def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5
     fetches the description from the job page, and updates the record.
 
     Args:
-        batch_size: Maximum number of jobs to process per run (default: 500)
+        batch_size: Maximum number of jobs to process per run (default: 200;
+            200 x ~(fetch + 0.5s) fits the 25-minute soft time limit)
         delay_between: Seconds to wait between requests to avoid rate limiting (default: 0.5)
 
     Returns:
@@ -369,6 +370,11 @@ def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5
 
     db = get_db()
     try:
+        from services import app_settings
+        if not app_settings.get_bool(db, app_settings.DESCRIPTION_FETCH_ENABLED_KEY, True):
+            logger.info("fetch_missing_descriptions skipped: description_fetch_enabled=false")
+            return {"status": "skipped", "reason": "description_fetch_disabled"}
+
         # Find ALL jobs with missing descriptions that have a valid URL
         jobs_to_update = db.query(Job).filter(
             Job.is_active == True,
@@ -456,21 +462,134 @@ def fetch_missing_descriptions(batch_size: int = 500, delay_between: float = 0.5
         db.close()
 
 
+# ATS board URL patterns: (ats, regex capturing the board token, URL template).
+_ATS_BOARD_PATTERNS = {
+    "greenhouse": (
+        r"boards-api\.greenhouse\.io/v1/boards/([^/?#]+)",
+        "https://boards-api.greenhouse.io/v1/boards/{token}/jobs",
+    ),
+    "ashby": (
+        r"api\.ashbyhq\.com/posting-api/job-board/([^/?#]+)",
+        "https://api.ashbyhq.com/posting-api/job-board/{token}",
+    ),
+    "lever": (
+        r"api\.lever\.co/v0/postings/([^/?#]+)",
+        "https://api.lever.co/v0/postings/{token}?mode=json",
+    ),
+}
+
+
+def _scraper_ats(scraper_cls) -> str | None:
+    """ATS of a registry scraper from its mixin (isinstance on the class MRO)."""
+    try:
+        from scrapers.custom.remaining_scrapers import (
+            AshbyMixin, GreenhouseMixin, LeverMixin, SmartRecruitersMixin, WorkdayMixin,
+        )
+    except Exception:
+        return None
+    for mixin, ats in (
+        (GreenhouseMixin, "greenhouse"),
+        (AshbyMixin, "ashby"),
+        (LeverMixin, "lever"),
+        (SmartRecruitersMixin, "smartrecruiters"),
+        (WorkdayMixin, "workday"),
+    ):
+        if issubclass(scraper_cls, mixin):
+            return ats
+    return None
+
+
+def _honors_url_override(scraper_cls) -> bool:
+    """Only scrapers whose scrape() goes through resolve_api_url() read config_overrides.url_override."""
+    import inspect
+    try:
+        return "resolve_api_url" in inspect.getsource(scraper_cls.scrape)
+    except (OSError, TypeError):
+        return False
+
+
+def _board_token(ats: str, api_url: str | None) -> str | None:
+    import re
+    if not api_url or ats not in _ATS_BOARD_PATTERNS:
+        return None
+    match = re.search(_ATS_BOARD_PATTERNS[ats][0], api_url)
+    return match.group(1) if match else None
+
+
+def _token_variants(token: str) -> list[str]:
+    """Plausible renames of the same company's board token (never a different company)."""
+    base = token.lower()
+    stripped = base
+    for suffix in ("-inc", "inc", "-usa", "usa", "hq", "-hq", "careers", "jobs"):
+        if stripped.endswith(suffix) and len(stripped) > len(suffix) + 2:
+            stripped = stripped[: -len(suffix)]
+            break
+    variants = [
+        base, stripped, stripped + "inc", stripped + "-inc", stripped + "usa",
+        stripped + "hq", stripped + "careers", stripped + "jobs",
+        stripped.replace("-", ""), stripped.replace("-", "") + "ai",
+    ]
+    seen: set = set()
+    return [v for v in variants if v and not (v in seen or seen.add(v))]
+
+
+def _similar_board(token: str, variant: str, company_name: str) -> bool:
+    """
+    Guard against adopting another company's board: the variant must share
+    its core with the current token or with the company's normalized name.
+    """
+    from services.company_resolver import normalize_company_key
+    import re
+
+    def core(value: str) -> str:
+        return re.sub(r"(inc|usa|hq|careers|jobs|ai)$", "", re.sub(r"[^a-z0-9]", "", value.lower()))
+
+    v = core(variant)
+    if len(v) < 3:
+        return False
+    return v in (core(token), core(normalize_company_key(company_name)))
+
+
+def _probe_board(ats: str, url: str) -> int:
+    """Number of postings on a board URL (0 if missing/empty/unreachable)."""
+    import httpx
+    try:
+        r = httpx.get(url, timeout=8, follow_redirects=True)
+        if r.status_code != 200:
+            return 0
+        data = r.json()
+    except Exception as e:
+        logger.debug(f"auto_heal probe {url} error: {e}")
+        return 0
+    if isinstance(data, list):  # Lever
+        return len(data)
+    if isinstance(data, dict) and isinstance(data.get("jobs"), list):  # Greenhouse, Ashby
+        return len(data["jobs"])
+    return 0
+
+
 @celery_app.task(name="tasks.maintenance_tasks.auto_heal_scrapers")
 def auto_heal_scrapers() -> dict:
     """
-    Auto-heal Greenhouse scrapers failing due to stale board slugs.
+    Auto-heal Greenhouse scrapers failing because their board token changed.
 
-    For each enabled scraper with >= 3 consecutive failures, tries up to 8
-    slug variants against the Greenhouse API. On success, writes the working
-    URL to config_overrides.url_override in the DB (no deploy required).
-    After 10 failures with no slug match, disables the scraper automatically.
+    For each enabled scraper with >= 3 consecutive failures:
+    - the ATS comes from the scraper class's mixin; anything that isn't a
+      GreenhouseMixin scraper is skipped entirely (reported, never touched)
+    - variants of the scraper's *current* board token are probed on that same
+      ATS only; a variant must resemble the token or the company name and the
+      board must have postings (never adopt another company's board)
+    - a working URL is written to config_overrides.url_override (no deploy
+      needed) and failures reset, but only if the scraper reads url_override;
+      otherwise the URL is reported as a suggestion and failures are kept
+    - after 10 failures with no fix, the scraper is disabled
     """
-    import httpx
+    from scrapers.registry import ScraperRegistry
 
     logger.info("Running auto_heal_scrapers")
 
     healed = []
+    suggested = []
     disabled = []
     unresolved = []
 
@@ -478,7 +597,7 @@ def auto_heal_scrapers() -> dict:
     try:
         candidates = db.query(ScraperConfigDB).filter(
             ScraperConfigDB.consecutive_failures >= 3,
-            ScraperConfigDB.is_enabled == True,
+            ScraperConfigDB.is_enabled == True,  # noqa: E712
         ).all()
 
         logger.info(f"auto_heal_scrapers: {len(candidates)} scrapers to inspect")
@@ -486,61 +605,78 @@ def auto_heal_scrapers() -> dict:
         for cfg in candidates:
             slug = cfg.company_slug
             overrides = cfg.config_overrides or {}
-
-            scraper_type = overrides.get("scraper_type", "greenhouse")
-            if scraper_type != "greenhouse":
-                unresolved.append({"slug": slug, "reason": f"type={scraper_type}, manual fix needed"})
+            scraper_cls = ScraperRegistry.get(slug)
+            if scraper_cls is None:
+                unresolved.append({"slug": slug, "reason": "not in registry"})
                 continue
 
-            if overrides.get("url_override") and not overrides.get("auto_disabled"):
+            ats = _scraper_ats(scraper_cls)
+            if ats != "greenhouse":
+                # Only Greenhouse scrapers read url_override; ScraperConfigDB's
+                # scraper_type defaulted to "greenhouse" for everything, so the
+                # class mixin is the source of truth. Leave others alone.
+                unresolved.append({"slug": slug, "failures": cfg.consecutive_failures,
+                                   "reason": f"ats={ats or 'unknown'}; auto-heal handles Greenhouse only"})
                 continue
-
-            variants = [
-                slug,
-                slug + "inc",
-                slug + "-inc",
-                slug + "usa",
-                slug + "-usa",
-                slug.replace("hq", ""),
-                slug + "hq",
-                slug.replace("-", ""),
-            ]
-            seen: set = set()
-            variants = [v for v in variants if v and not (v in seen or seen.add(v))]
+            api_url = getattr(scraper_cls, "API_URL", None) or getattr(scraper_cls.config, "api_url", None)
+            token = _board_token(ats, api_url) if ats else None
 
             found_url = None
-            for variant in variants:
-                url = f"https://boards-api.greenhouse.io/v1/boards/{variant}/jobs"
-                try:
-                    r = httpx.get(url, timeout=8, follow_redirects=True)
-                    if r.status_code == 200:
+            if token:
+                current_override = overrides.get("url_override")
+                template = _ATS_BOARD_PATTERNS[ats][1]
+                for variant in _token_variants(token):
+                    if not _similar_board(token, variant, scraper_cls.config.company_name):
+                        continue
+                    url = template.format(token=variant)
+                    if url == current_override:
+                        continue
+                    if _probe_board(ats, url) > 0:
                         found_url = url
-                        logger.info(f"auto_heal: {slug} -> working slug '{variant}'")
+                        logger.info(f"auto_heal: {slug} ({ats}) -> working board '{variant}'")
                         break
-                except Exception as e:
-                    logger.debug(f"auto_heal variant {variant} error: {e}")
 
-            if found_url:
+            if found_url and _honors_url_override(scraper_cls):
                 new_overrides = {**overrides, "url_override": found_url}
                 new_overrides.pop("auto_disabled", None)
                 new_overrides.pop("auto_disabled_reason", None)
                 cfg.config_overrides = new_overrides
                 cfg.consecutive_failures = 0
                 db.commit()
-                healed.append({"slug": slug, "url": found_url})
+                healed.append({"slug": slug, "ats": ats, "url": found_url})
+                continue
+
+            if found_url:
+                # The scraper ignores url_override (only Greenhouse reads it today):
+                # report the fix instead of pretending it's healed.
+                suggested.append({"slug": slug, "ats": ats, "url": found_url,
+                                  "reason": "update API_URL in the scraper"})
+            last_error_type = db.query(ScraperRun.error_type).filter(
+                ScraperRun.company_slug == slug
+            ).order_by(ScraperRun.run_at.desc(), ScraperRun.id.desc()).limit(1).scalar()
+            if cfg.consecutive_failures >= 10 and last_error_type == "empty_result":
+                # A board that answers with 0 jobs isn't disabled on that alone.
+                unresolved.append({"slug": slug, "failures": cfg.consecutive_failures,
+                                   "reason": "empty_result streak; not auto-disabled"})
             elif cfg.consecutive_failures >= 10:
-                new_overrides = {
+                cfg.config_overrides = {
                     **overrides,
                     "auto_disabled": True,
-                    "auto_disabled_reason": "404 after slug exhaustion",
+                    "auto_disabled_reason": (
+                        f"{cfg.consecutive_failures} failures; "
+                        + (f"suggested board {found_url}" if found_url else f"no working {ats or 'ATS'} board found")
+                    ),
                 }
-                cfg.config_overrides = new_overrides
                 cfg.is_enabled = False
                 db.commit()
                 disabled.append({"slug": slug, "failures": cfg.consecutive_failures})
                 logger.warning(f"auto_heal: disabled {slug} after {cfg.consecutive_failures} failures")
-            else:
-                unresolved.append({"slug": slug, "failures": cfg.consecutive_failures})
+            elif not found_url:
+                reason = (
+                    f"no working {ats} board among token variants" if token
+                    else f"ats={ats or 'unknown'}, manual fix needed"
+                )
+                unresolved.append({"slug": slug, "failures": cfg.consecutive_failures, "reason": reason})
 
     except Exception:
         logger.exception("auto_heal_scrapers failed")
@@ -549,7 +685,7 @@ def auto_heal_scrapers() -> dict:
         db.close()
 
     logger.info(
-        f"auto_heal_scrapers done: {len(healed)} healed, "
+        f"auto_heal_scrapers done: {len(healed)} healed, {len(suggested)} suggested, "
         f"{len(disabled)} disabled, {len(unresolved)} unresolved"
     )
-    return {"healed": healed, "disabled": disabled, "unresolved": unresolved}
+    return {"healed": healed, "suggested": suggested, "disabled": disabled, "unresolved": unresolved}

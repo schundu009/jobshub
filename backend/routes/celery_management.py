@@ -11,6 +11,7 @@ Endpoints for:
 from datetime import datetime, timedelta
 from typing import Optional, List
 import json
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -18,11 +19,20 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User, AppSetting, ScraperRun
-from middleware.auth import get_current_user, get_current_user_detached
+from middleware.auth import get_current_admin_detached
 from config import settings
 from services.redis_service import redis_service
+from services import app_settings
 
-router = APIRouter(prefix="/api/celery", tags=["celery"])
+logger = logging.getLogger(__name__)
+
+# Admin-only. The detached variant releases the request's DB connection right
+# after the auth lookup, so slow worker broadcasts don't pin a pooled connection.
+router = APIRouter(
+    prefix="/api/celery",
+    tags=["celery"],
+    dependencies=[Depends(get_current_admin_detached)],
+)
 
 
 # ============== Pydantic Models ==============
@@ -103,6 +113,11 @@ def get_redis_client():
         return None
 
 
+def declared_queue_names() -> List[str]:
+    """Queue names declared in celery_app.conf.task_queues."""
+    return [q.name for q in (get_celery_app().conf.task_queues or [])]
+
+
 CELERY_STATUS_CACHE_KEY = "celery:status"
 CELERY_SCHEDULES_CACHE_KEY = "celery:schedules"
 CELERY_CACHE_TTL = 20  # seconds
@@ -157,7 +172,7 @@ def _collect_celery_status() -> CeleryStatus:
 
     # Get queue information from Redis (one pipelined round-trip)
     if redis_connected:
-        queue_names = ['default', 'scrapers_http', 'scrapers_browser', 'scrapers_orchestrator', 'maintenance']
+        queue_names = declared_queue_names()
         try:
             pipe = redis_service.client.pipeline(transaction=False)
             for queue_name in queue_names:
@@ -183,7 +198,7 @@ def _collect_celery_status() -> CeleryStatus:
 # ============== Endpoints ==============
 
 @router.get("/status", response_model=CeleryStatus)
-def get_celery_status(current_user: User = Depends(get_current_user_detached)):
+def get_celery_status(current_user: User = Depends(get_current_admin_detached)):
     """
     Get Celery worker and queue status.
 
@@ -200,120 +215,91 @@ def get_celery_status(current_user: User = Depends(get_current_user_detached)):
     return status
 
 
-@router.get("/schedules", response_model=List[ScheduleItem])
+class SchedulesResponse(BaseModel):
+    schedules: List[ScheduleItem]
+    settings: dict
+
+
+def _format_schedule(schedule) -> str:
+    if hasattr(schedule, 'minute') and hasattr(schedule, 'hour'):
+        minute = getattr(schedule, '_orig_minute', schedule.minute)
+        hour = getattr(schedule, '_orig_hour', schedule.hour)
+        return f"cron({minute} {hour} * * *)"
+    return str(schedule)
+
+
+@router.get("/schedules", response_model=SchedulesResponse)
 def get_schedules(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_detached),
     db: Session = Depends(get_db)
 ):
     """
-    Get configured task schedules. Cached in Redis for 20s.
+    Get configured task schedules plus the admin-editable settings
+    ({scraper_interval_hours, auto_apply_enabled, description_fetch_enabled}).
+    Cached in Redis for 20s.
     """
     cached = redis_service.cache_get(CELERY_SCHEDULES_CACHE_KEY)
-    if cached is not None:
+    if cached is not None and isinstance(cached, dict):
         return cached
 
     celery_app = get_celery_app()
+    current = app_settings.schedule_settings(db)
+    last_run = app_settings.get_datetime(db, app_settings.SCRAPER_LAST_RUN_KEY)
+
     schedules = []
-
-    # Get schedule configuration from database
-    interval_setting = db.query(AppSetting).filter(
-        AppSetting.key == "scraper_interval_hours"
-    ).first()
-    interval_hours = int(interval_setting.value) if interval_setting else settings.scraper_schedule_hours
-
-    auto_apply_setting = db.query(AppSetting).filter(
-        AppSetting.key == "auto_apply_enabled"
-    ).first()
-    auto_apply_enabled = auto_apply_setting.value.lower() == "true" if auto_apply_setting else True
-
-    desc_fetch_setting = db.query(AppSetting).filter(
-        AppSetting.key == "description_fetch_enabled"
-    ).first()
-    desc_fetch_enabled = desc_fetch_setting.value.lower() == "true" if desc_fetch_setting else True
-
-    # Build schedule list from beat_schedule
-    beat_schedule = celery_app.conf.beat_schedule
-
-    for name, config in beat_schedule.items():
+    for name, config in celery_app.conf.beat_schedule.items():
         task = config.get('task', '')
-        schedule = config.get('schedule')
-
-        # Format schedule for display
-        schedule_str = str(schedule)
-        if hasattr(schedule, 'minute') and hasattr(schedule, 'hour'):
-            hour = schedule.hour if schedule.hour != '*' else '*'
-            minute = schedule.minute if schedule.minute != '*' else '*'
-            schedule_str = f"cron({minute} {hour} * * *)"
-
-        # Determine if enabled based on settings
+        # Determine if enabled based on settings (the tasks check these flags too)
         enabled = True
-        if 'auto_apply' in name.lower() or 'application' in name.lower():
-            enabled = auto_apply_enabled
+        if 'auto_apply' in task or 'application' in name.lower():
+            enabled = current["auto_apply_enabled"]
         elif 'description' in name.lower():
-            enabled = desc_fetch_enabled
+            enabled = current["description_fetch_enabled"]
 
-        schedules.append(ScheduleItem(
+        item = ScheduleItem(
             name=name,
             task=task,
-            schedule=schedule_str,
+            schedule=_format_schedule(config.get('schedule')),
             enabled=enabled,
-            last_run=None,  # Would need to track this separately
+            last_run=None,
             next_run=None,
-        ))
+        )
+        if task == "tasks.scraper_tasks.scrape_all_companies":
+            item.schedule = f"every {current['scraper_interval_hours']}h (checked {item.schedule})"
+            item.last_run = last_run.isoformat() if last_run else None
+        schedules.append(item)
 
-    redis_service.cache_set(
-        CELERY_SCHEDULES_CACHE_KEY, [item.model_dump() for item in schedules], CELERY_CACHE_TTL
-    )
-    return schedules
+    payload = {
+        "schedules": [item.model_dump() for item in schedules],
+        "settings": current,
+    }
+    redis_service.cache_set(CELERY_SCHEDULES_CACHE_KEY, payload, CELERY_CACHE_TTL)
+    return payload
 
 
 @router.put("/schedules")
 def update_schedules(
     update: ScheduleUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_detached),
     db: Session = Depends(get_db)
 ):
     """
-    Update task schedules.
-
-    Note: Schedule changes take effect on next Celery Beat restart.
+    Update schedule settings. Takes effect without a Beat restart:
+    scrape_all_companies skips runs until scraper_interval_hours have passed
+    since the last orchestrated run, and fetch_missing_descriptions /
+    process_pending_applications return early when disabled.
     """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
-    # Update scraper interval
-    interval_setting = db.query(AppSetting).filter(
-        AppSetting.key == "scraper_interval_hours"
-    ).first()
-    if interval_setting:
-        interval_setting.value = str(update.scraper_interval_hours)
-    else:
-        db.add(AppSetting(key="scraper_interval_hours", value=str(update.scraper_interval_hours)))
-
-    # Update auto-apply enabled
-    auto_apply_setting = db.query(AppSetting).filter(
-        AppSetting.key == "auto_apply_enabled"
-    ).first()
-    if auto_apply_setting:
-        auto_apply_setting.value = str(update.auto_apply_enabled).lower()
-    else:
-        db.add(AppSetting(key="auto_apply_enabled", value=str(update.auto_apply_enabled).lower()))
-
-    # Update description fetch enabled
-    desc_fetch_setting = db.query(AppSetting).filter(
-        AppSetting.key == "description_fetch_enabled"
-    ).first()
-    if desc_fetch_setting:
-        desc_fetch_setting.value = str(update.description_fetch_enabled).lower()
-    else:
-        db.add(AppSetting(key="description_fetch_enabled", value=str(update.description_fetch_enabled).lower()))
-
+    app_settings.set_setting(db, app_settings.SCRAPER_INTERVAL_KEY, str(update.scraper_interval_hours))
+    app_settings.set_setting(db, app_settings.AUTO_APPLY_ENABLED_KEY, str(update.auto_apply_enabled).lower())
+    app_settings.set_setting(
+        db, app_settings.DESCRIPTION_FETCH_ENABLED_KEY, str(update.description_fetch_enabled).lower()
+    )
     db.commit()
     redis_service.cache_delete(CELERY_SCHEDULES_CACHE_KEY)
 
     return {
         "status": "success",
-        "message": "Schedules updated. Restart Celery Beat for changes to take effect.",
+        "message": "Schedules updated. Changes apply from the next scheduled check.",
         "settings": {
             "scraper_interval_hours": update.scraper_interval_hours,
             "auto_apply_enabled": update.auto_apply_enabled,
@@ -322,22 +308,79 @@ def update_schedules(
     }
 
 
+RESULT_KEY_PREFIX = "celery-task-meta-"
+RESULT_SCAN_MAX_KEYS = 200  # bound the SCAN so this stays fast
+
+
+def _recent_celery_results(max_keys: int = RESULT_SCAN_MAX_KEYS) -> List[TaskInfo]:
+    """
+    Recent task results from the Redis result backend (results expire after
+    result_expires=1h). Only read when the result backend is the same Redis
+    as redis_service; bounded to ``max_keys`` keys. Task name/args are only
+    present when result_extended is on, so they may be missing.
+    """
+    backend = settings.celery_result_backend or ""
+    if not backend.startswith("redis") or backend != settings.redis_url:
+        return []
+    client = get_redis_client()
+    if client is None or not redis_service.ping():
+        return []
+    try:
+        keys = []
+        for key in client.scan_iter(match=f"{RESULT_KEY_PREFIX}*", count=100):
+            keys.append(key)
+            if len(keys) >= max_keys:
+                break
+        if not keys:
+            return []
+        values = client.mget(keys)
+    except Exception as e:
+        logger.debug(f"celery result scan failed: {e}")
+        return []
+
+    tasks = []
+    for key, raw in zip(keys, values):
+        if not raw:
+            continue
+        try:
+            meta = json.loads(raw)
+        except (TypeError, ValueError):
+            continue
+        status = meta.get("status") or "UNKNOWN"
+        result = meta.get("result")
+        tasks.append(TaskInfo(
+            task_id=meta.get("task_id") or str(key)[len(RESULT_KEY_PREFIX):],
+            name=meta.get("name") or "celery task",
+            status=status,
+            args=json.dumps(meta.get("args"))[:200] if meta.get("args") else None,
+            started_at=None,
+            completed_at=meta.get("date_done"),
+            result=json.dumps(result)[:500] if status == "SUCCESS" and result is not None else None,
+            error=str(result)[:500] if status == "FAILURE" else None,
+        ))
+    return tasks
+
+
 @router.get("/tasks/recent", response_model=List[TaskInfo])
 def get_recent_tasks(
     limit: int = Query(default=50, ge=1, le=200),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin_detached),
     db: Session = Depends(get_db)
 ):
     """
-    Get recent task executions from scraper runs.
+    Recent task executions: scraper runs from the DB, plus any results still in
+    the Redis result backend (expire after 1h; scan bounded to 200 keys).
+    Sorted newest first.
     """
-    # Get recent scraper runs as proxy for task history
     runs = db.query(ScraperRun).order_by(
         ScraperRun.run_at.desc()
     ).limit(limit).all()
 
     tasks = []
+    seen_ids = set()
     for run in runs:
+        if run.celery_task_id:
+            seen_ids.add(run.celery_task_id)
         tasks.append(TaskInfo(
             task_id=run.celery_task_id or f"run-{run.id}",
             name=f"scrape_company ({run.company_slug})",
@@ -349,13 +392,15 @@ def get_recent_tasks(
             error=run.error_message if not run.success else None,
         ))
 
-    return tasks
+    tasks.extend(t for t in _recent_celery_results() if t.task_id not in seen_ids)
+    tasks.sort(key=lambda t: t.completed_at or t.started_at or "", reverse=True)
+    return tasks[:limit]
 
 
 @router.post("/tasks/trigger", response_model=TriggerResponse)
 def trigger_task(
     request: TriggerTaskRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_detached)
 ):
     """
     Manually trigger a Celery task.
@@ -368,9 +413,6 @@ def trigger_task(
     - fetch_missing_descriptions: Fetch job descriptions
     - process_pending_applications: Process auto-apply queue
     """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     celery_app = get_celery_app()
 
     # Map task names to actual task paths
@@ -391,11 +433,16 @@ def trigger_task(
             detail=f"Unknown task: {request.task_name}. Available: {list(task_map.keys())}"
         )
 
+    kwargs = dict(request.kwargs or {})
+    if request.task_name == "scrape_all_companies":
+        # A manual trigger bypasses the scrape-interval gate.
+        kwargs.setdefault("force", True)
+
     try:
         task = celery_app.send_task(
             task_path,
             args=request.args or [],
-            kwargs=request.kwargs or {},
+            kwargs=kwargs,
         )
 
         return TriggerResponse(
@@ -411,7 +458,7 @@ def trigger_task(
 def trigger_named_task(
     task_name: str,
     category: Optional[str] = Query(None, description="Category for scrape_by_category"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_detached)
 ):
     """
     Trigger a specific task by name (simplified endpoint).
@@ -427,7 +474,7 @@ def trigger_named_task(
 
 
 @router.get("/workers/ping")
-def ping_workers(current_user: User = Depends(get_current_user)):
+def ping_workers(current_user: User = Depends(get_current_admin_detached)):
     """
     Ping all workers to check if they're alive.
     """
@@ -467,27 +514,27 @@ def ping_workers(current_user: User = Depends(get_current_user)):
 @router.post("/workers/purge/{queue_name}")
 def purge_queue(
     queue_name: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin_detached)
 ):
     """
     Purge all pending tasks from a queue.
     """
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
-    valid_queues = ['default', 'scrapers_http', 'scrapers_browser', 'scrapers_orchestrator', 'maintenance']
+    valid_queues = declared_queue_names()
     if queue_name not in valid_queues:
         raise HTTPException(status_code=400, detail=f"Invalid queue. Valid: {valid_queues}")
 
     celery_app = get_celery_app()
 
     try:
-        # Purge the queue
-        purged = celery_app.control.purge()
+        # Purge only this queue (control.purge() would empty every queue).
+        with celery_app.connection_for_write() as conn:
+            purged = conn.default_channel.queue_purge(queue_name)
 
+        redis_service.cache_delete(CELERY_STATUS_CACHE_KEY)
         return {
             "status": "success",
-            "message": f"Purged tasks from queue",
+            "message": f"Purged {purged or 0} tasks from {queue_name}",
+            "queue": queue_name,
             "purged_count": purged or 0
         }
     except Exception as e:

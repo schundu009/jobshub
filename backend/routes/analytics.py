@@ -8,11 +8,17 @@ from typing import Optional
 
 from database import get_db
 from models import Job, Company, Contact, Interview, Note, Document, User
-from middleware.auth import get_current_user
+from middleware.auth import get_current_admin
 from services.redis_service import redis_service
 from config import settings
 
-router = APIRouter(prefix="/api/analytics", tags=["analytics"])
+# Admin-only: these are global aggregates for the admin portal (the jobs site
+# doesn't call /api/analytics).
+router = APIRouter(
+    prefix="/api/analytics",
+    tags=["analytics"],
+    dependencies=[Depends(get_current_admin)],
+)
 
 
 STATUSES = ["wishlist", "applied", "interviewing", "offer", "rejected", "withdrawn"]
@@ -354,7 +360,7 @@ def cleanup_old_jobs(
     days: int = Query(default=7, ge=1, le=365, description="Delete jobs older than this many days"),
     dry_run: bool = Query(default=True, description="Preview without deleting"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Delete jobs where posted_date is older than the specified number of days.
@@ -365,10 +371,6 @@ def cleanup_old_jobs(
     Filters by posted_date (when job was posted on company site), falling back to
     created_at for jobs without posted_date.
     """
-    # Admin check
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     cutoff_date = datetime.utcnow() - timedelta(days=days)
 
     # Get jobs to delete - filter by posted_date (when job was posted)
@@ -426,7 +428,7 @@ def cleanup_old_jobs(
 def cleanup_duplicates(
     dry_run: bool = Query(default=True, description="Preview without deleting"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Find and remove duplicate jobs using multiple criteria:
@@ -436,10 +438,6 @@ def cleanup_duplicates(
     Admin-only endpoint. Keeps the oldest job record and deletes newer duplicates.
     Use dry_run=true to preview before deleting.
     """
-    # Admin check
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     duplicate_ids = set()
 
     # Method 1: Find duplicates by company_id + external_job_id

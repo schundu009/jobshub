@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime, date, timedelta
 import csv
+import logging
 import json
 import io
 import re
@@ -28,10 +29,15 @@ from database import get_db
 from models import Job, Company, IngestionSource, User, AppSetting
 from services import ingestion_service
 from utils.security import validate_url_ssrf_safe
-from middleware.auth import get_current_user
+from middleware.auth import get_current_user, get_current_admin, is_admin
 from routes.settings import get_max_job_age_days
+from services.company_resolver import CompanyResolver, registry_company_keys, normalize_company_key
 
+# Admin-only (Depends(get_current_admin) per route), except
+# POST /refetch-description/{job_id}, which the jobs site's job-detail page
+# uses for jobs the user can see.
 router = APIRouter(prefix="/api/ingest", tags=["ingestion"])
+logger = logging.getLogger(__name__)
 
 
 def extract_salary(description: str) -> tuple:
@@ -323,15 +329,12 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
         company = db.query(Company).filter(Company.id == source.company_id).first()
 
     if not company:
-        company = db.query(Company).filter(Company.name == source.company_name).first()
-        if not company:
-            company = Company(
-                name=source.company_name,
-                website=source.career_page_url
-            )
-            db.add(company)
-            db.commit()
-            db.refresh(company)
+        # Normalized-name match so 'Snap Inc.' reuses the scraper's 'Snap' row.
+        company = CompanyResolver(db).get_or_create(
+            source.company_name, website=source.career_page_url
+        )
+        db.commit()
+        db.refresh(company)
         source.company_id = company.id
 
     # Track external IDs we've seen (only for recent jobs)
@@ -454,7 +457,7 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
 @router.post("/sources/upload", response_model=SourceUploadResponse)
 async def upload_sources(
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -559,7 +562,7 @@ async def upload_sources(
 @router.post("/sources/bulk", response_model=SourceUploadResponse)
 def add_sources_bulk(
     request: BulkSourceRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -623,7 +626,7 @@ def add_sources_bulk(
 
 @router.post("/sources/refresh", response_model=RefreshResponse)
 def refresh_all_sources(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -677,7 +680,7 @@ def refresh_all_sources(
 @router.post("/sources/{source_id}/refresh")
 def refresh_single_source(
     source_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -705,7 +708,7 @@ def refresh_sources_batch(
     batch_size: int = 10,
     offset: int = 0,
     timeout_per_source: int = 120,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -832,7 +835,7 @@ def start_batch_refresh_async(
     exclude_slow: bool = False,
     slow_only: bool = False,
     background_tasks: BackgroundTasks = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -996,7 +999,7 @@ def start_batch_refresh_async(
 @router.get("/sources/refresh/batch/status/{job_id}")
 def get_batch_refresh_status(
     job_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Get the status of a background batch refresh job.
@@ -1010,7 +1013,7 @@ def get_batch_refresh_status(
 @router.post("/sources/refresh/batch/stop/{job_id}")
 def stop_batch_refresh(
     job_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Stop a running batch refresh job.
@@ -1034,7 +1037,7 @@ def stop_batch_refresh(
 
 
 @router.get("/sources/refresh/batch/jobs")
-def list_batch_jobs(current_user: User = Depends(get_current_user)):
+def list_batch_jobs(current_user: User = Depends(get_current_admin)):
     """
     List all batch refresh jobs and their status.
     """
@@ -1050,7 +1053,7 @@ def list_batch_jobs(current_user: User = Depends(get_current_user)):
 def get_batch_logs(
     job_id: str,
     since: int = 0,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Get logs for a batch job.
@@ -1074,7 +1077,7 @@ def get_batch_logs(
 @router.get("/sources/refresh/batch/stream/{job_id}")
 async def stream_batch_logs(
     job_id: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Stream batch job logs using Server-Sent Events (SSE).
@@ -1123,7 +1126,7 @@ async def stream_batch_logs(
 @router.post("/company/custom", response_model=AddCustomCompanyResponse)
 def add_custom_company(
     request: AddCustomCompanyRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1144,26 +1147,12 @@ def add_custom_company(
             message=f"Company '{existing_source.company_name}' already tracked. You can add jobs manually."
         )
 
-    # Check if company already exists by name
-    existing_company = db.query(Company).filter(
-        Company.name.ilike(request.company_name)
-    ).first()
-
-    if existing_company:
-        # Update the website if not set
-        if not existing_company.website:
-            existing_company.website = request.career_page_url
-            db.commit()
-        company = existing_company
-    else:
-        # Create new company
-        company = Company(
-            name=request.company_name,
-            website=request.career_page_url
-        )
-        db.add(company)
-        db.commit()
-        db.refresh(company)
+    # Reuse an existing company with the same normalized name, else create it
+    company = CompanyResolver(db).get_or_create(
+        request.company_name, website=request.career_page_url
+    )
+    db.commit()
+    db.refresh(company)
 
     # Create ingestion source for tracking (marked as 'custom' type)
     new_source = IngestionSource(
@@ -1188,7 +1177,7 @@ def add_custom_company(
 @router.post("/company", response_model=IngestCompanyResponse)
 def ingest_company_jobs(
     request: IngestCompanyRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1251,7 +1240,7 @@ def ingest_company_jobs(
 # Keep the old /refresh endpoint for backwards compatibility
 @router.post("/refresh", response_model=RefreshResponse)
 def refresh_sources_legacy(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1264,7 +1253,7 @@ def refresh_sources_legacy(
 def list_ingestion_sources(
     active_only: bool = False,
     ats_type: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1279,10 +1268,14 @@ def list_ingestion_sources(
         query = query.filter(IngestionSource.ats_type == ats_type)
 
     sources = query.order_by(IngestionSource.company_name).all()
+    scraper_keys = registry_company_keys()
 
     result = []
     for source in sources:
         result.append({
+            # True when a registry scraper covers this company (tracked), else
+            # an ATS source / employer without a dedicated scraper.
+            "has_scraper": normalize_company_key(source.company_name) in scraper_keys,
             "id": source.id,
             "company_name": source.company_name,
             "ats_type": source.ats_type,
@@ -1301,7 +1294,7 @@ def list_ingestion_sources(
 
 @router.get("/sources/stats")
 def get_sources_stats(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1336,7 +1329,7 @@ def update_ingestion_source(
     ats_company_slug: Optional[str] = None,
     career_page_url: Optional[str] = None,
     is_active: Optional[bool] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1377,7 +1370,7 @@ def update_ingestion_source(
 @router.delete("/sources/{source_id}")
 def delete_ingestion_source(
     source_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1398,7 +1391,7 @@ def update_ingestion_source(
     source_id: int,
     is_active: Optional[bool] = None,
     company_name: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1425,7 +1418,7 @@ def update_ingestion_source(
 @router.get("/detect")
 def detect_ats_from_url(
     url: str,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Detect the ATS type from a career page URL without ingesting.
@@ -1447,7 +1440,7 @@ def detect_ats_from_url(
 
 
 @router.get("/supported-platforms")
-def get_supported_platforms(current_user: User = Depends(get_current_user)):
+def get_supported_platforms(current_user: User = Depends(get_current_admin)):
     """
     Get information about all supported ATS platforms.
     """
@@ -1457,7 +1450,7 @@ def get_supported_platforms(current_user: User = Depends(get_current_user)):
 @router.post("/cleanup-old-jobs")
 def cleanup_old_jobs(
     days: int = 30,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1494,7 +1487,7 @@ def cleanup_old_jobs(
 
 @router.post("/fix-sequences")
 def fix_database_sequences(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -1560,7 +1553,7 @@ def refetch_missing_descriptions(
     company_name: Optional[str] = None,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Re-fetch job descriptions for jobs that are missing them.
@@ -1660,9 +1653,13 @@ def refetch_single_job_description(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Re-fetch job description for a single job by ID.
+    Re-fetch job description for a single job by ID (shared jobs and the
+    user's own; admins any job).
     """
-    job = db.query(Job).filter(Job.id == job_id).first()
+    query = db.query(Job).filter(Job.id == job_id)
+    if not is_admin(current_user):
+        query = query.filter(or_(Job.user_id == None, Job.user_id == current_user.id))  # noqa: E711
+    job = query.first()
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -1707,7 +1704,7 @@ fetch_progress = {
 
 
 @router.get("/fetch-progress")
-def get_fetch_progress(current_user: User = Depends(get_current_user)):
+def get_fetch_progress(current_user: User = Depends(get_current_admin)):
     """Get current progress of description fetch operation."""
     return fetch_progress
 
@@ -1716,7 +1713,7 @@ def get_fetch_progress(current_user: User = Depends(get_current_user)):
 def fetch_all_missing_descriptions(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Fetch descriptions for ALL jobs with missing descriptions.

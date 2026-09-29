@@ -16,7 +16,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from database import get_db
-from middleware.auth import get_current_user
+from middleware.auth import get_current_admin
+from services.company_resolver import CompanyResolver
 from models import User, Job, Company
 from services.apify_service import get_apify_service, APIFY_ACTORS, APIFY_AVAILABLE
 
@@ -60,6 +61,18 @@ class ApifyQuickRunResponse(BaseModel):
 
 # ============== Helper Functions ==============
 
+def _check_webhook_secret(secret: str) -> None:
+    """APIFY_WEBHOOK_SECRET has no default: unset means the webhooks are disabled (503)."""
+    import os
+    import secrets as _secrets
+
+    expected = os.environ.get("APIFY_WEBHOOK_SECRET", "")
+    if not expected:
+        raise HTTPException(status_code=503, detail="webhook disabled")
+    if not _secrets.compare_digest(secret or "", expected):
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+
 def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, int]:
     """
     Save jobs from Apify to database.
@@ -75,6 +88,7 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
     jobs_saved = 0
     companies_created = 0
     companies_cache = {}
+    resolver = None
     skipped_existing = 0
 
     logger.info(f"save_apify_jobs: Processing {len(jobs)} jobs from {source}")
@@ -86,18 +100,15 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
             company_name = raw_data.get("company_name") or job_data.get("company_name", "Unknown")
 
             if company_name not in companies_cache:
-                company = db.query(Company).filter(
-                    Company.name == company_name
-                ).first()
-
-                if not company:
-                    # Create company - use only fields that exist in the model
-                    company = Company(
-                        name=company_name,
-                        website=job_data.get("job_url", "").split("/job")[0] if job_data.get("job_url") else None,
-                    )
-                    db.add(company)
-                    db.flush()
+                # Normalized-name match ('Snap Inc.' == 'Snap'); one resolver per batch
+                if resolver is None:
+                    resolver = CompanyResolver(db)
+                before = resolver.find(company_name)
+                company = before or resolver.get_or_create(
+                    company_name,
+                    website=job_data.get("job_url", "").split("/job")[0] if job_data.get("job_url") else None,
+                )
+                if before is None:
                     companies_created += 1
 
                 companies_cache[company_name] = company
@@ -170,7 +181,7 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
 # ============== Endpoints ==============
 
 @router.get("/status", response_model=ApifyStatusResponse)
-def get_apify_status(current_user: User = Depends(get_current_user)):
+def get_apify_status(current_user: User = Depends(get_current_admin)):
     """
     Check Apify configuration status.
 
@@ -187,7 +198,7 @@ def get_apify_status(current_user: User = Depends(get_current_user)):
 @router.post("/run", response_model=ApifyRunResponse)
 async def run_apify_scraper(
     request: ApifyRunRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -257,7 +268,7 @@ async def run_apify_quick(
     search_query: str = Query(default="software engineer"),
     location: str = Query(default="United States"),
     max_items: int = Query(default=50, ge=10, le=200),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -320,7 +331,7 @@ async def run_apify_quick(
 @router.post("/run-all")
 async def run_all_apify_scrapers(
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_admin),
 ):
     """
     Run all configured Apify scrapers in the background.
@@ -399,10 +410,7 @@ async def webhook_trigger_apify(
     Use this for external triggers like cron jobs.
     """
     import os
-    expected_secret = os.environ.get("APIFY_WEBHOOK_SECRET", "apify-cariara-2024")
-
-    if secret != expected_secret:
-        raise HTTPException(status_code=403, detail="Invalid secret")
+    _check_webhook_secret(secret)
 
     service = get_apify_service()
 
@@ -451,10 +459,7 @@ async def webhook_bulk_scrape(
     No auth required, uses secret.
     """
     import os
-    expected_secret = os.environ.get("APIFY_WEBHOOK_SECRET", "apify-cariara-2024")
-
-    if secret != expected_secret:
-        raise HTTPException(status_code=403, detail="Invalid secret")
+    _check_webhook_secret(secret)
 
     service = get_apify_service()
 

@@ -10,10 +10,10 @@ Tasks:
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
-from celery import shared_task, group, chain
+from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from sqlalchemy.orm import Session
 
@@ -21,7 +21,7 @@ from celery_app import celery_app
 from database import SessionLocal
 from models import ScraperRun, ScraperConfigDB, Company, Job
 from scrapers.registry import ScraperRegistry, get_scraper
-from scrapers.base import ScraperType, ScrapeResult
+from scrapers.base import ScraperType, ScrapeResult, ScraperErrorType
 from scrapers.rate_limiter import get_rate_limiter
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,8 @@ def record_scraper_run(
         result: ScrapeResult from the scraper
         task_id: Celery task ID
     """
+    _flag_suspicious_empty_result(db, company_slug, result)
+
     run = ScraperRun(
         company_slug=company_slug,
         success=result.success,
@@ -58,7 +60,7 @@ def record_scraper_run(
         completed_at=result.completed_at,
         pages_scraped=result.pages_scraped,
         error_message=result.error_message,
-        error_type=result.error_type.value if result.error_type else None,
+        error_type=getattr(result.error_type, "value", result.error_type) or None,
         celery_task_id=task_id,
     )
     db.add(run)
@@ -83,6 +85,62 @@ def record_scraper_run(
         config.consecutive_failures = (config.consecutive_failures or 0) + 1
 
     db.commit()
+
+
+def _flag_suspicious_empty_result(db: Session, company_slug: str, result: ScrapeResult) -> None:
+    """
+    A "successful" 0-job scrape of a board whose last successful run found jobs
+    is almost always a silent breakage (board moved ATS, API shape changed, all
+    postings filtered). Record it as a failure with error_type=empty_result so
+    it shows up in scraper health. This only bumps consecutive_failures; it never
+    disables the scraper by itself. Scrapers configured with allow_empty=True
+    (boards that legitimately go to zero) are exempt.
+    """
+    if not result.success or (result.jobs_found or 0) > 0 or result.jobs:
+        return
+    scraper_cls = ScraperRegistry.get(company_slug)
+    if scraper_cls is not None and getattr(scraper_cls.config, "allow_empty", False):
+        return
+    last_success = db.query(ScraperRun.jobs_found).filter(
+        ScraperRun.company_slug == company_slug,
+        ScraperRun.success == True,  # noqa: E712
+    ).order_by(ScraperRun.run_at.desc(), ScraperRun.id.desc()).first()
+    if not last_success or not (last_success[0] or 0) > 0:
+        return
+    result.success = False
+    result.error_type = ScraperErrorType.EMPTY_RESULT
+    result.error_message = result.error_message or (
+        f"0 jobs returned; the last successful run found {last_success[0]}. "
+        "Board moved, API changed, or all postings filtered out."
+    )
+    logger.warning(f"{company_slug}: empty result after {last_success[0]} jobs - recorded as failure")
+
+
+def _record_failure(company_slug: str, message: str, error_type, task_id: Optional[str]) -> None:
+    """Record a failed run on a fresh session; never raises (the worker must survive)."""
+    fail_db = get_db()
+    try:
+        now = datetime.utcnow()
+        record_scraper_run(
+            fail_db,
+            company_slug,
+            ScrapeResult(
+                success=False,
+                error_message=message[:1000],
+                error_type=error_type,
+                started_at=now,
+                completed_at=now,
+            ),
+            task_id=task_id,
+        )
+    except Exception:
+        logger.exception(f"Failed to record {error_type} failure for {company_slug}")
+        try:
+            fail_db.rollback()
+        except Exception:
+            pass
+    finally:
+        fail_db.close()
 
 
 def is_scraper_enabled(db: Session, company_slug: str) -> bool:
@@ -181,24 +239,16 @@ def scrape_company_http(self, company_slug: str) -> dict:
         }
 
     except SoftTimeLimitExceeded:
+        # Record it: a timeout used to leave no ScraperRun row at all, so big
+        # scrapers that always time out showed as "never run".
         logger.warning(f"Scraper {company_slug} timed out (soft limit)")
+        _record_failure(company_slug, "soft time limit exceeded", ScraperErrorType.TIMEOUT, self.request.id)
         return {"status": "timeout", "company_slug": company_slug, "error": "soft time limit exceeded"}
 
     except Exception as e:
         logger.exception(f"Error scraping {company_slug}")
         # Record the failure - never let this crash the worker
-        try:
-            fail_db = get_db()
-            fail_result = ScrapeResult(
-                success=False,
-                error_message=str(e),
-                started_at=datetime.utcnow(),
-                completed_at=datetime.utcnow(),
-            )
-            record_scraper_run(fail_db, company_slug, fail_result, task_id=self.request.id)
-            fail_db.close()
-        except Exception:
-            logger.error(f"Failed to record error for {company_slug}")
+        _record_failure(company_slug, str(e), "exception", self.request.id)
 
         # Only retry on transient errors, not on persistent DB issues
         if self.request.retries < self.max_retries:
@@ -321,40 +371,91 @@ def scrape_company_browser(self, company_slug: str) -> dict:
 
     except SoftTimeLimitExceeded:
         logger.warning(f"Browser scraper {company_slug} timed out (soft limit)")
+        _record_failure(company_slug, "soft time limit exceeded", ScraperErrorType.TIMEOUT, self.request.id)
         return {"status": "timeout", "company_slug": company_slug, "error": "soft time limit exceeded"}
 
     except Exception as e:
         logger.exception(f"Error scraping {company_slug}")
         # Record failure - never let this crash the worker
-        try:
-            fail_db = get_db()
-            fail_result = ScrapeResult(
-                success=False,
-                error_message=str(e),
-                started_at=datetime.utcnow(),
-                completed_at=datetime.utcnow(),
-            )
-            record_scraper_run(fail_db, company_slug, fail_result, task_id=self.request.id)
-            fail_db.close()
-        except Exception:
-            logger.error(f"Failed to record error for {company_slug}")
+        _record_failure(company_slug, str(e), "exception", self.request.id)
 
         if self.request.retries < self.max_retries:
             raise self.retry(exc=e)
         return {"status": "error", "company_slug": company_slug, "error": str(e)}
 
 
+DISPATCH_STAGGER_SECONDS = 2
+
+
+def _dispatch_staggered(signatures: list, queue: str) -> None:
+    for i, sig in enumerate(signatures):
+        sig.apply_async(queue=queue, countdown=i * DISPATCH_STAGGER_SECONDS)
+
+
+# Beat fires scrape_all_companies hourly; runs closer together than the
+# admin-configured interval are skipped. Slack absorbs beat jitter so a 6h
+# interval doesn't slip to 7h.
+INTERVAL_SLACK = timedelta(minutes=10)
+
+
+def _interval_gate(force: bool) -> Optional[dict]:
+    """
+    Returns a "skipped" result if the last orchestrated run is more recent than
+    AppSetting scraper_interval_hours; otherwise records now as the last run and
+    returns None. Errors reading the setting never block a scrape.
+    """
+    from services import app_settings
+
+    db = get_db()
+    try:
+        now = datetime.utcnow()
+        interval_hours = app_settings.schedule_settings(db)["scraper_interval_hours"]
+        last_run = app_settings.get_datetime(db, app_settings.SCRAPER_LAST_RUN_KEY)
+        if not force and last_run and now - last_run < timedelta(hours=interval_hours) - INTERVAL_SLACK:
+            logger.info(
+                f"scrape_all_companies skipped: last run {last_run.isoformat()}, "
+                f"interval {interval_hours}h"
+            )
+            return {
+                "status": "skipped",
+                "skipped": "interval",
+                "last_run": last_run.isoformat(),
+                "interval_hours": interval_hours,
+            }
+        app_settings.set_setting(
+            db, app_settings.SCRAPER_LAST_RUN_KEY, now.isoformat(),
+            description="Last time scrape_all_companies dispatched scrapers",
+        )
+        db.commit()
+        return None
+    except Exception as e:
+        logger.warning(f"scrape interval check failed, running anyway: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        return None
+    finally:
+        db.close()
+
+
 @celery_app.task
-def scrape_all_companies() -> dict:
+def scrape_all_companies(force: bool = False) -> dict:
     """
     Orchestrate scraping all enabled companies.
 
-    Dispatches tasks based on scraper type (HTTP vs Playwright).
+    Dispatches tasks based on scraper type (HTTP vs Playwright). Unless
+    ``force`` is set (manual/webhook triggers), skips when the last
+    orchestrated run is newer than AppSetting scraper_interval_hours.
 
     Returns:
         Dict with task counts
     """
     logger.info("Starting scrape_all_companies orchestration")
+
+    skipped = _interval_gate(force)
+    if skipped:
+        return skipped
 
     try:
         # Load all scrapers
@@ -382,16 +483,12 @@ def scrape_all_companies() -> dict:
                 else:
                     browser_tasks.append(scrape_company_browser.s(slug))
 
-            # Dispatch tasks
-            # HTTP tasks can run more in parallel
-            if http_tasks:
-                group(http_tasks).apply_async(queue="scrapers_http")
-                logger.info(f"Dispatched {len(http_tasks)} HTTP scraper tasks")
-
-            # Browser tasks should be more limited
-            if browser_tasks:
-                group(browser_tasks).apply_async(queue="scrapers_browser")
-                logger.info(f"Dispatched {len(browser_tasks)} browser scraper tasks")
+            # Dispatch, staggered DISPATCH_STAGGER_SECONDS apart so ~250 tasks
+            # don't all sit unacked on the broker at once.
+            _dispatch_staggered(http_tasks, "scrapers_http")
+            logger.info(f"Dispatched {len(http_tasks)} HTTP scraper tasks")
+            _dispatch_staggered(browser_tasks, "scrapers_browser")
+            logger.info(f"Dispatched {len(browser_tasks)} browser scraper tasks")
 
             return {
                 "status": "dispatched",
@@ -440,11 +537,8 @@ def scrape_by_category(category: str) -> dict:
             else:
                 browser_tasks.append(scrape_company_browser.s(slug))
 
-        if http_tasks:
-            group(http_tasks).apply_async(queue="scrapers_http")
-
-        if browser_tasks:
-            group(browser_tasks).apply_async(queue="scrapers_browser")
+        _dispatch_staggered(http_tasks, "scrapers_http")
+        _dispatch_staggered(browser_tasks, "scrapers_browser")
 
         return {
             "status": "dispatched",
@@ -456,25 +550,3 @@ def scrape_by_category(category: str) -> dict:
 
     finally:
         db.close()
-
-
-@celery_app.task
-def scrape_single_company(company_slug: str) -> dict:
-    """
-    Scrape a single company (auto-detects scraper type).
-
-    Args:
-        company_slug: Company slug
-
-    Returns:
-        Task result
-    """
-    scraper_cls = ScraperRegistry.get(company_slug)
-
-    if not scraper_cls:
-        return {"status": "error", "reason": "scraper_not_found"}
-
-    if scraper_cls.config.scraper_type == ScraperType.HTTP:
-        return scrape_company_http.delay(company_slug).get()
-    else:
-        return scrape_company_browser.delay(company_slug).get()

@@ -17,6 +17,7 @@ def headers(user):
 @pytest.fixture
 def dataset(db, users):
     owner, stranger = users
+    owner.role = "admin"  # analytics and scraper status are admin-only
     acme = Company(name="Acme")
     globex = Company(name="Globex")
     private_co = Company(name="Owner Co", user_id=owner.id)
@@ -42,7 +43,7 @@ def dataset(db, users):
 
 
 def test_analytics_summary_counts(client, dataset):
-    body = client.get("/api/analytics/summary").json()
+    body = client.get("/api/analytics/summary", headers=headers(dataset[0])).json()
     assert body["total_jobs"] == 4
     assert body["total_companies"] == 3
     assert body["total_contacts"] == 1
@@ -58,7 +59,7 @@ def test_analytics_summary_counts(client, dataset):
 
 def test_analytics_by_company(client, dataset):
     _, _, acme, globex, _ = dataset
-    companies = client.get("/api/analytics/by-company").json()["companies"]
+    companies = client.get("/api/analytics/by-company", headers=headers(dataset[0])).json()["companies"]
     assert companies == [
         {"company_id": acme.id, "company_name": "Acme", "job_count": 3,
          "status_breakdown": {"applied": 2, "rejected": 1}},
@@ -68,7 +69,7 @@ def test_analytics_by_company(client, dataset):
 
 
 def test_analytics_by_location(client, dataset):
-    locations = client.get("/api/analytics/by-location").json()["locations"]
+    locations = client.get("/api/analytics/by-location", headers=headers(dataset[0])).json()["locations"]
     # None and "" both fold into "Not specified"; sorted by count descending
     assert sorted(locations[:2], key=lambda x: x["location"]) == [
         {"location": "Not specified", "count": 2}, {"location": "Remote", "count": 2}]
@@ -76,20 +77,20 @@ def test_analytics_by_location(client, dataset):
 
 
 def test_analytics_timeline_status_and_rates(client, dataset):
-    timeline = client.get("/api/analytics/timeline").json()["timeline"]
+    timeline = client.get("/api/analytics/timeline", headers=headers(dataset[0])).json()["timeline"]
     assert len(timeline) >= 30
     assert sum(d["count"] for d in timeline) == 4  # 40-day-old job excluded
     day = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     assert {"date": day, "count": 2} in timeline
 
-    breakdown = client.get("/api/analytics/status-breakdown").json()
+    breakdown = client.get("/api/analytics/status-breakdown", headers=headers(dataset[0])).json()
     assert breakdown["total"] == 5
     assert {"status": "applied", "count": 2, "percentage": 40.0} in breakdown["breakdown"]
 
-    rates = client.get("/api/analytics/response-rate").json()
+    rates = client.get("/api/analytics/response-rate", headers=headers(dataset[0])).json()
     assert rates["total_applied"] == 4 and rates["got_interview"] == 1 and rates["rejected"] == 1
 
-    excitement = client.get("/api/analytics/excitement-distribution").json()
+    excitement = client.get("/api/analytics/excitement-distribution", headers=headers(dataset[0])).json()
     assert [d["count"] for d in excitement["distribution"]] == [0, 1, 2, 1, 1]
     assert excitement["average"] == 3.4
 
@@ -103,7 +104,7 @@ def test_interview_stats(client, dataset, db):
                   interview_type="phone_screen", outcome="passed"),
     ])
     db.commit()
-    body = client.get("/api/analytics/interview-stats").json()
+    body = client.get("/api/analytics/interview-stats", headers=headers(dataset[0])).json()
     assert body["total_interviews"] == 2
     assert body["by_outcome"] == {"pending": 1, "passed": 1, "failed": 0, "cancelled": 0}
     assert body["by_type"]["technical"] == 1 and body["by_type"]["final"] == 0
@@ -120,7 +121,7 @@ def test_companies_job_counts_respect_visibility(client, dataset):
     assert theirs[globex.id]["job_count"] == 1
     assert private_co.id not in theirs
     assert set(mine[acme.id]) == {"id", "name", "website", "industry", "size", "location",
-                                  "notes", "created_at", "job_count"}
+                                  "notes", "created_at", "job_count", "has_scraper"}
 
 
 def test_scraper_status_bulk_matches_per_scraper_stats(client, dataset, db, monkeypatch):
@@ -128,6 +129,7 @@ def test_scraper_status_bulk_matches_per_scraper_stats(client, dataset, db, monk
     meta = {"acme": {"company_name": "ACME"}, "globex": {"company_name": "Globex"},
             "nobody": {"company_name": "Nobody Inc"}}
     monkeypatch.setattr(scraper_routes.ScraperRegistry, "list_slugs", classmethod(lambda cls: list(meta)))
+    monkeypatch.setattr(scraper_routes.ScraperRegistry, "get_disabled", classmethod(lambda cls: {}))
     monkeypatch.setattr(scraper_service.ScraperRegistry, "get_metadata", classmethod(lambda cls, s: meta.get(s)))
 
     now = datetime.now()
@@ -154,6 +156,7 @@ def test_scraper_status_bulk_matches_per_scraper_stats(client, dataset, db, monk
     for row in body:
         expected = scraper_service.get_scraper_stats(db, row["company_slug"])
         expected.pop("recent_runs")
+        assert row.pop("has_scraper") is True and row.pop("disabled_reason") is None
         assert row == expected
 
     acme = body[0]

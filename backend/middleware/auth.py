@@ -152,6 +152,23 @@ def get_current_user_optional(
         return None
 
 
+# Roles with access to admin-only endpoints (mirrors ADMIN_ROLES in admin-app).
+ADMIN_ROLES = frozenset({"admin", "administrator", "manager", "developer"})
+
+
+def is_admin(user: Optional[User]) -> bool:
+    return bool(user) and (user.role or "").lower() in ADMIN_ROLES
+
+
+def _require_admin(user: User) -> User:
+    if not is_admin(user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return user
+
+
 def get_current_admin(
     current_user: User = Depends(get_current_user)
 ) -> User:
@@ -161,13 +178,14 @@ def get_current_admin(
     Raises HTTPException 403 if user is not an admin.
     Accepts: admin, administrator, manager, developer roles.
     """
-    admin_roles = ['admin', 'administrator', 'manager', 'developer']
-    if current_user.role not in admin_roles:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return current_user
+    return _require_admin(current_user)
+
+
+def get_current_admin_detached(
+    current_user: User = Depends(get_current_user_detached)
+) -> User:
+    """get_current_admin for handlers that do slow non-DB work (see get_current_user_detached)."""
+    return _require_admin(current_user)
 
 
 def require_verified_email(

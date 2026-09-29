@@ -2,7 +2,7 @@
 Settings routes for managing application configuration.
 
 Security notes:
-- JWT authentication required for all endpoints
+- Admin role required for all endpoints (router-level dependency)
 - API keys are stored in the database (encrypted in transit via HTTPS)
 - Environment variables take precedence over database values
 - Production deployments can disable API key modification via ALLOW_API_KEY_MODIFICATION=false
@@ -16,9 +16,15 @@ import logging
 
 from database import get_db
 from models import User, AppSetting
-from middleware.auth import get_current_user
+from middleware.auth import get_current_admin
 
-router = APIRouter(prefix="/api/settings", tags=["settings"])
+# Every settings endpoint is admin-only: they reveal/modify provider keys,
+# the default AI provider/model and global scrape filters.
+router = APIRouter(
+    prefix="/api/settings",
+    tags=["settings"],
+    dependencies=[Depends(get_current_admin)],
+)
 logger = logging.getLogger(__name__)
 
 # Security configuration
@@ -71,7 +77,7 @@ def get_current_api_key(provider: str = "openai", db: Session = None) -> Optiona
 def get_api_key_status(
     provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Check if API key is configured for the specified provider. Requires authentication.
@@ -99,7 +105,7 @@ def get_api_key_status(
 def set_api_key(
     request: APIKeyRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Set the API key for the specified provider. Requires authentication.
@@ -160,7 +166,7 @@ def set_api_key(
 def remove_api_key(
     provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Remove the stored API key for the specified provider. Requires authentication.
@@ -196,7 +202,7 @@ def remove_api_key(
 def test_api_key(
     provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Test if the configured API key is valid for the specified provider. Requires authentication.
@@ -213,7 +219,7 @@ def test_api_key(
 
 
 @router.post("/test-api-key")
-def test_api_key_with_key(request: APIKeyRequest, current_user: User = Depends(get_current_user)):
+def test_api_key_with_key(request: APIKeyRequest, current_user: User = Depends(get_current_admin)):
     """
     Test a provided API key without saving it. Requires authentication.
     Useful for validating a key before saving.
@@ -244,6 +250,10 @@ def _test_openai_key(api_key: str) -> dict:
         return {"valid": False, "message": f"Error testing key: {error_msg[:100]}"}
 
 
+# Cheapest current model; count_tokens against it validates the key.
+TEST_CLAUDE_MODEL = "claude-haiku-4-5-20251001"
+
+
 def _test_anthropic_key(api_key: str) -> dict:
     """Internal function to test an Anthropic API key."""
     if not api_key:
@@ -254,7 +264,7 @@ def _test_anthropic_key(api_key: str) -> dict:
         client = anthropic.Anthropic(api_key=api_key)
         # Make a minimal API call to test the key (count tokens is cheap)
         client.messages.count_tokens(
-            model="claude-3-haiku-20240307",
+            model=TEST_CLAUDE_MODEL,
             messages=[{"role": "user", "content": "test"}]
         )
         return {"valid": True, "message": "Anthropic API key is valid"}
@@ -272,7 +282,7 @@ def _test_anthropic_key(api_key: str) -> dict:
 @router.get("/security")
 def get_security_settings(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Get current security configuration status. Requires authentication.
@@ -310,7 +320,7 @@ def get_default_ai_provider(db: Session) -> str:
 @router.get("/default-ai-provider")
 def get_default_provider(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """Get the default AI provider for AI features."""
     provider = get_default_ai_provider(db)
@@ -321,7 +331,7 @@ def get_default_provider(
 def set_default_provider(
     request: DefaultProviderRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """Set the default AI provider for AI features."""
     setting = db.query(AppSetting).filter(AppSetting.key == "default_ai_provider").first()
@@ -344,41 +354,51 @@ def set_default_provider(
 
 # ============== AI Model Settings ==============
 
-VALID_OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"]
-VALID_CLAUDE_MODELS = ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"]
-DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
-DEFAULT_CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
+from services.anthropic_service import (  # noqa: E402  single source of truth
+    CLAUDE_MODELS,
+    DEFAULT_MODEL as DEFAULT_CLAUDE_MODEL,
+    resolve_claude_model,
+)
+from services.openai_service import (  # noqa: E402
+    OPENAI_MODELS,
+    DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
+)
+
+VALID_OPENAI_MODELS = list(OPENAI_MODELS)
+VALID_CLAUDE_MODELS = list(CLAUDE_MODELS)
+
+
+def _model_options(models: dict) -> list[dict]:
+    """{id: "Name (Blurb)"} -> [{id, name, description}] for the admin UI."""
+    options = []
+    for model_id, label in models.items():
+        name, _, rest = label.partition(" (")
+        options.append({"id": model_id, "name": name, "description": rest.rstrip(")")})
+    return options
 
 
 class AIModelRequest(BaseModel):
-    model: str = Field(..., description="AI model to use")
+    model: str = Field(..., min_length=1, max_length=100, description="AI model to use")
 
 
 @router.get("/ai-model")
 def get_ai_model_setting(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """Get the configured AI models for both providers."""
     openai_setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
     claude_setting = db.query(AppSetting).filter(AppSetting.key == "claude_model").first()
 
     openai_model = openai_setting.value if openai_setting and openai_setting.value in VALID_OPENAI_MODELS else DEFAULT_OPENAI_MODEL
-    claude_model = claude_setting.value if claude_setting and claude_setting.value in VALID_CLAUDE_MODELS else DEFAULT_CLAUDE_MODEL
+    # A stale saved id (e.g. a retired Claude 3 model) maps to its successor.
+    claude_model = resolve_claude_model(claude_setting.value) if claude_setting and claude_setting.value else DEFAULT_CLAUDE_MODEL
 
     return {
         "openai_model": openai_model,
         "claude_model": claude_model,
-        "openai_models": [
-            {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "description": "Fast & affordable"},
-            {"id": "gpt-4o", "name": "GPT-4o", "description": "Best quality"},
-            {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "description": "High quality"},
-        ],
-        "claude_models": [
-            {"id": "claude-3-5-sonnet-20241022", "name": "Claude 3.5 Sonnet", "description": "Best quality"},
-            {"id": "claude-3-5-haiku-20241022", "name": "Claude 3.5 Haiku", "description": "Fast & affordable"},
-            {"id": "claude-3-opus-20240229", "name": "Claude 3 Opus", "description": "Most capable"},
-        ]
+        "openai_models": _model_options(OPENAI_MODELS),
+        "claude_models": _model_options(CLAUDE_MODELS),
     }
 
 
@@ -386,16 +406,18 @@ def get_ai_model_setting(
 def set_ai_model(
     request: AIModelRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """Set the AI model to use for AI features."""
-    model = request.model
+    model = request.model.strip()
 
     # Determine if it's OpenAI or Claude model
     if model in VALID_OPENAI_MODELS:
         db_key = "ai_model"
         provider = "OpenAI"
-    elif model in VALID_CLAUDE_MODELS:
+    elif model in VALID_CLAUDE_MODELS or model.startswith("claude-3"):
+        # Legacy Claude 3 ids are accepted but stored as their current successor.
+        model = resolve_claude_model(model)
         db_key = "claude_model"
         provider = "Claude"
     else:
@@ -452,7 +474,7 @@ def get_max_job_age_days(db: Session) -> int:
 @router.get("/job-age-filter")
 def get_job_age_filter(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Get the current max job age filter setting.
@@ -470,16 +492,12 @@ def get_job_age_filter(
 def set_job_age_filter(
     request: MaxJobAgeRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_admin)
 ):
     """
     Set the max job age filter. Admin only.
     Jobs older than this will be skipped during scraping to save resources.
     """
-    # Admin check
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-
     # Validate the value
     if request.days not in VALID_JOB_AGE_OPTIONS:
         raise HTTPException(

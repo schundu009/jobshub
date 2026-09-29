@@ -29,7 +29,7 @@ from collections import defaultdict
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from database import create_tables
+from database import create_tables, get_db
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
 # auto_apply routes disabled - users now apply manually with downloaded CV/CL
 from config import settings as app_settings
@@ -984,28 +984,20 @@ async def health_check():
 
 @app.get("/health/db")
 def db_health_check():
-    """DB connectivity check — diagnoses Railway 500s on router routes."""
+    """DB connectivity check. Reports only status and latency (never host/port/URL)."""
     from sqlalchemy import text
-    from database import engine, SessionLocal
-    result = {"engine_created": engine is not None, "db_url_tail": None, "ping": None, "error": None}
-    try:
-        from config import settings as _s
-        url = _s.database_url
-        result["db_url_tail"] = url.split("@")[-1] if "@" in url else url[:40]
-    except Exception as e:
-        result["error"] = f"config: {e}"
-        return result
+    from database import engine
+
     if engine is None:
-        result["error"] = "engine is None — DB failed to initialise"
-        return result
+        return JSONResponse(status_code=503, content={"status": "unavailable", "latency_ms": None})
+    started = time.perf_counter()
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        result["ping"] = "ok"
     except Exception as e:
-        result["ping"] = "failed"
-        result["error"] = str(e)
-    return result
+        logger.warning(f"/health/db ping failed: {type(e).__name__}")
+        return JSONResponse(status_code=503, content={"status": "failed", "latency_ms": None})
+    return {"status": "ok", "latency_ms": round((time.perf_counter() - started) * 1000, 1)}
 
 
 @app.get("/health/redis")
@@ -1014,9 +1006,32 @@ def redis_health():
     return redis_service.health_check()
 
 
-@app.get("/metrics")
+def _require_metrics_access(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    /metrics is readable with a matching X-Metrics-Token header (for a
+    Prometheus scraper; set METRICS_TOKEN) or by an authenticated admin.
+    """
+    import secrets as _secrets
+    from fastapi.security import HTTPAuthorizationCredentials
+    from middleware.auth import get_current_user, get_current_admin
+
+    token = os.getenv("METRICS_TOKEN", "")
+    supplied = request.headers.get("x-metrics-token", "")
+    if token and supplied and _secrets.compare_digest(supplied, token):
+        return
+    scheme, _, credentials = request.headers.get("authorization", "").partition(" ")
+    if scheme.lower() != "bearer" or not credentials:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    user = get_current_user(HTTPAuthorizationCredentials(scheme="Bearer", credentials=credentials), db)
+    get_current_admin(user)
+
+
+@app.get("/metrics", dependencies=[Depends(_require_metrics_access)])
 def prometheus_metrics():
-    """Prometheus metrics endpoint."""
+    """Prometheus metrics endpoint (admin or METRICS_TOKEN only)."""
     from starlette.responses import Response
     return Response(
         content=metrics.generate_metrics(),
