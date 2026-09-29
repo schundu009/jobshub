@@ -130,7 +130,7 @@ async def get_all_documents(
     documents = (
         db.query(Document)
         .join(Job, Document.job_id == Job.id, isouter=True)
-        .filter((Job.user_id == current_user.id) | (Document.job_id.is_(None)))
+        .filter(Document.user_id == current_user.id)
         .order_by(Document.created_at.desc())
         .all()
     )
@@ -159,7 +159,9 @@ async def get_documents_by_job(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    documents = db.query(Document).filter(Document.job_id == job_id).all()
+    documents = db.query(Document).filter(
+        Document.job_id == job_id, Document.user_id == current_user.id
+    ).all()
     result = []
     for doc in documents:
         result.append({
@@ -237,6 +239,7 @@ async def upload_document(
 
     # Create database record
     db_document = Document(
+        user_id=current_user.id,
         name=sanitized_name,
         doc_type=validated_doc_type,
         job_id=job_id,
@@ -265,7 +268,7 @@ async def delete_document(
         .join(Job, Document.job_id == Job.id, isouter=True)
         .filter(
             Document.id == document_id,
-            (Job.user_id == current_user.id) | (Document.job_id.is_(None))
+            Document.user_id == current_user.id
         )
         .first()
     )

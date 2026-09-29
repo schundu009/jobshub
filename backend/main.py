@@ -160,11 +160,11 @@ class RateLimiter:
             )
 
         # Fallback to in-memory
-        return self._in_memory_check(client_id, limit, window)
+        return self._in_memory_check((client_id, endpoint_category), limit, window)
 
     def _in_memory_check(
         self,
-        client_id: str,
+        client_id: tuple[str, str],
         limit: int,
         window: int
     ) -> tuple[bool, int, int]:
@@ -204,7 +204,7 @@ class RateLimiter:
         now = time.time()
         window_start = now - window
         current = len([
-            t for t in self._fallback_requests[client_id] if t > window_start
+            t for t in self._fallback_requests[(client_id, endpoint_category)] if t > window_start
         ])
         return max(0, limit - current)
 
@@ -275,25 +275,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Prefer user ID from token, fall back to IP
         client_id = request.client.host if request.client else "unknown"
 
-        # Try to get user ID from Authorization header for better tracking
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            # Extract user ID from token if possible (lightweight check)
-            try:
-                import base64
-                import json
-                token = auth_header[7:]
-                # Decode payload without verification (just for user ID)
-                payload_b64 = token.split(".")[1]
-                # Add padding if needed
-                padding = 4 - len(payload_b64) % 4
-                if padding != 4:
-                    payload_b64 += "=" * padding
-                payload = json.loads(base64.urlsafe_b64decode(payload_b64))
-                if payload.get("sub"):
-                    client_id = f"user:{payload['sub']}"
-            except Exception:
-                pass  # Fall back to IP
+        # Authentication attempts always share an IP bucket. Only verified access
+        # tokens may select a user bucket for other endpoints.
+        if not request.url.path.startswith("/auth/"):
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                from utils.security import decode_token
+                payload = decode_token(auth_header[7:])
+                if payload and payload.get("type") == "access":
+                    subject = payload.get("sub")
+                    if isinstance(subject, str) and subject.isdecimal():
+                        client_id = f"user:{int(subject)}"
 
         # Get endpoint category
         path = request.url.path
@@ -338,11 +330,11 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
         # Skip auth for public endpoints
         path = request.url.path
-        if path in PUBLIC_ENDPOINTS or any(path.startswith(ep) for ep in PUBLIC_ENDPOINTS if ep.endswith("/")):
+        if path in PUBLIC_ENDPOINTS:
             return await call_next(request)
 
         # Skip auth for static files
-        if path.startswith("/static"):
+        if path == "/static" or path.startswith("/static/"):
             return await call_next(request)
 
         # Skip auth for GET requests to read-only endpoints
@@ -778,6 +770,11 @@ async def lifespan(app: FastAPI):
 
     # Run migrations in background thread so health checks pass immediately
     if not os.environ.get("SKIP_MIGRATIONS"):
+        # Apply ownership changes before serving document requests.
+        from database import engine
+        from migrations.document_ownership import migrate_document_ownership
+        with engine.begin() as conn:
+            migrate_document_ownership(conn)
         migration_thread = threading.Thread(target=run_startup_migrations, daemon=True)
         migration_thread.start()
     else:

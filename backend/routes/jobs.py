@@ -769,7 +769,7 @@ async def get_job(
                 "id": d.id,
                 "name": d.name,
                 "doc_type": d.doc_type
-            } for d in job.documents
+            } for d in job.documents if d.user_id == current_user.id
         ]
     }
 

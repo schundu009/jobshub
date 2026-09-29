@@ -21,6 +21,13 @@ except ImportError:
     from config import settings
 
 
+def as_utc(value: datetime) -> datetime:
+    """Normalize legacy timezone-naive database timestamps, which store UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 # =============================================================================
 # PASSWORD HASHING
 # =============================================================================

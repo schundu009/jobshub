@@ -18,7 +18,7 @@ try:
         UserResponse, UserUpdate, PasswordChange
     )
     from utils.security import (
-        hash_password, verify_password,
+        hash_password, verify_password, as_utc,
         create_access_token, create_refresh_token, decode_token
     )
     from middleware.auth import get_current_user
@@ -32,7 +32,7 @@ except ImportError:
         UserResponse, UserUpdate, PasswordChange
     )
     from utils.security import (
-        hash_password, verify_password,
+        hash_password, verify_password, as_utc,
         create_access_token, create_refresh_token, decode_token
     )
     from middleware.auth import get_current_user
@@ -113,8 +113,9 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         )
 
     # Check if account is locked
-    if user.locked_until and user.locked_until > datetime.now(timezone.utc):
-        remaining = (user.locked_until - datetime.now(timezone.utc)).seconds // 60
+    now = datetime.now(timezone.utc)
+    if user.locked_until and as_utc(user.locked_until) > now:
+        remaining = max(1, int((as_utc(user.locked_until) - now).total_seconds() / 60))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Account is locked. Try again in {remaining} minutes."

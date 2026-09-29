@@ -15,12 +15,12 @@ from sqlalchemy.orm import Session
 try:
     from database import get_db
     from models import User
-    from utils.security import decode_token
+    from utils.security import decode_token, as_utc
     from services.redis_service import redis_service
 except ImportError:
     from database import get_db
     from models import User
-    from utils.security import decode_token
+    from utils.security import decode_token, as_utc
     from services.redis_service import redis_service
 
 logger = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ async def get_current_user(
         )
 
     # Check if user is locked
-    if user.locked_until and user.locked_until > datetime.now(timezone.utc):
+    if user.locked_until and as_utc(user.locked_until) > datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Account is temporarily locked",
