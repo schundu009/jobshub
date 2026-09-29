@@ -3278,6 +3278,7 @@
         let processedJobs = [];
         let currentRole = '';
         let resumeSkills = [];
+        let jobsLoadRequestId = 0;
         let selectedCompanies = new Set();
 
         // Role keyword configurations
@@ -4508,6 +4509,7 @@
         }
 
         async function loadJobs() {
+            const requestId = ++jobsLoadRequestId;
             // Reset job detail panel when loading new jobs
             resetJobDetailPanel();
 
@@ -4561,6 +4563,9 @@
                 console.log('[JobFilter] API URL:', url);
 
                 const response = await apiRequest(url);
+                // Filter changes can start another request before this one
+                // completes. Never let an older response replace newer results.
+                if (requestId !== jobsLoadRequestId) return;
                 console.log('[JobFilter] API response - total:', response.total, 'jobs:', response.jobs?.length);
                 allJobs = Array.isArray(response) ? response : (response.jobs || []);
                 const totalFromResponse = response.total || allJobs.length;
