@@ -14,6 +14,7 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.security import APIKeyHeader
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import Response
@@ -21,8 +22,10 @@ from contextlib import asynccontextmanager
 import os
 import time
 import logging
+import traceback
 from collections import defaultdict
 from typing import Optional
+from sqlalchemy.orm import Session
 
 from database import create_tables
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
@@ -815,14 +818,75 @@ app.add_middleware(
 if API_KEY:
     app.add_middleware(APIKeyAuthMiddleware)
 
-# CORS - restricted to allowed origins
+class CatchAllExceptionMiddleware:
+    """Turn unhandled exceptions into a JSON 500 *inside* CORSMiddleware.
+
+    Starlette's @app.exception_handler(Exception) runs in ServerErrorMiddleware,
+    which sits outside CORSMiddleware, so those 500s lack CORS headers and the
+    browser reports a misleading "Failed to fetch"/CORS error. This pure ASGI
+    middleware is registered just before CORSMiddleware (i.e. directly inside it).
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        response_started = False
+
+        async def send_wrapper(message):
+            nonlocal response_started
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        except Exception as exc:
+            logger.error(
+                "Unhandled exception on %s %s: %s\n%s",
+                scope.get("method"), scope.get("path"), exc, traceback.format_exc(),
+            )
+            if response_started:
+                raise
+            response = JSONResponse({"detail": "Internal server error"}, status_code=500)
+            await response(scope, receive, send)
+
+
+app.add_middleware(CatchAllExceptionMiddleware)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Fallback for anything that escapes the middleware stack; adds CORS headers explicitly."""
+    logger.error(
+        "Unhandled exception on %s %s: %s\n%s",
+        request.method, request.url.path, exc,
+        "".join(traceback.format_exception(type(exc), exc, exc.__traceback__)),
+    )
+    headers = {}
+    origin = request.headers.get("origin")
+    if origin and origin in ALLOWED_ORIGINS:
+        headers = {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+            "Vary": "Origin",
+        }
+    return JSONResponse({"detail": "Internal server error"}, status_code=500, headers=headers)
+
+
+# CORS - restricted to allowed origins (added last => outermost, so it also
+# decorates the JSON 500s produced by CatchAllExceptionMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "Content-Disposition", "Retry-After"],
 )
 
 # Include routers

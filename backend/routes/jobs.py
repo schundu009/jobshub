@@ -23,6 +23,8 @@ import json
 from datetime import date, datetime, timedelta
 
 import html
+import time
+from collections import defaultdict, deque
 
 from database import get_db
 from models import Job, Company, User, RoleProfile, JobRelevanceScore
@@ -271,7 +273,29 @@ def get_role_profile_for_scoring(
     return None
 
 
-def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None, include_description: bool = False) -> dict:
+_TAG_RE = re.compile(r"<[^>]+>")
+_WS_RE = re.compile(r"\s+")
+
+
+def plain_text_description(description: Optional[str], max_chars: Optional[int] = None) -> Optional[str]:
+    """Strip HTML tags, decode entities, collapse whitespace and optionally truncate."""
+    if not description:
+        return description
+    text = decode_job_description(description)
+    text = _TAG_RE.sub(" ", text)
+    text = html.unescape(text)
+    text = _WS_RE.sub(" ", text).strip()
+    if max_chars and len(text) > max_chars:
+        text = text[: max_chars - 1].rstrip() + "\u2026"
+    return text
+
+
+def job_to_response(
+    job: Job,
+    relevance: Optional[RelevanceResult] = None,
+    include_description: bool = False,
+    description_chars: Optional[int] = None,
+) -> dict:
     """Convert Job model to response dict with optional relevance info.
 
     Args:
@@ -303,7 +327,10 @@ def job_to_response(job: Job, relevance: Optional[RelevanceResult] = None, inclu
 
     # Only include full description if explicitly requested (reduces response size significantly)
     if include_description:
-        result["job_description"] = decode_job_description(job.job_description)
+        if description_chars:
+            result["job_description"] = plain_text_description(job.job_description, description_chars)
+        else:
+            result["job_description"] = decode_job_description(job.job_description)
 
     if relevance:
         result["relevance"] = {
@@ -340,6 +367,12 @@ async def get_jobs(
 
     # Cache control
     no_cache: bool = Query(False, description="Bypass cache and get fresh data"),
+
+    # Payload size control
+    description_chars: Optional[int] = Query(
+        None, ge=100, le=5000,
+        description="If set, job_description is returned as plain text truncated to this many characters"
+    ),
 
     # Auth (optional for public job discovery)
     current_user: Optional[User] = Depends(get_current_user_optional),
@@ -379,7 +412,9 @@ async def get_jobs(
         status=status, source=source, active_only=active_only, company_id=company_id,
         posted_within_hours=posted_within_hours, role=user_role, all_jobs=all,
         score_preferences=score_preferences,
-        min_score=min_score, limit=limit, offset=offset
+        min_score=min_score, limit=limit, offset=offset,
+        viewer=current_user.id if current_user else None,
+        description_chars=description_chars,
     )
 
     # Try cache first (unless no_cache is set)
@@ -390,6 +425,12 @@ async def get_jobs(
 
     # Build base query with eager loading for company (avoids N+1)
     query = db.query(Job).options(joinedload(Job.company))
+
+    # Visibility: shared jobs (user_id IS NULL) plus the current user's own private jobs
+    if current_user:
+        query = query.filter(or_(Job.user_id == None, Job.user_id == current_user.id))
+    else:
+        query = query.filter(Job.user_id == None)
 
     if status:
         query = query.filter(Job.status == status)
@@ -418,7 +459,7 @@ async def get_jobs(
             q = q.limit(limit)
         jobs = q.all()
         result = {
-            "jobs": [job_to_response(job, include_description=True) for job in jobs],
+            "jobs": [job_to_response(job, include_description=True, description_chars=description_chars) for job in jobs],
             "total": total,
             "relevance_filtering": False,
             "role": None,
@@ -455,7 +496,7 @@ async def get_jobs(
             q = q.limit(limit)
         jobs = q.all()
         result = {
-            "jobs": [job_to_response(job, include_description=True) for job in jobs],
+            "jobs": [job_to_response(job, include_description=True, description_chars=description_chars) for job in jobs],
             "total": total,
             "relevance_filtering": False,
             "role": None,
@@ -522,7 +563,7 @@ async def get_jobs(
     role_name = roles or role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
 
     response = {
-        "jobs": [job_to_response(job, rel, include_description=True) for job, rel in scored_jobs],
+        "jobs": [job_to_response(job, rel, include_description=True, description_chars=description_chars) for job, rel in scored_jobs],
         "total": total_relevant,
         "relevance_filtering": True,
         "role": role_name,
@@ -908,20 +949,49 @@ async def update_job_status(
     return {"message": "Status updated successfully"}
 
 
+# Simple in-memory per-user rate limit for AI summary generation
+AI_SUMMARY_RATE_LIMIT = 60          # requests
+AI_SUMMARY_RATE_WINDOW = 3600       # seconds
+_ai_summary_calls: dict = defaultdict(deque)
+_ADMIN_ROLES = {"admin", "administrator", "manager", "developer"}
+
+
+def _check_ai_summary_rate_limit(user_id: int) -> None:
+    now = time.monotonic()
+    calls = _ai_summary_calls[user_id]
+    while calls and now - calls[0] > AI_SUMMARY_RATE_WINDOW:
+        calls.popleft()
+    if len(calls) >= AI_SUMMARY_RATE_LIMIT:
+        retry_after = int(AI_SUMMARY_RATE_WINDOW - (now - calls[0])) + 1
+        raise HTTPException(
+            status_code=429,
+            detail="Too many AI summary requests. Please try again later.",
+            headers={"Retry-After": str(retry_after)},
+        )
+    calls.append(now)
+
+
 @router.post("/{job_id}/ai-summary")
 async def generate_job_ai_summary(
     job_id: int,
     force: bool = False,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Generate an AI summary of the job description.
     Returns cached summary if available, otherwise generates and stores it.
-    Use force=true to regenerate even if cached.
+    force=true (regenerate even if cached) is honoured for admins only.
     """
-    job = db.query(Job).filter(Job.id == job_id).first()
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        or_(Job.user_id == current_user.id, Job.user_id == None)
+    ).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+
+    if force and current_user.role not in _ADMIN_ROLES:
+        force = False
 
     # Return cached summary if available and not forcing regeneration
     if not force and job.ai_summary and job.ai_tech_stack:
@@ -939,6 +1009,8 @@ async def generate_job_ai_summary(
             "cached": False,
             "error": "No job description available"
         }
+
+    _check_ai_summary_rate_limit(current_user.id)
 
     try:
         from services.ai_service import summarize_job_description

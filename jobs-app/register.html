@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub - Register</title>
+    <title>Create account · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <style>
         body {
@@ -43,7 +43,6 @@
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         .auth-header h1 {
-            font-family: 'Playfair Display', Georgia, serif;
             font-size: 32px;
             font-weight: 600;
             color: var(--text-primary);
@@ -177,18 +176,18 @@
             text-decoration: underline;
         }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+        <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
     <script src="/js/google-signin.js" defer></script>
     <script src="/js/icons.js" defer></script>
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo-container">
-                    <img src="/images/logo-full.svg" alt="Jobshub" class="logo" style="height:40px;width:auto;">
+                    <a href="/" class="c-brand c-brand-lg" aria-label="Cariara Jobs home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="32" height="32"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="24"><span class="c-brand-product">Jobs</span></a>
                 </div>
                 <p>Create your job seeker account</p>
             </div>
@@ -242,11 +241,39 @@
             : 'https://cariara-backend.up.railway.app';
         const DEFAULT_REDIRECT = 'discover.html';
 
-        // Check if already logged in
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-        if (token) {
-            window.location.href = DEFAULT_REDIRECT;
-        }
+        // If a stored session still validates, skip registration and continue the
+        // normal flow (onboarding -> role selection -> jobs). Never redirect on an
+        // unvalidated token: that caused loops with expired sessions.
+        (async function resumeExistingSession() {
+            let token = localStorage.getItem('access_token') || localStorage.getItem('token');
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (!token && !refreshToken) return;
+            const statusFor = t => fetch(`${API_BASE}/api/users/onboarding-status`, { headers: { 'Authorization': `Bearer ${t}` } });
+            try {
+                let response = token ? await statusFor(token) : null;
+                if ((!response || response.status === 401) && refreshToken) {
+                    const r = await fetch(`${API_BASE}/auth/refresh`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refresh_token: refreshToken })
+                    });
+                    if (!r.ok) return;
+                    const d = await r.json();
+                    localStorage.setItem('access_token', d.access_token);
+                    localStorage.setItem('token', d.access_token);
+                    if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
+                    if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
+                    response = await statusFor(d.access_token);
+                }
+                if (!response || !response.ok) return;
+                const status = await response.json();
+                if (!status.onboarding_completed) window.location.replace('onboarding.html');
+                else if (!status.roles_confirmed) window.location.replace('select-roles.html');
+                else window.location.replace(DEFAULT_REDIRECT);
+            } catch (e) {
+                // Network error: stay on the registration page.
+            }
+        })();
 
         function togglePassword(inputId, buttonId) {
             const passwordInput = document.getElementById(inputId);
@@ -326,18 +353,30 @@
             registerBtn.textContent = 'Creating account...';
 
             try {
-                const response = await fetch(`${API_BASE}/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name, email, password }),
-                });
+                let response;
+                try {
+                    response = await fetch(`${API_BASE}/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name, email: email.trim(), password }),
+                    });
+                } catch (networkError) {
+                    throw new Error("Can't reach Cariara right now. Check your connection and try again.");
+                }
 
-                const data = await response.json();
+                let data = null;
+                try { data = await response.json(); } catch (e) { data = null; }
 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Registration failed');
+                    const detail = data && data.detail;
+                    const message = Array.isArray(detail)
+                        ? detail.map(d => (d && d.msg) || String(d)).join('; ')
+                        : (detail || (response.status >= 500
+                            ? 'Cariara is having trouble right now. Please try again in a moment.'
+                            : 'Registration failed'));
+                    throw new Error(message);
                 }
 
                 // Store tokens
@@ -346,8 +385,8 @@
                 localStorage.setItem('token', data.access_token); // For compatibility
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                // Redirect to job seeker portal
-                window.location.href = DEFAULT_REDIRECT;
+                // New accounts always start with onboarding (resume, personal info, preferences)
+                window.location.href = 'onboarding.html';
             } catch (error) {
                 showError(error.message);
                 registerBtn.disabled = false;

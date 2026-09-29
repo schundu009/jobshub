@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub - Complete Your Profile</title>
+    <title>Set up your profile · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <style>
         body {
@@ -25,7 +25,6 @@
             margin-bottom: 16px;
         }
         .onboarding-header h1 {
-            font-family: 'Playfair Display', Georgia, serif;
             font-size: 28px;
             font-weight: 600;
             color: var(--text-primary);
@@ -181,9 +180,12 @@
             background: rgba(34, 197, 94, 0.1);
         }
         .upload-icon {
-            font-size: 40px;
+            display: flex;
+            justify-content: center;
+            color: var(--c-ink-3, #5f6368);
             margin-bottom: 12px;
         }
+        .upload-area.has-file .upload-icon { color: var(--c-blue, #1a73e8); }
         .upload-text {
             font-size: 14px;
             color: var(--text-secondary);
@@ -353,15 +355,15 @@
             color: var(--accent-green);
         }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+        <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
     <script src="/js/icons.js" defer></script>
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
     <div class="onboarding-container">
         <div class="onboarding-header">
-            <img src="/images/logo-full.svg" alt="Jobshub" class="logo">
+            <a href="/" class="c-brand c-brand-lg" aria-label="Cariara Jobs home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="32" height="32"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="24"><span class="c-brand-product">Jobs</span></a>
             <h1>Complete Your Profile</h1>
             <p>Set up your profile to start discovering jobs</p>
         </div>
@@ -394,7 +396,7 @@
                 <div class="upload-section">
                     <div class="upload-section-label">Resume <span class="required">*</span></div>
                     <div class="upload-area" id="resume-upload-area">
-                        <div class="upload-icon">📄</div>
+                        <div class="upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></div>
                         <div class="upload-text">Drop your resume here or click to browse</div>
                         <div class="upload-hint">PDF, DOC, DOCX (max 5MB)</div>
                         <input type="file" id="resume-input" accept=".pdf,.doc,.docx" style="display:none">
@@ -405,7 +407,7 @@
                 <div class="upload-section">
                     <div class="upload-section-label">Cover Letter <span class="optional">(Optional)</span></div>
                     <div class="upload-area" id="cover-letter-upload-area">
-                        <div class="upload-icon">📝</div>
+                        <div class="upload-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"/><path d="m3.5 7 8.5 6 8.5-6"/></svg></div>
                         <div class="upload-text">Drop your cover letter here or click to browse</div>
                         <div class="upload-hint">PDF, DOC, DOCX (max 5MB)</div>
                         <input type="file" id="cover-letter-input" accept=".pdf,.doc,.docx" style="display:none">
@@ -501,6 +503,8 @@
 
         let currentStep = 1;
         let resumeUploaded = false;
+        // Whether a resume existed on the server before this visit (earlier session).
+        let previousResumeOnServer = false;
         let coverLetterUploaded = false;
 
         // Step navigation
@@ -566,6 +570,19 @@
             });
         }
 
+        // Server-side ids of documents uploaded on this page, so "remove" can delete them.
+        const uploadedDocIds = { resume: null, cover_letter: null };
+
+        async function deleteUploadedDocument(type) {
+            const docId = uploadedDocIds[type];
+            if (!docId) return;
+            const response = await authFetch(`/users/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' });
+            if (!response.ok && response.status !== 404) {
+                throw new Error(await extractErrorMessage(response, 'Could not remove the file'));
+            }
+            uploadedDocIds[type] = null;
+        }
+
         async function handleFileSelect(input, area, fileNameDiv, type) {
             const file = input.files[0];
             if (!file) return;
@@ -573,59 +590,83 @@
             // Validate file size
             if (file.size > 5 * 1024 * 1024) {
                 showError('File is too large. Maximum size is 5MB.');
+                input.value = '';
                 return;
             }
 
-            // Upload the file
+            const documentType = type === 'resume' ? 'resume' : 'cover_letter';
+            const uploadText = area.querySelector('.upload-text');
+            const originalText = uploadText ? uploadText.dataset.original || uploadText.textContent : '';
+            if (uploadText) {
+                uploadText.dataset.original = originalText;
+                uploadText.textContent = 'Uploading…';
+            }
+            if (type === 'resume') document.getElementById('step1-next').disabled = true;
+
             try {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const documentType = type === 'resume' ? 'resume' : 'cover_letter';
-                const response = await fetch(`${API_BASE}/users/documents?document_type=${documentType}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${getAccessToken()}`
-                    },
-                    body: formData
-                });
+                const result = await uploadDocument(formData, documentType);
 
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Upload failed');
+                // Replacing a file uploaded on this page: remove the previous copy.
+                if (uploadedDocIds[type] && result && result.id !== uploadedDocIds[type]) {
+                    try { await deleteUploadedDocument(type); } catch (e) { console.warn(e); }
                 }
+                uploadedDocIds[type] = result && result.id != null ? result.id : null;
 
                 area.classList.add('has-file');
+                if (uploadText) uploadText.textContent = originalText;
                 fileNameDiv.innerHTML = `
-                    <span>${file.name}</span>
-                    <button class="remove-btn" onclick="removeFile('${type}')">&times;</button>
+                    <span>${escapeHtml(file.name)}</span>
+                    <button type="button" class="remove-btn" aria-label="Remove file" data-remove-type="${type}">&times;</button>
                 `;
+                fileNameDiv.querySelector('.remove-btn').addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    removeFile(type);
+                });
                 fileNameDiv.style.display = 'flex';
 
                 if (type === 'resume') {
                     resumeUploaded = true;
-                    document.getElementById('step1-next').disabled = false;
                 } else {
                     coverLetterUploaded = true;
                 }
 
                 hideError();
+                if (result && result.warning) showError(result.warning);
             } catch (error) {
+                if (uploadText) uploadText.textContent = originalText;
+                input.value = '';
                 showError(error.message);
+            } finally {
+                if (type === 'resume') document.getElementById('step1-next').disabled = !resumeUploaded;
             }
         }
 
-        function removeFile(type) {
-            if (type === 'resume') {
-                document.getElementById('resume-upload-area').classList.remove('has-file');
-                document.getElementById('resume-file-name').style.display = 'none';
-                document.getElementById('resume-input').value = '';
-                resumeUploaded = false;
-                document.getElementById('step1-next').disabled = true;
+        async function removeFile(type) {
+            const isResume = type === 'resume';
+            const areaId = isResume ? 'resume-upload-area' : 'cover-letter-upload-area';
+            const nameId = isResume ? 'resume-file-name' : 'cover-letter-file-name';
+            const inputId = isResume ? 'resume-input' : 'cover-letter-input';
+            const nameDiv = document.getElementById(nameId);
+            const btn = nameDiv.querySelector('.remove-btn');
+            if (btn) btn.disabled = true;
+            try {
+                await deleteUploadedDocument(type);
+            } catch (error) {
+                showError(error.message);
+                if (btn) btn.disabled = false;
+                return;
+            }
+            if (!(isResume && previousResumeOnServer)) document.getElementById(areaId).classList.remove('has-file');
+            nameDiv.style.display = 'none';
+            nameDiv.innerHTML = '';
+            document.getElementById(inputId).value = '';
+            if (isResume) {
+                resumeUploaded = previousResumeOnServer; // an earlier resume is still on file
+                document.getElementById('step1-next').disabled = !resumeUploaded;
             } else {
-                document.getElementById('cover-letter-upload-area').classList.remove('has-file');
-                document.getElementById('cover-letter-file-name').style.display = 'none';
-                document.getElementById('cover-letter-input').value = '';
                 coverLetterUploaded = false;
             }
         }
@@ -707,7 +748,7 @@
             const tag = document.createElement('span');
             tag.className = 'tag';
             tag.setAttribute('data-value', value);
-            tag.innerHTML = `<span class="tag-text">${value}</span><button type="button" class="remove-tag" aria-label="Remove">&times;</button>`;
+            tag.innerHTML = `<span class="tag-text">${escapeHtml(value)}</span><button type="button" class="remove-tag" aria-label="Remove">&times;</button>`;
             container.insertBefore(tag, input);
             input.value = '';
         }
@@ -817,6 +858,7 @@
 
                 // If user has resume already, mark step 1 as complete
                 if (status.has_resume) {
+                    previousResumeOnServer = true;
                     resumeUploaded = true;
                     document.getElementById('step1-next').disabled = false;
                     document.getElementById('resume-upload-area').classList.add('has-file');
@@ -834,6 +876,17 @@
             setupTagsInput('job-titles-container', 'job-titles-input', 5);
             setupTagsInput('preferred-cities-container', 'preferred-cities-input', 10);
             checkOnboardingStatus();
+
+            // Pre-fill name fields from the account name
+            const user = getCurrentUser();
+            const fullName = user && (user.name || user.full_name);
+            if (fullName) {
+                const parts = String(fullName).trim().split(/\s+/);
+                const first = document.getElementById('first-name');
+                const last = document.getElementById('last-name');
+                if (first && !first.value) first.value = parts[0] || '';
+                if (last && !last.value && parts.length > 1) last.value = parts.slice(1).join(' ');
+            }
         });
     </script>
 </body>

@@ -478,7 +478,8 @@ class UserSettingsUpdate(BaseModel):
     preferred_name: Optional[str] = Field(None, max_length=100)
     full_name: Optional[str] = Field(None, max_length=255)
     job_title: Optional[str] = Field(None, max_length=255)
-    email: Optional[str] = Field(None, max_length=255)
+    # NOTE: login `email` is intentionally NOT updatable here (auto-save must never
+    # change the account email; unknown fields such as `email` are ignored).
     phone: Optional[str] = Field(None, max_length=50)
     date_of_birth: Optional[str] = Field(None, max_length=20)  # Will be parsed to date
     country: Optional[str] = Field(None, max_length=50)
@@ -622,6 +623,9 @@ def update_user_settings(
 
     # Pydantic v2 uses model_dump instead of dict
     update_fields = settings.model_dump(exclude_unset=True)
+    # Defensive: the login email / identity fields are never changed via settings
+    for protected in ("email", "id", "role", "hashed_password", "password_hash"):
+        update_fields.pop(protected, None)
 
     # Get fresh user from DB to ensure we're updating the right record
     user = db.query(User).filter(User.id == current_user.id).first()
@@ -632,6 +636,20 @@ def update_user_settings(
     field_mapping = {
         "minimum_salary": "min_salary",  # Map minimum_salary to min_salary
     }
+
+    # base_resume_id must reference one of the user's own documents (or be cleared)
+    if "base_resume_id" in update_fields:
+        base_id = update_fields["base_resume_id"]
+        if not base_id:
+            update_fields["base_resume_id"] = None
+        else:
+            owned = db.query(UserDocument.id).filter(
+                UserDocument.id == base_id,
+                UserDocument.user_id == user.id,
+            ).first()
+            if not owned:
+                # Stale/foreign id: ignore instead of failing the whole auto-save
+                update_fields.pop("base_resume_id")
 
     for field, value in update_fields.items():
         # Map field name if needed
@@ -1012,10 +1030,17 @@ def delete_document(
     ).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    if os.path.exists(doc.file_path):
-        os.remove(doc.file_path)
+    if doc.file_path and os.path.exists(doc.file_path):
+        try:
+            os.remove(doc.file_path)
+        except OSError:
+            pass
     was_default = doc.is_default
     doc_type = doc.document_type
+    # Clear dangling base-resume reference (FK to user_documents)
+    db.query(User).filter(
+        User.id == current_user.id, User.base_resume_id == doc.id
+    ).update({"base_resume_id": None}, synchronize_session=False)
     db.delete(doc)
     db.commit()
     if was_default:

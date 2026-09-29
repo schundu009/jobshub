@@ -5,7 +5,7 @@
  * If not, redirects to the upgrade page.
  */
 
-const CARIARA_API = window.location.hostname === 'localhost'
+const CARIARA_API = ['localhost', '127.0.0.1'].includes(window.location.hostname)
     ? 'http://localhost:8000'
     : 'https://cariara-backend.up.railway.app';
 
@@ -117,7 +117,6 @@ function showUpgradeModal(data) {
                 color: white;
             }
             .upgrade-modal-title {
-                font-family: 'Playfair Display', Georgia, serif;
                 font-size: 28px;
                 font-weight: 600;
                 color: var(--text-primary, #f8fafc);
@@ -225,7 +224,7 @@ function showUpgradeModal(data) {
                     <span>Ascend Interview Prep included ($99/mo value)</span>
                 </div>
             </div>
-            <a href="https://capra.cariara.com" class="upgrade-modal-btn">
+            <a href="https://cariara.com/pricing" class="upgrade-modal-btn">
                 Get Quarterly Pro
             </a>
             <p class="upgrade-modal-price">$300/quarter (3 months)</p>
@@ -250,11 +249,8 @@ function redirectToLogin() {
  * Clear all auth data
  */
 function clearAuthData() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('subscription_status');
+    ['access_token', 'refresh_token', 'token', 'user', 'subscription_status', 'cariara_resume_draft', 'redirect_after_login']
+        .forEach(key => localStorage.removeItem(key));
 }
 
 // Export for use in other modules

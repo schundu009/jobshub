@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub - Documents</title>
+    <title>Resumes · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <!-- Shared Sidebar Styles -->
     <link rel="stylesheet" href="/css/sidebar.css">
@@ -223,8 +223,8 @@
             transition: all 0.2s ease;
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .toast.success { background: #22c55e; color: white; }
-        .toast.error { background: #ef4444; color: white; }
+        .toast.success { background: var(--c-ink, #202124); color: var(--c-surface, #fff); }
+        .toast.error { background: var(--c-red, #d93025); color: #fff; }
 
         /* Top Right Controls */
         .top-right-controls {
@@ -340,13 +340,13 @@
             .theme-toggle, .signout-btn { width: 40px; height: 40px; }
         }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+        <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
     <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu" onclick="toggleMobileSidebar()">
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
         <svg class="menu-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -354,21 +354,23 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
     </button>
-    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="/images/logo-full.svg" alt="Jobshub" class="logo" style="height:40px;width:auto;">
+            <a href="discover.html" class="c-brand" aria-label="Cariara Jobs home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="28" height="28"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="22"><span class="c-brand-product">Jobs</span></a>
         </div>
         <nav class="sidebar-nav">
-            <!-- APPLICATION Section -->
-            <div class="nav-section-title">Application</div>
-            <a href="discover.html" class="nav-link" data-icon="search">Search</a>
+            <div class="nav-section-title">Apply</div>
+            <a href="discover.html" class="nav-link" data-icon="search">Jobs</a>
 
-            <!-- OTHER Section -->
-            <div class="nav-section-title">Other</div>
-            <a href="documents.html" class="active nav-link" data-icon="document">Resumes</a>
+            <div class="nav-section-title">You</div>
+            <a href="documents.html" class="nav-link active" data-icon="document">Resumes</a>
             <a href="settings.html" class="nav-link" data-icon="settings">Settings</a>
+
+            <div class="nav-section-title">Cariara</div>
+            <a href="https://cariara.com/prep/prepare" class="nav-link c-external" data-icon="bookmark">Prepare</a>
+            <a href="https://cariara.com/pg?tab=problems" class="nav-link c-external" data-icon="edit">Practice</a>
         </nav>
         <div class="sidebar-user" id="user-menu"></div>
     </aside>
@@ -421,10 +423,11 @@
         </div>
     </main>
 
+    <script src="/js/app.js"></script>
     <script>
-        const API_BASE = window.location.hostname === 'localhost'
-            ? 'http://localhost:8000'
-            : 'https://cariara-backend.up.railway.app';
+        // API access, token refresh and error parsing come from js/app.js
+        // (authFetch / extractErrorMessage / escapeHtml). Sidebar user menu,
+        // mobile drawer and logout are owned by js/sidebar.js.
 
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
@@ -441,134 +444,24 @@
             const sunIcon = document.getElementById('theme-icon-sun');
             const moonIcon = document.getElementById('theme-icon-moon');
             if (sunIcon && moonIcon) {
-                if (theme === 'light') {
-                    sunIcon.style.display = 'none';
-                    moonIcon.style.display = 'block';
-                } else {
-                    sunIcon.style.display = 'block';
-                    moonIcon.style.display = 'none';
-                }
+                sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
+                moonIcon.style.display = theme === 'dark' ? 'none' : 'block';
             }
-        }
-
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
         }
 
         setTheme(localStorage.getItem('jobtrails-theme') || 'light');
 
-        // Mobile sidebar functions
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-            const btn = document.getElementById('mobile-menu-btn');
-            if (sidebar.classList.contains('mobile-open')) {
-                closeMobileSidebar();
-            } else {
-                sidebar.classList.add('mobile-open');
-                backdrop.classList.add('active');
-                btn.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        function closeMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-            const btn = document.getElementById('mobile-menu-btn');
-            sidebar.classList.remove('mobile-open');
-            backdrop.classList.remove('active');
-            btn.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileSidebar());
-
-        function checkAuth() {
-            const token = localStorage.getItem('access_token');
-            if (!token) { handleLogout(); return null; }
-            return token;
+        function logout() {
+            if (typeof window.handleLogout === 'function') window.handleLogout();
         }
 
-        async function refreshAccessToken() {
-            const rt = localStorage.getItem('refresh_token');
-            if (!rt) { handleLogout(); return null; }
-            try {
-                const r = await fetch(`${API_BASE}/auth/refresh`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh_token: rt })
-                });
-                if (r.ok) {
-                    const d = await r.json();
-                    localStorage.setItem('access_token', d.access_token);
-                    localStorage.setItem('refresh_token', d.refresh_token);
-                    if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
-                    return d.access_token;
-                }
-                handleLogout();
-                return null;
-            } catch (e) {
-                handleLogout();
-                return null;
-            }
-        }
-
-        async function authFetch(url, opts = {}) {
-            let token = localStorage.getItem('access_token');
-            if (!token) { handleLogout(); return null; }
-            opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
-            try {
-                let r = await fetch(url, opts);
-                if (r.status === 401) {
-                    token = await refreshAccessToken();
-                    if (token) {
-                        opts.headers['Authorization'] = `Bearer ${token}`;
-                        r = await fetch(url, opts);
-                    } else return null;
-                }
-                return r;
-            } catch (e) { return null; }
-        }
-
-        function initUserMenu() {
-            const um = document.getElementById('user-menu');
-            const uj = localStorage.getItem('user');
-            if (uj) {
-                try {
-                    const u = JSON.parse(uj);
-                    const n = u.name || u.email?.split('@')[0] || 'User';
-                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
-                    um.innerHTML = `
-                        <div class="sidebar-user-info">
-                            <div class="sidebar-user-avatar">${i}</div>
-                            <div>
-                                <div class="sidebar-user-name">${n}</div>
-                                <div class="sidebar-user-email">${u.email || ''}</div>
-                            </div>
-                        </div>
-                        <button class="sidebar-logout-btn logout-btn" onclick="handleLogout()">
-                            <span class="logout-icon"></span>
-                            Sign Out
-                        </button>`;
-                } catch (e) {}
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
-        }
-
+        let toastTimer = null;
         function toast(msg, type = 'success') {
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.className = `toast ${type} show`;
-            setTimeout(() => t.classList.remove('show'), 2500);
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), type === 'error' ? 4000 : 2500);
         }
 
         function setupFileUpload(inputId, areaId, listId, docType) {
@@ -576,103 +469,118 @@
             const area = document.getElementById(areaId);
             area.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                area.style.borderColor = 'var(--accent-blue)';
+                area.style.borderColor = 'var(--c-blue, var(--accent-blue))';
             });
             area.addEventListener('dragleave', () => { area.style.borderColor = ''; });
             area.addEventListener('drop', (e) => {
                 e.preventDefault();
                 area.style.borderColor = '';
-                if (e.dataTransfer.files.length > 0) uploadDocument(e.dataTransfer.files[0], docType, listId);
+                if (e.dataTransfer.files.length > 0) uploadUserDocument(e.dataTransfer.files[0], docType, listId);
             });
             input.addEventListener('change', () => {
                 if (input.files.length > 0) {
-                    uploadDocument(input.files[0], docType, listId);
+                    uploadUserDocument(input.files[0], docType, listId);
                     input.value = '';
                 }
             });
         }
 
-        async function uploadDocument(file, docType, listId) {
-            if (!checkAuth()) return;
+        async function uploadUserDocument(file, docType, listId) {
+            if (!requireAuth()) return;
             if (file.size > 5 * 1024 * 1024) { toast('File too large (max 5MB)', 'error'); return; }
             const formData = new FormData();
             formData.append('file', file);
+            toast('Uploading…');
             try {
-                const r = await authFetch(`${API_BASE}/api/users/documents?document_type=${docType}`, {
-                    method: 'POST',
-                    body: formData
-                });
-                if (!r) return;
-                if (r.ok) {
-                    toast('Uploaded');
-                    loadDocuments(docType, listId);
-                } else {
-                    const e = await r.json();
-                    toast(e.detail || 'Upload failed', 'error');
-                }
-            } catch (e) { toast('Upload error', 'error'); }
+                const result = await uploadDocument(formData, docType);
+                toast(result && result.warning ? 'Uploaded, but text could not be read from this file' : 'Uploaded',
+                    result && result.warning ? 'error' : 'success');
+                loadDocuments(docType, listId);
+            } catch (e) {
+                toast(e.message || 'Upload failed', 'error');
+            }
         }
 
         async function loadDocuments(docType, listId) {
-            if (!checkAuth()) return;
+            if (!requireAuth()) return;
+            const list = document.getElementById(listId);
             try {
-                const r = await authFetch(`${API_BASE}/api/users/documents?type=${docType}`);
-                if (!r) return;
-                if (r.ok) renderDocuments(await r.json(), listId, docType);
-            } catch (e) {}
+                const r = await authFetch(`/users/documents?type=${encodeURIComponent(docType)}`);
+                if (!r.ok) throw new Error(await extractErrorMessage(r, 'Could not load documents'));
+                renderDocuments(await r.json(), listId, docType);
+            } catch (e) {
+                list.innerHTML = `<div class="empty-state"><p>${escapeHtml(e.message || 'Could not load documents')}</p></div>`;
+            }
+        }
+
+        const FALLBACK_DOC_ICON = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
+        const FALLBACK_MAIL_ICON = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>';
+
+        function iconFor(name, fallback) {
+            return (typeof CariaraIcons !== 'undefined' && CariaraIcons[name]) || fallback;
         }
 
         function renderDocuments(docs, listId, docType) {
             const list = document.getElementById(listId);
-            const emptyIcon = typeof CariaraIcons !== 'undefined'
-                ? (docType === 'resume' ? CariaraIcons.document : CariaraIcons.mail)
-                : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
-            const docIcon = typeof CariaraIcons !== 'undefined'
-                ? CariaraIcons.document
-                : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+            const emptyIcon = docType === 'resume' ? iconFor('document', FALLBACK_DOC_ICON) : iconFor('email', FALLBACK_MAIL_ICON);
+            const docIcon = iconFor('document', FALLBACK_DOC_ICON);
 
-            if (!docs || docs.length === 0) {
+            if (!Array.isArray(docs) || docs.length === 0) {
                 list.innerHTML = `<div class="empty-state">${emptyIcon}<p>No ${docType === 'resume' ? 'resumes' : 'cover letters'}</p></div>`;
                 return;
             }
-            list.innerHTML = docs.map(doc => `
-                <div class="document-item">
+            list.innerHTML = docs.map(doc => {
+                const id = Number(doc.id);
+                return `
+                <div class="document-item" data-doc-id="${id}">
                     <div class="doc-icon">${docIcon}</div>
                     <div class="doc-info">
-                        <div class="doc-name">${doc.filename}</div>
-                        <div class="doc-meta">${formatDate(doc.created_at)} &middot; ${formatFileSize(doc.file_size)}</div>
+                        <div class="doc-name" title="${escapeHtml(doc.filename)}">${escapeHtml(doc.filename)}</div>
+                        <div class="doc-meta">${escapeHtml(formatDocDate(doc.created_at))}${doc.file_size ? ' &middot; ' + escapeHtml(formatFileSize(doc.file_size)) : ''}</div>
                     </div>
                     ${doc.is_default ? '<span class="doc-badge">Default</span>' : ''}
                     <div class="doc-actions">
-                        ${!doc.is_default ? `<button onclick="setDefaultDocument(${doc.id}, '${docType}', '${listId}')" class="primary">Default</button>` : ''}
-                        <button onclick="deleteDocument(${doc.id}, '${docType}', '${listId}')" class="delete">Delete</button>
+                        ${!doc.is_default ? `<button type="button" data-action="default" class="primary">Make default</button>` : ''}
+                        <button type="button" data-action="delete" class="delete">Delete</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
+            list.querySelectorAll('.document-item').forEach(item => {
+                const id = Number(item.dataset.docId);
+                item.querySelector('[data-action="default"]')?.addEventListener('click', () => setDefaultDocument(id, docType, listId));
+                item.querySelector('[data-action="delete"]')?.addEventListener('click', () => deleteDocument(id, docType, listId));
+            });
         }
 
         async function setDefaultDocument(docId, docType, listId) {
-            if (!checkAuth()) return;
+            if (!requireAuth()) return;
             try {
-                const r = await authFetch(`${API_BASE}/api/users/documents/${docId}/default`, { method: 'PUT' });
-                if (!r) return;
-                if (r.ok) { toast('Default updated'); loadDocuments(docType, listId); }
-            } catch (e) { toast('Error', 'error'); }
+                const r = await authFetch(`/users/documents/${encodeURIComponent(docId)}/default`, { method: 'PUT' });
+                if (!r.ok) throw new Error(await extractErrorMessage(r, 'Could not set the default document'));
+                toast('Default updated');
+                loadDocuments(docType, listId);
+            } catch (e) {
+                toast(e.message || 'Could not set the default document', 'error');
+            }
         }
 
         async function deleteDocument(docId, docType, listId) {
-            if (!confirm('Delete this document?')) return;
-            if (!checkAuth()) return;
+            if (!confirm('Delete this document? This cannot be undone.')) return;
+            if (!requireAuth()) return;
             try {
-                const r = await authFetch(`${API_BASE}/api/users/documents/${docId}`, { method: 'DELETE' });
-                if (!r) return;
-                if (r.ok) { toast('Deleted'); loadDocuments(docType, listId); }
-            } catch (e) { toast('Error', 'error'); }
+                const r = await authFetch(`/users/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' });
+                if (!r.ok) throw new Error(await extractErrorMessage(r, 'Could not delete the document'));
+                toast('Deleted');
+                loadDocuments(docType, listId);
+            } catch (e) {
+                toast(e.message || 'Could not delete the document', 'error');
+            }
         }
 
-        function formatDate(d) {
+        function formatDocDate(d) {
             if (!d) return '';
-            return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const date = new Date(d);
+            return isNaN(date) ? '' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
         function formatFileSize(b) {
@@ -682,45 +590,12 @@
             return (b / (1024 * 1024)).toFixed(1) + ' MB';
         }
 
-        // Mobile menu functions
-        function setupMobileMenu() {
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-
-            function closeMobileMenu() {
-                sidebar.classList.remove('mobile-open');
-                backdrop.classList.remove('active');
-                mobileMenuBtn.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            function openMobileMenu() {
-                sidebar.classList.add('mobile-open');
-                backdrop.classList.add('active');
-                mobileMenuBtn.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', () => {
-                    sidebar.classList.contains('mobile-open') ? closeMobileMenu() : openMobileMenu();
-                });
-            }
-            if (backdrop) backdrop.addEventListener('click', closeMobileMenu);
-            document.querySelectorAll('.sidebar-nav a').forEach(link => {
-                link.addEventListener('click', () => window.innerWidth <= 768 && closeMobileMenu());
-            });
-            window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileMenu());
-        }
-
         document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAuth()) return;
             // Check subscription status - require Quarterly Pro
             const hasAccess = await checkSubscriptionAccess();
             if (!hasAccess) return;
 
-            setupMobileMenu();
-            initUserMenu();
             setupFileUpload('resume-input', 'resume-upload-area', 'resumes-list', 'resume');
             setupFileUpload('cover-letter-input', 'cover-letter-upload-area', 'cover-letters-list', 'cover_letter');
             loadDocuments('resume', 'resumes-list');
@@ -735,57 +610,18 @@
     <script src="/js/subscription-gate.js"></script>
 
     <script>
-        // Replace inline icons with premium CariaraIcons
+        // Page-specific icons (nav, drawer and user menu icons are handled by js/sidebar.js)
         (function() {
-            if (typeof CariaraIcons !== 'undefined') {
-                // Navigation link icons
-                document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
-                    const iconName = link.dataset.icon;
-                    const icon = CariaraIcons[iconName];
-                    if (icon) {
-                        link.insertAdjacentHTML('afterbegin', icon);
-                    }
-                });
-
-                // Mobile menu icons
-                const menuBtn = document.querySelector('.mobile-menu-btn');
-                if (menuBtn) {
-                    menuBtn.innerHTML = `
-                        <span class="menu-open">${CariaraIcons.menu}</span>
-                        <span class="menu-close" style="display:none;">${CariaraIcons.close}</span>
-                    `;
-                }
-
-                // Theme icons
-                const themeToggle = document.querySelector('.theme-toggle');
-                if (themeToggle) {
-                    themeToggle.innerHTML = `
-                        ${CariaraIcons.get('sun', { id: 'theme-icon-sun', style: 'display:none;' })}
-                        ${CariaraIcons.get('moon', { id: 'theme-icon-moon' })}
-                    `;
-                }
-
-                // Upload icons
-                document.querySelectorAll('.upload-icon').forEach(el => {
-                    el.innerHTML = CariaraIcons.upload;
-                });
-
-                // Empty state icons
-                document.querySelectorAll('.empty-resume-icon').forEach(el => {
-                    el.innerHTML = CariaraIcons.document;
-                });
-                document.querySelectorAll('.empty-letter-icon').forEach(el => {
-                    el.innerHTML = CariaraIcons.mail;
-                });
-
-                // Logout icons (dynamically rendered)
-                const observer = new MutationObserver(() => {
-                    document.querySelectorAll('.logout-icon').forEach(el => {
-                        if (!el.innerHTML) el.innerHTML = CariaraIcons.logout;
-                    });
-                });
-                observer.observe(document.body, { childList: true, subtree: true });
-            }
+            if (typeof CariaraIcons === 'undefined') return;
+            document.querySelectorAll('.upload-icon').forEach(el => {
+                el.innerHTML = CariaraIcons.upload || FALLBACK_DOC_ICON;
+            });
+            document.querySelectorAll('.empty-resume-icon').forEach(el => {
+                el.innerHTML = CariaraIcons.document || FALLBACK_DOC_ICON;
+            });
+            document.querySelectorAll('.empty-letter-icon').forEach(el => {
+                el.innerHTML = CariaraIcons.email || FALLBACK_MAIL_ICON;
+            });
         })();
     </script>
 </body>

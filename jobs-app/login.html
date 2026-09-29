@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub - Login</title>
+    <title>Sign in · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <style>
         body {
@@ -43,7 +43,6 @@
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
         .auth-header h1 {
-            font-family: 'Playfair Display', Georgia, serif;
             font-size: 32px;
             font-weight: 600;
             color: var(--text-primary);
@@ -205,20 +204,20 @@
             text-decoration: underline;
         }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+        <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
     <script src="/js/google-signin.js" defer></script>
     <script src="/js/icons.js" defer></script>
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo-container">
-                    <img src="/images/logo-full.svg" alt="Jobshub" class="logo" style="height:40px;width:auto;">
+                    <a href="/" class="c-brand c-brand-lg" aria-label="Cariara Jobs home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="32" height="32"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="24"><span class="c-brand-product">Jobs</span></a>
                 </div>
-                <h1>Welcome to Jobshub</h1>
+                <h1>Sign in to Cariara Jobs</h1>
                 <p>Sign in to your job search workspace.</p>
             </div>
 
@@ -265,100 +264,177 @@
         const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname)
             ? 'http://localhost:8000'
             : 'https://cariara-backend.up.railway.app';
-        // Job seeker portal always redirects to discover.html
         const DEFAULT_REDIRECT = 'discover.html';
+        const SESSION_KEYS = ['access_token', 'refresh_token', 'token', 'user', 'subscription_status', 'cariara_resume_draft'];
+
+        // ---- Post-login redirect handling --------------------------------------
+        // Only same-origin relative page paths are honored (no schemes, no //).
+        function sanitizeRedirect(raw) {
+            if (!raw) return null;
+            const value = String(raw).trim();
+            if (!value || value.startsWith('//') || value.includes('\\') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) return null;
+            try {
+                const url = new URL(value, window.location.origin + '/');
+                if (url.origin !== window.location.origin) return null;
+                const page = url.pathname.split('/').pop();
+                if (['login.html', 'register.html', 'onboarding.html', 'select-roles.html'].includes(page)) return null;
+                return url.pathname + url.search + url.hash;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ?redirect= (from subscription-gate.js) is persisted so it survives the OAuth round trip.
+        (function captureRedirectParam() {
+            const param = new URLSearchParams(window.location.search).get('redirect');
+            const safe = sanitizeRedirect(param);
+            if (safe) localStorage.setItem('redirect_after_login', safe);
+        })();
+
+        function clearSessionKeys() {
+            SESSION_KEYS.forEach(key => localStorage.removeItem(key));
+        }
+
+        // Onboarding and role selection take precedence over any saved deep link;
+        // the saved link stays stored so select-roles can use it afterwards.
+        function routeAfterLogin(onboardingCompleted, rolesConfirmed) {
+            if (!onboardingCompleted) {
+                window.location.replace('onboarding.html');
+                return;
+            }
+            if (!rolesConfirmed) {
+                window.location.replace('select-roles.html');
+                return;
+            }
+            const target = sanitizeRedirect(localStorage.getItem('redirect_after_login'));
+            localStorage.removeItem('redirect_after_login');
+            window.location.replace(target || DEFAULT_REDIRECT);
+        }
+
+        function storeSession(accessToken, refreshToken, user) {
+            localStorage.setItem('access_token', accessToken);
+            if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
+            localStorage.setItem('token', accessToken); // For compatibility with app.js
+            if (user) localStorage.setItem('user', JSON.stringify(user));
+        }
 
         function handleOAuthCallback() {
             const hash = window.location.hash.substring(1);
             if (!hash) return false;
             const params = new URLSearchParams(hash);
             if (params.get('error')) {
-                showError(params.get('message') || 'Login failed');
+                showError(params.get('message') || 'Sign-in failed. Please try again.');
                 history.replaceState(null, '', window.location.pathname);
                 return true;
             }
             const accessToken = params.get('access_token');
             const refreshToken = params.get('refresh_token');
             if (accessToken && refreshToken) {
-                localStorage.setItem('access_token', accessToken);
-                localStorage.setItem('refresh_token', refreshToken);
-                localStorage.setItem('token', accessToken); // For compatibility with app.js
-                const userRole = params.get('user_role') || 'user';
                 const onboardingCompleted = params.get('onboarding_completed') === 'true';
                 const rolesConfirmed = params.get('roles_confirmed') === 'true';
-                const hasJobsAccess = params.get('has_jobs_access') === 'true';
-                const planType = params.get('plan_type') || 'free';
                 // job_roles comes as URL-encoded JSON from OAuth callback
                 let jobRoles = [];
                 try {
                     const jobRolesParam = params.get('job_roles');
-                    if (jobRolesParam) {
-                        jobRoles = JSON.parse(jobRolesParam);
-                    }
+                    if (jobRolesParam) jobRoles = JSON.parse(jobRolesParam);
                 } catch (e) {
-                    console.log('Failed to parse job_roles, using empty array');
+                    jobRoles = [];
                 }
-                const user = {
+                storeSession(accessToken, refreshToken, {
                     id: params.get('user_id'),
                     email: params.get('user_email'),
                     name: params.get('user_name') || '',
-                    role: userRole,
+                    role: params.get('user_role') || 'user',
                     onboarding_completed: onboardingCompleted,
                     roles_confirmed: rolesConfirmed,
-                    job_roles: jobRoles,
-                };
-                localStorage.setItem('user', JSON.stringify(user));
-                // Cache subscription status from OAuth response
+                    job_roles: Array.isArray(jobRoles) ? jobRoles : [],
+                });
                 localStorage.setItem('subscription_status', JSON.stringify({
-                    hasAccess: hasJobsAccess,
-                    planType: planType,
+                    hasAccess: params.get('has_jobs_access') === 'true',
+                    planType: params.get('plan_type') || 'free',
                     timestamp: Date.now()
                 }));
                 history.replaceState(null, '', window.location.pathname);
-                // Subscription check disabled - allow all authenticated users
-                // Jobs portal redirect flow: onboarding -> role selection -> discover
-                if (!onboardingCompleted) {
-                    window.location.href = 'onboarding.html';
-                } else if (!rolesConfirmed) {
-                    window.location.href = 'select-roles.html';
-                } else {
-                    window.location.href = DEFAULT_REDIRECT;
-                }
+                routeAfterLogin(onboardingCompleted, rolesConfirmed);
                 return true;
             }
             return false;
         }
 
-        // Set OAuth URLs dynamically
+        // ---- OAuth provider buttons --------------------------------------------
         document.getElementById('google-login').href = `${API_BASE}/auth/google/login?redirect=jobs`;
         document.getElementById('github-login').href = `${API_BASE}/auth/github/login?redirect=jobs`;
         document.getElementById('linkedin-login').href = `${API_BASE}/auth/linkedin/login?redirect=jobs`;
 
-        if (!handleOAuthCallback()) {
-            // If already logged in with valid token, go to discover page
-            const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-            if (token) {
-                // Verify token is still valid before redirecting
-                fetch(`${API_BASE}/api/users/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.href = DEFAULT_REDIRECT;
-                    } else {
-                        // Token invalid, clear it and stay on login page
-                        localStorage.removeItem('access_token');
-                        localStorage.removeItem('refresh_token');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('user');
-                    }
-                }).catch(() => {
-                    // Network error, clear tokens
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('refresh_token');
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
+        // Hide GitHub/LinkedIn only when the backend explicitly reports them unavailable.
+        // A 404 (older backend) or network error means "unknown": leave everything visible.
+        // Google availability messaging is handled by js/google-signin.js.
+        fetch(`${API_BASE}/auth/providers`)
+            .then(response => response.ok ? response.json() : null)
+            .then(providers => {
+                if (!providers || typeof providers !== 'object') return;
+                if (providers.github === false) document.getElementById('github-login').style.display = 'none';
+                if (providers.linkedin === false) document.getElementById('linkedin-login').style.display = 'none';
+            })
+            .catch(() => {});
+
+        // ---- Existing session ----------------------------------------------------
+        async function tryRefresh() {
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (!refreshToken) return null;
+            try {
+                const response = await fetch(`${API_BASE}/auth/refresh`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
                 });
+                if (!response.ok) return null;
+                const data = await response.json();
+                storeSession(data.access_token, data.refresh_token, data.user);
+                return data.access_token;
+            } catch (e) {
+                return null;
             }
+        }
+
+        async function fetchOnboardingStatus(token) {
+            return fetch(`${API_BASE}/api/users/onboarding-status`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        }
+
+        async function resumeExistingSession() {
+            let token = localStorage.getItem('access_token') || localStorage.getItem('token');
+            if (!token && !localStorage.getItem('refresh_token')) return;
+            try {
+                let response = token ? await fetchOnboardingStatus(token) : null;
+                if (!response || response.status === 401) {
+                    // Access token missing/expired: try the refresh token before giving up.
+                    token = await tryRefresh();
+                    if (!token) {
+                        clearSessionKeys();
+                        return;
+                    }
+                    response = await fetchOnboardingStatus(token);
+                }
+                if (response.ok) {
+                    const status = await response.json();
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    user.onboarding_completed = !!status.onboarding_completed;
+                    user.roles_confirmed = !!status.roles_confirmed;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    routeAfterLogin(status.onboarding_completed, status.roles_confirmed);
+                } else if (response.status === 401 || response.status === 403) {
+                    clearSessionKeys();
+                }
+                // Other errors (5xx): keep the session and let the user sign in manually.
+            } catch (e) {
+                // Network error: keep tokens; the user can still sign in manually.
+            }
+        }
+
+        if (!handleOAuthCallback()) {
+            resumeExistingSession();
         }
 
         function togglePassword() {
@@ -379,57 +455,66 @@
             el.classList.add('show');
         }
 
+        function hideError() {
+            document.getElementById('error-message').classList.remove('show');
+        }
+
+        async function readError(response, fallback) {
+            try {
+                const data = await response.json();
+                const detail = data && data.detail;
+                if (Array.isArray(detail)) return detail.map(d => (d && d.msg) || String(d)).join('; ');
+                if (detail) return String(detail);
+            } catch (e) { /* non-JSON body */ }
+            if (response.status >= 500) return 'Cariara is having trouble right now. Please try again in a moment.';
+            return fallback;
+        }
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            hideError();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const btn = document.getElementById('login-btn');
             btn.disabled = true;
             btn.textContent = 'Signing in...';
             try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }),
-                });
+                let response;
+                try {
+                    response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password }),
+                    });
+                } catch (networkError) {
+                    throw new Error("Can't reach Cariara right now. Check your connection and try again.");
+                }
+                if (!response.ok) throw new Error(await readError(response, 'Sign-in failed. Check your email and password.'));
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.detail || 'Login failed');
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('refresh_token', data.refresh_token);
-                localStorage.setItem('token', data.access_token); // For compatibility with app.js
-                localStorage.setItem('user', JSON.stringify(data.user));
+                storeSession(data.access_token, data.refresh_token, data.user);
 
-                // Check subscription status before proceeding
-                btn.textContent = 'Checking access...';
+                // Subscription check is disabled; cache status for pages that read it.
                 try {
                     const subResponse = await fetch(`${API_BASE}/auth/subscription-status`, {
                         headers: { 'Authorization': `Bearer ${data.access_token}` }
                     });
                     if (subResponse.ok) {
                         const subData = await subResponse.json();
-                        // Cache subscription status
                         localStorage.setItem('subscription_status', JSON.stringify({
-                            hasAccess: true,  // Subscription check disabled
+                            hasAccess: true,
                             planType: subData.planType,
                             timestamp: Date.now()
                         }));
-                        // Subscription check disabled - allow all users
                     }
                 } catch (subError) {
-                    console.error('Subscription check failed:', subError);
-                    // Continue with normal flow if check fails (fail open)
+                    // Fail open
                 }
 
-                // Jobs portal redirect flow: onboarding -> role selection -> discover
-                const onboardingCompleted = data.user?.onboarding_completed || false;
-                const rolesConfirmed = data.user?.roles_confirmed_at || data.user?.roles_confirmed || false;
-                if (!onboardingCompleted) {
-                    window.location.href = 'onboarding.html';
-                } else if (!rolesConfirmed) {
-                    window.location.href = 'select-roles.html';
-                } else {
-                    window.location.href = DEFAULT_REDIRECT;
-                }
+                const onboardingCompleted = !!(data.user && data.user.onboarding_completed);
+                const rolesConfirmed = !!(data.user && (data.user.roles_confirmed_at || data.user.roles_confirmed));
+                const user = Object.assign({}, data.user || {}, { roles_confirmed: rolesConfirmed });
+                localStorage.setItem('user', JSON.stringify(user));
+                routeAfterLogin(onboardingCompleted, rolesConfirmed);
             } catch (error) {
                 showError(error.message);
                 btn.disabled = false;

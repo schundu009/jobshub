@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub - Settings</title>
+    <title>Settings · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <!-- Shared Sidebar Styles -->
     <link rel="stylesheet" href="/css/sidebar.css">
@@ -171,7 +171,7 @@
             border-top: 1px solid var(--border-color);
         }
         .tab-navigation .btn { min-width: 120px; }
-        .required-indicator { color: #ef4444; margin-left: 2px; }
+        .required-indicator { color: var(--c-red, #d93025); margin-left: 2px; }
 
         /* Section */
         .section {
@@ -234,8 +234,14 @@
         .form-control textarea { min-height: 100px; resize: vertical; }
         .form-control input::placeholder { color: var(--text-muted); }
         .form-control select option { color:#202124; background:#fff; }
-        .base-resume-status { display:block; min-height:16px; margin-top:6px; color:#5f6368; font-size:12px; }
-        .base-resume-status.error { color:#c5221f; }
+        .base-resume-status { display:block; min-height:16px; margin-top:6px; color:var(--c-ink-3, #5f6368); font-size:12px; }
+        .base-resume-status.error { color:var(--c-red, #d93025); }
+        .settings-title-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+        .save-status { font-size:13px; color:var(--c-ink-3, #5f6368); min-height:18px; }
+        .save-status.saved { color:var(--c-green, #188038); }
+        .save-status.error { color:var(--c-red, #d93025); }
+        .field-hint { display:block; margin-top:6px; color:var(--c-ink-3, #5f6368); font-size:12px; }
+        input[readonly] { background: var(--c-surface-2, #f8f9fa); color: var(--c-ink-2, #3c4043); cursor: default; }
 
         /* Tags Input */
         .tags-container {
@@ -513,8 +519,8 @@
             transition: all 0.2s;
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .toast.success { background: #22c55e; color: white; }
-        .toast.error { background: #ef4444; color: white; }
+        .toast.success { background: var(--c-ink, #202124); color: var(--c-surface, #fff); }
+        .toast.error { background: var(--c-red, #d93025); color: #fff; }
 
         /* Top Right Controls */
         .top-right-controls {
@@ -641,13 +647,13 @@
             .form-row { gap: 6px; }
         }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+        <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
     <!-- Mobile Menu Button -->
-    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu" onclick="toggleMobileSidebar()">
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
         <svg class="menu-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
@@ -655,21 +661,23 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
     </button>
-    <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="/images/logo-full.svg" alt="Jobshub" class="logo">
+            <a href="discover.html" class="c-brand" aria-label="Cariara Jobs home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="28" height="28"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="22"><span class="c-brand-product">Jobs</span></a>
         </div>
         <nav class="sidebar-nav">
-            <!-- APPLICATION Section -->
-            <div class="nav-section-title">Application</div>
-            <a href="discover.html" class="nav-link" data-icon="search">Search</a>
+            <div class="nav-section-title">Apply</div>
+            <a href="discover.html" class="nav-link" data-icon="search">Jobs</a>
 
-            <!-- OTHER Section -->
-            <div class="nav-section-title">Other</div>
+            <div class="nav-section-title">You</div>
             <a href="documents.html" class="nav-link" data-icon="document">Resumes</a>
-            <a href="settings.html" class="active nav-link" data-icon="settings">Settings</a>
+            <a href="settings.html" class="nav-link active" data-icon="settings">Settings</a>
+
+            <div class="nav-section-title">Cariara</div>
+            <a href="https://cariara.com/prep/prepare" class="nav-link c-external" data-icon="bookmark">Prepare</a>
+            <a href="https://cariara.com/pg?tab=problems" class="nav-link c-external" data-icon="edit">Practice</a>
         </nav>
         <div class="sidebar-user" id="user-menu"></div>
     </aside>
@@ -682,14 +690,17 @@
     </div>
 
     <main class="main-content">
-        <h1 class="page-title">Account Settings</h1>
+        <div class="settings-title-row">
+            <h1 class="page-title">Account Settings</h1>
+            <span id="save-status" class="save-status" role="status" aria-live="polite"></span>
+        </div>
 
         <div class="tabs">
-            <button class="tab-btn active" data-tab="preferences" onclick="showTab('preferences')">
+            <button type="button" class="tab-btn active" data-tab="preferences" onclick="showTab('preferences')">
                 <span class="tab-number">1</span> Preferences
                 <span class="tab-check" id="check-preferences" style="display:none;">✓</span>
             </button>
-            <button class="tab-btn" data-tab="personal-info" onclick="showTab('personal-info')">
+            <button type="button" class="tab-btn" data-tab="personal-info" onclick="showTab('personal-info')">
                 <span class="tab-number">2</span> Personal Info
                 <span class="tab-check" id="check-personal-info" style="display:none;">✓</span>
             </button>
@@ -724,7 +735,7 @@
                         <svg class="help-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
                     </div>
                     <div class="form-control">
-                        <select name="base_resume" id="base-resume-select" required>
+                        <select name="base_resume_id" id="base-resume-select">
                             <option value="">Select a resume...</option>
                         </select>
                         <small id="base-resume-status" class="base-resume-status" role="status" aria-live="polite"></small>
@@ -752,7 +763,7 @@
 
                 <div class="tab-navigation">
                     <div></div>
-                    <button class="btn btn-primary" onclick="nextTab('preferences')">Next: Auto Apply →</button>
+                    <button type="button" class="btn btn-primary" onclick="nextTab('preferences')">Next: Personal info →</button>
                 </div>
             </div>
         </div>
@@ -775,9 +786,10 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-label">Email<span class="required-indicator">*</span></div>
+                    <div class="form-label">Account email</div>
                     <div class="form-control">
-                        <input type="email" name="email" id="personal_email" placeholder="john@example.com" required>
+                        <input type="email" id="personal_email" readonly aria-readonly="true" tabindex="-1">
+                        <small class="field-hint">This is the email you sign in with. Use Resume Email for applications.</small>
                     </div>
                 </div>
 
@@ -887,7 +899,7 @@
                 <div class="form-row">
                     <div class="form-label">Resume</div>
                     <div class="form-control">
-                        <div class="file-upload" id="resume-upload">
+                        <div class="file-upload" id="resume-upload" role="button" tabindex="0" aria-label="Upload a resume">
                             <div class="file-upload-icon"></div>
                             <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
                             <div class="file-upload-text">PDF, DOCX</div>
@@ -896,21 +908,9 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-label">Profile Photo</div>
-                    <div class="form-control">
-                        <div class="file-upload" id="photo-upload">
-                            <div class="file-upload-icon photo-upload-icon"></div>
-                            <div class="file-upload-text"><span>Click to upload</span> or drag and drop</div>
-                            <div class="file-upload-text">PNG, JPG, JPEG</div>
-                        </div>
-                        <input type="file" id="photo-file-input" accept=".png,.jpg,.jpeg" style="display:none;">
-                    </div>
-                </div>
-
                 <div class="tab-navigation">
-                    <button class="btn btn-secondary" onclick="prevTab('personal-info')">← Back: Auto Apply</button>
-                    <button class="btn btn-primary" onclick="validateAndSave()">Save & Continue →</button>
+                    <button type="button" class="btn btn-secondary" onclick="prevTab('personal-info')">← Back: Preferences</button>
+                    <button type="button" class="btn btn-primary" onclick="validateAndSave()">Save & Continue →</button>
                 </div>
             </div>
         </div>
@@ -918,73 +918,15 @@
         <div id="toast" class="toast"></div>
     </main>
 
-    <!-- Save bar hidden - save is done via tab navigation -->
-    <div class="save-bar" id="save-bar" style="display:none;">
-        <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
-        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
-    </div>
-
+    <script src="/js/app.js"></script>
     <script>
-        const API_BASE = window.location.hostname === 'localhost'
-            ? 'http://localhost:8000'
-            : 'https://cariara-backend.up.railway.app';
+        // API access (token refresh + retry, error parsing) comes from js/app.js.
+        // Sidebar user menu, mobile drawer and logout are owned by js/sidebar.js.
 
         let settings = {};
-        let jobTitles = [];
-        let cities = [];
-        let excludedCompanies = [];
-        let selectedWorkTypes = [];
-
-        // Country to currency mapping
-        const countryCurrency = {
-            'US': { symbol: '$', code: 'USD', name: 'US Dollar' },
-            'CA': { symbol: '$', code: 'CAD', name: 'Canadian Dollar' },
-            'UK': { symbol: '£', code: 'GBP', name: 'British Pound' },
-            'DE': { symbol: '€', code: 'EUR', name: 'Euro' },
-            'FR': { symbol: '€', code: 'EUR', name: 'Euro' },
-            'AU': { symbol: '$', code: 'AUD', name: 'Australian Dollar' },
-            'IN': { symbol: '₹', code: 'INR', name: 'Indian Rupee' },
-            'SG': { symbol: '$', code: 'SGD', name: 'Singapore Dollar' },
-            'AE': { symbol: 'د.إ', code: 'AED', name: 'UAE Dirham' },
-            'NL': { symbol: '€', code: 'EUR', name: 'Euro' },
-            'IE': { symbol: '€', code: 'EUR', name: 'Euro' },
-            'JP': { symbol: '¥', code: 'JPY', name: 'Japanese Yen' },
-            'BR': { symbol: 'R$', code: 'BRL', name: 'Brazilian Real' },
-            'MX': { symbol: '$', code: 'MXN', name: 'Mexican Peso' }
-        };
-
-        // Update currency display based on country
-        function updateCurrencyDisplay(countryCode) {
-            const currencySymbol = document.getElementById('currency-symbol');
-            const currencyCodeEl = document.getElementById('currency-code');
-            const currency = countryCurrency[countryCode] || countryCurrency['US'];
-            if (currencySymbol) currencySymbol.textContent = currency.symbol;
-            if (currencyCodeEl) currencyCodeEl.textContent = currency.code;
-        }
-
-        // Handle country change
-        function onCountryChange() {
-            const countrySelect = document.getElementById('country-select');
-            const countryCode = countrySelect.value;
-            updateCurrencyDisplay(countryCode);
-        }
-
-        // Auto-detect user's country using IP geolocation
-        async function detectUserCountry() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                if (response.ok) {
-                    const data = await response.json();
-                    return data.country_code || 'US';
-                }
-            } catch (e) {
-                console.log('Could not detect country, defaulting to US');
-            }
-            return 'US';
-        }
 
         // Load user's resumes for base resume dropdown
-        async function loadResumes() {
+        async function loadResumes(selectId) {
             const select = document.getElementById('base-resume-select');
             if (!select) return;
             const help = document.getElementById('base-resume-status');
@@ -993,30 +935,21 @@
                 help.textContent = message;
                 help.classList.toggle('error', isError);
             };
-            select.innerHTML = '<option value="">Loading resumes…</option>';
+            select.replaceChildren(new Option('Loading resumes…', ''));
             setStatus('Loading your saved resumes…');
             try {
-                const token = localStorage.getItem('access_token');
-                if (!token) throw new Error('Please sign in again to load your saved resumes.');
-                const response = await fetch(`${API_BASE}/api/users/documents?type=resume`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) {
-                    if (response.status === 401) throw new Error('Your session expired. Sign in again to load your resumes.');
-                    throw new Error(`Could not load resumes (server returned ${response.status}).`);
-                }
-                const payload = await response.json();
+                const payload = await apiRequest('/users/documents?type=resume');
                 if (!Array.isArray(payload)) throw new Error('The resume list returned an unexpected response.');
                 const resumes = payload.filter(resume => resume && resume.id != null && resume.filename);
                 select.replaceChildren(new Option('Select a resume...', ''));
                 resumes.forEach(resume => {
-                    const option = new Option(`${resume.filename}${resume.is_default ? ' (Default)' : ''}`, String(resume.id));
-                    select.appendChild(option);
+                    select.appendChild(new Option(`${resume.filename}${resume.is_default ? ' (Default)' : ''}`, String(resume.id)));
                 });
-                const selected = resumes.find(resume => String(resume.id) === String(settings.base_resume_id))
+                const wanted = selectId != null ? selectId : settings.base_resume_id;
+                const selected = resumes.find(resume => String(resume.id) === String(wanted))
                     || resumes.find(resume => resume.is_default);
                 if (selected) select.value = String(selected.id);
-                setStatus(resumes.length ? `${resumes.length} saved resume${resumes.length === 1 ? '' : 's'} available.` : 'No saved resumes found. Upload one in Resumes.');
+                setStatus(resumes.length ? `${resumes.length} saved resume${resumes.length === 1 ? '' : 's'} available.` : 'No saved resumes found. Upload one below or in Resumes.');
             } catch (e) {
                 console.error('Failed to load resumes:', e);
                 select.replaceChildren(new Option('Unable to load resumes', ''));
@@ -1028,12 +961,12 @@
         function setTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
             localStorage.setItem('jobtrails-theme', t);
-            // Update icon - show sun in dark mode (to switch to light), moon in light mode (to switch to dark)
+            // Show sun in dark mode (to switch to light), moon in light mode (to switch to dark)
             const sunIcon = document.getElementById('theme-icon-sun');
             const moonIcon = document.getElementById('theme-icon-moon');
             if (sunIcon && moonIcon) {
                 sunIcon.style.display = t === 'dark' ? 'block' : 'none';
-                moonIcon.style.display = t === 'light' ? 'block' : 'none';
+                moonIcon.style.display = t === 'dark' ? 'none' : 'block';
             }
         }
 
@@ -1044,30 +977,9 @@
 
         setTheme(localStorage.getItem('jobtrails-theme') || 'light');
 
-        // Mobile sidebar functions
-        function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-            const btn = document.getElementById('mobile-menu-btn');
-            if (sidebar.classList.contains('mobile-open')) {
-                closeMobileSidebar();
-            } else {
-                sidebar.classList.add('mobile-open');
-                backdrop.classList.add('active');
-                btn.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
+        function logout() {
+            if (typeof window.handleLogout === 'function') window.handleLogout();
         }
-        function closeMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-            const btn = document.getElementById('mobile-menu-btn');
-            sidebar.classList.remove('mobile-open');
-            backdrop.classList.remove('active');
-            btn.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-        window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileSidebar());
 
         // Tab order
         const tabOrder = ['preferences', 'personal-info'];
@@ -1104,9 +1016,7 @@
         }
 
         function validatePreferences() {
-            const resumeEmail = document.getElementById('resume_email').value.trim();
-
-            if (!resumeEmail) {
+            if (!validatePreferencesQuiet()) {
                 showTabError('Please enter your resume email.');
                 return false;
             }
@@ -1116,15 +1026,10 @@
 
         function validatePersonalInfo() {
             const fullName = document.getElementById('full_name').value.trim();
-            const email = document.getElementById('personal_email').value.trim();
             const phone = document.getElementById('phone').value.trim();
 
             if (!fullName) {
                 showTabError('Please enter your full name.');
-                return false;
-            }
-            if (!email) {
-                showTabError('Please enter your email.');
                 return false;
             }
             if (!phone) {
@@ -1136,16 +1041,10 @@
 
         function nextTab(currentTab) {
             hideTabError();
-            let isValid = false;
-
-            if (currentTab === 'preferences') {
-                isValid = validatePreferences();
-                if (isValid) {
-                    completedTabs.preferences = true;
-                    markTabCompleted('preferences');
-                    // Save current tab and navigate to personal-info
-                    saveCurrentTabAndNavigate('personal-info');
-                }
+            if (currentTab === 'preferences' && validatePreferences()) {
+                completedTabs.preferences = true;
+                markTabCompleted('preferences');
+                saveCurrentTabAndNavigate('personal-info');
             }
         }
 
@@ -1163,66 +1062,29 @@
 
         // Save current tab settings and navigate intelligently
         async function saveCurrentTabAndNavigate(suggestedNextTab) {
-            // Gather and save settings
-            document.querySelectorAll('[name]').forEach(el => {
-                if (el.type === 'checkbox') {
-                    settings[el.name] = el.checked;
-                } else {
-                    settings[el.name] = el.value || null;
-                }
-            });
-            settings.job_titles = jobTitles;
-            settings.preferred_cities = cities;
-            settings.excluded_companies = excludedCompanies;
-            if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
-                settings.work_type = selectedWorkTypes.length === 0 ? null : 'all';
-            } else {
-                settings.work_type = selectedWorkTypes.join(',');
+            if (autoSaveTimeout) { clearTimeout(autoSaveTimeout); autoSaveTimeout = null; }
+            const ok = await persistSettings();
+            if (!ok) {
+                toast(lastSaveError || 'Could not save your settings', 'error');
+                return;
             }
-
-            try {
-                const token = localStorage.getItem('access_token');
-                const r = await fetch(`${API_BASE}/api/users/settings`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(settings)
-                });
-
-                if (r.ok) {
-                    toast('Settings saved');
-                    // Check if all tabs are complete
-                    if (allTabsComplete()) {
-                        toast('All settings complete! Redirecting...');
-                        setTimeout(() => {
-                            window.location.href = 'discover.html';
-                        }, 1000);
-                    } else {
-                        // Go to next incomplete tab
-                        const nextIncomplete = findNextIncompleteTab();
-                        if (nextIncomplete) {
-                            showTab(nextIncomplete, true);
-                        } else {
-                            showTab(suggestedNextTab, true);
-                        }
-                    }
-                } else if (r.status === 401) {
-                    window.location.href = 'login.html';
-                } else {
-                    toast('Failed to save', 'error');
-                }
-            } catch (e) {
-                toast('Error saving', 'error');
+            if (suggestedNextTab) {
+                // "Next" always moves forward to the requested tab.
+                toast('Settings saved');
+                showTab(suggestedNextTab, true);
+                return;
             }
+            if (allTabsComplete()) {
+                toast('All settings saved. Taking you to jobs…');
+                setTimeout(() => { window.location.href = 'discover.html'; }, 1000);
+                return;
+            }
+            toast('Settings saved. Please complete the remaining fields.');
+            showTab(findNextIncompleteTab() || 'preferences', true);
         }
 
         function allTabsComplete() {
-            // Re-check all validations
-            const prefsOk = validatePreferencesQuiet();
-            const personalOk = validatePersonalInfoQuiet();
-            return prefsOk && personalOk;
+            return validatePreferencesQuiet() && validatePersonalInfoQuiet();
         }
 
         function findNextIncompleteTab() {
@@ -1233,16 +1095,13 @@
 
         // Quiet validators (don't show errors, just return boolean)
         function validatePreferencesQuiet() {
-            const resumeEmail = document.getElementById('resume_email')?.value?.trim();
-            // Base resume is optional
-            return !!resumeEmail;
+            return !!document.getElementById('resume_email')?.value?.trim();
         }
 
         function validatePersonalInfoQuiet() {
             const fullName = document.getElementById('full_name')?.value?.trim();
-            const email = document.getElementById('personal_email')?.value?.trim();
             const phone = document.getElementById('phone')?.value?.trim();
-            return !!(fullName && email && phone);
+            return !!(fullName && phone);
         }
 
         function validateAndSave() {
@@ -1251,519 +1110,241 @@
 
             completedTabs['personal-info'] = true;
             markTabCompleted('personal-info');
-
-            // Check if all tabs are complete and save
             saveCurrentTabAndNavigate(null);
         }
 
         // Toast
+        let toastTimer = null;
         function toast(msg, type = 'success') {
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.className = `toast ${type} show`;
-            setTimeout(() => t.classList.remove('show'), 3000);
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), type === 'error' ? 4500 : 3000);
         }
 
-        // Tags functionality
-        function setupTagsInput(inputId, containerId, tagsArray, maxTags = 5) {
-            const input = document.getElementById(inputId);
-            const container = document.getElementById(containerId);
-            // Some preferences are not shown in the current Settings form. Keep
-            // their legacy initializer from aborting the rest of page startup.
-            if (!input || !container) return;
+        // Resume upload (Personal Info > Documents)
+        function setupResumeUpload() {
+            const upload = document.getElementById('resume-upload');
+            const input = document.getElementById('resume-file-input');
+            if (!upload || !input) return;
+            const defaultMarkup = upload.innerHTML;
 
-            function renderTags() {
-                const existingTags = container.querySelectorAll('.tag');
-                existingTags.forEach(tag => tag.remove());
-
-                tagsArray.forEach((tag, index) => {
-                    const tagEl = document.createElement('span');
-                    tagEl.className = 'tag';
-                    tagEl.innerHTML = `${tag}<button class="tag-remove" onclick="removeTag('${inputId}', ${index})"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
-                    container.insertBefore(tagEl, input);
-                });
-            }
-
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && input.value.trim()) {
-                    e.preventDefault();
-                    if (tagsArray.length < maxTags) {
-                        tagsArray.push(input.value.trim());
-                        input.value = '';
-                        renderTags();
-                        triggerAutoSave(); // Auto-save when tag added
-                    } else {
-                        toast(`Maximum ${maxTags} items allowed`, 'error');
-                    }
-                }
-            });
-
-            renderTags();
-        }
-
-        window.removeTag = function(inputId, index) {
-            if (inputId === 'job-titles-input') {
-                jobTitles.splice(index, 1);
-                setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
-            } else if (inputId === 'cities-input') {
-                cities.splice(index, 1);
-                setupTagsInput('cities-input', 'cities-container', cities, 5);
-            } else if (inputId === 'excluded-companies-input') {
-                excludedCompanies.splice(index, 1);
-                setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
-            }
-            triggerAutoSave(); // Auto-save when tag removed
-        };
-
-        // Option buttons (single select)
-        function setupOptionGroup(groupId, fieldName) {
-            const group = document.getElementById(groupId);
-            if (!group) return;
-
-            group.querySelectorAll('.option-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    settings[fieldName] = btn.dataset.value;
-                });
-            });
-        }
-
-        // Multi-select option group (for work types)
-        function setupMultiSelectOptionGroup(groupId, fieldName) {
-            const group = document.getElementById(groupId);
-            if (!group) return;
-
-            group.querySelectorAll('.option-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const value = btn.dataset.value;
-                    const allBtn = group.querySelector('[data-value="all"]');
-
-                    if (value === 'all') {
-                        // Toggle "All" - deselect others when All is selected
-                        if (btn.classList.contains('selected')) {
-                            btn.classList.remove('selected');
-                            selectedWorkTypes = [];
-                        } else {
-                            group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-                            btn.classList.add('selected');
-                            selectedWorkTypes = ['all'];
-                        }
-                    } else {
-                        // Toggle individual option
-                        if (btn.classList.contains('selected')) {
-                            btn.classList.remove('selected');
-                            selectedWorkTypes = selectedWorkTypes.filter(t => t !== value);
-                        } else {
-                            // Deselect "All" if selecting individual option
-                            if (allBtn) allBtn.classList.remove('selected');
-                            selectedWorkTypes = selectedWorkTypes.filter(t => t !== 'all');
-                            btn.classList.add('selected');
-                            selectedWorkTypes.push(value);
-                        }
-                    }
-
-                    // Store as array or 'all' or comma-separated string
-                    if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
-                        settings[fieldName] = selectedWorkTypes.length === 0 ? null : 'all';
-                    } else {
-                        settings[fieldName] = selectedWorkTypes.join(',');
-                    }
-                });
-            });
-        }
-
-        // Mode cards
-        function setupModeCards() {
-            const cards = document.querySelectorAll('.mode-card');
-            cards.forEach(card => {
-                card.addEventListener('click', () => {
-                    cards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    settings.apply_mode = card.dataset.mode;
-                });
-            });
-        }
-
-        // File uploads
-        function setupFileUpload(uploadId, inputId) {
-            const upload = document.getElementById(uploadId);
-            const input = document.getElementById(inputId);
-
-            upload.addEventListener('click', () => input.click());
-            input.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
+            const handleFile = async (file) => {
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) { toast('File too large (max 5MB)', 'error'); return; }
+                upload.innerHTML = `<div class="file-uploaded"><div class="file-uploaded-name">Uploading ${escapeHtml(file.name)}…</div></div>`;
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const result = await uploadDocument(formData, 'resume');
                     upload.innerHTML = `
                         <div class="file-uploaded">
-                            <div class="file-uploaded-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
-                            <div class="file-uploaded-name">${file.name}</div>
-                        </div>
-                    `;
+                            <div class="file-uploaded-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></div>
+                            <div class="file-uploaded-name">${escapeHtml(file.name)} uploaded</div>
+                        </div>`;
+                    toast(result && result.warning ? 'Uploaded, but text could not be read from this file' : 'Resume uploaded',
+                        result && result.warning ? 'error' : 'success');
+                    // Offer the new resume as base resume only when none is chosen yet
+                    const select = document.getElementById('base-resume-select');
+                    const keep = select && select.value ? select.value : (result && result.id);
+                    await loadResumes(keep);
+                    if (select && String(select.value) !== String(settings.base_resume_id ?? '')) triggerAutoSave();
+                } catch (e) {
+                    upload.innerHTML = defaultMarkup;
+                    toast(e.message || 'Upload failed', 'error');
+                } finally {
+                    input.value = '';
                 }
+            };
+
+            upload.addEventListener('click', () => input.click());
+            upload.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
             });
-        }
-
-        // User menu
-        function initUserMenu() {
-            const um = document.getElementById('user-menu');
-            const uj = localStorage.getItem('user');
-            if (uj) {
-                try {
-                    const u = JSON.parse(uj);
-                    const n = u.name || u.email?.split('@')[0] || 'User';
-                    const i = n.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
-                    um.innerHTML = `
-                        <div class="sidebar-user-info">
-                            <div class="sidebar-user-avatar">${i}</div>
-                            <div>
-                                <div class="sidebar-user-name">${n}</div>
-                                <div class="sidebar-user-email">${u.email || ''}</div>
-                            </div>
-                        </div>
-                        <button class="sidebar-logout-btn" onclick="logout()">
-                            <span class="logout-icon"></span>
-                            Sign Out
-                        </button>`;
-                } catch (e) {}
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('user');
-            window.location.href = 'login.html';
+            upload.addEventListener('dragover', (e) => { e.preventDefault(); upload.classList.add('dragover'); });
+            upload.addEventListener('dragleave', () => upload.classList.remove('dragover'));
+            upload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                upload.classList.remove('dragover');
+                if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+            });
+            input.addEventListener('change', () => handleFile(input.files[0]));
         }
 
         // Load settings
         async function loadSettings() {
             try {
-                const token = localStorage.getItem('access_token');
-                const r = await fetch(`${API_BASE}/api/users/settings`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (r.ok) {
-                    settings = await r.json();
-                    // Start independently of optional form population work so a
-                    // slow external lookup cannot leave the resume select empty.
-                    void loadResumes();
-                    await populateForm();
-                } else if (r.status === 401) {
-                    window.location.href = 'login.html';
-                }
+                settings = (await apiRequest('/users/settings')) || {};
             } catch (e) {
                 console.error('Failed to load settings:', e);
+                setSaveStatus('error', e.message || 'Could not load your settings');
+                void loadResumes();
+                return;
             }
+            // Start independently of form population so the resume select always fills.
+            void loadResumes();
+            populateForm();
         }
 
-        async function populateForm() {
-            // Populate text inputs and selects
+        function populateForm() {
+            // Populate named form fields (these are exactly the fields we save)
             document.querySelectorAll('[name]').forEach(el => {
-                if (settings[el.name] !== undefined && settings[el.name] !== null) {
-                    el.value = settings[el.name];
-                }
+                const value = settings[el.name];
+                if (value === undefined || value === null) return;
+                if (el.type === 'checkbox') el.checked = !!value;
+                else el.value = String(value);
             });
 
-            // Populate tags - use job_roles as fallback if job_titles is empty
-            if (settings.job_titles && settings.job_titles.length > 0) {
-                jobTitles = settings.job_titles;
-            } else if (settings.job_roles && settings.job_roles.length > 0) {
-                // Use job_roles as default job titles
-                jobTitles = settings.job_roles.slice(0, 5);
-            }
-            setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
-            if (settings.preferred_cities) {
-                cities = settings.preferred_cities;
-                setupTagsInput('cities-input', 'cities-container', cities, 10);
-            }
-            if (settings.excluded_companies) {
-                excludedCompanies = settings.excluded_companies;
-                setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
+            // Account email is display-only; it is never sent back.
+            const accountEmail = document.getElementById('personal_email');
+            if (accountEmail) {
+                const user = getCurrentUser();
+                accountEmail.value = settings.email || (user && user.email) || '';
             }
 
-            // Populate single-select option groups
-            ['relocate-options', 'us-auth-options', 'sponsorship-options', 'license-options', 'clearance-options'].forEach(groupId => {
-                const group = document.getElementById(groupId);
-                if (group && settings[groupId.replace('-options', '').replace(/-/g, '_')]) {
-                    const val = settings[groupId.replace('-options', '').replace(/-/g, '_')];
-                    group.querySelectorAll('.option-btn').forEach(btn => {
-                        btn.classList.toggle('selected', btn.dataset.value === val);
-                    });
-                }
-            });
-
-            // Populate work type (multi-select)
-            const workTypeGroup = document.getElementById('work-type-options');
-            if (workTypeGroup && settings.work_type) {
-                const workTypeValue = settings.work_type;
-                if (workTypeValue === 'all') {
-                    selectedWorkTypes = ['all'];
-                    workTypeGroup.querySelector('[data-value="all"]')?.classList.add('selected');
-                } else if (workTypeValue) {
-                    selectedWorkTypes = workTypeValue.split(',');
-                    selectedWorkTypes.forEach(type => {
-                        const btn = workTypeGroup.querySelector(`[data-value="${type}"]`);
-                        if (btn) btn.classList.add('selected');
-                    });
-                }
-            }
-
-            // Populate checkboxes
-            const remoteOk = document.getElementById('remote-ok');
-            const hybridOk = document.getElementById('hybrid-ok');
-            if (remoteOk) remoteOk.checked = !!settings.remote_ok;
-            if (hybridOk) hybridOk.checked = !!settings.hybrid_ok;
-
-            // Populate mode
-            if (settings.apply_mode) {
-                document.querySelectorAll('.mode-card').forEach(card => {
-                    card.classList.toggle('selected', card.dataset.mode === settings.apply_mode);
-                });
-            }
-
-            // Update currency based on country
-            const countrySelect = document.getElementById('country-select');
-            if (countrySelect && countrySelect.value) {
-                updateCurrencyDisplay(countrySelect.value);
-            } else if (countrySelect) {
-                // Auto-detect country if not set
-                const detectedCountry = await detectUserCountry();
-                countrySelect.value = detectedCountry;
-                const addressCountrySelect = document.getElementById('address-country-select');
-                if (addressCountrySelect) addressCountrySelect.value = detectedCountry;
-                updateCurrencyDisplay(detectedCountry);
-            }
-
-            // Check which tabs are already completed based on existing data
             checkTabCompletion();
         }
 
         function checkTabCompletion() {
-            // Check Preferences tab - only require resume email, base resume is optional
-            const resumeEmail = document.querySelector('[name="resume_email"]')?.value;
-            if (resumeEmail) {
+            if (validatePreferencesQuiet()) {
                 completedTabs.preferences = true;
                 markTabCompleted('preferences');
             }
-
-            // Check Personal Info tab
-            const fullName = document.querySelector('[name="full_name"]')?.value;
-            const email = document.querySelector('[name="email"]')?.value;
-            const phone = document.querySelector('[name="phone"]')?.value;
-            if (fullName && email && phone) {
+            if (validatePersonalInfoQuiet()) {
                 completedTabs['personal-info'] = true;
                 markTabCompleted('personal-info');
             }
         }
 
-        // Auto-save with debounce
+        // Only the fields rendered in this form are sent. The login email is
+        // deliberately excluded (it is shown read-only and has no name attribute).
+        function buildSettingsPayload() {
+            const payload = {};
+            document.querySelectorAll('.main-content [name]').forEach(el => {
+                if (el.name === 'email') return;
+                if (el.type === 'checkbox') {
+                    payload[el.name] = el.checked;
+                    return;
+                }
+                const raw = typeof el.value === 'string' ? el.value.trim() : el.value;
+                if (el.name === 'base_resume_id') {
+                    const id = parseInt(raw, 10);
+                    payload.base_resume_id = Number.isFinite(id) ? id : null;
+                    return;
+                }
+                payload[el.name] = raw === '' ? null : raw;
+            });
+            return payload;
+        }
+
+        // ---- Auto-save -----------------------------------------------------------
         let autoSaveTimeout = null;
         let isSaving = false;
+        let resaveRequested = false;   // edits arrived while a save was in flight
+        let currentSave = null;
+        let lastSaveError = '';
+        let saveStatusTimer = null;
+
+        function setSaveStatus(state, message) {
+            const el = document.getElementById('save-status');
+            if (!el) return;
+            clearTimeout(saveStatusTimer);
+            el.classList.remove('saved', 'error');
+            if (state === 'saving') el.textContent = 'Saving…';
+            else if (state === 'pending') el.textContent = 'Unsaved changes';
+            else if (state === 'saved') {
+                el.textContent = 'Saved';
+                el.classList.add('saved');
+                saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 4000);
+            } else if (state === 'error') {
+                el.textContent = message || "Couldn't save";
+                el.classList.add('error');
+            } else el.textContent = '';
+        }
 
         function triggerAutoSave() {
             if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            if (isSaving) resaveRequested = true;
+            setSaveStatus(isSaving ? 'saving' : 'pending');
             autoSaveTimeout = setTimeout(() => {
-                saveSettings(true); // true = silent auto-save
+                autoSaveTimeout = null;
+                persistSettings().then(ok => { if (ok) checkTabCompletion(); });
             }, 1500); // Save 1.5 seconds after last change
         }
 
-        function showSaveIndicator(message = 'Saving...') {
-            let indicator = document.getElementById('auto-save-indicator');
-            if (!indicator) {
-                indicator = document.createElement('div');
-                indicator.id = 'auto-save-indicator';
-                indicator.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--accent-purple);color:white;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;transition:opacity 0.3s;';
-                document.body.appendChild(indicator);
+        // Persist the form. If more edits arrive while a request is in flight, the
+        // loop re-saves with fresh values instead of dropping them.
+        function persistSettings() {
+            if (isSaving) {
+                resaveRequested = true;
+                return currentSave;
             }
-            indicator.textContent = message;
-            indicator.style.opacity = '1';
-        }
-
-        function hideSaveIndicator() {
-            const indicator = document.getElementById('auto-save-indicator');
-            if (indicator) {
-                indicator.style.opacity = '0';
-                setTimeout(() => indicator.remove(), 300);
-            }
-        }
-
-        // Save settings - now uses smart navigation
-        async function saveSettings(silent = false) {
-            if (isSaving) return; // Prevent concurrent saves
             isSaving = true;
-
-            if (silent) {
-                showSaveIndicator('Saving...');
-            }
-
-            // Gather all form data
-            document.querySelectorAll('[name]').forEach(el => {
-                if (el.type === 'checkbox') {
-                    settings[el.name] = el.checked;
-                } else {
-                    settings[el.name] = el.value || null;
+            setSaveStatus('saving');
+            currentSave = (async () => {
+                let ok = false;
+                try {
+                    do {
+                        resaveRequested = false;
+                        const payload = buildSettingsPayload();
+                        await apiRequest('/users/settings', 'PUT', payload);
+                        Object.assign(settings, payload);
+                    } while (resaveRequested);
+                    ok = true;
+                    lastSaveError = '';
+                    setSaveStatus(autoSaveTimeout ? 'pending' : 'saved');
+                } catch (e) {
+                    lastSaveError = e.message || "Couldn't save your settings";
+                    setSaveStatus('error', `Couldn't save: ${lastSaveError}`);
+                } finally {
+                    isSaving = false;
                 }
-            });
+                return ok;
+            })();
+            return currentSave;
+        }
 
-            // Add tags
-            settings.job_titles = jobTitles;
-            settings.preferred_cities = cities;
-            settings.excluded_companies = excludedCompanies;
-
-            // Handle work_type (from multi-select)
-            if (selectedWorkTypes.includes('all') || selectedWorkTypes.length === 0) {
-                settings.work_type = selectedWorkTypes.length === 0 ? null : 'all';
-            } else {
-                settings.work_type = selectedWorkTypes.join(',');
-            }
-
+        // Flush a pending debounced save when the page is being hidden/closed.
+        function flushPendingSave() {
+            if (!autoSaveTimeout) return;
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = null;
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
             try {
-                const token = localStorage.getItem('access_token');
-                const r = await fetch(`${API_BASE}/api/users/settings`, {
+                fetch(`${BACKEND_URL}/api/users/settings`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(settings)
-                });
-                if (r.ok) {
-                    if (silent) {
-                        // Auto-save: just show saved indicator
-                        showSaveIndicator('Saved!');
-                        setTimeout(hideSaveIndicator, 1500);
-                        checkTabCompletion(); // Update tab completion status
-                    } else {
-                        // Manual save: check if all tabs are complete
-                        if (allTabsComplete()) {
-                            toast('All settings saved! Redirecting...');
-                            setTimeout(() => {
-                                window.location.href = 'discover.html';
-                            }, 1000);
-                        } else {
-                            // Find next incomplete tab and go there
-                            const nextIncomplete = findNextIncompleteTab();
-                            if (nextIncomplete) {
-                                toast('Settings saved. Please complete remaining fields.');
-                                showTab(nextIncomplete, true);
-                            }
-                        }
-                    }
-                } else if (r.status === 401) {
-                    window.location.href = 'login.html';
-                } else {
-                    if (silent) {
-                        showSaveIndicator('Save failed');
-                        setTimeout(hideSaveIndicator, 2000);
-                    } else {
-                        toast('Failed to save settings', 'error');
-                    }
-                }
-            } catch (e) {
-                if (silent) {
-                    showSaveIndicator('Save error');
-                    setTimeout(hideSaveIndicator, 2000);
-                } else {
-                    toast('Error saving settings', 'error');
-                }
-            } finally {
-                isSaving = false;
-            }
+                    keepalive: true,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(buildSettingsPayload())
+                }).catch(() => {});
+            } catch (e) { /* best effort */ }
         }
-
-        function resetForm() {
-            if (confirm('Reset all changes?')) {
-                loadSettings();
-            }
-        }
-
-        // Mobile menu functions
-        function setupMobileMenu() {
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-
-            function closeMobileMenu() {
-                sidebar.classList.remove('mobile-open');
-                backdrop.classList.remove('active');
-                mobileMenuBtn.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-
-            function openMobileMenu() {
-                sidebar.classList.add('mobile-open');
-                backdrop.classList.add('active');
-                mobileMenuBtn.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', () => {
-                    sidebar.classList.contains('mobile-open') ? closeMobileMenu() : openMobileMenu();
-                });
-            }
-            if (backdrop) backdrop.addEventListener('click', closeMobileMenu);
-            document.querySelectorAll('.sidebar-nav a').forEach(link => {
-                link.addEventListener('click', () => window.innerWidth <= 768 && closeMobileMenu());
-            });
-            window.addEventListener('resize', () => window.innerWidth > 768 && closeMobileMenu());
-        }
+        window.addEventListener('pagehide', flushPendingSave);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') flushPendingSave();
+        });
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check authentication
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!requireAuth()) return;
 
             // Check subscription status - require Quarterly Pro
             const hasAccess = await checkSubscriptionAccess();
             if (!hasAccess) return;
 
-            setupMobileMenu();
-            initUserMenu();
+            setupResumeUpload();
 
-            setupTagsInput('job-titles-input', 'job-titles-container', jobTitles, 5);
-            setupTagsInput('cities-input', 'cities-container', cities, 10);
-            setupTagsInput('excluded-companies-input', 'excluded-companies-container', excludedCompanies, 50);
-
-            // Multi-select for work types
-            setupMultiSelectOptionGroup('work-type-options', 'work_type');
-
-            // Single select for other option groups
-            setupOptionGroup('relocate-options', 'willing_to_relocate');
-            setupOptionGroup('us-auth-options', 'us_authorized');
-            setupOptionGroup('sponsorship-options', 'requires_sponsorship');
-            setupOptionGroup('license-options', 'drivers_license');
-            setupOptionGroup('clearance-options', 'security_clearance');
-
-            setupModeCards();
-
-            setupFileUpload('resume-upload', 'resume-file-input');
-            setupFileUpload('photo-upload', 'photo-file-input');
-
-            // Load settings (will also load resumes and detect country)
+            // Load settings (also loads resumes)
             await loadSettings();
 
-            // Setup auto-save on all form field changes
-            document.querySelectorAll('input, select, textarea').forEach(el => {
+            // Auto-save on form field changes (named fields only)
+            document.querySelectorAll('.main-content [name]').forEach(el => {
                 el.addEventListener('change', triggerAutoSave);
-                if (el.type === 'text' || el.type === 'email' || el.type === 'tel' || el.type === 'number' || el.tagName === 'TEXTAREA') {
+                if (el.tagName === 'TEXTAREA' || ['text', 'email', 'tel', 'url', 'number', 'date'].includes(el.type)) {
                     el.addEventListener('input', triggerAutoSave);
                 }
-            });
-
-            // Auto-save when option buttons are clicked
-            document.querySelectorAll('.option-btn').forEach(btn => {
-                btn.addEventListener('click', () => setTimeout(triggerAutoSave, 100));
-            });
-
-            // Auto-save when mode cards are clicked
-            document.querySelectorAll('.mode-card').forEach(card => {
-                card.addEventListener('click', () => setTimeout(triggerAutoSave, 100));
             });
         });
     </script>
@@ -1775,52 +1356,12 @@
     <script src="/js/subscription-gate.js"></script>
 
     <script>
-        // Replace inline icons with premium CariaraIcons
+        // Page-specific icons (nav, drawer and user menu icons are handled by js/sidebar.js)
         (function() {
-            if (typeof CariaraIcons !== 'undefined') {
-                // Navigation link icons
-                document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
-                    const iconName = link.dataset.icon;
-                    const icon = CariaraIcons[iconName];
-                    if (icon) {
-                        link.insertAdjacentHTML('afterbegin', icon);
-                    }
-                });
-
-                // Mobile menu icons
-                const menuBtn = document.querySelector('.mobile-menu-btn');
-                if (menuBtn) {
-                    menuBtn.innerHTML = `
-                        <span class="menu-open">${CariaraIcons.menu}</span>
-                        <span class="menu-close" style="display:none;">${CariaraIcons.close}</span>
-                    `;
-                }
-
-                // Theme icons
-                const themeToggle = document.querySelector('.theme-toggle');
-                if (themeToggle) {
-                    themeToggle.innerHTML = `
-                        ${CariaraIcons.get('sun', { id: 'theme-icon-sun', style: 'display:none;' })}
-                        ${CariaraIcons.get('moon', { id: 'theme-icon-moon' })}
-                    `;
-                }
-
-                // Upload icons
-                document.querySelectorAll('.file-upload-icon:not(.photo-upload-icon)').forEach(el => {
-                    el.innerHTML = CariaraIcons.upload;
-                });
-                document.querySelectorAll('.photo-upload-icon').forEach(el => {
-                    el.innerHTML = CariaraIcons.image;
-                });
-
-                // Logout icons (dynamically rendered)
-                const observer = new MutationObserver(() => {
-                    document.querySelectorAll('.logout-icon').forEach(el => {
-                        if (!el.innerHTML) el.innerHTML = CariaraIcons.logout;
-                    });
-                });
-                observer.observe(document.body, { childList: true, subtree: true });
-            }
+            if (typeof CariaraIcons === 'undefined') return;
+            document.querySelectorAll('.file-upload-icon').forEach(el => {
+                if (CariaraIcons.upload) el.innerHTML = CariaraIcons.upload;
+            });
         })();
     </script>
 </body>

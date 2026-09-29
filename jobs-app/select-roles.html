@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub - Select Your Roles</title>
+    <title>Choose your roles · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <style>
         body {
@@ -31,7 +31,6 @@
             margin-bottom: 16px;
         }
         .roles-header h1 {
-            font-family: 'Playfair Display', Georgia, serif;
             font-size: 22px;
             font-weight: 600;
             color: var(--text-primary);
@@ -219,6 +218,10 @@
         }
         .skip-link {
             display: block;
+            width: 100%;
+            background: none;
+            border: 0;
+            font: inherit;
             text-align: center;
             margin-top: 16px;
             font-size: 13px;
@@ -250,10 +253,10 @@
         }
         .error-message.show { display: block; }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+        <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
     <script src="/js/icons.js" defer></script>
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
     <div class="roles-container">
@@ -287,9 +290,9 @@
                 Continue to Jobs
             </button>
 
-            <div class="skip-link" onclick="skipForNow()">
+            <button type="button" class="skip-link" onclick="skipForNow()">
                 Skip for now (show all jobs)
-            </div>
+            </button>
         </div>
     </div>
 
@@ -310,16 +313,15 @@
             { slug: "mobile", name: "Mobile Engineer" },
         ];
 
+        const KNOWN_ROLE_SLUGS = new Set(AVAILABLE_ROLES.map(role => role.slug));
+        const ANALYZE_BTN_HTML = document.getElementById('detect-btn').innerHTML;
+
         let selectedRoles = new Set();
         let detectedRoles = [];
 
         // Check auth
         document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!requireAuth()) return;
             renderRoles();
             loadExistingRoles();
         });
@@ -327,12 +329,17 @@
         async function loadExistingRoles() {
             try {
                 const data = await apiRequest('/users/job-roles');
-                if (data.selected_roles && data.selected_roles.length > 0) {
-                    data.selected_roles.forEach(role => selectedRoles.add(role));
+                // Ignore legacy/unknown slugs: they are invisible in the grid, would
+                // count toward the limit, and the backend rejects them on save.
+                if (Array.isArray(data.selected_roles)) {
+                    data.selected_roles
+                        .filter(role => KNOWN_ROLE_SLUGS.has(role))
+                        .slice(0, 5)
+                        .forEach(role => selectedRoles.add(role));
                     updateUI();
                 }
-                if (data.detected_roles && data.detected_roles.length > 0) {
-                    detectedRoles = data.detected_roles;
+                if (Array.isArray(data.detected_roles) && data.detected_roles.length > 0) {
+                    detectedRoles = data.detected_roles.filter(r => r && KNOWN_ROLE_SLUGS.has(r.role));
                     showDetectedResults();
                 }
             } catch (e) {
@@ -343,25 +350,34 @@
         function renderRoles() {
             const grid = document.getElementById('roles-grid');
             grid.innerHTML = AVAILABLE_ROLES.map(role => `
-                <div class="role-option" data-role="${role.slug}">
+                <div class="role-option" data-role="${escapeHtml(role.slug)}" role="button" tabindex="0">
                     <div class="check-icon">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
-                    <div class="role-name">${role.name}</div>
+                    <div class="role-name">${escapeHtml(role.name)}</div>
                 </div>
             `).join('');
 
             // Add click handlers after rendering
             document.querySelectorAll('.role-option').forEach(el => {
                 el.addEventListener('click', () => toggleRole(el.dataset.role));
+                el.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggleRole(el.dataset.role);
+                    }
+                });
             });
         }
 
         function toggleRole(slug) {
+            if (!KNOWN_ROLE_SLUGS.has(slug)) return;
             if (selectedRoles.has(slug)) {
                 selectedRoles.delete(slug);
             } else if (selectedRoles.size < 5) {
                 selectedRoles.add(slug);
+            } else {
+                showError('You can pick up to 5 roles. Deselect one to choose another.');
             }
             updateUI();
         }
@@ -391,7 +407,7 @@
 
             try {
                 const data = await apiRequest('/users/detect-roles');
-                detectedRoles = data.detected_roles || [];
+                detectedRoles = (data.detected_roles || []).filter(r => r && KNOWN_ROLE_SLUGS.has(r.role));
 
                 if (detectedRoles.length === 0) {
                     showError('Could not detect roles. Please select manually.');
@@ -410,7 +426,7 @@
             }
 
             btn.disabled = false;
-            btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg> Analyze My Resume';
+            btn.innerHTML = ANALYZE_BTN_HTML;
         }
 
         function showDetectedResults() {
@@ -421,17 +437,17 @@
             }
 
             container.style.display = 'block';
-            container.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">AI Recommendations:</div>' +
+            container.innerHTML = '<div style="font-size:12px;font-weight:600;color:var(--c-ink-2, var(--text-secondary));margin-bottom:8px;">Suggested from your resume</div>' +
                 detectedRoles.map(r => {
-                    const conf = r.confidence * 100;
+                    const conf = (Number(r.confidence) || 0) * 100;
                     const confClass = conf >= 70 ? 'confidence-high' : conf >= 50 ? 'confidence-medium' : 'confidence-low';
                     return `
                         <div class="detected-role">
                             <div class="detected-role-info">
-                                <span style="font-weight:500;">${r.name}</span>
+                                <span style="font-weight:500;">${escapeHtml(r.name)}</span>
                                 <span class="confidence-badge ${confClass}">${Math.round(conf)}%</span>
                             </div>
-                            <span style="font-size:11px;color:var(--text-muted);max-width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">${r.reason || ''}</span>
+                            <span style="font-size:11px;color:var(--c-ink-3, var(--text-muted));max-width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">${escapeHtml(r.reason || '')}</span>
                         </div>
                     `;
                 }).join('');
@@ -445,18 +461,17 @@
             btn.innerHTML = '<div class="spinner" style="margin:0 auto;"></div>';
 
             try {
-                await apiRequest('/users/job-roles', 'POST', {
-                    roles: Array.from(selectedRoles)
-                });
+                const roles = Array.from(selectedRoles).filter(role => KNOWN_ROLE_SLUGS.has(role));
+                await apiRequest('/users/job-roles', 'POST', { roles });
 
                 // Update user in localStorage
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                user.job_roles = Array.from(selectedRoles);
+                const user = getCurrentUser() || {};
+                user.job_roles = roles;
                 user.roles_confirmed = true;
                 localStorage.setItem('user', JSON.stringify(user));
 
-                // Redirect to discover
-                window.location.href = 'discover.html';
+                // Continue to a saved deep link (e.g. a job) or the jobs list
+                window.location.href = consumeRedirectAfterLogin() || 'discover.html';
             } catch (e) {
                 showError(e.message || 'Failed to save roles');
                 btn.disabled = false;
@@ -465,7 +480,7 @@
         }
 
         function skipForNow() {
-            window.location.href = 'discover.html';
+            window.location.href = consumeRedirectAfterLogin() || 'discover.html';
         }
 
         function showError(msg) {

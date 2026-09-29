@@ -4,16 +4,24 @@ const BACKEND_URL = isProduction ? 'https://cariara-backend.up.railway.app' : 'h
 const API_BASE = `${BACKEND_URL}/api`;
 const AUTH_BASE = `${BACKEND_URL}/auth`;
 
+// Keys that make up a signed-in session. Kept in sync with js/sidebar.js handleLogout().
+const CARIARA_SESSION_KEYS = ['access_token', 'refresh_token', 'token', 'user', 'subscription_status', 'cariara_resume_draft', 'redirect_after_login'];
+const NETWORK_ERROR_MESSAGE = "Can't reach Cariara right now. Check your connection and try again.";
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // Global error handler to prevent black screens
 window.onerror = function(message, source, lineno, colno, error) {
     console.error('Global error:', message, 'at', source, lineno, colno);
     // Show error to user if page appears blank
     if (document.body && document.body.innerHTML.trim() === '') {
         document.body.innerHTML = `
-            <div style="padding: 40px; text-align: center; font-family: system-ui, sans-serif;">
-                <h2 style="color: #ef4444;">Something went wrong</h2>
-                <p style="color: #666;">${message}</p>
-                <button onclick="window.location.reload()" style="padding: 10px 20px; cursor: pointer; margin-top: 16px;">Reload Page</button>
+            <div style="padding: 40px; text-align: center;">
+                <h2 style="color: var(--c-red, #d93025);">Something went wrong</h2>
+                <p style="color: var(--c-ink-2, #5f6368);">${escapeHtml(message)}</p>
+                <button onclick="window.location.reload()" class="btn btn-secondary" style="margin-top: 16px;">Reload page</button>
             </div>
         `;
     }
@@ -38,12 +46,42 @@ function getRefreshToken() {
 }
 
 function getCurrentUser() {
-    const userJson = localStorage.getItem('user');
-    return userJson ? JSON.parse(userJson) : null;
+    try {
+        const userJson = localStorage.getItem('user');
+        return userJson ? JSON.parse(userJson) : null;
+    } catch (e) {
+        return null;
+    }
 }
 
 function isAuthenticated() {
     return !!getAccessToken();
+}
+
+/**
+ * Validate a post-login redirect target. Only same-origin relative page paths
+ * are allowed (no schemes, no protocol-relative URLs, no auth/onboarding pages).
+ */
+function sanitizeRedirectPath(raw) {
+    if (!raw) return null;
+    const value = String(raw).trim();
+    if (!value || value.startsWith('//') || value.includes('\\') || /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)) return null;
+    try {
+        const url = new URL(value, window.location.origin + '/');
+        if (url.origin !== window.location.origin) return null;
+        const page = url.pathname.split('/').pop();
+        if (['login.html', 'register.html', 'onboarding.html', 'select-roles.html'].includes(page)) return null;
+        return url.pathname + url.search + url.hash;
+    } catch (e) {
+        return null;
+    }
+}
+
+/** Return (and clear) a stored, validated post-login redirect. */
+function consumeRedirectAfterLogin() {
+    const stored = localStorage.getItem('redirect_after_login');
+    localStorage.removeItem('redirect_after_login');
+    return sanitizeRedirectPath(stored);
 }
 
 /**
@@ -56,10 +94,11 @@ function requireAuth() {
         sessionStorage.setItem('jobshub_search', search.slice(0, 200));
     }
     if (!isAuthenticated()) {
-        // Store the intended destination for redirect after login
-        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-        if (currentPage !== 'login.html' && currentPage !== 'register.html') {
-            localStorage.setItem('redirect_after_login', currentPage);
+        // Store the intended destination (including query, e.g. job_detail.html?id=1)
+        const currentPage = window.location.pathname.split('/').pop() || 'discover.html';
+        const target = sanitizeRedirectPath(currentPage + window.location.search + window.location.hash);
+        if (target) {
+            localStorage.setItem('redirect_after_login', target);
         }
         window.location.href = '/login.html';
         return false;
@@ -67,85 +106,179 @@ function requireAuth() {
     return true;
 }
 
+function clearSession() {
+    CARIARA_SESSION_KEYS.forEach(key => localStorage.removeItem(key));
+}
+
 function logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    if (typeof window.handleLogout === 'function' && window.handleLogout !== logout) {
+        window.handleLogout();
+        return;
+    }
+    clearSession();
     window.location.href = '/login.html';
 }
 
 /**
- * Check if user has completed onboarding - redirects to onboarding if not completed.
- * Call this after requireAuth() on pages that require onboarding completion.
- * Returns a promise that resolves to true if onboarding is complete.
+ * Check onboarding / role-selection state and redirect when incomplete.
+ * Resolves to true when the user may stay on the current page.
+ * Never blocks on network/server errors (fails open).
  */
-async function requireOnboarding() {
-    // First check localStorage for cached status
-    const user = getCurrentUser();
-    if (user && user.onboarding_completed) {
-        return true;
-    }
-
-    // Check with the server
-    try {
-        const response = await fetch(`${API_BASE}/users/onboarding-status`, {
-            headers: {
-                'Authorization': `Bearer ${getAccessToken()}`
-            }
-        });
-
-        if (!response.ok) {
-            console.error('Failed to check onboarding status');
+let onboardingCheckPromise = null;
+function requireOnboarding(options = {}) {
+    if (onboardingCheckPromise) return onboardingCheckPromise;
+    const checkRoles = options.checkRoles !== false;
+    onboardingCheckPromise = (async () => {
+        if (!isAuthenticated()) return requireAuth();
+        const page = window.location.pathname.split('/').pop();
+        const user = getCurrentUser();
+        if (user && user.onboarding_completed && (!checkRoles || user.roles_confirmed)) {
+            return true;
+        }
+        let status;
+        try {
+            status = await apiRequest('/users/onboarding-status');
+        } catch (error) {
+            console.error('Error checking onboarding status:', error);
             return true; // Don't block on error
         }
+        if (!status || typeof status !== 'object') return true;
+        const updated = Object.assign({}, getCurrentUser() || {}, {
+            onboarding_completed: !!status.onboarding_completed,
+            roles_confirmed: !!status.roles_confirmed,
+        });
+        if (Array.isArray(status.job_roles)) updated.job_roles = status.job_roles;
+        localStorage.setItem('user', JSON.stringify(updated));
 
-        const status = await response.json();
         if (!status.onboarding_completed) {
-            window.location.href = '/onboarding.html';
+            if (page !== 'onboarding.html') window.location.href = '/onboarding.html';
             return false;
         }
-
-        // Update localStorage with correct status
-        if (user) {
-            user.onboarding_completed = true;
-            localStorage.setItem('user', JSON.stringify(user));
+        if (checkRoles && !status.roles_confirmed) {
+            if (page !== 'select-roles.html') window.location.href = '/select-roles.html';
+            return false;
         }
-
         return true;
-    } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        return true; // Don't block on error
-    }
+    })();
+    return onboardingCheckPromise;
 }
 
+let refreshPromise = null;
 async function refreshAccessToken() {
+    // Share a single in-flight refresh between concurrent 401s
+    if (refreshPromise) return refreshPromise;
     const refreshToken = getRefreshToken();
     if (!refreshToken) {
         return false;
     }
 
-    try {
-        const response = await fetch(`${AUTH_BASE}/refresh`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refresh_token: refreshToken }),
-        });
+    refreshPromise = (async () => {
+        try {
+            const response = await fetch(`${AUTH_BASE}/refresh`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+            });
 
-        if (!response.ok) {
+            if (!response.ok) {
+                return false;
+            }
+
+            const data = await response.json();
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('token', data.access_token);
+            if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+            if (data.user) {
+                // Keep locally cached gating flags the token response may not carry
+                const previous = getCurrentUser() || {};
+                localStorage.setItem('user', JSON.stringify(Object.assign({}, previous, data.user)));
+            }
+            return true;
+        } catch (error) {
+            console.error('Token refresh failed:', error);
             return false;
+        } finally {
+            setTimeout(() => { refreshPromise = null; }, 0);
         }
+    })();
+    return refreshPromise;
+}
 
-        const data = await response.json();
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        return true;
-    } catch (error) {
-        console.error('Token refresh failed:', error);
-        return false;
+/**
+ * Turn an error response into a readable message. Never throws, even when the
+ * body is HTML (e.g. a Railway 502 page) or empty.
+ */
+async function extractErrorMessage(response, fallback = 'Request failed') {
+    let body = null;
+    try {
+        const text = await response.text();
+        if (text) {
+            try { body = JSON.parse(text); } catch (e) { body = null; }
+        }
+    } catch (e) {
+        body = null;
     }
+    const detail = body && (body.detail ?? body.message ?? body.error);
+    if (Array.isArray(detail)) {
+        const parts = detail.map(item => {
+            if (item && typeof item === 'object') {
+                const field = Array.isArray(item.loc) ? item.loc.filter(p => p !== 'body').join('.') : '';
+                return field ? `${field}: ${item.msg || 'invalid'}` : (item.msg || JSON.stringify(item));
+            }
+            return String(item);
+        }).filter(Boolean);
+        if (parts.length) return parts.join('; ');
+    } else if (detail && typeof detail === 'object') {
+        return detail.message || JSON.stringify(detail);
+    } else if (detail) {
+        return String(detail);
+    }
+    if (response.status >= 500) return 'Cariara is having trouble right now. Please try again in a moment.';
+    return response.statusText || fallback;
+}
+
+async function parseResponseBody(response) {
+    if (response.status === 204) return null;
+    const text = await response.text();
+    if (!text) return null;
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        return text;
+    }
+}
+
+/**
+ * Low-level authenticated fetch with one refresh-and-retry on 401.
+ * `url` may be absolute or an /api-relative endpoint (starting with '/').
+ * Returns the Response. Throws Error with a friendly message on network failure
+ * or when the session cannot be refreshed (after logging out).
+ */
+async function authFetch(url, options = {}, retry = true) {
+    const fullUrl = /^https?:\/\//.test(url) ? url : `${API_BASE}${url}`;
+    const headers = Object.assign({}, options.headers || {});
+    const token = getAccessToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    let response;
+    try {
+        response = await fetch(fullUrl, Object.assign({}, options, { headers }));
+    } catch (error) {
+        throw new Error(NETWORK_ERROR_MESSAGE);
+    }
+    if (response.status === 401 && retry) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+            return authFetch(url, options, false);
+        }
+        // Remember where the user was so login can bring them back.
+        const here = sanitizeRedirectPath((window.location.pathname.split('/').pop() || '') + window.location.search);
+        logout();
+        if (here) localStorage.setItem('redirect_after_login', here);
+        throw new Error('Session expired. Please sign in again.');
+    }
+    return response;
 }
 
 // =============================================================================
@@ -153,7 +286,6 @@ async function refreshAccessToken() {
 // =============================================================================
 
 async function apiRequest(endpoint, method = 'GET', data = null, retry = true) {
-    const token = getAccessToken();
     const options = {
         method,
         headers: {
@@ -161,60 +293,30 @@ async function apiRequest(endpoint, method = 'GET', data = null, retry = true) {
         },
     };
 
-    // Add authorization header if token exists
-    if (token) {
-        options.headers['Authorization'] = `Bearer ${token}`;
-    }
-
     if (data && method !== 'GET') {
         options.body = JSON.stringify(data);
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, options);
-
-    // Handle 401 - try to refresh token
-    if (response.status === 401 && retry) {
-        const refreshed = await refreshAccessToken();
-        if (refreshed) {
-            // Retry the request with new token
-            return apiRequest(endpoint, method, data, false);
-        } else {
-            // Refresh failed, redirect to login
-            logout();
-            throw new Error('Session expired. Please login again.');
-        }
-    }
+    const response = await authFetch(endpoint, options, retry);
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Request failed');
+        throw new Error(await extractErrorMessage(response));
     }
 
-    return response.json();
+    return parseResponseBody(response);
 }
 
-async function uploadDocument(formData) {
-    const token = getAccessToken();
-    const options = {
+async function uploadDocument(formData, documentType = 'resume') {
+    const response = await authFetch(`/users/documents?document_type=${encodeURIComponent(documentType)}`, {
         method: 'POST',
         body: formData,
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-        options.headers = {
-            'Authorization': `Bearer ${token}`,
-        };
-    }
-
-    const response = await fetch(`${API_BASE}/documents`, options);
+    });
 
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Upload failed');
+        throw new Error(await extractErrorMessage(response, 'Upload failed'));
     }
 
-    return response.json();
+    return parseResponseBody(response);
 }
 
 function formatDate(dateString) {
@@ -345,9 +447,15 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme) {
+    // Pages ship their own sun/moon SVGs; just toggle them (no emoji swaps).
+    const sunIcon = document.getElementById('theme-icon-sun');
+    const moonIcon = document.getElementById('theme-icon-moon');
+    if (sunIcon && moonIcon) {
+        sunIcon.style.display = theme === 'dark' ? 'block' : 'none';
+        moonIcon.style.display = theme === 'dark' ? 'none' : 'block';
+    }
     const toggleBtn = document.getElementById('theme-toggle-btn');
     if (toggleBtn) {
-        toggleBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
         toggleBtn.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
     }
 }
@@ -376,7 +484,7 @@ function renderUserMenu() {
         const userMenu = document.createElement('div');
         userMenu.className = 'user-menu';
         userMenu.innerHTML = `
-            <span class="user-name">${user.name || user.email}</span>
+            <span class="user-name">${escapeHtml(user.name || user.email)}</span>
             <button onclick="logout()" class="btn btn-small">Logout</button>
         `;
         navContainer.appendChild(userMenu);
@@ -417,3 +525,12 @@ window.logout = logout;
 window.renderUserMenu = renderUserMenu;
 window.requireAuth = requireAuth;
 window.requireOnboarding = requireOnboarding;
+window.authFetch = authFetch;
+window.refreshAccessToken = refreshAccessToken;
+window.extractErrorMessage = extractErrorMessage;
+window.escapeHtml = escapeHtml;
+window.clearSession = clearSession;
+window.sanitizeRedirectPath = sanitizeRedirectPath;
+window.consumeRedirectAfterLogin = consumeRedirectAfterLogin;
+window.getAccessToken = getAccessToken;
+window.BACKEND_URL = BACKEND_URL;

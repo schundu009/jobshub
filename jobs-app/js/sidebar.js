@@ -82,50 +82,46 @@ function closeMobileSidebar() {
 // USER MENU INITIALIZATION
 // =============================================================================
 
+function escapeSidebarText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function initSidebarUserMenu() {
     const userMenu = document.getElementById('user-menu');
     if (!userMenu) return;
 
-    // Get login icon from CariaraIcons or fallback to inline SVG
-    const loginIcon = typeof CariaraIcons !== 'undefined'
-        ? CariaraIcons.login
-        : `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>`;
+    const icon = name => (typeof CariaraIcons !== 'undefined' ? CariaraIcons.mark(name, { width: 20 }) : '');
+    let user = null;
+    try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch (e) { user = null; }
 
-    const userJson = localStorage.getItem('user');
-    if (!userJson) {
-        userMenu.innerHTML = `
-            <a href="login.html" class="sidebar-logout-btn">
-                ${loginIcon}
-                Sign In
-            </a>
-        `;
+    if (!user) {
+        userMenu.innerHTML = `<a href="login.html" class="sidebar-logout-btn">${icon('login')}<span>Sign in</span></a>`;
         return;
     }
 
-    try {
-        const user = JSON.parse(userJson);
-        const name = user.name || user.email?.split('@')[0] || 'User';
-        const initials = name.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
-        const email = user.email || '';
+    const name = user.name || user.full_name || (user.email || '').split('@')[0] || 'You';
+    const initials = name.split(/\s+/).filter(Boolean).map(x => x[0]).join('').toUpperCase().slice(0, 2) || '?';
+    const isAdmin = user.role === 'admin' || user.is_admin === true;
 
-        userMenu.innerHTML = `
-            <div class="sidebar-user-info">
-                <div class="sidebar-user-avatar">${initials}</div>
-                <div class="sidebar-user-details">
-                    <div class="sidebar-user-name">${name}</div>
-                    <div class="sidebar-user-email">${email}</div>
-                </div>
+    userMenu.innerHTML = `
+        <div class="sidebar-user-info" title="${escapeSidebarText(user.email || '')}">
+            <div class="sidebar-user-avatar">${escapeSidebarText(initials)}</div>
+            <div class="sidebar-user-details">
+                <div class="sidebar-user-name">${escapeSidebarText(name)}</div>
+                <div class="sidebar-user-email">${escapeSidebarText(user.email || '')}</div>
             </div>
-        `;
-    } catch (e) {
-        console.error('Error parsing user data:', e);
-    }
+        </div>
+        ${isAdmin ? `<a href="https://admin.cariara.com/" class="sidebar-admin-link" target="_blank" rel="noopener">${icon('settingsGear') || icon('settings')}<span>Admin portal</span></a>` : ''}
+        <button type="button" class="sidebar-logout-btn" onclick="handleLogout()">${icon('logout')}<span>Sign out</span></button>
+    `;
 }
 
+const SESSION_KEYS = ['access_token', 'refresh_token', 'token', 'user', 'subscription_status', 'cariara_resume_draft', 'redirect_after_login'];
+
 function handleLogout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    SESSION_KEYS.forEach(key => localStorage.removeItem(key));
+    // Per-user drafts are keyed "cariara_resume_draft:<userId>".
+    Object.keys(localStorage).filter(key => key.startsWith('cariara_resume_draft:')).forEach(key => localStorage.removeItem(key));
     window.location.href = 'login.html';
 }
 
@@ -134,11 +130,13 @@ function handleLogout() {
 // =============================================================================
 
 function highlightActiveNavLink() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const pageName = path => (path.split('?')[0].split('#')[0].split('/').pop() || 'index').replace(/\.html$/, '');
+    const currentPage = pageName(window.location.pathname);
 
     document.querySelectorAll('.sidebar-nav a').forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPage) {
+        const href = link.getAttribute('href') || '';
+        if (/^https?:/.test(href)) return;
+        if (pageName(href) === currentPage) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
@@ -228,7 +226,7 @@ function injectNavigationIcons() {
     // Inject icons for nav links with data-icon attribute
     document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
         const iconName = link.dataset.icon;
-        const icon = CariaraIcons.mark(iconName, { class: 'cariara-mark', width: 24 });
+        const icon = CariaraIcons.mark(iconName, { width: 20 });
         if (icon && !link.querySelector('svg')) {
             link.insertAdjacentHTML('afterbegin', icon);
         }
@@ -249,15 +247,6 @@ function injectNavigationIcons() {
     // Inject logout icons
     document.querySelectorAll('.logout-icon').forEach(el => {
         if (!el.querySelector('svg')) el.innerHTML = CariaraIcons.logout;
-    });
-
-    // Inject filter section icons
-    document.querySelectorAll('.filter-icon[data-icon], .companies-icon[data-icon]').forEach(el => {
-        const iconName = el.dataset.icon;
-        const icon = CariaraIcons.mark(iconName, { class: 'cariara-mark', width: 24 });
-        if (icon && !el.querySelector('svg')) {
-            el.insertAdjacentHTML('afterbegin', icon);
-        }
     });
 }
 

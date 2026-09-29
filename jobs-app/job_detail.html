@@ -3,1788 +3,979 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jobshub — Resume Optimizer</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>Resume optimizer · Cariara Jobs</title>
     <link rel="stylesheet" href="/css/theme.css">
     <link rel="stylesheet" href="/css/sidebar.css">
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; background: var(--c-canvas, #fff); color: var(--c-ink, #1f1f1f); font-family: var(--c-font); }
 
-        body {
-            font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            overflow: hidden;
+        /* ── App shell (mobile drawer; desktop margin comes from cariara.css) ── */
+        .mobile-menu-btn {
+            display: none; position: fixed; top: 16px; left: 16px; z-index: 250;
+            align-items: center; justify-content: center; cursor: pointer;
         }
+        .mobile-menu-btn svg { width: 22px; height: 22px; }
+        .mobile-menu-btn .menu-close { display: none; }
+        .mobile-menu-btn.active .menu-open { display: none; }
+        .mobile-menu-btn.active .menu-close { display: block; }
+        .sidebar-backdrop {
+            display: none; position: fixed; inset: 0; z-index: 150;
+            opacity: 0; transition: opacity .3s ease;
+        }
+        .sidebar-backdrop.active { opacity: 1; }
+        .main-content { min-height: 100vh; padding: 24px 32px 48px; }
 
-        /* ── SHELL ──────────────────────────────────────── */
-        .main-shell {
-            flex: 1;
-            margin-left: 220px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* ── JOB BANNER ─────────────────────────────────── */
-        .job-banner {
-            background: linear-gradient(135deg, #080a14 0%, #0d0f1e 50%, #141726 100%);
-            border-bottom: 1px solid rgba(99,102,241,0.15);
-            padding: 14px 26px 14px;
-            flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
-        }
-        .job-banner::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at 60% 50%, rgba(99,102,241,0.07) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            color: rgba(255,255,255,0.35);
-            text-decoration: none;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            margin-bottom: 8px;
-            transition: color 0.15s;
-        }
-        .back-btn:hover { color: rgba(255,255,255,0.7); }
-        .banner-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-        .banner-left { flex: 1; min-width: 0; }
-        .banner-eyebrow {
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.15em;
-            color: #4285f4;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .banner-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 3px;
-            line-height: 1.25;
-        }
-        .banner-company { color: #fbbf24; }
-        .banner-subtitle { font-size: 12.5px; color: rgba(255,255,255,0.4); max-width: 560px; }
-        .banner-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(99,102,241,0.12);
-            border: 1px solid rgba(99,102,241,0.28);
-            border-radius: 20px;
-            padding: 5px 13px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #a8c7fa;
-            letter-spacing: 0.04em;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .banner-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4285f4; animation: pulse-dot 2s ease-in-out infinite; }
-        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
-
-        /* ── SPLIT LAYOUT ───────────────────────────────── */
-        .optimizer-layout {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 420px 1fr;
-            overflow: hidden;
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; }
+            .sidebar { transform: translateX(-100%); transition: transform .3s cubic-bezier(.4,0,.2,1); max-width: 85vw; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .sidebar-backdrop { display: block; pointer-events: none; }
+            .sidebar-backdrop.active { pointer-events: auto; }
+            .main-content { margin-left: 0; padding: 72px 16px 32px; }
         }
 
-        /* ── PANELS ─────────────────────────────────────── */
-        .panel {
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.07) transparent;
-        }
-        .panel::-webkit-scrollbar { width: 4px; }
-        .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 2px; }
+        .opt-page { max-width: 1280px; margin: 0 auto; }
 
-        .input-panel {
-            border-right: 1px solid rgba(255,255,255,0.05);
-            padding: 20px 20px 32px;
-            background: rgba(0,0,0,0.15);
+        /* ── Back link ─────────────────────────────────── */
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--c-ink-3); text-decoration: none;
+            font-size: 14px; font-weight: 500; margin-bottom: 16px;
+            padding: 6px 12px 6px 8px; border-radius: 999px;
         }
+        .back-link:hover { background: var(--c-state); color: var(--c-ink); }
+        .back-link svg { width: 18px; height: 18px; }
 
-        .output-panel {
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        /* ── Job header card ───────────────────────────── */
+        .job-card { padding: 24px; margin-bottom: 16px; }
+        .job-card-row { display: flex; gap: 24px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+        .job-card-main { flex: 1; min-width: 240px; }
+        .eyebrow { font-size: 12px; font-weight: 500; letter-spacing: .4px; color: var(--c-blue); margin: 0 0 6px; text-transform: uppercase; }
+        .job-title { font-family: var(--c-display); font-size: 26px; line-height: 34px; font-weight: 400; margin: 0 0 4px; color: var(--c-ink); overflow-wrap: anywhere; }
+        .job-company { font-size: 16px; color: var(--c-ink-2); margin: 0 0 12px; }
+        .job-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .job-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .skeleton-line { height: 14px; border-radius: 6px; background: var(--c-surface-3); margin: 8px 0; animation: pulse 1.4s ease-in-out infinite; }
+        @keyframes pulse { 50% { opacity: .5; } }
 
-        /* ── PANEL HEADERS ──────────────────────────────── */
-        .panel-header { margin-bottom: 18px; }
-        .p-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            padding: 3px 9px;
-            border-radius: 4px;
-            margin-bottom: 5px;
+        /* ── Inline message banner ─────────────────────── */
+        .msg {
+            display: none; align-items: flex-start; gap: 10px;
+            padding: 12px 16px; border-radius: 12px; margin-bottom: 16px;
+            font-size: 14px; line-height: 20px;
+            background: var(--c-blue-tint); color: var(--c-ink);
         }
-        .badge-gold  { background: rgba(251,191,36,0.08); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
-        .badge-slate { background: rgba(148,163,184,0.06); color: #94a3b8; border: 1px solid rgba(148,163,184,0.12); }
-        .panel-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
-        .panel-sub   { font-size: 11.5px; color: rgba(255,255,255,0.32); margin-top: 2px; }
+        .msg.show { display: flex; }
+        .msg.error { background: var(--c-red-tint); color: var(--c-red); }
+        .msg.success { background: var(--c-green-tint); color: var(--c-green); }
+        .msg.warn { background: var(--c-yellow-tint); color: var(--c-yellow); }
+        .msg a { color: inherit; font-weight: 500; }
+        .msg-text { flex: 1; }
+        .msg-close { background: none; border: 0; color: inherit; cursor: pointer; font-size: 18px; line-height: 20px; padding: 0 4px; opacity: .7; }
+        .field-msg { display: none; margin-top: 8px; font-size: 13px; line-height: 18px; color: var(--c-ink-3); }
+        .field-msg.show { display: block; }
+        .field-msg.error { color: var(--c-red); }
+        .field-msg.success { color: var(--c-green); }
+        .field-msg a { color: var(--c-blue); font-weight: 500; }
 
-        /* ── FORM ───────────────────────────────────────── */
-        .field-group { margin-bottom: 14px; }
-        .field-label {
-            display: block;
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            color: rgba(255,255,255,0.3);
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-        .field-textarea, .field-input {
-            width: 100%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 13px;
-            line-height: 1.6;
-            padding: 10px 12px;
-            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-        }
-        .field-textarea { resize: vertical; }
-        .field-textarea:focus, .field-input:focus {
-            outline: none;
-            border-color: rgba(99,102,241,0.45);
-            background: rgba(99,102,241,0.025);
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
-        }
-        .field-textarea::placeholder, .field-input::placeholder { color: rgba(255,255,255,0.14); }
+        /* ── Two-column layout ─────────────────────────── */
+        .opt-grid { display: grid; grid-template-columns: minmax(320px, 420px) 1fr; gap: 16px; align-items: start; }
+        @media (max-width: 1100px) { .opt-grid { grid-template-columns: 1fr; } }
+        .panel { padding: 20px; }
+        .panel-title { font-family: var(--c-display); font-size: 18px; font-weight: 500; margin: 0 0 4px; color: var(--c-ink); }
+        .panel-sub { font-size: 13px; color: var(--c-ink-3); margin: 0 0 16px; }
 
-        .url-row {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            margin-top: 6px;
-        }
-        .url-label { font-size: 10px; color: rgba(255,255,255,0.25); white-space: nowrap; }
-        .url-input {
-            flex: 1;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 12px;
-            padding: 5px 10px;
-        }
-        .url-input:focus { outline: none; border-color: rgba(99,102,241,0.4); }
-        .btn-fetch {
-            background: rgba(99,102,241,0.1);
-            border: 1px solid rgba(99,102,241,0.22);
-            border-radius: 6px;
-            color: #a8c7fa;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            padding: 5px 12px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s;
-            font-family: inherit;
-        }
-        .btn-fetch:hover { background: rgba(99,102,241,0.18); }
-        .btn-fetch:disabled { opacity: 0.4; cursor: not-allowed; }
+        .field-group { margin-bottom: 16px; }
+        .field-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+        .field-label { font-size: 13px; font-weight: 500; color: var(--c-ink-2); }
+        .field-hint { font-size: 12px; color: var(--c-ink-3); }
+        .field-textarea, .field-input { width: 100%; font-family: var(--c-font); font-size: 14px; padding: 10px 12px; resize: vertical; }
+        .field-textarea { min-height: 180px; }
+        .row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .btn-sm { min-height: 32px !important; padding: 0 14px !important; font-size: 13px !important; }
+        .target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn-generate { width: 100%; min-height: 44px !important; margin-top: 8px; }
+        .kbd-hint { text-align: center; font-size: 12px; color: var(--c-ink-3); margin-top: 8px; }
+        .kbd { font-family: var(--c-mono); font-size: 11px; border: 1px solid var(--c-line); border-radius: 4px; padding: 1px 5px; background: var(--c-surface-2); }
 
-        .file-row { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
-        .btn-outline {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 7px;
-            color: rgba(255,255,255,0.45);
-            font-size: 11.5px;
-            font-family: inherit;
-            padding: 5px 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn-outline:hover { border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.03); }
+        .quick-stats { display: none; margin-top: 16px; border: 1px solid var(--c-line-soft); border-radius: 12px; overflow: hidden; }
+        .quick-stats.visible { display: block; }
+        .qs-item { display: flex; justify-content: space-between; gap: 8px; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--c-line-soft); }
+        .qs-item:last-child { border-bottom: 0; }
+        .qs-label { color: var(--c-ink-3); }
+        .qs-value { font-weight: 500; }
+        .qs-ok { color: var(--c-green); }
+        .qs-warn { color: var(--c-red); }
 
-        .target-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+        /* ── Output panel ──────────────────────────────── */
+        .output { padding: 0; overflow: hidden; }
+        .output-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 0 12px 0 4px; border-bottom: 1px solid var(--c-line); }
+        .output-head .tab-bar { border-bottom: 0 !important; }
+        .output-actions { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 0; }
+        .output-body { padding: 20px; min-height: 420px; background: var(--c-surface-2); }
 
-        /* ── GENERATE BUTTON ─────────────────────────────── */
-        .btn-generate {
-            width: 100%;
-            background: linear-gradient(135deg, #1967d2 0%, #4285f4 50%, #1967d2 100%);
-            border: none;
-            border-radius: 11px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 15px 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 4px 24px rgba(99,102,241,0.35), 0 1px 0 rgba(255,255,255,0.08) inset;
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 0.01em;
-        }
-        .btn-generate::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
-            border-radius: inherit;
-        }
-        .btn-generate:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(99,102,241,0.45), 0 1px 0 rgba(255,255,255,0.08) inset;
-        }
-        .btn-generate:active:not(:disabled) { transform: translateY(0); }
-        .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .empty-state { text-align: center; padding: 48px 16px; }
+        .empty-state h3 { font-family: var(--c-display); font-size: 18px; font-weight: 500; color: var(--c-ink); margin: 0 0 8px; }
+        .empty-state p { font-size: 14px; color: var(--c-ink-3); margin: 0 auto 16px; max-width: 380px; line-height: 20px; }
+        .empty-steps { display: inline-flex; flex-direction: column; gap: 8px; text-align: left; font-size: 13px; color: var(--c-ink-2); }
+        .empty-step { display: flex; gap: 10px; align-items: center; }
+        .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--c-blue-tint); color: var(--c-blue); font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 
-        .kbd-hint { text-align: center; font-size: 10px; color: rgba(255,255,255,0.15); margin-top: 7px; }
-        .kbd { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 3px; padding: 1px 5px; font-size: 10px; }
-
-        /* ── QUICK STATS ────────────────────────────────── */
-        .quick-stats {
-            display: none;
-            flex-direction: column;
-            gap: 0;
-            margin-top: 14px;
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 9px;
-            overflow: hidden;
-        }
-        .quick-stats.visible { display: flex; }
-        .qs-item {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            padding: 9px 13px;
-            font-size: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .qs-item:last-child { border-bottom: none; }
-        .qs-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.4; }
-        .qs-label { color: rgba(255,255,255,0.4); flex: 1; }
-        .qs-value { font-weight: 700; font-size: 11px; }
-        .qs-ok   { color: #86efac; }
-        .qs-warn { color: #fca5a5; }
-
-        .job-meta-strip { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .meta-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 6px;
-            padding: 3px 9px;
-            font-size: 11.5px;
-            color: rgba(255,255,255,0.45);
-        }
-
-        /* ── OUTPUT HEADER ──────────────────────────────── */
-        .output-header { padding: 16px 20px 10px; flex-shrink: 0; }
-
-        /* ── TAB BAR ─────────────────────────────────────── */
-        .tab-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            background: rgba(0,0,0,0.18);
-            flex-shrink: 0;
-        }
-        .tabs-left { display: flex; }
-        .tab-btn {
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: rgba(255,255,255,0.28);
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 10.5px;
-            font-weight: 800;
-            letter-spacing: 0.07em;
-            padding: 13px 16px 11px;
-            transition: all 0.15s;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .tab-btn:hover { color: rgba(255,255,255,0.55); }
-        .tab-btn.active { color: #fff; border-bottom-color: #4285f4; }
-        .tab-btn svg { opacity: 0.6; }
-        .tab-btn.active svg { opacity: 1; }
-
-        .tabs-right { display: flex; gap: 4px; }
-        .tab-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 6px;
-            color: rgba(255,255,255,0.4);
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            padding: 5px 11px;
-            transition: all 0.15s;
-        }
-        .tab-action:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.14); }
-        .tab-action:disabled { opacity: 0.2; cursor: not-allowed; }
-
-        /* ── TAB CONTENT ─────────────────────────────────── */
-        .tab-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 22px 36px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.07) transparent;
-        }
-        .tab-content::-webkit-scrollbar { width: 4px; }
-        .tab-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 2px; }
-
-        /* ── EMPTY STATE ─────────────────────────────────── */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            min-height: 340px;
-            text-align: center;
-        }
-        .empty-icon-wrap {
-            width: 64px; height: 64px;
-            border-radius: 16px;
-            background: rgba(99,102,241,0.07);
-            border: 1px solid rgba(99,102,241,0.15);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .empty-icon { width: 28px; height: 28px; color: #4285f4; }
-        .empty-state h3 { font-size: 15px; font-weight: 700; }
-        .empty-state p { font-size: 13px; color: rgba(255,255,255,0.35); max-width: 260px; line-height: 1.6; }
-        .empty-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
-            text-align: left;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 10px;
-            padding: 14px 18px;
-        }
-        .empty-step { display: flex; align-items: center; gap: 10px; font-size: 12px; color: rgba(255,255,255,0.4); }
-        .empty-step-num {
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: rgba(99,102,241,0.12);
-            border: 1px solid rgba(99,102,241,0.22);
-            color: #a8c7fa;
-            font-size: 10px;
-            font-weight: 800;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .empty-hint {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(99,102,241,0.07);
-            border: 1px solid rgba(99,102,241,0.16);
-            border-radius: 6px;
-            color: #818cf8;
-            font-size: 11.5px;
-            padding: 7px 13px;
-        }
-
-        /* ── LOADING ─────────────────────────────────────── */
-        .loading-header { margin-bottom: 16px; }
-        .loading-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-        .loading-sub { font-size: 12px; color: rgba(255,255,255,0.35); }
-
-        .progress-pills { display: flex; gap: 7px; margin-bottom: 16px; flex-wrap: wrap; }
-        .step-pill {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 6px 13px;
-            border-radius: 100px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.22);
-            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
-        }
-        .step-pill.active {
-            background: rgba(99,102,241,0.12);
-            border-color: rgba(99,102,241,0.35);
-            color: #a8c7fa;
-            box-shadow: 0 0 12px rgba(99,102,241,0.2);
-        }
-        .step-pill.done {
-            background: rgba(34,197,94,0.08);
-            border-color: rgba(34,197,94,0.25);
-            color: #86efac;
-        }
-        .step-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-        .step-pill.active .step-dot { animation: blink 0.85s ease-in-out infinite; }
-        .step-check { width: 13px; height: 13px; flex-shrink: 0; }
-        @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.6)} }
-
-        .load-progress-wrap { margin-bottom: 16px; }
-        .load-progress-track {
-            height: 3px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .load-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4285f4, #a8c7fa);
-            border-radius: 2px;
-            width: 0%;
-            transition: width 2s cubic-bezier(0.4,0,0.2,1);
-        }
-        .load-progress-label { display: flex; justify-content: space-between; margin-top: 5px; }
-        .load-progress-pct { font-size: 10px; color: rgba(255,255,255,0.2); }
-
-        .loading-card {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            background: rgba(99,102,241,0.05);
-            border: 1px solid rgba(99,102,241,0.15);
-            border-radius: 10px;
-            padding: 14px 17px;
-            margin-bottom: 20px;
-        }
-        .spinner {
-            width: 16px; height: 16px;
-            border: 2px solid rgba(99,102,241,0.2);
-            border-top-color: #818cf8;
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-            flex-shrink: 0;
-        }
+        .loading { padding: 24px 8px; }
+        .loading-title { font-family: var(--c-display); font-size: 16px; font-weight: 500; margin: 0 0 4px; }
+        .loading-sub { font-size: 13px; color: var(--c-ink-3); margin: 0 0 16px; }
+        .progress-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .step-pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--c-line); font-size: 13px; color: var(--c-ink-3); background: var(--c-surface); }
+        .step-pill.active { background: var(--c-blue-tint); color: var(--c-blue); border-color: transparent; }
+        .step-pill.done { background: var(--c-green-tint); color: var(--c-green); border-color: transparent; }
+        .step-pill.failed { background: var(--c-red-tint); color: var(--c-red); border-color: transparent; }
+        .progress-track { height: 4px; border-radius: 2px; background: var(--c-surface-3); overflow: hidden; }
+        .progress-fill { height: 100%; width: 0; background: var(--c-blue); transition: width 1.5s cubic-bezier(.4,0,.2,1); }
+        .spinner { width: 16px; height: 16px; border: 2px solid var(--c-blue-tint); border-top-color: var(--c-blue); border-radius: 50%; animation: spin .75s linear infinite; flex: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-msg { font-size: 13px; color: #a8c7fa; font-weight: 500; }
 
-        .skel-lines { display: flex; flex-direction: column; gap: 9px; }
-        .skel {
-            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.065) 50%, rgba(255,255,255,0.03) 75%);
-            background-size: 200% 100%;
-            animation: shim 1.5s infinite;
-            border-radius: 5px;
-            height: 12px;
-        }
-        .skel-h { height: 16px !important; }
-        @keyframes shim { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-        /* ── DOCUMENT TOOLBAR ────────────────────────────── */
-        .doc-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-            padding: 8px 14px;
-            background: rgba(255,255,255,0.025);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 8px;
-        }
-        .doc-meta { display: flex; align-items: center; gap: 12px; flex: 1; }
-        .doc-meta-item { font-size: 11px; color: rgba(255,255,255,0.3); display: flex; align-items: center; gap: 4px; }
-        .doc-meta-sep { width: 1px; height: 12px; background: rgba(255,255,255,0.08); }
-        .doc-toolbar-actions { display: flex; gap: 5px; }
-        .doc-tool-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 5px;
-            color: rgba(255,255,255,0.45);
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 9px;
-            transition: all 0.15s;
-        }
-        .doc-tool-btn:hover { background: rgba(255,255,255,0.09); color: #fff; border-color: rgba(255,255,255,0.15); }
-
-        /* hidden compat */
-        .doc-bar { display: none; }
-
-        /* ── PAPER DOCUMENT ──────────────────────────────── */
-        .paper-wrap {
-            background: rgba(0,0,0,0.25);
-            border-radius: 4px;
-            padding: 6px;
-        }
+        .doc-meta { font-size: 12px; color: var(--c-ink-3); margin: 0 0 10px; }
         .doc-preview {
-            background: #ffffff;
-            border-radius: 3px;
-            padding: 42px 50px;
-            box-shadow: 0 4px 40px rgba(0,0,0,0.55);
-            font-size: 13.5px;
-            line-height: 1.7;
-            color: #1e293b;
+            background: #fff; color: #1f1f1f; border: 1px solid var(--c-line); border-radius: 8px;
+            padding: 40px 48px; font-size: 14px; line-height: 1.65; overflow-wrap: anywhere;
         }
-        .doc-preview h1 { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 10px; border-bottom: 2px solid #4285f4; padding-bottom: 10px; }
-        .doc-preview h2 { font-size: 10px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: #4285f4; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin: 20px 0 9px; }
-        .doc-preview h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin: 12px 0 4px; }
-        .doc-preview p  { color: #334155; margin-bottom: 8px; }
-        .doc-preview ul { margin: 4px 0 10px 18px; }
-        .doc-preview li { color: #334155; margin-bottom: 3px; }
-        .doc-preview strong { color: #0f172a; font-weight: 700; }
-        .doc-preview em { color: #475569; }
+        @media (max-width: 600px) { .doc-preview { padding: 24px 18px; } }
+        .doc-preview h1 { font-family: var(--c-display); font-size: 22px; font-weight: 500; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 2px solid #1967d2; }
+        .doc-preview h2 { font-size: 12px; font-weight: 500; letter-spacing: .6px; text-transform: uppercase; color: #1967d2; border-bottom: 1px solid #dadce0; padding-bottom: 4px; margin: 20px 0 8px; }
+        .doc-preview h3 { font-size: 14px; font-weight: 500; margin: 12px 0 4px; }
+        .doc-preview p { margin: 0 0 8px; color: #3c4043; }
+        .doc-preview ul { margin: 4px 0 10px 18px; padding: 0; }
+        .doc-preview li { margin-bottom: 3px; color: #3c4043; }
+        .doc-error { background: var(--c-surface); border: 1px solid var(--c-line); border-radius: 12px; padding: 20px; }
+        .doc-error h3 { margin: 0 0 6px; font-size: 16px; font-weight: 500; color: var(--c-red); }
+        .doc-error p { margin: 0 0 12px; font-size: 14px; color: var(--c-ink-2); }
 
-        /* ── ATS SCORE HERO ──────────────────────────────── */
-        .ats-hero {
-            display: flex;
-            align-items: flex-start;
-            gap: 24px;
-            background: linear-gradient(135deg, rgba(12,12,24,0.95) 0%, rgba(18,16,36,0.95) 100%);
-            border: 1px solid rgba(99,102,241,0.18);
-            border-radius: 14px;
-            padding: 22px 22px;
-            margin-bottom: 18px;
-            position: relative;
-            overflow: hidden;
-        }
-        .ats-hero::before {
-            content: '';
-            position: absolute;
-            top: -30px; right: -30px;
-            width: 160px; height: 160px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .gauge-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
-        .gauge-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .g-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 4; }
-        .g-arc {
-            fill: none;
-            stroke-width: 4;
-            stroke-linecap: round;
-            stroke-dasharray: 0 100;
-            transition: stroke-dasharray 1.4s cubic-bezier(.4,0,.2,1), stroke .5s;
-        }
-        .gauge-center {
-            position: absolute; inset: 0;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-        }
-        .g-num   { font-size: 34px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-        .g-denom { font-size: 11px; color: rgba(255,255,255,0.25); line-height: 1; }
-        .g-sub   { font-size: 8px; font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.2); text-transform: uppercase; margin-top: 3px; }
-        .g-dot   { position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; transition: background .5s; }
-
-        .ats-rating { flex: 1; min-width: 0; }
-        .r-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            border: 1px solid;
-        }
-        .r-label { font-size: 20px; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
-        .r-desc  { font-size: 12.5px; color: rgba(255,255,255,0.45); line-height: 1.5; margin-bottom: 14px; }
-
-        .ats-stats { display: flex; gap: 9px; margin-bottom: 14px; }
-        .ats-stat {
-            flex: 1;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 9px;
-            padding: 10px 12px;
-            text-align: center;
-        }
-        .ats-stat-val { font-size: 22px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-        .ats-stat-key { font-size: 8.5px; font-weight: 800; letter-spacing: 0.12em; color: rgba(255,255,255,0.28); text-transform: uppercase; margin-top: 3px; }
-
-        .r-bar-wrap { position: relative; }
-        .r-bar-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; position: relative; }
-        .r-bar-fill { height: 100%; border-radius: 3px; width: 0; transition: width 1.4s cubic-bezier(.4,0,.2,1), background .5s; }
-        .r-bar-ticks { position: absolute; top: 0; left: 0; right: 0; height: 6px; pointer-events: none; }
-        .r-bar-tick { position: absolute; top: -2px; width: 1px; height: 10px; background: rgba(255,255,255,0.12); }
-        .r-bar-labels { position: relative; height: 14px; margin-top: 5px; }
-        .r-bar-label-item { position: absolute; transform: translateX(-50%); font-size: 8.5px; color: rgba(255,255,255,0.18); font-weight: 700; letter-spacing: 0.04em; }
-
-        /* ── SKILL GAP TABLE ─────────────────────────────── */
-        .skill-gap-section {
-            margin-bottom: 18px;
-            background: rgba(255,255,255,0.018);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .skill-gap-hdr {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            background: rgba(0,0,0,0.15);
-        }
-        .skill-gap-title {
-            font-size: 9px; font-weight: 800; letter-spacing: 0.14em;
-            color: rgba(255,255,255,0.4);
-            display: flex; align-items: center; gap: 7px;
-        }
-        .skill-gap-count { font-size: 10px; color: rgba(255,255,255,0.2); font-weight: 600; }
-        .skill-table { width: 100%; border-collapse: collapse; }
-        .skill-table thead tr { background: rgba(0,0,0,0.2); }
-        .skill-table th {
-            text-align: left;
-            font-size: 8.5px; font-weight: 800; letter-spacing: 0.12em;
-            color: rgba(255,255,255,0.22); text-transform: uppercase;
-            padding: 8px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .skill-table th:last-child { text-align: center; width: 60px; }
-        .skill-table td {
-            padding: 9px 16px;
-            font-size: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            vertical-align: middle;
-        }
-        .skill-table tbody tr:last-child td { border-bottom: none; }
-        .skill-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.012); }
-        .skill-table tbody tr:hover { background: rgba(255,255,255,0.025); }
-        .skill-name { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 11.5px; color: rgba(255,255,255,0.75); font-weight: 500; }
-        .skill-cat {
-            display: inline-flex; align-items: center;
-            padding: 2px 7px; border-radius: 4px;
-            font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-        }
-        .cat-required { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
-        .cat-tech     { background: rgba(99,102,241,0.12); color: #a8c7fa; border: 1px solid rgba(99,102,241,0.2); }
-        .cat-soft     { background: rgba(148,163,184,0.08); color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
-        .skill-match-cell { text-align: center; }
-        .match-yes { color: #22c55e; }
-        .match-no  { color: #ef4444; }
-
-        /* ── KEYWORD GRID ─────────────────────────────────── */
-        .kw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-        .kw-card { background: rgba(255,255,255,0.018); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px; }
-        .kw-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .kw-title { font-size: 9px; font-weight: 800; letter-spacing: .13em; color: rgba(255,255,255,0.3); }
-        .kw-count-badge { font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 10px; }
-        .kw-count-green { background: rgba(34,197,94,0.12); color: #86efac; border: 1px solid rgba(34,197,94,0.2); }
-        .kw-count-red   { background: rgba(239,68,68,0.1);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.18); }
-        .chips { display: flex; flex-wrap: wrap; gap: 5px; }
-        .chip { display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 100px; }
-        .c-green { background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.2);  color: #86efac; }
-        .c-red   { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.2);  color: #fca5a5; }
-        .c-none  { font-size: 12px; color: rgba(255,255,255,.2); }
-
-        /* ── ATS SECTIONS ────────────────────────────────── */
-        .ats-sec { border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-        .ats-sec-hdr {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 11px 14px;
-            background: rgba(0,0,0,0.14);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            cursor: pointer; user-select: none;
-        }
-        .ats-sec-hdr:hover { background: rgba(0,0,0,0.22); }
-        .ats-sec-left { display: flex; align-items: center; gap: 8px; }
-        .ats-sec-title { font-size: 9px; font-weight: 800; letter-spacing: .13em; color: rgba(255,255,255,0.35); }
-        .ats-sec-cnt { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; }
-        .sec-cnt-red { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.18); }
-        .sec-cnt-grn { background: rgba(34,197,94,0.1);  color: #86efac; border: 1px solid rgba(34,197,94,0.18); }
-
-        .ats-weak-item {
-            display: flex; align-items: flex-start; gap: 10px;
-            margin: 0 14px; padding: 10px 0 10px 12px;
-            border-left: 2px solid rgba(239,68,68,0.35);
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,0.5);
-        }
-        .ats-weak-item:last-child { border-bottom: none; margin-bottom: 10px; }
-        .ats-weak-item:first-child { margin-top: 10px; }
-        .li-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
-
-        .ats-rec-item {
-            display: flex; align-items: flex-start; gap: 11px;
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,0.5);
-        }
-        .ats-rec-item:last-child { border-bottom: none; }
-        .rec-num {
-            width: 20px; height: 20px; border-radius: 50%;
-            background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.22);
-            color: #86efac; font-size: 9px; font-weight: 800;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; margin-top: 1px;
-        }
-        .rec-body { flex: 1; }
-        .rec-priority {
-            display: inline-flex; align-items: center;
-            padding: 1px 6px; border-radius: 4px;
-            font-size: 8px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-        .prio-high { background: rgba(239,68,68,0.1);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.18); }
-        .prio-med  { background: rgba(245,158,11,0.1); color: #fcd34d; border: 1px solid rgba(245,158,11,0.18); }
-        .prio-low  { background: rgba(148,163,184,0.07); color: #94a3b8; border: 1px solid rgba(148,163,184,0.14); }
-
-        /* ── TOAST ───────────────────────────────────────── */
-        #toast {
-            position: fixed; bottom: 22px; right: 22px;
-            padding: 11px 17px; border-radius: 9px;
-            font-size: 13px; font-weight: 500;
-            z-index: 9999; opacity: 0; transform: translateY(8px);
-            transition: all 0.22s; pointer-events: none; max-width: 320px;
-        }
-        #toast.show { opacity: 1; transform: translateY(0); }
-        #toast.success { background: #052e16; border: 1px solid #16a34a; color: #86efac; }
-        #toast.error   { background: #2c0a0a; border: 1px solid #dc2626; color: #fca5a5; }
-        #toast.info    { background: #0c1440; border: 1px solid #2563eb; color: #93c5fd; }
-
-        /* ── RESPONSIVE ──────────────────────────────────── */
-        @media (max-width: 960px) {
-            body { overflow: auto; }
-            .main-shell { margin-left: 0; height: auto; overflow: visible; }
-            .optimizer-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
-            .input-panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
-            .output-panel { height: 90vh; }
-            .ats-hero { flex-direction: column; }
-            .gauge-wrap { width: 110px; height: 110px; }
-        }
-        /* Google-inspired light surfaces and visible Cariara branding. */
-        body { background:#f8fafd; color:#202124; }
-        .main-shell,.optimizer-layout,.output-panel { background:#fff; }
-        .job-banner { background:#fff; border-bottom:1px solid #dadce0; }
-        .job-banner::before { display:none; }
-        .back-btn { color:#5f6368; }
-        .back-btn:hover { color:#1a73e8; }
-        .banner-eyebrow { color:#1a73e8; }
-        .banner-title { color:#202124; }
-        .banner-company { color:#1a73e8; }
-        .banner-subtitle { color:#5f6368; }
-        .banner-badge { background:#e8f0fe; border-color:#d2e3fc; color:#1967d2; }
-        .optimizer-brand { display:flex; align-items:center; gap:9px; margin-bottom:8px; color:#3c4043; font-size:12px; font-weight:700; letter-spacing:.02em; }
-        .optimizer-brand img { width:28px; height:28px; }
-        .panel { scrollbar-color:#dadce0 transparent; }
-        .panel::-webkit-scrollbar-thumb { background:#dadce0; }
-        .input-panel { background:#fff; border-right:1px solid #dadce0; }
-        .panel-title { color:#202124; }
-        .panel-sub,.field-label,.url-label,.kbd-hint,.empty-state p,.empty-step,.loading-sub { color:#5f6368; }
-        .badge-gold { background:#fef7e0; color:#b06000; border-color:#fce8b2; }
-        .badge-slate { background:#f1f3f4; color:#5f6368; border-color:#dadce0; }
-        .field-textarea,.field-input,.url-input { background:#fff; border:1px solid #dadce0; color:#202124; }
-        .field-textarea:focus,.field-input:focus,.url-input:focus { border-color:#1a73e8; background:#fff; box-shadow:0 0 0 2px #d2e3fc; }
-        .field-textarea::placeholder,.field-input::placeholder { color:#80868b; }
-        .url-row input { background:#fff; border-color:#dadce0; color:#202124; }
-        .btn-fetch { background:#e8f0fe; border-color:#d2e3fc; color:#1967d2; }
-        .btn-fetch:hover { background:#d2e3fc; }
-        .btn-outline,.tab-action { background:#fff; border-color:#dadce0; color:#3c4043; }
-        .btn-outline:hover,.tab-action:hover:not(:disabled) { background:#f8fafd; border-color:#1a73e8; color:#1a73e8; }
-        .btn-primary { background:#1a73e8; color:#fff; box-shadow:none; }
-        .btn-primary:hover:not(:disabled) { background:#1967d2; box-shadow:0 1px 3px rgba(60,64,67,.3); }
-        .btn-generate { background:#1a73e8; box-shadow:0 2px 6px rgba(60,64,67,.25); }
-        .btn-generate:hover:not(:disabled) { background:#1967d2; box-shadow:0 4px 10px rgba(60,64,67,.25); }
-        .output-header,.tab-bar { background:#fff; border-color:#dadce0; }
-        .tab-btn { color:#5f6368; }
-        .tab-btn.active { color:#1a73e8; }
-        .tab-btn.active { color:#1a73e8; border-color:#1a73e8; }
-        .tab-content { background:#f8fafd; }
-        .empty-icon-wrap { background:#e8f0fe; border-color:#d2e3fc; color:#1a73e8; }
-        .empty-steps,.qs-card,.kw-card,.ats-sec,.skill-table { background:#fff; border-color:#dadce0; }
-        .step-pill,.load-progress-track,.load-progress-card { background:#f1f3f4; border-color:#dadce0; color:#5f6368; }
-        .step-pill.active { background:#e8f0fe; border-color:#d2e3fc; color:#1967d2; box-shadow:none; }
-        .step-pill.done { background:#e6f4ea; border-color:#ceead6; color:#137333; }
-        .load-progress-fill { background:#4285f4; }
-        .qs-label,.skill-name,.ats-sec-title,.r-desc,.ats-stat-key,.kw-title { color:#5f6368; }
-        .skill-table th { background:#f1f3f4; color:#5f6368; }
-        .skill-table td,.skill-table th,.ats-sec-head,.ats-rec-item,.ats-weak-item { border-color:#dadce0; }
-        .skill-table tbody tr:nth-child(even) { background:#f8fafd; }
-        .skill-table tbody tr:hover { background:#e8f0fe; }
-        .g-track { stroke:#dadce0; }
-        .r-bar-track { background:#e8eaed; }
-        .g-denom,.g-sub,.skill-gap-count,.c-none { color:#80868b; }
-        #toast.success { background:#e6f4ea; border-color:#34a853; color:#137333; }
-        #toast.info { background:#e8f0fe; border-color:#4285f4; color:#1967d2; }
-        #toast.error { background:#fce8e6; border-color:#ea4335; color:#c5221f; }
+        /* ── ATS tab ───────────────────────────────────── */
+        .ats-hero { display: flex; gap: 24px; align-items: center; background: var(--c-surface); border: 1px solid var(--c-line); border-radius: 12px; padding: 20px; margin-bottom: 16px; flex-wrap: wrap; }
+        .gauge { position: relative; width: 120px; height: 120px; flex: none; }
+        .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .g-track { fill: none; stroke: var(--c-surface-3); stroke-width: 3.5; }
+        .g-arc { fill: none; stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 0 100; transition: stroke-dasharray 1.2s cubic-bezier(.4,0,.2,1); }
+        .gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .g-num { font-family: var(--c-display); font-size: 30px; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+        .g-denom { font-size: 12px; color: var(--c-ink-3); }
+        .ats-rating { flex: 1; min-width: 220px; }
+        .r-label { font-family: var(--c-display); font-size: 18px; font-weight: 500; margin: 0 0 4px; }
+        .r-desc { font-size: 13px; color: var(--c-ink-3); margin: 0 0 12px; line-height: 18px; }
+        .ats-stats { display: flex; gap: 8px; }
+        .ats-stat { flex: 1; text-align: center; border: 1px solid var(--c-line-soft); border-radius: 8px; padding: 8px; }
+        .ats-stat-val { font-family: var(--c-display); font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .ats-stat-key { font-size: 11px; color: var(--c-ink-3); }
+        .kw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        @media (max-width: 700px) { .kw-grid { grid-template-columns: 1fr; } }
+        .kw-card { padding: 14px 16px; }
+        .kw-title { margin: 0 0 10px; font-size: 14px !important; }
+        .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chip.c-green { background: var(--c-green-tint) !important; color: var(--c-green) !important; border-color: transparent !important; }
+        .chip.c-red { background: var(--c-red-tint) !important; color: var(--c-red) !important; border-color: transparent !important; }
+        .c-none { font-size: 13px; color: var(--c-ink-3); }
+        .ats-list { background: var(--c-surface); border: 1px solid var(--c-line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+        .ats-list h4 { font-family: var(--c-display); font-size: 14px; font-weight: 500; margin: 0 0 8px; color: var(--c-ink); }
+        .ats-list ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 20px; color: var(--c-ink-2); }
+        .ats-list li { margin-bottom: 4px; }
+        .ats-note { font-size: 12px; color: var(--c-ink-3); margin: 8px 0 0; }
     </style>
-    <link rel="stylesheet" href="/css/jobshub.css">
-    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
-    <script src="/js/icons.js" defer></script>
+    <link rel="stylesheet" href="/css/cariara.css">
 </head>
 <body>
-<div id="sidebar-container"></div>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle menu">
+        <svg class="menu-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg class="menu-close" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-<div class="main-shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="discover.html" class="c-brand" aria-label="Cariara Jobs home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="28" height="28"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="22"><span class="c-brand-product">Jobs</span></a>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Apply</div>
+            <a href="discover.html" class="nav-link active" data-icon="search" id="nav-jobs">Jobs</a>
 
-    <!-- BANNER -->
-    <div class="job-banner">
-        <a href="javascript:history.back()" class="back-btn">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-            Back to Jobs
+            <div class="nav-section-title">You</div>
+            <a href="documents.html" class="nav-link" data-icon="document">Resumes</a>
+            <a href="settings.html" class="nav-link" data-icon="settings">Settings</a>
+
+            <div class="nav-section-title">Cariara</div>
+            <a href="https://cariara.com/prep/prepare" class="nav-link c-external" data-icon="bookmark">Prepare</a>
+            <a href="https://cariara.com/pg?tab=problems" class="nav-link c-external" data-icon="edit">Practice</a>
+        </nav>
+        <div class="sidebar-user" id="user-menu"></div>
+    </aside>
+
+    <main class="main-content">
+      <div class="opt-page">
+        <a href="discover.html" class="back-link" id="back-link">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            Back to jobs
         </a>
-        <div class="banner-row">
-            <div class="banner-left">
-                <div class="optimizer-brand"><img src="/images/logo-icon.svg" alt="Cariara"><span>Cariara</span></div>
-                <div class="banner-eyebrow">Resume Optimizer</div>
-                <h1 class="banner-title">Tailoring for <span class="banner-company" id="banner-company">Company</span></h1>
-                <p class="banner-subtitle" id="banner-subtitle">AI-optimized for ATS systems and hiring managers.</p>
-            </div>
-            <div class="banner-badge">
-                <div class="banner-badge-dot"></div>
-                AI-POWERED
-            </div>
-        </div>
-    </div>
 
-    <div class="optimizer-layout">
-
-        <!-- ════ LEFT: INPUT PANEL ════ -->
-        <div class="panel input-panel">
-
-            <div class="panel-header">
-                <div class="p-badge badge-gold">
-                    <svg width="9" height="9" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    INPUTS
+        <!-- Job header -->
+        <section class="section job-card" id="job-card" aria-busy="true">
+            <div class="job-card-row">
+                <div class="job-card-main">
+                    <p class="eyebrow">Resume optimizer</p>
+                    <h1 class="job-title" id="job-title"><span class="skeleton-line" style="display:block;width:60%;height:24px"></span></h1>
+                    <p class="job-company" id="job-company"><span class="skeleton-line" style="display:block;width:35%"></span></p>
+                    <div class="job-chips" id="job-chips"></div>
                 </div>
-                <h2 class="panel-title">Resume Optimizer</h2>
-                <p class="panel-sub">Paste your resume and the job description</p>
-            </div>
-
-            <!-- Job Description -->
-            <div class="field-group">
-                <label class="field-label">Job Description</label>
-                <textarea id="job-desc" class="field-textarea" rows="7"
-                    placeholder="Paste the job description here…"></textarea>
-                <div class="url-row">
-                    <span class="url-label">Or URL:</span>
-                    <input type="url" id="job-url" class="url-input" placeholder="https://jobs.example.com/posting/123">
-                    <button class="btn-fetch" id="fetch-btn" onclick="fetchJobUrl()">FETCH</button>
+                <div class="job-actions">
+                    <a class="btn-primary" id="apply-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none">
+                        Apply on company site
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
                 </div>
             </div>
+        </section>
 
-            <!-- Resume -->
-            <div class="field-group">
-                <label class="field-label">Your Resume</label>
-                <textarea id="resume-text" class="field-textarea" rows="7"
-                    placeholder="Paste your resume text here…"></textarea>
-                <div class="file-row">
-                    <button class="btn-outline" onclick="document.getElementById('file-up').click()">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                        Upload file
-                    </button>
-                    <button class="btn-outline" id="load-profile-btn" onclick="loadFromProfile()">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                        Load from Profile
-                    </button>
-                </div>
-                <input type="file" id="file-up" accept=".txt,.pdf,.docx" style="display:none" onchange="handleFile(event)">
-            </div>
-
-            <!-- Target Company / Role -->
-            <div class="target-grid">
-                <div class="field-group" style="margin-bottom:0">
-                    <label class="field-label">Target Company</label>
-                    <input type="text" id="target-company" class="field-input" placeholder="e.g. Google">
-                </div>
-                <div class="field-group" style="margin-bottom:0">
-                    <label class="field-label">Target Role</label>
-                    <input type="text" id="target-role" class="field-input" placeholder="e.g. Staff Engineer">
-                </div>
-            </div>
-
-            <!-- Generate button -->
-            <div style="margin-top:20px">
-                <button class="btn-generate" id="gen-btn" onclick="generateAll()">
-                    <svg width="17" height="17" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    Generate Resume, Cover Letter &amp; ATS Score
-                </button>
-                <div class="kbd-hint"><span class="kbd">⌘</span> <span class="kbd">↵</span> to generate</div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="quick-stats" id="quick-stats">
-                <div class="qs-item">
-                    <svg class="qs-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span class="qs-label">Resume tailored</span>
-                    <span class="qs-value" id="qs-resume">—</span>
-                </div>
-                <div class="qs-item">
-                    <svg class="qs-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    <span class="qs-label">Cover letter</span>
-                    <span class="qs-value" id="qs-cover">—</span>
-                </div>
-                <div class="qs-item">
-                    <svg class="qs-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                    <span class="qs-label">ATS match score</span>
-                    <span class="qs-value" id="qs-ats">—</span>
-                </div>
-            </div>
-
-            <!-- Job meta strip -->
-            <div class="job-meta-strip" id="job-meta-strip" style="display:none">
-                <div class="field-label" style="margin-bottom:8px">Job Info</div>
-                <div style="display:flex;flex-wrap:wrap;gap:7px" id="meta-chips"></div>
-                <a id="view-job-link" href="#" target="_blank"
-                   style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:12px;color:var(--accent-blue);text-decoration:none;">
-                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    View original posting
-                </a>
-            </div>
+        <div class="msg" id="page-msg" role="status" aria-live="polite">
+            <span class="msg-text" id="page-msg-text"></span>
+            <button class="msg-close" type="button" aria-label="Dismiss" onclick="hideMsg()">&times;</button>
         </div>
 
-        <!-- ════ RIGHT: OUTPUT PANEL ════ -->
-        <div class="output-panel">
+        <div class="opt-grid">
+            <!-- Inputs -->
+            <section class="section panel" aria-labelledby="inputs-title">
+                <h2 class="panel-title" id="inputs-title">Your inputs</h2>
+                <p class="panel-sub">Edits here are what Cariara uses to tailor your documents.</p>
 
-            <div class="output-header">
-                <div class="p-badge badge-slate">
-                    <svg width="9" height="9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    OUTPUT
+                <div class="field-group">
+                    <div class="field-label-row">
+                        <label class="field-label" for="job-desc">Job description</label>
+                        <button type="button" class="btn-outline btn-sm" id="refresh-desc-btn" onclick="refreshDescription()" style="display:none">Refresh from posting</button>
+                    </div>
+                    <textarea id="job-desc" class="field-textarea" rows="9" placeholder="Paste the job description here…"></textarea>
+                    <div class="field-msg" id="desc-msg" role="status"></div>
                 </div>
-                <h2 class="panel-title">Document Preview</h2>
-            </div>
 
-            <!-- Tab Bar -->
-            <div class="tab-bar">
-                <div class="tabs-left">
-                    <button class="tab-btn active" onclick="switchTab('resume',this)">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        RESUME
-                    </button>
-                    <button class="tab-btn" onclick="switchTab('cover',this)">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        COVER LETTER
-                    </button>
-                    <button class="tab-btn" onclick="switchTab('ats',this)">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                        ATS SCORE
-                    </button>
+                <div class="field-group">
+                    <div class="field-label-row">
+                        <label class="field-label" for="resume-text">Your resume</label>
+                        <span class="field-hint" id="resume-source"></span>
+                    </div>
+                    <textarea id="resume-text" class="field-textarea" rows="9" placeholder="Paste your resume text here, or load it from Resumes…"></textarea>
+                    <div class="row-actions">
+                        <button type="button" class="btn-outline btn-sm" id="load-profile-btn" onclick="loadFromProfile()">Load from Resumes</button>
+                        <button type="button" class="btn-outline btn-sm" id="upload-btn" onclick="document.getElementById('file-up').click()">Upload file</button>
+                    </div>
+                    <input type="file" id="file-up" accept=".txt,.pdf,.docx,.doc" style="display:none" onchange="handleFile(event)">
+                    <div class="field-msg" id="resume-msg" role="status"></div>
                 </div>
-                <div class="tabs-right">
-                    <button class="tab-action" id="copy-btn" onclick="copyContent()" disabled>
-                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3"/></svg>
-                        Copy
-                    </button>
-                    <button class="tab-action" id="dl-btn" onclick="downloadTxt()" disabled>
-                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        .txt
-                    </button>
-                    <button class="tab-action" id="pdf-btn" onclick="printPdf()" disabled>
-                        <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                        PDF
-                    </button>
+
+                <div class="target-grid field-group">
+                    <div>
+                        <label class="field-label" for="target-company">Company</label>
+                        <input type="text" id="target-company" class="field-input" placeholder="e.g. Google" style="margin-top:6px">
+                    </div>
+                    <div>
+                        <label class="field-label" for="target-role">Role</label>
+                        <input type="text" id="target-role" class="field-input" placeholder="e.g. Staff Engineer" style="margin-top:6px">
+                    </div>
                 </div>
-            </div>
 
-            <!-- Tab Content -->
-            <div class="tab-content">
+                <button type="button" class="btn-primary btn-generate" id="gen-btn" onclick="generateAll()">Generate resume, cover letter &amp; ATS score</button>
+                <div class="kbd-hint"><span class="kbd">Ctrl</span>/<span class="kbd">⌘</span> + <span class="kbd">Enter</span> to generate</div>
 
-                <!-- EMPTY -->
-                <div id="pane-empty">
-                    <div class="empty-state">
-                        <div class="empty-icon-wrap">
-                            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <h3>Ready to optimize</h3>
-                        <p>Fill in your resume and job description, then click Generate.</p>
+                <div class="quick-stats" id="quick-stats" aria-live="polite">
+                    <div class="qs-item"><span class="qs-label">Tailored resume</span><span class="qs-value" id="qs-resume">—</span></div>
+                    <div class="qs-item"><span class="qs-label">Cover letter</span><span class="qs-value" id="qs-cover">—</span></div>
+                    <div class="qs-item"><span class="qs-label">ATS keyword match</span><span class="qs-value" id="qs-ats">—</span></div>
+                </div>
+            </section>
+
+            <!-- Output -->
+            <section class="section output" aria-label="Generated documents">
+                <div class="output-head">
+                    <div class="tab-bar" role="tablist">
+                        <button class="tab-btn active" role="tab" data-tab="resume" onclick="switchTab('resume')">Resume</button>
+                        <button class="tab-btn" role="tab" data-tab="cover" onclick="switchTab('cover')">Cover letter</button>
+                        <button class="tab-btn" role="tab" data-tab="ats" onclick="switchTab('ats')">ATS score</button>
+                    </div>
+                    <div class="output-actions">
+                        <button class="tab-action btn-sm" id="copy-btn" onclick="copyContent()" disabled>Copy</button>
+                        <button class="tab-action btn-sm" id="docx-btn" onclick="downloadDocx()" disabled>Download .docx</button>
+                        <button class="tab-action btn-sm" id="txt-btn" onclick="downloadTxt()" disabled>.txt</button>
+                        <button class="tab-action btn-sm" id="pdf-btn" onclick="printPdf()" disabled>Print / PDF</button>
+                    </div>
+                </div>
+                <div class="output-body">
+                    <!-- EMPTY -->
+                    <div id="pane-empty" class="empty-state">
+                        <h3>Ready to tailor</h3>
+                        <p>Check the job description and your resume on the left, then generate.</p>
                         <div class="empty-steps">
-                            <div class="empty-step"><div class="empty-step-num">1</div>Job description is auto-loaded from the listing</div>
-                            <div class="empty-step"><div class="empty-step-num">2</div>Paste or upload your resume text</div>
-                            <div class="empty-step"><div class="empty-step-num">3</div>Click Generate — takes ~20 seconds</div>
+                            <div class="empty-step"><span class="step-num">1</span>The job description is loaded from the listing</div>
+                            <div class="empty-step"><span class="step-num">2</span>Your default resume is loaded from Resumes</div>
+                            <div class="empty-step"><span class="step-num">3</span>Generate — usually takes 20–40 seconds</div>
                         </div>
-                        <div class="empty-hint">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Load resume from profile using the button on the left
+                    </div>
+
+                    <!-- LOADING -->
+                    <div id="pane-loading" class="loading" style="display:none" aria-live="polite">
+                        <p class="loading-title">Generating your documents…</p>
+                        <p class="loading-sub" id="load-msg">Tailoring your resume and writing a cover letter.</p>
+                        <div class="progress-pills">
+                            <span class="step-pill" id="s-resume">Tailored resume</span>
+                            <span class="step-pill" id="s-cover">Cover letter</span>
+                            <span class="step-pill" id="s-ats">ATS analysis</span>
+                        </div>
+                        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+                    </div>
+
+                    <!-- ERROR (both calls failed) -->
+                    <div id="pane-error" style="display:none">
+                        <div class="doc-error" role="alert">
+                            <h3>We couldn't generate your documents</h3>
+                            <p id="error-detail">Something went wrong.</p>
+                            <button type="button" class="btn-primary btn-sm" onclick="generateAll()">Try again</button>
+                        </div>
+                    </div>
+
+                    <!-- RESULTS -->
+                    <div id="pane-results" style="display:none">
+                        <div id="tab-resume" role="tabpanel">
+                            <p class="doc-meta" id="resume-meta"></p>
+                            <div id="resume-preview"></div>
+                        </div>
+                        <div id="tab-cover" role="tabpanel" style="display:none">
+                            <p class="doc-meta" id="cover-meta"></p>
+                            <div id="cover-preview"></div>
+                        </div>
+                        <div id="tab-ats" role="tabpanel" style="display:none">
+                            <div class="ats-hero">
+                                <div class="gauge">
+                                    <svg viewBox="0 0 36 36" aria-hidden="true">
+                                        <circle class="g-track" cx="18" cy="18" r="15.915"/>
+                                        <circle class="g-arc" id="g-arc" cx="18" cy="18" r="15.915"/>
+                                    </svg>
+                                    <div class="gauge-center"><span class="g-num" id="g-num">0</span><span class="g-denom">/100</span></div>
+                                </div>
+                                <div class="ats-rating">
+                                    <p class="r-label" id="r-label">—</p>
+                                    <p class="r-desc" id="r-desc"></p>
+                                    <div class="ats-stats">
+                                        <div class="ats-stat"><div class="ats-stat-val" id="stat-matched" style="color:var(--c-green)">—</div><div class="ats-stat-key">Matched</div></div>
+                                        <div class="ats-stat"><div class="ats-stat-val" id="stat-missing" style="color:var(--c-red)">—</div><div class="ats-stat-key">Missing</div></div>
+                                        <div class="ats-stat"><div class="ats-stat-val" id="stat-coverage" style="color:var(--c-blue)">—</div><div class="ats-stat-key">Coverage</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="kw-grid">
+                                <div class="kw-card"><h4 class="kw-title">Keywords matched <span id="kw-matched-cnt"></span></h4><div class="chips" id="chips-matched"></div></div>
+                                <div class="kw-card"><h4 class="kw-title">Keywords missing <span id="kw-missing-cnt"></span></h4><div class="chips" id="chips-missing"></div></div>
+                            </div>
+                            <div class="ats-list"><h4>Weaknesses</h4><ul id="weak-list"></ul></div>
+                            <div class="ats-list"><h4>Recommendations</h4><ul id="rec-list"></ul></div>
+                            <p class="ats-note">Keyword match is estimated in your browser by comparing the job description with the tailored resume (or your pasted resume if tailoring failed).</p>
                         </div>
                     </div>
                 </div>
+            </section>
+        </div>
+      </div>
+    </main>
 
-                <!-- LOADING -->
-                <div id="pane-loading" style="display:none">
-                    <div class="loading-header">
-                        <div class="loading-title">Generating your documents…</div>
-                        <div class="loading-sub">AI is tailoring your resume and analyzing ATS compatibility</div>
-                    </div>
-                    <div class="progress-pills" id="progress-pills">
-                        <div class="step-pill" id="s-resume"><div class="step-dot"></div>Tailoring Resume</div>
-                        <div class="step-pill" id="s-cover"><div class="step-dot"></div>Cover Letter</div>
-                        <div class="step-pill" id="s-ats"><div class="step-dot"></div>ATS Analysis</div>
-                    </div>
-                    <div class="load-progress-wrap">
-                        <div class="load-progress-track">
-                            <div class="load-progress-fill" id="load-progress-fill"></div>
-                        </div>
-                        <div class="load-progress-label">
-                            <span class="load-progress-pct" id="load-msg">Starting…</span>
-                            <span class="load-progress-pct" id="load-pct">0%</span>
-                        </div>
-                    </div>
-                    <div class="loading-card">
-                        <div class="spinner"></div>
-                        <span class="loading-msg" id="load-msg-card">Generating your tailored documents…</span>
-                    </div>
-                    <div class="skel-lines">
-                        <div class="skel skel-h" style="width:52%"></div>
-                        <div class="skel" style="width:89%"></div>
-                        <div class="skel" style="width:78%"></div>
-                        <div class="skel" style="width:65%"></div>
-                        <div class="skel" style="height:8px;margin-top:6px;width:30%"></div>
-                        <div class="skel skel-h" style="width:44%;margin-top:4px"></div>
-                        <div class="skel" style="width:95%"></div>
-                        <div class="skel" style="width:82%"></div>
-                        <div class="skel" style="width:60%"></div>
-                        <div class="skel" style="width:77%"></div>
-                    </div>
-                </div>
+    <script src="/js/app.js"></script>
+    <script>
+    /* =================================================================
+       CARIARA RESUME OPTIMIZER
+       ================================================================= */
+    const JOB_ID = (() => {
+        const raw = new URLSearchParams(location.search).get('id');
+        return raw && /^\d+$/.test(raw) ? raw : null;
+    })();
+    let currentJob = null;
+    let currentTab = 'resume';
+    let G = { resume: null, cover: null, ats: null, resumeError: null, coverError: null };
+    let generating = false;
 
-                <!-- RESULTS -->
-                <div id="pane-results" style="display:none">
+    const esc = (s) => (typeof escapeHtml === 'function')
+        ? escapeHtml(s)
+        : String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const $ = (id) => document.getElementById(id);
 
-                    <!-- Resume Tab -->
-                    <div id="tab-resume">
-                        <div class="doc-bar"><span class="doc-wc" id="resume-wc"></span></div>
-                        <div class="doc-toolbar">
-                            <div class="doc-meta">
-                                <span class="doc-meta-item">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    <span id="resume-wc-display">—</span>
-                                </span>
-                                <div class="doc-meta-sep"></div>
-                                <span class="doc-meta-item" id="resume-readtime">~— min read</span>
-                            </div>
-                            <div class="doc-toolbar-actions">
-                                <button class="doc-tool-btn" onclick="copyContent()">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3"/></svg>
-                                    Copy
-                                </button>
-                                <button class="doc-tool-btn" onclick="downloadTxt()">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                    Download
-                                </button>
-                                <button class="doc-tool-btn" onclick="printPdf()">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                    PDF
-                                </button>
-                            </div>
-                        </div>
-                        <div class="paper-wrap">
-                            <div class="doc-preview" id="resume-preview"></div>
-                        </div>
-                    </div>
-
-                    <!-- Cover Letter Tab -->
-                    <div id="tab-cover" style="display:none">
-                        <div class="doc-bar"><span class="doc-wc" id="cover-wc"></span></div>
-                        <div class="doc-toolbar">
-                            <div class="doc-meta">
-                                <span class="doc-meta-item">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                    <span id="cover-wc-display">—</span>
-                                </span>
-                                <div class="doc-meta-sep"></div>
-                                <span class="doc-meta-item" id="cover-readtime">~— min read</span>
-                            </div>
-                            <div class="doc-toolbar-actions">
-                                <button class="doc-tool-btn" onclick="copyContent()">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3"/></svg>
-                                    Copy
-                                </button>
-                                <button class="doc-tool-btn" onclick="downloadTxt()">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                    Download
-                                </button>
-                                <button class="doc-tool-btn" onclick="printPdf()">
-                                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                    PDF
-                                </button>
-                            </div>
-                        </div>
-                        <div class="paper-wrap">
-                            <div class="doc-preview" id="cover-preview"></div>
-                        </div>
-                    </div>
-
-                    <!-- ATS Score Tab -->
-                    <div id="tab-ats" style="display:none">
-
-                        <!-- Score Hero -->
-                        <div class="ats-hero">
-                            <div class="gauge-wrap">
-                                <div class="g-dot" id="g-dot"></div>
-                                <svg class="gauge-svg" viewBox="0 0 36 36">
-                                    <circle class="g-track" cx="18" cy="18" r="15.915"/>
-                                    <circle class="g-arc" id="g-arc" cx="18" cy="18" r="15.915" stroke="#4285f4"/>
-                                </svg>
-                                <div class="gauge-center">
-                                    <span class="g-num" id="g-num">0</span>
-                                    <span class="g-denom">/100</span>
-                                    <span class="g-sub">ATS SCORE</span>
-                                </div>
-                            </div>
-                            <div class="ats-rating">
-                                <div class="r-badge" id="r-badge">ANALYZING</div>
-                                <div class="r-label" id="r-label">Analyzing…</div>
-                                <div class="r-desc" id="r-desc">Run analysis to see your ATS match score.</div>
-                                <div class="ats-stats">
-                                    <div class="ats-stat">
-                                        <div class="ats-stat-val" id="stat-matched" style="color:#22c55e">—</div>
-                                        <div class="ats-stat-key">Matched</div>
-                                    </div>
-                                    <div class="ats-stat">
-                                        <div class="ats-stat-val" id="stat-missing" style="color:#ef4444">—</div>
-                                        <div class="ats-stat-key">Missing</div>
-                                    </div>
-                                    <div class="ats-stat">
-                                        <div class="ats-stat-val" id="stat-coverage" style="color:#4285f4">—</div>
-                                        <div class="ats-stat-key">Coverage</div>
-                                    </div>
-                                </div>
-                                <div class="r-bar-wrap">
-                                    <div class="r-bar-track">
-                                        <div class="r-bar-fill" id="r-bar"></div>
-                                        <div class="r-bar-ticks">
-                                            <div class="r-bar-tick" style="left:40%"></div>
-                                            <div class="r-bar-tick" style="left:60%"></div>
-                                            <div class="r-bar-tick" style="left:80%"></div>
-                                        </div>
-                                    </div>
-                                    <div class="r-bar-labels">
-                                        <span class="r-bar-label-item" style="left:0%">WEAK</span>
-                                        <span class="r-bar-label-item" style="left:40%">FAIR</span>
-                                        <span class="r-bar-label-item" style="left:60%">GOOD</span>
-                                        <span class="r-bar-label-item" style="left:80%">EXCELLENT</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Skill Gap Table -->
-                        <div class="skill-gap-section">
-                            <div class="skill-gap-hdr">
-                                <div class="skill-gap-title">
-                                    <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                    SKILL GAP ANALYSIS
-                                </div>
-                                <span class="skill-gap-count" id="skill-gap-count">0 skills</span>
-                            </div>
-                            <table class="skill-table">
-                                <thead>
-                                    <tr>
-                                        <th>Skill / Technology</th>
-                                        <th>Category</th>
-                                        <th>Match</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="skill-table-body"></tbody>
-                            </table>
-                        </div>
-
-                        <!-- Keywords -->
-                        <div class="kw-grid">
-                            <div class="kw-card">
-                                <div class="kw-header">
-                                    <div class="kw-title">KEYWORDS MATCHED</div>
-                                    <span class="kw-count-badge kw-count-green" id="kw-matched-cnt">0</span>
-                                </div>
-                                <div class="chips" id="chips-matched"><span class="c-none">—</span></div>
-                            </div>
-                            <div class="kw-card">
-                                <div class="kw-header">
-                                    <div class="kw-title">KEYWORDS MISSING</div>
-                                    <span class="kw-count-badge kw-count-red" id="kw-missing-cnt">0</span>
-                                </div>
-                                <div class="chips" id="chips-missing"><span class="c-none">—</span></div>
-                            </div>
-                        </div>
-
-                        <!-- Weaknesses -->
-                        <div class="ats-sec">
-                            <div class="ats-sec-hdr" onclick="toggleSec('sec-weak')">
-                                <div class="ats-sec-left">
-                                    <svg width="12" height="12" fill="none" stroke="#ef4444" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                    <span class="ats-sec-title">WEAKNESSES</span>
-                                    <span class="ats-sec-cnt sec-cnt-red" id="weak-cnt">0</span>
-                                </div>
-                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.25"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                            <div id="sec-weak"><ul id="weak-list" style="list-style:none;padding:0"></ul></div>
-                        </div>
-
-                        <!-- Recommendations -->
-                        <div class="ats-sec">
-                            <div class="ats-sec-hdr" onclick="toggleSec('sec-rec')">
-                                <div class="ats-sec-left">
-                                    <svg width="12" height="12" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span class="ats-sec-title">RECOMMENDATIONS</span>
-                                    <span class="ats-sec-cnt sec-cnt-grn" id="rec-cnt">0</span>
-                                </div>
-                                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.25"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
-                            <div id="sec-rec"><ul id="rec-list" style="list-style:none;padding:0"></ul></div>
-                        </div>
-
-                    </div><!-- /tab-ats -->
-                </div><!-- /pane-results -->
-            </div><!-- /tab-content -->
-        </div><!-- /output-panel -->
-    </div><!-- /optimizer-layout -->
-</div><!-- /main-shell -->
-
-<div id="toast"></div>
-
-<script src="/js/app.js"></script>
-<script>
-/* =================================================================
-   CARIARA RESUME OPTIMIZER
-   ================================================================= */
-const JOB_ID = new URLSearchParams(location.search).get('id');
-let currentJob = null;
-let currentTab = 'resume';
-let G = { resume: null, cover: null, ats: null };
-
-/* ── STATE ──────────────────────────────────────────────────── */
-function showPane(id) {
-    ['pane-empty','pane-loading','pane-results'].forEach(p =>
-        document.getElementById(p).style.display = p === id ? '' : 'none');
-}
-function setStep(id, state) {
-    const el = document.getElementById('s-' + id);
-    if (!el) return;
-    el.className = 'step-pill' + (state ? ' ' + state : '');
-    const dot = el.querySelector('.step-dot');
-    if (state === 'done') {
-        if (dot) dot.style.display = 'none';
-        if (!el.querySelector('.step-check')) {
-            const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-            svg.setAttribute('class','step-check');
-            svg.setAttribute('fill','none');
-            svg.setAttribute('stroke','currentColor');
-            svg.setAttribute('viewBox','0 0 24 24');
-            svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>';
-            el.insertBefore(svg, el.firstChild);
-        }
-    } else {
-        if (dot) dot.style.display = '';
-        const chk = el.querySelector('.step-check');
-        if (chk) chk.remove();
+    /* ── Inline messages (no alert()/toasts) ─────────────────── */
+    // html=true only for trusted, static markup built in this file.
+    function showMsg(text, type = 'info', { html = false } = {}) {
+        const box = $('page-msg');
+        const t = $('page-msg-text');
+        if (html) t.innerHTML = text; else t.textContent = text;
+        box.className = 'msg show ' + type;
+        box.setAttribute('role', type === 'error' ? 'alert' : 'status');
     }
-}
-function setMsg(t) {
-    const el = document.getElementById('load-msg');
-    const el2 = document.getElementById('load-msg-card');
-    if (el)  el.textContent  = t;
-    if (el2) el2.textContent = t;
-}
-function setLoadPct(pct) {
-    const fill = document.getElementById('load-progress-fill');
-    const lbl  = document.getElementById('load-pct');
-    if (fill) fill.style.width = pct + '%';
-    if (lbl)  lbl.textContent  = pct + '%';
-}
-function toggleSec(id) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
-}
-
-/* ── TABS ───────────────────────────────────────────────────── */
-function switchTab(tab, btn) {
-    currentTab = tab;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-
-    const copyable = (tab === 'resume' && G.resume) || (tab === 'cover' && G.cover);
-    document.getElementById('copy-btn').disabled = !copyable;
-    document.getElementById('dl-btn').disabled   = !copyable;
-    document.getElementById('pdf-btn').disabled  = !copyable;
-
-    if (document.getElementById('pane-results').style.display === 'none') return;
-    ['resume','cover','ats'].forEach(t => {
-        const el = document.getElementById('tab-' + t);
-        if (el) el.style.display = t === tab ? '' : 'none';
-    });
-}
-
-/* ── INIT ───────────────────────────────────────────────────── */
-async function init() {
-    if (!getAccessToken()) { location.href = 'login.html'; return; }
-
-    const sc = document.getElementById('sidebar-container');
-    if (sc && typeof loadSidebar === 'function') loadSidebar();
-
-    const saved = localStorage.getItem('cariara_resume_draft');
-    if (saved) document.getElementById('resume-text').value = saved;
-
-    if (!JOB_ID) { toast('No job ID — open from the jobs list', 'error'); return; }
-
-    try {
-        currentJob = await apiRequest('/jobs/' + JOB_ID);
-        populateJob(currentJob);
-        await tryLoadProfileResume();
-    } catch(e) {
-        toast('Could not load job: ' + (e.message || 'Unknown error'), 'error');
+    function hideMsg() { $('page-msg').className = 'msg'; }
+    function fieldMsg(id, text, type = '', { html = false } = {}) {
+        const el = $(id);
+        if (!text) { el.className = 'field-msg'; el.textContent = ''; return; }
+        if (html) el.innerHTML = text; else el.textContent = text;
+        el.className = 'field-msg show ' + type;
     }
-}
 
-function populateJob(job) {
-    const co   = job.company_name || 'Company';
-    const role = job.title        || 'Position';
-    document.getElementById('banner-company').textContent  = co;
-    document.getElementById('banner-subtitle').textContent =
-        'Tailor your resume for the ' + role + ' position. AI-optimized for ATS systems and hiring managers.';
-    document.title = 'Resume Optimizer — ' + co;
-    document.getElementById('target-company').value = co;
-    document.getElementById('target-role').value    = role;
-    if (job.job_description) document.getElementById('job-desc').value = job.job_description;
-    if (job.job_url)         document.getElementById('job-url').value  = job.job_url;
-
-    const items = [
-        job.location        && ['📍', job.location],
-        job.employment_type && ['💼', job.employment_type],
-        job.salary_display  && ['💰', job.salary_display],
-        job.job_type        && ['🏠', job.job_type],
-    ].filter(Boolean);
-
-    if (items.length || job.job_url) {
-        document.getElementById('job-meta-strip').style.display = '';
-        if (items.length) {
-            document.getElementById('meta-chips').innerHTML = items.map(([icon,txt]) =>
-                '<span class="meta-chip">' + icon + ' ' + esc(txt) + '</span>'
-            ).join('');
-        }
-        if (job.job_url) document.getElementById('view-job-link').href = job.job_url;
+    /* ── Per-user draft storage ──────────────────────────────── */
+    function currentUserId() {
+        const u = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
+        return u && (u.id ?? u.user_id) != null ? String(u.id ?? u.user_id) : null;
     }
-}
+    function draftKey() {
+        const uid = currentUserId();
+        return uid ? 'cariara_resume_draft:' + uid : null;
+    }
+    function readDraft() {
+        const k = draftKey();
+        if (!k) return '';
+        try { return localStorage.getItem(k) || ''; } catch (_) { return ''; }
+    }
+    function writeDraft(value) {
+        const k = draftKey();
+        if (!k) return;
+        try { value ? localStorage.setItem(k, value) : localStorage.removeItem(k); } catch (_) {}
+    }
 
-async function tryLoadProfileResume() {
-    try {
-        const docs = await apiRequest('/users/documents');
-        const primary = Array.isArray(docs)
-            ? docs.find(d => d.document_type === 'resume' && d.extracted_text) || docs.find(d => d.extracted_text)
-            : null;
-        if (primary?.extracted_text) {
-            const ta = document.getElementById('resume-text');
-            if (!ta.value || ta.value.startsWith('[Document')) {
-                ta.value = primary.extracted_text;
-                toast('Resume loaded from your profile', 'info');
+    /* ── HTML → readable plain text ──────────────────────────── */
+    const BLOCK_TAGS = new Set(['P','DIV','SECTION','ARTICLE','HEADER','FOOTER','UL','OL','TABLE','TR','H1','H2','H3','H4','H5','H6','BLOCKQUOTE','PRE','DL','DT','DD','HR']);
+    function htmlToText(input) {
+        if (!input) return '';
+        const src = String(input);
+        // Plain text with no tags/entities: return as-is
+        if (!/[<&]/.test(src)) return src.trim();
+        const doc = new DOMParser().parseFromString(src, 'text/html'); // inert: scripts don't run
+        const out = [];
+        const walk = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                out.push(node.nodeValue.replace(/\s+/g, ' '));
+                return;
             }
-        }
-    } catch(_) { /* silent */ }
-}
-
-async function loadFromProfile() {
-    const btn = document.getElementById('load-profile-btn');
-    btn.disabled = true; btn.textContent = 'Loading…';
-    await tryLoadProfileResume();
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> Load from Profile';
-}
-
-/* ── URL FETCH ──────────────────────────────────────────────── */
-async function fetchJobUrl() {
-    if (!JOB_ID) { toast('No job ID', 'error'); return; }
-    const btn = document.getElementById('fetch-btn');
-    btn.textContent = '…'; btn.disabled = true;
-    try {
-        await apiRequest('/ingest/refetch-description/' + JOB_ID, 'POST');
-        const job = await apiRequest('/jobs/' + JOB_ID);
-        if (job.job_description) {
-            document.getElementById('job-desc').value = job.job_description;
-            toast('Job description refreshed!', 'success');
-        }
-    } catch(e) {
-        toast('Could not fetch: ' + (e.message || 'Try again'), 'error');
-    } finally { btn.textContent = 'FETCH'; btn.disabled = false; }
-}
-
-/* ── FILE UPLOAD ────────────────────────────────────────────── */
-async function handleFile(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const ta = document.getElementById('resume-text');
-    if (file.name.endsWith('.txt')) {
-        ta.value = await file.text();
-        toast('Resume loaded from ' + file.name, 'success');
-    } else {
-        ta.value = '[Document uploaded: ' + file.name + ']';
-        toast(file.name + ' selected. Paste resume text for best ATS analysis.', 'info');
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+            const tag = node.tagName;
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return;
+            if (tag === 'BR') { out.push('\n'); return; }
+            if (tag === 'LI') out.push('\n• ');
+            else if (BLOCK_TAGS.has(tag)) out.push('\n\n');
+            node.childNodes.forEach(walk);
+            if (BLOCK_TAGS.has(tag)) out.push('\n\n');
+            else if (tag === 'TD' || tag === 'TH') out.push('\t');
+        };
+        doc.body.childNodes.forEach(walk);
+        return out.join('')
+            .replace(/[ \t]+\n/g, '\n')
+            .replace(/\n[ \t]+/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/\n\n(• )/g, '\n$1')
+            .trim();
     }
-    e.target.value = '';
-}
 
-/* ── GENERATE ───────────────────────────────────────────────── */
-async function generateAll() {
-    const jobDesc   = document.getElementById('job-desc').value.trim();
-    const resumeTxt = document.getElementById('resume-text').value.trim();
+    function safeHttpUrl(url) {
+        try {
+            const u = new URL(url, location.href);
+            return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+        } catch (_) { return null; }
+    }
 
-    if (!jobDesc)   { toast('Please add a job description', 'error'); return; }
-    if (!resumeTxt) { toast('Please add your resume text', 'error'); return; }
-    if (!JOB_ID)    { toast('No job ID', 'error'); return; }
+    function relativePosted(dateStr) {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        if (isNaN(d)) return null;
+        const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+        if (days <= 0) return 'Posted today';
+        if (days === 1) return 'Posted yesterday';
+        if (days < 30) return 'Posted ' + days + ' days ago';
+        return 'Posted ' + d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    }
 
-    const btn = document.getElementById('gen-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner" style="width:15px;height:15px;border-width:2px;flex-shrink:0"></div> Generating…';
+    function salaryText(min, max) {
+        if (!min && !max) return null;
+        if (typeof formatSalary === 'function') return formatSalary(min, max);
+        return [min, max].filter(Boolean).join(' – ');
+    }
 
-    document.getElementById('quick-stats').classList.remove('visible');
-    showPane('pane-loading');
-    G = { resume: null, cover: null, ats: null };
-    ['resume','cover','ats'].forEach(s => setStep(s, 'active'));
-    setLoadPct(5);
+    /* ── Back link: prefer history when we came from discover ─── */
+    function setupBackLink() {
+        $('back-link').addEventListener('click', (e) => {
+            let ref = null;
+            try { ref = document.referrer ? new URL(document.referrer) : null; } catch (_) { ref = null; }
+            if (ref && ref.origin === location.origin && /\/discover(\.html)?$/.test(ref.pathname) && history.length > 1) {
+                e.preventDefault();
+                history.back();
+            }
+        });
+    }
 
-    try {
-        setMsg('Tailoring your resume for ATS…');
-        setLoadPct(15);
-        await Promise.allSettled([doResume(), doCover()]);
-        setLoadPct(75);
-        setMsg('Running ATS keyword analysis…');
-        doATS(jobDesc, resumeTxt, G.resume || resumeTxt);
+    /* ── Tabs & panes ────────────────────────────────────────── */
+    function showPane(id) {
+        ['pane-empty','pane-loading','pane-error','pane-results'].forEach(p => { $(p).style.display = p === id ? '' : 'none'; });
+    }
+    function textForTab(tab) { return tab === 'resume' ? G.resume : tab === 'cover' ? G.cover : null; }
+    function updateActions() {
+        const has = !!textForTab(currentTab) && $('pane-results').style.display !== 'none';
+        ['copy-btn','docx-btn','txt-btn','pdf-btn'].forEach(id => { $(id).disabled = !has; });
+    }
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn[data-tab]').forEach(b => {
+            const on = b.dataset.tab === tab;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        ['resume','cover','ats'].forEach(t => { $('tab-' + t).style.display = t === tab ? '' : 'none'; });
+        updateActions();
+    }
+    function setStep(id, state) { $('s-' + id).className = 'step-pill' + (state ? ' ' + state : ''); }
+    function setProgress(pct) { $('progress-fill').style.width = pct + '%'; }
+
+    /* ── Init ────────────────────────────────────────────────── */
+    async function init() {
+        setupBackLink();
+        if (typeof getAccessToken === 'function' && !getAccessToken()) {
+            try { localStorage.setItem('redirect_after_login', 'job_detail.html' + location.search); } catch (_) {}
+            location.href = 'login.html';
+            return;
+        }
+        // Legacy un-scoped draft could leak between accounts on a shared browser.
+        try { localStorage.removeItem('cariara_resume_draft'); } catch (_) {}
+
+        const draft = readDraft();
+        if (draft) {
+            $('resume-text').value = draft;
+            $('resume-source').textContent = 'Your unsaved draft';
+        }
+
+        if (!JOB_ID) {
+            renderJobMissing('No job selected. Open the optimizer from a job in the jobs list.');
+            return;
+        }
+
+        try {
+            currentJob = await apiRequest('/jobs/' + JOB_ID);
+            populateJob(currentJob);
+        } catch (e) {
+            renderJobMissing('We couldn’t load this job: ' + (e.message || 'Unknown error'));
+            return;
+        }
+        if (!draft) await loadProfileResume({ quiet: true });
+    }
+
+    function renderJobMissing(message) {
+        $('job-card').setAttribute('aria-busy', 'false');
+        $('job-title').textContent = 'Job not available';
+        $('job-company').textContent = '';
+        showMsg(esc(message) + ' <a href="discover.html">Browse jobs</a>', 'error', { html: true });
+        $('gen-btn').disabled = true;
+    }
+
+    function populateJob(job) {
+        const co = job.company_name || 'Company';
+        const role = job.title || 'Position';
+        $('job-card').setAttribute('aria-busy', 'false');
+        $('job-title').textContent = role;
+        $('job-company').textContent = co;
+        document.title = 'Tailor for ' + role + ' · ' + co + ' · Cariara Jobs';
+        $('target-company').value = co;
+        $('target-role').value = role;
+
+        const desc = htmlToText(job.job_description || '');
+        if (desc) $('job-desc').value = desc;
+        else fieldMsg('desc-msg', 'This listing has no description yet. Paste it from the posting or refresh it.', '');
+
+        const chips = [
+            job.location,
+            salaryText(job.salary_min, job.salary_max),
+            job.department,
+            relativePosted(job.posted_date || job.created_at),
+        ].filter(Boolean);
+        $('job-chips').innerHTML = chips.map(c => '<span class="chip">' + esc(c) + '</span>').join('');
+
+        const applyUrl = safeHttpUrl(job.job_url);
+        if (applyUrl) {
+            $('apply-link').href = applyUrl;
+            $('apply-link').style.display = '';
+            $('refresh-desc-btn').style.display = '';
+        }
+    }
+
+    /* ── Resume loading ──────────────────────────────────────── */
+    async function loadProfileResume({ quiet = false } = {}) {
+        const btn = $('load-profile-btn');
+        btn.disabled = true;
+        const label = btn.textContent;
+        btn.textContent = 'Loading…';
+        try {
+            const res = await authFetch('/users/documents/default-resume', { method: 'GET' });
+            if (res.status === 404) {
+                fieldMsg('resume-msg', 'You don’t have a resume on file yet. <a href="documents.html">Upload one in Resumes</a> or paste it above.', '', { html: true });
+                return false;
+            }
+            if (!res.ok) {
+                const m = await extractErrorMessage(res, 'Could not load your resume');
+                fieldMsg('resume-msg', esc(m) + ' <a href="documents.html">Open Resumes</a>', 'error', { html: true });
+                return false;
+            }
+            const data = await res.json();
+            if (data && data.content) {
+                $('resume-text').value = data.content;
+                writeDraft('');
+                $('resume-source').textContent = data.filename ? 'From ' + data.filename : 'From Resumes';
+                fieldMsg('resume-msg', quiet ? '' : 'Loaded your default resume.', 'success');
+                return true;
+            }
+            fieldMsg('resume-msg', 'Your resume has no readable text. <a href="documents.html">Re-upload it in Resumes</a>.', 'error', { html: true });
+            return false;
+        } catch (e) {
+            fieldMsg('resume-msg', e.message || 'Could not load your resume.', 'error');
+            return false;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = label === 'Loading…' ? 'Load from Resumes' : label;
+        }
+    }
+    function loadFromProfile() { return loadProfileResume({ quiet: false }); }
+
+    async function handleFile(e) {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { fieldMsg('resume-msg', 'That file is larger than 5 MB.', 'error'); return; }
+        if (/\.txt$/i.test(file.name)) {
+            $('resume-text').value = await file.text();
+            writeDraft($('resume-text').value);
+            $('resume-source').textContent = 'From ' + file.name;
+            fieldMsg('resume-msg', 'Loaded ' + file.name + '.', 'success');
+            return;
+        }
+        // PDF/DOCX: upload to Resumes so the server extracts the text.
+        const btn = $('upload-btn');
+        btn.disabled = true; btn.textContent = 'Uploading…';
+        try {
+            const fd = new FormData();
+            fd.append('file', file);
+            const doc = await uploadDocument(fd, 'resume');
+            const res = await authFetch('/users/documents/' + encodeURIComponent(doc.id) + '/content', { method: 'GET' });
+            if (!res.ok) throw new Error(await extractErrorMessage(res, 'Uploaded, but the text could not be read'));
+            const data = await res.json();
+            $('resume-text').value = data.content || '';
+            writeDraft('');
+            $('resume-source').textContent = 'From ' + file.name;
+            fieldMsg('resume-msg', 'Uploaded ' + file.name + ' to Resumes and loaded its text.', 'success');
+        } catch (err) {
+            fieldMsg('resume-msg', (err.message || 'Upload failed') + '. You can paste the text instead.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Upload file';
+        }
+    }
+
+    async function refreshDescription() {
+        if (!JOB_ID) return;
+        const btn = $('refresh-desc-btn');
+        btn.disabled = true; btn.textContent = 'Refreshing…';
+        try {
+            const r = await apiRequest('/ingest/refetch-description/' + JOB_ID, 'POST');
+            const job = await apiRequest('/jobs/' + JOB_ID);
+            const text = htmlToText(job.job_description || '');
+            if (text && r && r.new_description_length) {
+                $('job-desc').value = text;
+                fieldMsg('desc-msg', 'Description refreshed from the posting.', 'success');
+            } else {
+                fieldMsg('desc-msg', (r && r.message) || 'Couldn’t read a description from the posting. Paste it instead.', 'error');
+            }
+        } catch (e) {
+            fieldMsg('desc-msg', e.message || 'Couldn’t refresh the description.', 'error');
+        } finally {
+            btn.disabled = false; btn.textContent = 'Refresh from posting';
+        }
+    }
+
+    /* ── Generate ────────────────────────────────────────────── */
+    async function postJson(endpoint, body) {
+        const res = await authFetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(await extractErrorMessage(res, 'Request failed'));
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) throw new Error('Unexpected response from server');
+        return res.json();
+    }
+
+    async function generateAll() {
+        if (generating) return;
+        if (!JOB_ID || !currentJob) { showMsg('Open the optimizer from a job to generate documents.', 'error'); return; }
+        const jobDesc = $('job-desc').value.trim();
+        const resumeTxt = $('resume-text').value.trim();
+        if (!jobDesc) { fieldMsg('desc-msg', 'Add the job description first.', 'error'); $('job-desc').focus(); return; }
+        if (!resumeTxt) {
+            fieldMsg('resume-msg', 'Add your resume first — paste it, upload a file, or <a href="documents.html">add one in Resumes</a>.', 'error', { html: true });
+            $('resume-text').focus();
+            return;
+        }
+        if (resumeTxt.length < 100) { fieldMsg('resume-msg', 'Your resume looks too short. Paste the full text.', 'error'); return; }
+        fieldMsg('desc-msg', ''); fieldMsg('resume-msg', ''); hideMsg();
+
+        generating = true;
+        const btn = $('gen-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> Generating…';
+        $('quick-stats').classList.remove('visible');
+        showPane('pane-loading');
+        updateActions();
+        G = { resume: null, cover: null, ats: null, resumeError: null, coverError: null };
+        ['resume','cover'].forEach(s => setStep(s, 'active'));
+        setStep('ats', '');
+        setProgress(10);
+        setTimeout(() => setProgress(60), 50);
+
+        const body = { resume_text: resumeTxt, job_description: jobDesc };
+        const [r, c] = await Promise.allSettled([
+            postJson('/ai/tailor-resume/' + JOB_ID + '?format=json', body),
+            postJson('/ai/generate-cover-letter/' + JOB_ID + '?format=json', body),
+        ]);
+        if (r.status === 'fulfilled' && r.value && r.value.tailored_resume) { G.resume = r.value.tailored_resume; setStep('resume', 'done'); }
+        else { G.resumeError = r.status === 'rejected' ? r.reason.message : 'The server returned an empty resume.'; setStep('resume', 'failed'); }
+        if (c.status === 'fulfilled' && c.value && c.value.cover_letter) { G.cover = c.value.cover_letter; setStep('cover', 'done'); }
+        else { G.coverError = c.status === 'rejected' ? c.reason.message : 'The server returned an empty cover letter.'; setStep('cover', 'failed'); }
+
+        setProgress(100);
+        doATS(jobDesc, resumeTxt, G.resume);
         setStep('ats', 'done');
-        setLoadPct(100);
+
+        generating = false;
+        btn.disabled = false;
+        btn.textContent = (G.resume || G.cover) ? 'Regenerate' : 'Generate resume, cover letter & ATS score';
+
+        if (!G.resume && !G.cover) {
+            const reasons = [...new Set([G.resumeError, G.coverError].filter(Boolean))];
+            $('error-detail').textContent = reasons.join(' ') || 'Please try again in a moment.';
+            showPane('pane-error');
+            showMsg('Generation failed. Nothing was saved.', 'error');
+            updateActions();
+            return;
+        }
 
         showPane('pane-results');
-        renderResume();
-        renderCover();
+        renderDoc('resume', G.resume, G.resumeError);
+        renderDoc('cover', G.cover, G.coverError);
         renderATS();
         updateQuickStats();
-
-        const firstTab = G.resume ? 'resume' : 'ats';
-        const tabBtns  = document.querySelectorAll('.tab-btn');
-        switchTab(firstTab, firstTab === 'resume' ? tabBtns[0] : tabBtns[2]);
-        toast('Documents ready!', 'success');
-
-    } catch(err) {
-        showPane('pane-empty');
-        toast(err.message || 'Generation failed', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Regenerate';
-    }
-}
-
-async function doResume() {
-    try {
-        setMsg('Tailoring your resume for ATS…');
-        const r = await apiRequest('/ai/tailor-resume/' + JOB_ID, 'POST');
-        G.resume = r.tailored_resume || null;
-        setStep('resume', 'done');
-        setLoadPct(45);
-    } catch(_) { setStep('resume', ''); }
-}
-
-async function doCover() {
-    try {
-        const r = await apiRequest('/ai/generate-cover-letter/' + JOB_ID, 'POST');
-        G.cover = r.cover_letter || null;
-        setStep('cover', 'done');
-    } catch(_) { setStep('cover', ''); }
-}
-
-/* ── ATS ANALYSIS (client-side) ─────────────────────────────── */
-function doATS(jobDesc, resumeText, tailored) {
-    const hay = (tailored || resumeText).toLowerCase();
-    const jlo = jobDesc.toLowerCase();
-
-    const TECH = /\b(kubernetes|docker|aws|azure|gcp|terraform|ansible|jenkins|gitlab|github|ci\/cd|devops|sre|mlops|python|golang|go\b|java|scala|rust|typescript|javascript|nodejs|react|vue|angular|fastapi|django|flask|spring|kafka|rabbitmq|redis|postgres|postgresql|mysql|mongodb|elasticsearch|prometheus|grafana|datadog|splunk|elk|opentelemetry|linux|bash|shell|grpc|graphql|rest|oauth|jwt|ssl|tls|agile|scrum|kanban|llm|openai|pytorch|tensorflow|spark|hadoop|snowflake|bigquery|dbt|airflow|sli|slo|sla|on-call|bgp|dns|haproxy|nginx|istio|helm|argo|vault|consul|pagerduty|sql|nosql|dynamo|s3|ec2|eks|gke|aks|lambda|serverless|chaos|observability|reliability|platform|infrastructure|security|rbac|iam|saml|sso|devsecops|finops|architecture|scalability|performance|latency|throughput|microservices|distributed|immutable|idempotent|event-driven|cqrs|circuit.breaker|service.mesh|api.gateway|blue-green|canary|feature.flag|tdd|bdd|git|branching|trunk|incident|postmortem|runbook|sop|automation|migration|modernization|multi-cloud|hybrid.cloud|zero-trust|mtls|encryption|backup|disaster.recovery)\b/gi;
-
-    const seen = new Set();
-    const techHits = [...jlo.matchAll(TECH)].map(m => m[0].toLowerCase());
-    techHits.forEach(k => seen.add(k));
-
-    const acronyms = [...jobDesc.matchAll(/\b([A-Z]{2,8}(?:\/[A-Z]{2,8})?)\b/g)].map(m => m[1].toLowerCase());
-    const skip = new Set(['the','a','an','of','in','to','for','and','or','at','is','are','was','by','on','with','we','our','you','do','all','any','can','if','so','go','hi','up','my','us','be','it','as']);
-    acronyms.forEach(a => { if (a.length >= 2 && !skip.has(a)) seen.add(a); });
-
-    const kws  = [...seen].filter(k => k.length >= 2);
-    const hit  = kws.filter(k => hay.includes(k));
-    const miss = kws.filter(k => !hay.includes(k));
-
-    const total    = hit.length + miss.length;
-    const score    = total > 0 ? Math.min(Math.round((hit.length / total) * 100), 100) : 0;
-
-    const reqPhrases = [...jobDesc.matchAll(/(\d+\+?\s+years?|bachelor|master|phd|certification|certified).{0,40}/gi)].map(m => m[0].trim().slice(0,50));
-
-    const weaknesses = [];
-    if (miss.length >= 5) weaknesses.push('Missing ' + miss.length + ' key technical terms from the job description');
-    if (miss.length > 0)  weaknesses.push('Top gaps: ' + miss.slice(0,4).join(', ') + (miss.length > 4 ? '…' : ''));
-
-    const hasMetrics  = /\b\d+%|\d+x|\$\d|\d+\s*(million|billion|k\b|users|engineers?|teams?)\b/i.test(resumeText);
-    if (!hasMetrics)  weaknesses.push('No quantified achievements — add metrics like "reduced latency by 40%"');
-
-    const wc = resumeText.split(/\s+/).filter(Boolean).length;
-    if (wc < 250)  weaknesses.push('Resume text appears too short — paste the full resume');
-    if (wc > 1800) weaknesses.push('Resume may be too long for ATS — consider condensing to 1–2 pages');
-
-    const actionRe = /\b(led|built|designed|architected|deployed|implemented|optimized|scaled|reduced|increased|launched|delivered|managed|improved|drove|established|automated|migrated|shipped|owned|defined)\b/i;
-    if (!actionRe.test(resumeText)) weaknesses.push('Use strong action verbs (Led, Designed, Architected, Scaled…)');
-
-    const recommendations = [];
-    miss.slice(0,6).forEach(kw => recommendations.push('Add "' + kw.toUpperCase() + '" if you have relevant experience'));
-    recommendations.push('Include the exact job title in your resume summary/headline');
-    if (!hasMetrics) recommendations.push('Quantify impact: percentages, team sizes, scale, or dollar amounts');
-    reqPhrases.slice(0,2).forEach(r => recommendations.push('Address: "' + r + '" in your experience section'));
-
-    G.ats = { score, matched: hit, missing: miss, weaknesses, recommendations };
-}
-
-/* ── RENDER ─────────────────────────────────────────────────── */
-function renderResume() {
-    const wc  = document.getElementById('resume-wc');
-    const pre = document.getElementById('resume-preview');
-    if (!G.resume) {
-        pre.innerHTML = '<p style="color:#64748b;font-size:13px">Resume tailoring failed — ensure your resume document is in your profile (Documents page).<br><br>Your ATS analysis is still available based on the pasted resume text.</p>';
-        wc.textContent = '—';
-        return;
-    }
-    pre.innerHTML = mdToHtml(G.resume);
-    const count = wCount(G.resume);
-    wc.textContent = count + ' words';
-    const disp = document.getElementById('resume-wc-display');
-    if (disp) disp.textContent = count + ' words';
-    const rt = document.getElementById('resume-readtime');
-    if (rt) rt.textContent = '~' + Math.ceil(count / 200) + ' min read';
-}
-
-function renderCover() {
-    const wc  = document.getElementById('cover-wc');
-    const pre = document.getElementById('cover-preview');
-    if (!G.cover) {
-        pre.innerHTML = '<p style="color:#64748b;font-size:13px">Cover letter generation failed — please try again.</p>';
-        wc.textContent = '—';
-        return;
-    }
-    pre.innerHTML = mdToHtml(G.cover);
-    const count = wCount(G.cover);
-    wc.textContent = count + ' words';
-    const disp = document.getElementById('cover-wc-display');
-    if (disp) disp.textContent = count + ' words';
-    const rt = document.getElementById('cover-readtime');
-    if (rt) rt.textContent = '~' + Math.ceil(count / 200) + ' min read';
-}
-
-function renderATS() {
-    if (!G.ats) return;
-    const { score, matched, missing, weaknesses, recommendations } = G.ats;
-
-    let color, label, desc, badgeStyle;
-    if      (score >= 80) { color = '#22c55e'; label = 'Excellent ATS Match'; desc = 'Your resume is highly optimized for this role. Minor improvements could make it perfect.'; badgeStyle = 'background:rgba(34,197,94,0.12);color:#86efac;border-color:rgba(34,197,94,0.25)'; }
-    else if (score >= 60) { color = '#3b82f6'; label = 'Good ATS Match';      desc = 'Solid match. Add the missing keywords to boost your score further.'; badgeStyle = 'background:rgba(59,130,246,0.12);color:#93c5fd;border-color:rgba(59,130,246,0.25)'; }
-    else if (score >= 40) { color = '#f59e0b'; label = 'Fair ATS Match';      desc = 'Moderate match. Several key skills are absent from your resume.'; badgeStyle = 'background:rgba(245,158,11,0.12);color:#fcd34d;border-color:rgba(245,158,11,0.25)'; }
-    else                  { color = '#ef4444'; label = 'Weak ATS Match';      desc = 'Significant gaps found. Use the recommendations below to tailor your resume.'; badgeStyle = 'background:rgba(239,68,68,0.12);color:#fca5a5;border-color:rgba(239,68,68,0.25)'; }
-
-    document.getElementById('g-arc').style.strokeDasharray = score + ' ' + (100 - score);
-    document.getElementById('g-arc').style.stroke = color;
-    document.getElementById('g-dot').style.background = color;
-    document.getElementById('r-bar').style.width      = score + '%';
-    document.getElementById('r-bar').style.background = 'linear-gradient(90deg,' + color + 'aa,' + color + ')';
-    document.getElementById('r-label').textContent    = label;
-    document.getElementById('r-label').style.color    = color;
-    document.getElementById('r-desc').textContent     = desc;
-
-    const badge = document.getElementById('r-badge');
-    if (badge) { badge.textContent = label.toUpperCase(); badge.setAttribute('style', badgeStyle); }
-
-    document.getElementById('stat-matched').textContent  = matched.length;
-    document.getElementById('stat-missing').textContent  = missing.length;
-    document.getElementById('stat-coverage').textContent = score + '%';
-
-    // Animated count-up
-    const numEl = document.getElementById('g-num');
-    numEl.textContent = '0';
-    numEl.style.color = color;
-    let cur = 0;
-    const step = Math.max(1, Math.ceil(score / 40));
-    const t = setInterval(() => {
-        cur = Math.min(cur + step, score);
-        numEl.textContent = cur;
-        if (cur >= score) clearInterval(t);
-    }, 30);
-
-    // Skill gap table
-    const TECH_SET = new Set(['kubernetes','docker','aws','azure','gcp','terraform','ansible','jenkins','gitlab','github','python','golang','java','scala','rust','typescript','javascript','nodejs','react','vue','angular','fastapi','django','flask','spring','kafka','rabbitmq','redis','postgres','postgresql','mysql','mongodb','elasticsearch','prometheus','grafana','datadog','opentelemetry','linux','bash','grpc','graphql','oauth','jwt','pytorch','tensorflow','spark','hadoop','snowflake','bigquery','airflow','nginx','istio','helm','vault','consul','git']);
-    const allKws = [...new Set([...matched, ...missing])].slice(0, 22);
-    const tbody = document.getElementById('skill-table-body');
-    const cntEl = document.getElementById('skill-gap-count');
-    if (tbody) {
-        tbody.innerHTML = allKws.map(k => {
-            const isMatched = matched.includes(k);
-            const isTech = TECH_SET.has(k.toLowerCase());
-            const isAcronym = !isTech && /^[A-Z]{2,}/.test(k);
-            const cat = isTech ? '<span class="skill-cat cat-tech">TECH</span>'
-                     : isAcronym ? '<span class="skill-cat cat-required">REQUIRED</span>'
-                                 : '<span class="skill-cat cat-soft">SOFT</span>';
-            const icon = isMatched
-                ? '<svg width="16" height="16" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>'
-                : '<svg width="16" height="16" fill="none" stroke="#ef4444" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-            return '<tr><td><span class="skill-name">' + esc(k) + '</span></td><td>' + cat + '</td><td class="skill-match-cell">' + icon + '</td></tr>';
-        }).join('');
-        if (cntEl) cntEl.textContent = allKws.length + ' skills';
+        switchTab(G.resume ? 'resume' : 'cover');
+        if (G.resume && G.cover) showMsg('Your tailored resume and cover letter are ready.', 'success');
+        else {
+            const why = String((G.resume ? G.coverError : G.resumeError) || 'unknown error').replace(/[.\s]*$/, '.');
+            showMsg((G.resume ? 'Cover letter' : 'Tailored resume') + ' failed: ' + why + ' The rest is ready below.', 'warn');
+        }
     }
 
-    // Keyword chips
-    document.getElementById('kw-matched-cnt').textContent = matched.length;
-    document.getElementById('kw-missing-cnt').textContent = missing.length;
-    document.getElementById('chips-matched').innerHTML = matched.length
-        ? matched.map(k => '<span class="chip c-green">' + esc(k) + '</span>').join('')
-        : '<span class="c-none">None detected</span>';
-    document.getElementById('chips-missing').innerHTML = missing.length
-        ? missing.map(k => '<span class="chip c-red">' + esc(k) + '</span>').join('')
-        : '<span class="c-none" style="color:#86efac">No gaps — great match!</span>';
+    /* ── ATS analysis (client-side keyword estimate) ─────────── */
+    function doATS(jobDesc, resumeText, tailored) {
+        const hay = (tailored || resumeText).toLowerCase();
+        const jlo = jobDesc.toLowerCase();
+        const TECH = /\b(kubernetes|docker|aws|azure|gcp|terraform|ansible|jenkins|gitlab|github|ci\/cd|devops|sre|mlops|python|golang|java|scala|rust|typescript|javascript|nodejs|react|vue|angular|fastapi|django|flask|spring|kafka|rabbitmq|redis|postgres|postgresql|mysql|mongodb|elasticsearch|prometheus|grafana|datadog|splunk|elk|opentelemetry|linux|bash|shell|grpc|graphql|rest|oauth|jwt|ssl|tls|agile|scrum|kanban|llm|openai|pytorch|tensorflow|spark|hadoop|snowflake|bigquery|dbt|airflow|sli|slo|sla|on-call|bgp|dns|haproxy|nginx|istio|helm|argo|vault|consul|pagerduty|sql|nosql|dynamo|s3|ec2|eks|gke|aks|lambda|serverless|observability|reliability|infrastructure|security|rbac|iam|saml|sso|devsecops|finops|architecture|scalability|performance|latency|microservices|distributed|event-driven|tdd|git|incident|postmortem|runbook|automation|migration|multi-cloud|zero-trust|mtls|encryption|disaster.recovery)\b/gi;
+        const seen = new Set();
+        [...jlo.matchAll(TECH)].forEach(m => seen.add(m[0].toLowerCase()));
+        const skip = new Set(['the','a','an','of','in','to','for','and','or','at','is','are','was','by','on','with','we','our','you','do','all','any','can','if','so','go','hi','up','my','us','be','it','as','eeo','usa','llc','inc']);
+        [...jobDesc.matchAll(/\b([A-Z]{2,8}(?:\/[A-Z]{2,8})?)\b/g)].forEach(m => { const a = m[1].toLowerCase(); if (!skip.has(a)) seen.add(a); });
 
-    // Weaknesses
-    document.getElementById('weak-cnt').textContent = weaknesses.length;
-    document.getElementById('weak-list').innerHTML = weaknesses.length
-        ? weaknesses.map(w => '<li class="ats-weak-item"><svg class="li-icon" fill="none" stroke="#ef4444" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span>' + esc(w) + '</span></li>').join('')
-        : '<li class="ats-weak-item"><span style="color:rgba(255,255,255,0.3)">No significant weaknesses detected</span></li>';
+        const kws = [...seen].filter(k => k.length >= 2);
+        const hit = kws.filter(k => hay.includes(k));
+        const miss = kws.filter(k => !hay.includes(k));
+        const total = hit.length + miss.length;
+        const score = total > 0 ? Math.min(Math.round((hit.length / total) * 100), 100) : 0;
 
-    // Recommendations with priority badges
-    document.getElementById('rec-cnt').textContent = recommendations.length;
-    document.getElementById('rec-list').innerHTML = recommendations.length
-        ? recommendations.map((r, i) => {
-            const prio = i === 0 ? '<div class="rec-priority prio-high">HIGH</div>'
-                       : i <= 2  ? '<div class="rec-priority prio-med">MED</div>'
-                                 : '<div class="rec-priority prio-low">LOW</div>';
-            return '<li class="ats-rec-item"><div class="rec-num">' + (i+1) + '</div><div class="rec-body">' + prio + '<div>' + esc(r) + '</div></div></li>';
-        }).join('')
-        : '<li class="ats-rec-item"><span style="color:rgba(255,255,255,0.3)">No recommendations</span></li>';
-}
+        const weaknesses = [];
+        if (miss.length >= 5) weaknesses.push('Missing ' + miss.length + ' key terms from the job description');
+        if (miss.length > 0) weaknesses.push('Top gaps: ' + miss.slice(0, 4).join(', ') + (miss.length > 4 ? '…' : ''));
+        const hasMetrics = /\b\d+%|\d+x|\$\d|\d+\s*(million|billion|k\b|users|engineers?|teams?)\b/i.test(resumeText);
+        if (!hasMetrics) weaknesses.push('No quantified achievements — add metrics like “reduced latency by 40%”');
+        const wc = wCount(resumeText);
+        if (wc < 250) weaknesses.push('Resume text looks short — paste the full resume');
+        if (wc > 1800) weaknesses.push('Resume may be long for ATS — consider condensing to 1–2 pages');
+        if (!/\b(led|built|designed|architected|deployed|implemented|optimized|scaled|reduced|increased|launched|delivered|managed|improved|drove|established|automated|migrated|shipped|owned|defined)\b/i.test(resumeText)) {
+            weaknesses.push('Use strong action verbs (Led, Designed, Scaled…)');
+        }
+        const recommendations = [];
+        miss.slice(0, 6).forEach(kw => recommendations.push('Add “' + kw.toUpperCase() + '” if you have relevant experience'));
+        recommendations.push('Include the exact job title in your summary or headline');
+        if (!hasMetrics) recommendations.push('Quantify impact: percentages, team sizes, scale, or revenue');
+        [...jobDesc.matchAll(/(\d+\+?\s+years?|bachelor|master|phd|certification|certified).{0,40}/gi)]
+            .slice(0, 2).forEach(m => recommendations.push('Address “' + m[0].trim().slice(0, 50) + '” in your experience'));
 
-function updateQuickStats() {
-    const qs = document.getElementById('quick-stats');
-    if (!qs) return;
-    const rEl = document.getElementById('qs-resume');
-    const cEl = document.getElementById('qs-cover');
-    const aEl = document.getElementById('qs-ats');
-    if (rEl) { rEl.textContent = G.resume ? '✓ Ready' : '✗ Failed'; rEl.className = 'qs-value ' + (G.resume ? 'qs-ok' : 'qs-warn'); }
-    if (cEl) { cEl.textContent = G.cover  ? '✓ Ready' : '✗ Failed'; cEl.className = 'qs-value ' + (G.cover  ? 'qs-ok' : 'qs-warn'); }
-    if (aEl && G.ats) { aEl.textContent = G.ats.score + '%'; aEl.className = 'qs-value ' + (G.ats.score >= 60 ? 'qs-ok' : 'qs-warn'); }
-    qs.classList.add('visible');
-}
+        G.ats = { score, matched: hit, missing: miss, weaknesses, recommendations };
+    }
 
-/* ── MARKDOWN → HTML ─────────────────────────────────────────── */
-function mdToHtml(text) {
-    if (!text) return '';
-    let h = text
-        .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
-        .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
-        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-        .replace(/^\*\*\*(.+)\*\*\*$/gm, '<h3>$1</h3>')
-        .replace(/^[*•\-] (.+)$/gm, '<li>$1</li>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g,     '<em>$1</em>')
-        .replace(/(<li>[\s\S]+?<\/li>)/g, '<ul>$1</ul>')
-        .replace(/\n{2,}/g, '</p><p>')
-        .replace(/\n/g, '<br>');
-    if (!h.startsWith('<')) h = '<p>' + h;
-    if (!h.endsWith('>'))  h = h + '</p>';
-    return h;
-}
+    /* ── Rendering ───────────────────────────────────────────── */
+    function renderDoc(kind, text, error) {
+        const pre = $(kind + '-preview');
+        const meta = $(kind + '-meta');
+        if (!text) {
+            meta.textContent = '';
+            pre.innerHTML = '<div class="doc-error" role="alert"><h3>' + (kind === 'resume' ? 'Tailored resume failed' : 'Cover letter failed') + '</h3><p>' + esc(error || 'Please try again.') + '</p><button type="button" class="btn-primary btn-sm" onclick="generateAll()">Try again</button></div>';
+            return;
+        }
+        pre.innerHTML = '<div class="doc-preview">' + mdToHtml(text) + '</div>';
+        const n = wCount(text);
+        meta.textContent = n + ' words · ~' + Math.max(1, Math.ceil(n / 200)) + ' min read';
+    }
 
-/* ── ACTIONS ─────────────────────────────────────────────────── */
-function copyContent() {
-    const text = currentTab === 'resume' ? G.resume : currentTab === 'cover' ? G.cover : null;
-    if (!text) { toast('Nothing to copy', 'error'); return; }
-    navigator.clipboard.writeText(text)
-        .then(() => toast('Copied to clipboard!', 'success'))
-        .catch(() => toast('Copy failed — select text manually', 'error'));
-}
+    function renderATS() {
+        if (!G.ats) return;
+        const { score, matched, missing, weaknesses, recommendations } = G.ats;
+        let color, label, desc;
+        if (score >= 80) { color = 'var(--c-green)'; label = 'Excellent match'; desc = 'Your resume covers almost all key terms for this role.'; }
+        else if (score >= 60) { color = 'var(--c-blue)'; label = 'Good match'; desc = 'Solid coverage. Add the missing keywords you genuinely have.'; }
+        else if (score >= 40) { color = 'var(--c-yellow)'; label = 'Fair match'; desc = 'Several key terms from the posting are missing.'; }
+        else { color = 'var(--c-red)'; label = 'Weak match'; desc = 'Significant gaps. Use the recommendations below.'; }
 
-function downloadTxt() {
-    const text = currentTab === 'resume' ? G.resume : currentTab === 'cover' ? G.cover : null;
-    if (!text) return;
-    const co   = (document.getElementById('target-company').value || 'Company').replace(/\W+/g,'_');
-    const type = currentTab === 'resume' ? 'Resume' : 'CoverLetter';
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url  = URL.createObjectURL(blob);
-    const a    = Object.assign(document.createElement('a'), { href: url, download: type + '_' + co + '.txt' });
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    toast('Downloaded!', 'success');
-}
+        const arc = $('g-arc');
+        arc.style.stroke = color;
+        requestAnimationFrame(() => { arc.style.strokeDasharray = score + ' ' + (100 - score); });
+        $('g-num').textContent = score;
+        $('g-num').style.color = color;
+        $('r-label').textContent = label;
+        $('r-label').style.color = color;
+        $('r-desc').textContent = desc;
+        $('stat-matched').textContent = matched.length;
+        $('stat-missing').textContent = missing.length;
+        $('stat-coverage').textContent = score + '%';
+        $('kw-matched-cnt').textContent = '(' + matched.length + ')';
+        $('kw-missing-cnt').textContent = '(' + missing.length + ')';
+        $('chips-matched').innerHTML = matched.length ? matched.map(k => '<span class="chip c-green">' + esc(k) + '</span>').join('') : '<span class="c-none">None detected</span>';
+        $('chips-missing').innerHTML = missing.length ? missing.map(k => '<span class="chip c-red">' + esc(k) + '</span>').join('') : '<span class="c-none">No gaps — great match</span>';
+        $('weak-list').innerHTML = weaknesses.length ? weaknesses.map(w => '<li>' + esc(w) + '</li>').join('') : '<li>No significant weaknesses detected</li>';
+        $('rec-list').innerHTML = recommendations.map(r => '<li>' + esc(r) + '</li>').join('');
+    }
 
-function printPdf() {
-    const text = currentTab === 'resume' ? G.resume : currentTab === 'cover' ? G.cover : null;
-    if (!text) return;
-    const co   = document.getElementById('target-company').value || 'Company';
-    const type = currentTab === 'resume' ? 'Resume' : 'Cover Letter';
-    const win  = window.open('', '_blank');
-    win.document.write('<!DOCTYPE html><html><head><title>' + esc(type) + ' — ' + esc(co) + '</title><style>body{font-family:Georgia,serif;max-width:780px;margin:40px auto;padding:0 40px;color:#111;font-size:13px;line-height:1.7}h1{font-family:Arial;font-size:18px;margin:0 0 14px}h2{font-family:Arial;font-size:11px;text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid #ccc;padding-bottom:4px;margin:16px 0 8px}h3{font-family:Arial;font-size:13px;font-weight:600;margin:10px 0 4px}ul{margin:5px 0 10px 17px}li{margin-bottom:3px}strong{font-weight:700}@media print{body{margin:20px}}</style></head><body><pre style="white-space:pre-wrap;font-family:inherit;margin:0">' + esc(text) + '</pre><script>setTimeout(function(){window.print()},400)<\/script></body></html>');
-    win.document.close();
-}
+    function updateQuickStats() {
+        const set = (id, ok, text) => { const el = $(id); el.textContent = text; el.className = 'qs-value ' + (ok ? 'qs-ok' : 'qs-warn'); };
+        set('qs-resume', !!G.resume, G.resume ? 'Ready' : 'Failed');
+        set('qs-cover', !!G.cover, G.cover ? 'Ready' : 'Failed');
+        if (G.ats) set('qs-ats', G.ats.score >= 60, G.ats.score + '%');
+        $('quick-stats').classList.add('visible');
+    }
 
-/* ── UTILS ───────────────────────────────────────────────────── */
-function wCount(t) { return t ? t.split(/\s+/).filter(Boolean).length : 0; }
-function esc(s) {
-    return String(s)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+    /* Markdown → HTML. Input is escaped FIRST so AI/user text can't inject markup. */
+    function mdToHtml(text) {
+        if (!text) return '';
+        const lines = esc(text).split(/\r?\n/);
+        const html = [];
+        let inList = false, para = [];
+        const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, '$1<em>$2</em>');
+        const flushPara = () => { if (para.length) { html.push('<p>' + para.map(inline).join('<br>') + '</p>'); para = []; } };
+        const closeList = () => { if (inList) { html.push('</ul>'); inList = false; } };
+        for (const raw of lines) {
+            const line = raw.trim();
+            let m;
+            if (!line) { flushPara(); closeList(); continue; }
+            if ((m = line.match(/^(#{1,3})\s+(.+)$/))) {
+                flushPara(); closeList();
+                const lvl = m[1].length;
+                html.push('<h' + lvl + '>' + inline(m[2]) + '</h' + lvl + '>');
+            } else if ((m = line.match(/^[*•\-]\s+(.+)$/))) {
+                flushPara();
+                if (!inList) { html.push('<ul>'); inList = true; }
+                html.push('<li>' + inline(m[1]) + '</li>');
+            } else {
+                closeList();
+                para.push(line);
+            }
+        }
+        flushPara(); closeList();
+        return html.join('');
+    }
 
-let _tt = null;
-function toast(msg, type = 'info') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className   = type;
-    t.classList.add('show');
-    clearTimeout(_tt);
-    _tt = setTimeout(() => t.classList.remove('show'), 3800);
-}
+    /* ── Actions ─────────────────────────────────────────────── */
+    function fileBase(type) {
+        const co = ($('target-company').value || 'Company').replace(/[^\w-]+/g, '_').slice(0, 40);
+        return type + '_' + co;
+    }
+    function saveBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    function copyContent() {
+        const text = textForTab(currentTab);
+        if (!text) return;
+        navigator.clipboard.writeText(text)
+            .then(() => showMsg('Copied to clipboard.', 'success'))
+            .catch(() => showMsg('Copy failed — select the text and copy it manually.', 'error'));
+    }
+    function downloadTxt() {
+        const text = textForTab(currentTab);
+        if (!text) return;
+        saveBlob(new Blob([text], { type: 'text/plain' }), fileBase(currentTab === 'resume' ? 'Resume' : 'CoverLetter') + '.txt');
+    }
+    // Renders the text shown on screen as DOCX on the server (no second AI call).
+    async function downloadDocx() {
+        const text = textForTab(currentTab);
+        if (!text) return;
+        const btn = $('docx-btn');
+        btn.disabled = true; btn.textContent = 'Preparing…';
+        try {
+            const res = await authFetch('/ai/render-docx', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ kind: currentTab === 'resume' ? 'resume' : 'cover_letter', text, job_id: Number(JOB_ID) || null }),
+            });
+            if (!res.ok) throw new Error(await extractErrorMessage(res, 'Download failed'));
+            const blob = await res.blob();
+            const cd = res.headers.get('content-disposition') || '';
+            const m = cd.match(/filename="?([^";]+)"?/i);
+            saveBlob(blob, m ? m[1] : fileBase(currentTab === 'resume' ? 'Resume' : 'CoverLetter') + '.docx');
+        } catch (e) {
+            showMsg('Couldn’t download the .docx: ' + (e.message || 'unknown error'), 'error');
+        } finally {
+            btn.textContent = 'Download .docx';
+            updateActions();
+        }
+    }
+    function printPdf() {
+        const text = textForTab(currentTab);
+        if (!text) return;
+        const title = (currentTab === 'resume' ? 'Resume' : 'Cover letter') + ' — ' + ($('target-company').value || 'Company');
+        const win = window.open('', '_blank');
+        if (!win) { showMsg('Allow pop-ups to print or save as PDF.', 'error'); return; }
+        win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(title) + '</title><style>body{font-family:Roboto,"Google Sans",system-ui,-apple-system,sans-serif;max-width:780px;margin:40px auto;padding:0 40px;color:#1f1f1f;font-size:13px;line-height:1.6}h1{font-size:20px;font-weight:500;margin:0 0 12px}h2{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #dadce0;padding-bottom:4px;margin:16px 0 8px}h3{font-size:13px;font-weight:500;margin:10px 0 4px}ul{margin:4px 0 10px 18px;padding:0}li{margin-bottom:3px}p{margin:0 0 8px}@media print{body{margin:0 auto}}</style></head><body>' + mdToHtml(text) + '<script>setTimeout(function(){window.print()},300)<\/script></body></html>');
+        win.document.close();
+    }
 
-/* ── PERSIST RESUME DRAFT ────────────────────────────────────── */
-document.getElementById('resume-text').addEventListener('input', function() {
-    localStorage.setItem('cariara_resume_draft', this.value);
-});
+    function wCount(t) { return t ? t.split(/\s+/).filter(Boolean).length : 0; }
 
-/* ── KEYBOARD SHORTCUT ───────────────────────────────────────── */
-document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generateAll(); }
-});
+    /* ── Draft persistence (scoped per user) ─────────────────── */
+    let _draftTimer = null;
+    $('resume-text').addEventListener('input', function () {
+        clearTimeout(_draftTimer);
+        const v = this.value;
+        _draftTimer = setTimeout(() => writeDraft(v), 400);
+        $('resume-source').textContent = 'Your unsaved draft';
+    });
 
-init();
-</script>
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generateAll(); }
+    });
+
+    init();
+    </script>
+
+    <script src="/js/icons.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script>
+        // sidebar.js highlights by filename; this page lives under "Jobs".
+        document.addEventListener('DOMContentLoaded', () => {
+            const jobs = document.getElementById('nav-jobs');
+            if (jobs) { jobs.classList.add('active'); jobs.setAttribute('aria-current', 'page'); }
+        });
+    </script>
 </body>
 </html>

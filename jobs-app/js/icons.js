@@ -647,16 +647,9 @@ const CariaraIcons = {
     mark(name, attrs = {}) {
         const icon = this[name];
         if (!icon) return '';
-        const glyph = icon.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
+        const size = attrs.width || attrs.height || 20;
         const className = attrs.class ? ` class="${attrs.class}"` : '';
-        const size = attrs.width || attrs.height || 24;
-        return `<svg${className} width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M20 3 33 10.5v15L20 33 7 25.5v-15L20 3Z" stroke="#4285f4" stroke-width="2.5" stroke-linejoin="round"/>
-            <path d="m7 10.5 13 7.5 13-7.5M7 25.5 20 18l13 7.5M20 3v15m0 15V18" stroke="#34a853" stroke-width="2" stroke-linejoin="round"/>
-            <path d="m7 10.5 13-7.5 13 7.5" stroke="#fbbc04" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="m7 25.5 13 7.5 13-7.5" stroke="#ea4335" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <svg x="11" y="11" width="18" height="18" viewBox="0 0 24 24" fill="none" color="#1967d2" stroke="#1967d2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${glyph}</svg>
-        </svg>`;
+        return icon.replace(/^<svg[^>]*>/, `<svg${className} width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`);
     },
 
     applyStencils(root = document) {
@@ -714,8 +707,3 @@ if (typeof module !== 'undefined' && module.exports) {
 window.CariaraIcons = CariaraIcons;
 window.RoleIcons = RoleIcons;
 
-if (typeof document !== 'undefined') {
-    const apply = () => CariaraIcons.applyStencils();
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once: true });
-    else apply();
-}
