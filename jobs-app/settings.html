@@ -1268,6 +1268,9 @@
         function setupTagsInput(inputId, containerId, tagsArray, maxTags = 5) {
             const input = document.getElementById(inputId);
             const container = document.getElementById(containerId);
+            // Some preferences are not shown in the current Settings form. Keep
+            // their legacy initializer from aborting the rest of page startup.
+            if (!input || !container) return;
 
             function renderTags() {
                 const existingTags = container.querySelectorAll('.tag');
