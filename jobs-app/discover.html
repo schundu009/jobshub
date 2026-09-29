@@ -2840,7 +2840,7 @@
                         <div class="detail-match-score">
                             <div>
                                 <div class="match-score-value" id="detail-match-score">0%</div>
-                                <div class="match-score-label">Match Score</div>
+                                <div class="match-score-label">Skill Match</div>
                             </div>
                             <div class="match-score-bar">
                                 <div class="match-score-fill" id="detail-match-bar" style="width: 0%"></div>
@@ -4718,11 +4718,6 @@
             document.getElementById('detail-title').textContent = job.title || 'Untitled';
             document.getElementById('detail-company').textContent = job.company_name || '-';
 
-            // Match score
-            const score = Math.round(job.relevance_score || 0);
-            document.getElementById('detail-match-score').textContent = `${score}%`;
-            document.getElementById('detail-match-bar').style.width = `${score}%`;
-
             // Meta info
             document.getElementById('detail-location').textContent = job.location || '-';
             document.getElementById('detail-salary').textContent = job.salary_display || '-';
@@ -4757,8 +4752,13 @@
                 techStackContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 12px;">No tech stack detected</span>';
             }
 
-            // Skills analysis
-            populateSkillsAnalysis(job);
+            // Keep the headline score consistent with the skills shown below.
+            const skillsMatch = populateSkillsAnalysis(job);
+            const score = skillsMatch.total
+                ? Math.round((skillsMatch.matched / skillsMatch.total) * 100)
+                : 0;
+            document.getElementById('detail-match-score').textContent = `${score}%`;
+            document.getElementById('detail-match-bar').style.width = `${score}%`;
 
             // Action buttons
             document.getElementById('detail-view-btn').href = job.job_url || '#';
@@ -4805,6 +4805,7 @@
 
             document.getElementById('detail-skills-matched').textContent = matchedCount;
             document.getElementById('detail-skills-total').textContent = allSkills.length;
+            return { matched: matchedCount, total: allSkills.length };
         }
 
         function extractSkillsFromDescription(desc) {
