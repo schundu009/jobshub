@@ -1,82 +1,25 @@
+"""Verizon job scraper - Workday API.
+
+verizon.com/careers/api/jobs returns no JSON; Verizon hires via Workday verizon.wd12,
+site 'verizon-careers' (verified 2026-09-29).
 """
-Verizon Jobs Scraper.
 
-Uses Verizon's careers API.
-"""
-
-from datetime import datetime
-from typing import Optional
-
-from scrapers.base import (
-    HTTPScraper,
-    ScraperConfig,
-    ScraperType,
-    ScrapedJob,
-    ScrapeResult,
-)
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.custom.remaining_scrapers import WorkdayMixin
 from scrapers.registry import ScraperRegistry
 
 
 @ScraperRegistry.register(category="other")
-class VerizonScraper(HTTPScraper):
-    """Scraper for Verizon careers."""
+class VerizonScraper(WorkdayMixin, HTTPScraper):
+    """Scraper for Verizon careers (Workday)."""
 
     config = ScraperConfig(
         company_slug="verizon",
         company_name="Verizon",
-        careers_url="https://www.verizon.com/careers/",
+        careers_url="https://verizon.wd12.myworkdayjobs.com/verizon-careers",
         scraper_type=ScraperType.HTTP,
         rate_limit=15,
-        api_url="https://www.verizon.com/careers/api/jobs",
+        max_pages=10,
     )
 
-    async def scrape(self) -> ScrapeResult:
-        """Scrape Verizon careers API."""
-        all_jobs = []
-        page = 1
-
-        while page <= self.config.max_pages:
-            params = {
-                "page": page,
-                "limit": self.config.page_size,
-                "category": "Technology",
-            }
-
-            try:
-                data = await self.fetch_json(self.config.api_url, params=params)
-                jobs = data.get("jobs", [])
-                if not jobs:
-                    break
-
-                for job_data in jobs:
-                    job = self.parse_job(job_data)
-                    if job:
-                        all_jobs.append(job)
-
-                total = data.get("totalCount", 0)
-                if page * self.config.page_size >= total:
-                    break
-                page += 1
-
-            except Exception as e:
-                self.logger.error(f"Error fetching page {page}: {e}")
-                break
-
-        return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=page)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            job_id = raw.get("id", "")
-            return ScrapedJob(
-                title=raw.get("title", ""),
-                location=raw.get("location", ""),
-                job_url=raw.get("url", "") or f"https://www.verizon.com/careers/job/{job_id}",
-                external_job_id=str(job_id),
-                job_description=raw.get("description", ""),
-                department=raw.get("department", ""),
-                posted_date=self.parse_date(raw.get("postedDate", "")),
-                raw_data=raw,
-            )
-        except Exception as e:
-            self.logger.warning(f"Error parsing job: {e}")
-            return None
+    API_URL = "https://verizon.wd12.myworkdayjobs.com/wday/cxs/verizon/verizon-careers/jobs"

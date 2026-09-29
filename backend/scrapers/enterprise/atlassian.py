@@ -31,46 +31,35 @@ class AtlassianScraper(HTTPScraper):
     )
 
     async def scrape(self) -> ScrapeResult:
-        """Scrape Atlassian careers API."""
-        all_jobs = []
-
-        try:
-            # Atlassian's API returns all jobs at once
-            data = await self.fetch_json(self.config.api_url)
-
-            jobs = data.get("jobs", []) or data.get("listings", []) or data
-            if isinstance(jobs, list):
-                for job_data in jobs:
-                    job = self.parse_job(job_data)
-                    if job:
-                        all_jobs.append(job)
-
-        except Exception as e:
-            self.logger.error(f"Error fetching jobs: {e}")
-
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            pages_scraped=1,
-        )
+        """Scrape Atlassian careers listings (one request returns every opening)."""
+        # The endpoint returns a bare JSON list; the old code called .get() on it,
+        # raised inside a broad except and reported 0 jobs as success.
+        data = await self.fetch_json(self.config.api_url)
+        jobs = self.expect_list(data)
+        return ScrapeResult(success=True, jobs=self.parse_all(jobs), pages_scraped=1)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        """Parse Atlassian job data."""
+        """Parse an Atlassian listing (backed by iCIMS portals)."""
         try:
-            job_id = raw.get("id", "") or raw.get("jobId", "")
-
-            # Get location
-            locations = raw.get("locations", [])
-            location = ", ".join(locations) if isinstance(locations, list) else raw.get("location", "")
-
+            job_id = raw.get("id")
+            title = raw.get("title")
+            if not job_id or not title:
+                return None
+            portal = raw.get("portalJobPost") or {}
+            locations = raw.get("locations") or []
+            description = "".join(
+                raw.get(k) or "" for k in ("overview", "responsibilities", "qualifications")
+            )
             return ScrapedJob(
-                title=raw.get("title", "") or raw.get("name", ""),
-                location=location,
-                job_url=raw.get("url", "") or raw.get("applyUrl", ""),
+                title=title,
+                location="; ".join(locations) if isinstance(locations, list) else str(locations),
+                job_url=portal.get("portalUrl")
+                or f"https://www.atlassian.com/company/careers/details/{job_id}",
                 external_job_id=str(job_id),
-                job_description=raw.get("description", ""),
-                department=raw.get("team", "") or raw.get("department", ""),
-                posted_date=self.parse_date(raw.get("postedDate", "")),
+                job_description=description or None,
+                department=raw.get("category", ""),
+                employment_type=raw.get("type"),
+                posted_date=self.parse_date((portal.get("updatedDate") or "")[:10]),
                 raw_data=raw,
             )
         except Exception as e:

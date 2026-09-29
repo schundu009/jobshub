@@ -5,6 +5,7 @@ from scrapers.custom.remaining_scrapers import GreenhouseMixin
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; new ATS unknown
 @ScraperRegistry.register(category="other")
 class ContextualAIScraper(GreenhouseMixin, HTTPScraper):
     """Scraper for ContextualAI careers (Greenhouse)."""
@@ -14,6 +15,8 @@ class ContextualAIScraper(GreenhouseMixin, HTTPScraper):
         company_name="Contextual AI",
         careers_url="https://contextual.ai/careers/",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; new ATS unknown",
         rate_limit=30,
         max_pages=10,
     )

@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; new ATS unknown
 @ScraperRegistry.register(category="finance")
 class RevolutScraper(HTTPScraper):
     """Scraper for Revolut careers."""
@@ -26,6 +27,8 @@ class RevolutScraper(HTTPScraper):
         company_name="Revolut",
         careers_url="https://www.revolut.com/careers/",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; new ATS unknown",
         rate_limit=20,
         api_url="https://boards-api.greenhouse.io/v1/boards/revolut/jobs",
     )

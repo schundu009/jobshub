@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; Klarna hires via Deel ATS (jobs.deel.com) - no mixin
 @ScraperRegistry.register(category="other")
 class KlarnaScraper(HTTPScraper):
     """Scraper for Klarna careers."""
@@ -26,6 +27,8 @@ class KlarnaScraper(HTTPScraper):
         company_name="Klarna",
         careers_url="https://www.klarna.com/careers/",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; Klarna hires via Deel ATS (jobs.deel.com) - no mixin",
         rate_limit=20,
         api_url="https://boards-api.greenhouse.io/v1/boards/klarna/jobs",
     )

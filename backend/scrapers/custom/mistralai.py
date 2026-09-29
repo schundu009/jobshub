@@ -1,14 +1,16 @@
-"""Mistral AI job scraper - Lever API."""
+"""Mistral AI job scraper - Ashby API.
 
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+Lever board emptied; moved to Ashby board 'mistral.ai' (verified 2026-09-29).
+"""
+
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.custom.remaining_scrapers import AshbyMixin
 from scrapers.registry import ScraperRegistry
-from typing import List, Optional
-from datetime import datetime
 
 
 @ScraperRegistry.register(category="custom")
-class MistralAIScraper(HTTPScraper):
-    """Scraper for Mistral AI careers (Lever)."""
+class MistralAIScraper(AshbyMixin, HTTPScraper):
+    """Scraper for Mistral AI careers (Ashby)."""
 
     config = ScraperConfig(
         company_slug="mistralai",
@@ -19,38 +21,4 @@ class MistralAIScraper(HTTPScraper):
         max_pages=10,
     )
 
-    API_URL = "https://api.lever.co/v0/postings/mistral"
-
-    async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        data = await self.fetch_json(self.API_URL)
-
-        if not data:
-            return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data returned")
-
-        for job in data:
-            parsed = self.parse_job(job)
-            if parsed:
-                all_jobs.append(parsed)
-
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            title = raw.get("text", "")
-            job_id = str(raw.get("id", ""))
-            categories = raw.get("categories", {})
-            location = categories.get("location", "")
-            department = categories.get("team", "")
-            created_at = raw.get("createdAt", 0)
-            posted_date = datetime.fromtimestamp(created_at / 1000) if created_at else None
-            job_url = raw.get("hostedUrl", f"https://jobs.lever.co/mistral/{job_id}")
-            description = raw.get("descriptionPlain", "")
-
-            return ScrapedJob(
-                title=title, location=location, job_url=job_url, external_job_id=job_id,
-                job_description=description, department=department, posted_date=posted_date,
-            )
-        except Exception as e:
-            self.logger.error(f"Error parsing job: {e}")
-            return None
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/mistral.ai"

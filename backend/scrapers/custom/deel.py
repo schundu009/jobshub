@@ -6,11 +6,14 @@ from typing import List, Optional
 from datetime import datetime
 
 
+# DISABLED: board dead as of 2026-09-29; Ashby board empty, Deel hires via its own ATS (jobs.deel.com) - no mixin
 @ScraperRegistry.register(category="custom")
 class DeelScraper(HTTPScraper):
     config = ScraperConfig(
         company_slug="deel", company_name="Deel", careers_url="https://www.deel.com/careers",
-        scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10,
+        scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; Ashby board empty, Deel hires via its own ATS (jobs.deel.com) - no mixin", rate_limit=30, max_pages=10,
     )
     API_URL = "https://api.ashbyhq.com/posting-api/job-board/deel"
 

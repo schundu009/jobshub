@@ -6,6 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 
 
+# DISABLED: board dead as of 2026-09-29; Redfin acquired by Rocket, jobs on careers.rocket.com - no mixin
 @ScraperRegistry.register(category="other")
 class RedfinScraper(HTTPScraper):
     """Scraper for Redfin careers (Greenhouse)."""
@@ -15,6 +16,8 @@ class RedfinScraper(HTTPScraper):
         company_name="Redfin",
         careers_url="https://www.redfin.com/careers",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; Redfin acquired by Rocket, jobs on careers.rocket.com - no mixin",
         rate_limit=30,
         max_pages=10,
     )

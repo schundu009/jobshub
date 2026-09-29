@@ -1,10 +1,11 @@
 """
 Oracle Jobs Scraper.
 
-Uses Oracle's careers API.
+Uses Oracle Recruiting Cloud (HCM) CandidateExperience REST API. The same
+OracleHCMMixin is reused by other Oracle-HCM tenants (e.g. JPMorgan Chase).
 """
 
-from datetime import datetime
+import asyncio
 from typing import Optional
 
 from scrapers.base import (
@@ -13,12 +14,95 @@ from scrapers.base import (
     ScraperType,
     ScrapedJob,
     ScrapeResult,
+    UnexpectedResponseError,
 )
 from scrapers.registry import ScraperRegistry
 
 
+class OracleHCMMixin:
+    """
+    Oracle Recruiting Cloud: GET {HCM_HOST}/hcmRestApi/resources/latest/recruitingCEJobRequisitions
+
+    Subclasses set HCM_HOST, SITE_NUMBER, and optionally MAX_JOBS / JOB_URL_BASE.
+    Note: `expand` must be exactly "requisitionList.secondaryLocations"; adding
+    primaryLocation/workLocation makes the API answer HTTP 400.
+    """
+
+    HCM_HOST: str = ""
+    SITE_NUMBER: str = ""
+    PAGE_SIZE = 200   # API max observed; ~3.5s per page
+    MAX_JOBS = 2400   # keep each run well under the 120s celery soft limit
+    JOB_URL_BASE: Optional[str] = None
+
+    @property
+    def hcm_api_url(self) -> str:
+        return f"https://{self.HCM_HOST}/hcmRestApi/resources/latest/recruitingCEJobRequisitions"
+
+    def hcm_job_url(self, job_id: str) -> str:
+        base = self.JOB_URL_BASE or (
+            f"https://{self.HCM_HOST}/hcmUI/CandidateExperience/en/sites/{self.SITE_NUMBER}/job/"
+        )
+        return f"{base}{job_id}"
+
+    async def scrape(self) -> ScrapeResult:
+        all_jobs = []
+        offset = 0
+        pages = 0
+        total = None
+
+        while offset < self.MAX_JOBS:
+            params = {
+                "onlyData": "true",
+                "expand": "requisitionList.secondaryLocations",
+                "finder": (
+                    f"findReqs;siteNumber={self.SITE_NUMBER},facetsList=,"
+                    f"limit={self.PAGE_SIZE},offset={offset},sortBy=POSTING_DATES_DESC"
+                ),
+            }
+            data = await self.fetch_json(self.hcm_api_url, params=params)
+            items = self.expect_list(data, "items")
+            if not items:
+                if offset == 0:
+                    raise UnexpectedResponseError("Oracle HCM returned no search items")
+                break
+            search = items[0]
+            if total is None:
+                total = search.get("TotalJobsCount") or 0
+            reqs = self.expect_list(search, "requisitionList")
+            pages += 1
+            if not reqs:
+                break
+            all_jobs.extend(self.parse_all(reqs))
+            offset += self.PAGE_SIZE
+            if len(reqs) < self.PAGE_SIZE or offset >= total:
+                break
+            await asyncio.sleep(0.2)
+
+        return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=pages)
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        try:
+            job_id = str(raw.get("Id", "") or "")
+            if not job_id:
+                return None
+            location = raw.get("PrimaryLocation") or raw.get("PrimaryLocationCountry") or ""
+            return ScrapedJob(
+                title=raw.get("Title", ""),
+                location=location,
+                job_url=self.hcm_job_url(job_id),
+                external_job_id=job_id,
+                job_description=raw.get("ShortDescriptionStr", ""),
+                department=raw.get("JobFamily") or raw.get("Department") or "",
+                posted_date=self.parse_date(raw.get("PostedDate", "")),
+                remote_type=(raw.get("WorkplaceTypeCode") or None),
+            )
+        except Exception as e:
+            self.logger.warning(f"Error parsing job: {e}")
+            return None
+
+
 @ScraperRegistry.register(category="enterprise")
-class OracleScraper(HTTPScraper):
+class OracleScraper(OracleHCMMixin, HTTPScraper):
     """Scraper for Oracle careers."""
 
     config = ScraperConfig(
@@ -30,71 +114,6 @@ class OracleScraper(HTTPScraper):
         api_url="https://eeho.fa.us2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
     )
 
-    async def scrape(self) -> ScrapeResult:
-        """Scrape Oracle careers API."""
-        all_jobs = []
-        offset = 0
-
-        while offset < self.config.max_pages * self.config.page_size:
-            params = {
-                "onlyData": "true",
-                "expand": "requisitionList.secondaryLocations,requisitionList.primaryLocation,requisitionList.workLocation",
-                "finder": f"findReqs;siteNumber=CX_1,facetsList=,limit={self.config.page_size},offset={offset},sortBy=POSTING_DATES_DESC",
-            }
-
-            try:
-                data = await self.fetch_json(self.config.api_url, params=params)
-
-                items = data.get("items", [])
-                if not items:
-                    break
-
-                requisitions = items[0].get("requisitionList", []) if items else []
-                if not requisitions:
-                    break
-
-                for job_data in requisitions:
-                    job = self.parse_job(job_data)
-                    if job:
-                        all_jobs.append(job)
-
-                if len(requisitions) < self.config.page_size:
-                    break
-
-                offset += self.config.page_size
-
-            except Exception as e:
-                self.logger.error(f"Error fetching offset {offset}: {e}")
-                break
-
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            pages_scraped=(offset // self.config.page_size) + 1,
-        )
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        """Parse Oracle job data."""
-        try:
-            job_id = raw.get("Id", "") or raw.get("RequisitionNumber", "")
-
-            # Get location
-            primary_loc = raw.get("primaryLocation", {}) or {}
-            location = primary_loc.get("LocationName", "") or raw.get("PrimaryLocationCountry", "")
-
-            # Build job URL
-            job_url = f"https://careers.oracle.com/jobs/#en/sites/jobsearch/job/{job_id}"
-
-            return ScrapedJob(
-                title=raw.get("Title", ""),
-                location=location,
-                job_url=job_url,
-                external_job_id=str(job_id),
-                job_description=raw.get("ShortDescriptionStr", ""),
-                department=raw.get("OrganizationName", ""),
-                posted_date=self.parse_date(raw.get("PostedDate", "")),
-                raw_data=raw,
-            )
-        except Exception as e:
-            self.logger.warning(f"Error parsing job: {e}")
-            return None
+    HCM_HOST = "eeho.fa.us2.oraclecloud.com"
+    SITE_NUMBER = "CX_45001"
+    JOB_URL_BASE = "https://careers.oracle.com/en/sites/jobsearch/job/"

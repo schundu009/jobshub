@@ -6,6 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 
 
+# DISABLED: board dead as of 2026-09-29; new ATS unknown
 @ScraperRegistry.register(category="custom")
 class PostmanScraper(HTTPScraper):
     """Scraper for Postman careers (Greenhouse)."""
@@ -15,6 +16,8 @@ class PostmanScraper(HTTPScraper):
         company_name="Postman",
         careers_url="https://www.postman.com/company/careers",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; new ATS unknown",
         rate_limit=30,
         max_pages=10,
     )

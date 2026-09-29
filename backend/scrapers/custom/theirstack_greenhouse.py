@@ -1,57 +1,11 @@
 """IT company scrapers discovered via TheirStack API - Greenhouse."""
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
 from scrapers.registry import ScraperRegistry
-from typing import List, Optional
-from datetime import datetime
+from scrapers.custom.remaining_scrapers import GreenhouseMixin
 
 
-class GreenhouseMixin:
-    """Mixin for Greenhouse job board scraping."""
-
-    def _resolve_api_url(self) -> str:
-        """Return url_override from DB config if set, else fall back to class-level API_URL."""
-        try:
-            from database import SessionLocal
-            from models import ScraperConfigDB
-            with SessionLocal() as db:
-                cfg = db.query(ScraperConfigDB).filter_by(
-                    company_slug=self.config.company_slug
-                ).first()
-                if cfg and cfg.config_overrides and cfg.config_overrides.get("url_override"):
-                    return cfg.config_overrides["url_override"]
-        except Exception:
-            pass
-        return self.API_URL
-
-    async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        api_url = self._resolve_api_url()
-        data = await self.fetch_json(api_url, params={"content": "true"})
-        if not data:
-            return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data")
-        for job in data.get("jobs", []):
-            if parsed := self.parse_job(job):
-                all_jobs.append(parsed)
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            job_id = str(raw.get("id", ""))
-            loc = raw.get("location", {})
-            location = loc.get("name", "") if isinstance(loc, dict) else str(loc)
-            updated = raw.get("updated_at", "")
-            posted = datetime.fromisoformat(updated.replace("Z", "+00:00")) if updated else None
-            depts = raw.get("departments", [])
-            return ScrapedJob(
-                title=raw.get("title", ""), location=location,
-                job_url=raw.get("absolute_url", ""), external_job_id=job_id,
-                job_description=raw.get("content", ""),
-                department=depts[0].get("name", "") if depts else "",
-                posted_date=posted
-            )
-        except:
-            return None
-
+# GreenhouseMixin is shared with remaining_scrapers.py; it honors the
+# auto-heal url_override via BaseScraper.resolve_api_url().
 
 
 # VarsityTutorsANerdyCompanyScraper — Greenhouse board 404 (migrated off Greenhouse)
@@ -109,9 +63,10 @@ class CelonisScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="celonis", company_name="Celonis", careers_url="https://celonis.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/celonis/jobs"
 
+# board dead as of 2026-09-29; new ATS unknown
 @ScraperRegistry.register(category="custom")
 class UnityTechnologiesScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="unity3d", company_name="Unity Technologies", careers_url="https://unity3d.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    config = ScraperConfig(company_slug="unity3d", company_name="Unity Technologies", careers_url="https://unity3d.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10, enabled=False, disabled_reason="board dead as of 2026-09-29; new ATS unknown")
     API_URL = "https://boards-api.greenhouse.io/v1/boards/unity3d/jobs"
 
 @ScraperRegistry.register(category="custom")
@@ -163,9 +118,10 @@ class LushCosmeticsScraper(GreenhouseMixin, HTTPScraper):
 
 # LightspeedScraper — Greenhouse board 404 (moved to Ashby: api.ashbyhq.com/posting-api/job-board/lightspeed)
 
+# board dead as of 2026-09-29; Greenhouse board empty, SmartRecruiters 'ripplematch' has only a test posting
 @ScraperRegistry.register(category="custom")
 class RipplematchScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="ripplematch", company_name="RippleMatch", careers_url="https://ripplematch.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    config = ScraperConfig(company_slug="ripplematch", company_name="RippleMatch", careers_url="https://ripplematch.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10, enabled=False, disabled_reason="board dead as of 2026-09-29; Greenhouse board empty, SmartRecruiters 'ripplematch' has only a test posting")
     API_URL = "https://boards-api.greenhouse.io/v1/boards/ripplematch/jobs"
 
 @ScraperRegistry.register(category="custom")
@@ -188,10 +144,11 @@ class OkxScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="okx", company_name="OKX", careers_url="https://okx.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/okx/jobs"
 
+# Greenhouse board renamed hubspot -> hubspotjobs (verified 2026-09-29)
 @ScraperRegistry.register(category="custom")
 class HubspotScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="hubspot", company_name="HubSpot", careers_url="https://hubspot.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/hubspot/jobs"
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/hubspotjobs/jobs"
 
 @ScraperRegistry.register(category="custom")
 class VerkadaScraper(GreenhouseMixin, HTTPScraper):

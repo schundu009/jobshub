@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; careers.arm.com/api/jobs gone, Arm hires via iCIMS - no mixin
 @ScraperRegistry.register(category="other")
 class ARMScraper(HTTPScraper):
     """Scraper for ARM careers."""
@@ -26,6 +27,8 @@ class ARMScraper(HTTPScraper):
         company_name="ARM",
         careers_url="https://careers.arm.com/",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; careers.arm.com/api/jobs gone, Arm hires via iCIMS - no mixin",
         rate_limit=15,
         api_url="https://careers.arm.com/api/jobs",
     )

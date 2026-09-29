@@ -6,6 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 
 
+# DISABLED: board dead as of 2026-09-29; new ATS unknown
 @ScraperRegistry.register(category="other")
 class UpstashScraper(HTTPScraper):
     """Scraper for Upstash careers (Lever)."""
@@ -15,6 +16,8 @@ class UpstashScraper(HTTPScraper):
         company_name="Upstash",
         careers_url="https://upstash.com/careers",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; new ATS unknown",
         rate_limit=30,
         max_pages=10,
     )

@@ -41,7 +41,13 @@ class ScraperErrorType(Enum):
     PARSE_ERROR = "parse_error"
     NETWORK_ERROR = "network_error"
     AUTH_ERROR = "auth_error"
+    EMPTY_RESULT = "empty_result"  # 0 jobs from a board that previously had jobs
+    UNEXPECTED_RESPONSE = "unexpected_response"  # wrong JSON shape / every posting unparseable
     UNKNOWN = "unknown"
+
+
+class UnexpectedResponseError(Exception):
+    """The API answered, but not with the shape the scraper expects."""
 
 
 @dataclass
@@ -72,6 +78,17 @@ class ScraperConfig:
 
     # Custom headers
     headers: dict = field(default_factory=dict)
+
+    # Disabled scrapers are kept in the codebase but not registered, so the
+    # orchestrator, admin status page and manual-run endpoints never see them.
+    # Always give a reason, e.g. "board dead as of 2026-09-29; new ATS unknown".
+    enabled: bool = True
+    disabled_reason: Optional[str] = None
+
+    # Set True for boards that legitimately go to zero openings; otherwise a
+    # 0-job scrape of a board that has produced jobs before is reported as a
+    # failure (ScraperErrorType.EMPTY_RESULT) instead of a silent success.
+    allow_empty: bool = False
 
 
 @dataclass
@@ -166,6 +183,101 @@ class BaseScraper(ABC):
         self.rate_limiter = rate_limiter
         self.browser_pool = browser_pool
         self.logger = logging.getLogger(f"scraper.{self.config.company_slug}")
+        # A runner may set this directly; otherwise resolve_api_url() looks in
+        # ScraperConfigDB.config_overrides["url_override"] (written by auto-heal).
+        self.url_override: Optional[str] = None
+
+    def resolve_api_url(self, default: Optional[str] = None) -> Optional[str]:
+        """
+        Return the API URL to scrape.
+
+        Precedence: self.url_override (set by a runner) > DB
+        config_overrides["url_override"] > class API_URL / default.
+        DB lookup failures (no DB configured, table missing) fall back silently.
+        """
+        if self.url_override:
+            return self.url_override
+        default = default or getattr(self, "API_URL", None) or self.config.api_url
+        try:
+            from database import SessionLocal
+            from models import ScraperConfigDB
+
+            with SessionLocal() as db:
+                cfg = db.query(ScraperConfigDB).filter_by(
+                    company_slug=self.config.company_slug
+                ).first()
+                override = (cfg.config_overrides or {}).get("url_override") if cfg else None
+                if override:
+                    self.logger.info(f"Using url_override for {self.config.company_slug}: {override}")
+                    self.url_override = override
+                    return override
+        except Exception as e:
+            self.logger.debug(f"url_override lookup skipped: {e}")
+        return default
+
+    def expect_list(self, data: Any, key: Optional[str] = None) -> list:
+        """
+        Return data[key] (or data itself when key is None) if it is a list,
+        else raise UnexpectedResponseError. Use in scrape() to catch APIs that
+        changed shape or started returning an HTML/error payload.
+        """
+        value = data.get(key) if (key and isinstance(data, dict)) else (None if key else data)
+        if not isinstance(value, list):
+            got = type(data).__name__
+            if isinstance(data, dict):
+                got += f" keys={sorted(data)[:8]}"
+            raise UnexpectedResponseError(
+                f"expected list{f' at {key!r}' if key else ''}, got {got}"
+            )
+        return value
+
+    def parse_all(self, raw_jobs: list) -> list["ScrapedJob"]:
+        """
+        Parse raw postings with parse_job(). If the API returned postings but
+        none could be parsed, raise UnexpectedResponseError rather than
+        reporting a successful 0-job scrape.
+        """
+        parsed = [job for job in (self.parse_job(raw) for raw in raw_jobs) if job]
+        if raw_jobs and not parsed:
+            raise UnexpectedResponseError(
+                f"parse_job rejected all {len(raw_jobs)} postings"
+            )
+        return parsed
+
+    def previously_had_jobs(self) -> bool:
+        """
+        True if ScraperConfigDB says this scraper has found jobs before.
+        If the DB can't be read, assume True so empty results are surfaced.
+        """
+        try:
+            from database import SessionLocal
+            from models import ScraperConfigDB
+
+            with SessionLocal() as db:
+                cfg = db.query(ScraperConfigDB).filter_by(
+                    company_slug=self.config.company_slug
+                ).first()
+                return bool(cfg and (cfg.total_jobs_found or 0) > 0)
+        except Exception as e:
+            self.logger.debug(f"job-history lookup failed: {e}")
+            return True
+
+    def _check_empty(self, result: "ScrapeResult") -> "ScrapeResult":
+        """Turn a 'successful' 0-job scrape into a failure when that's suspicious."""
+        if (
+            result.success
+            and not result.jobs
+            and not self.config.allow_empty
+            and self.previously_had_jobs()
+        ):
+            result.success = False
+            result.error_type = ScraperErrorType.EMPTY_RESULT
+            result.error_message = (
+                result.error_message
+                or f"0 jobs returned for {self.config.company_name}, which has had "
+                "jobs before - board moved, API changed, or all postings filtered out"
+            )
+        return result
 
     async def run(self) -> ScrapeResult:
         """
@@ -203,7 +315,12 @@ class BaseScraper(ABC):
                         f"{result.jobs_found} jobs found in {result.duration_seconds:.1f}s"
                     )
 
-                    return result
+                    return self._check_empty(result)
+
+                except UnexpectedResponseError as e:
+                    last_error = f"Unexpected response: {e}"
+                    last_error_type = ScraperErrorType.UNEXPECTED_RESPONSE
+                    self.logger.warning(f"Unexpected response on attempt {attempt}: {e}")
 
                 except asyncio.TimeoutError as e:
                     last_error = str(e) or "Request timed out"
@@ -440,6 +557,7 @@ class HTTPScraper(BaseScraper):
         json_data: Optional[dict] = None,
         headers: Optional[dict] = None,
         payload: Optional[dict] = None,  # Backward compatibility alias for json_data
+        json: Optional[dict] = None,  # Alias used by some scrapers (aiohttp-style)
     ) -> dict:
         """
         Fetch JSON data from a URL.
@@ -458,6 +576,8 @@ class HTTPScraper(BaseScraper):
         # Support 'payload' as alias for 'json_data'
         if payload is not None and json_data is None:
             json_data = payload
+        if json is not None and json_data is None:
+            json_data = json
 
         session = await self.get_session()
 

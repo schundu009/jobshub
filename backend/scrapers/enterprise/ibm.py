@@ -1,10 +1,12 @@
 """
 IBM Jobs Scraper.
 
-Uses IBM's careers API.
+careers.ibm.com/api/jobs no longer exists. The careers site searches through IBM's
+public search service (www-api.ibm.com/search/api/v2, appId=careers), a read-only
+POST returning Elasticsearch-style hits. Verified 2026-09-29.
 """
 
-from datetime import datetime
+import re
 from typing import Optional
 
 from scrapers.base import (
@@ -19,73 +21,78 @@ from scrapers.registry import ScraperRegistry
 
 @ScraperRegistry.register(category="enterprise")
 class IBMScraper(HTTPScraper):
-    """Scraper for IBM careers."""
+    """Scraper for IBM careers (IBM search API)."""
 
     config = ScraperConfig(
         company_slug="ibm",
         company_name="IBM",
-        careers_url="https://careers.ibm.com/",
+        careers_url="https://www.ibm.com/careers/search",
         scraper_type=ScraperType.HTTP,
         rate_limit=15,
-        api_url="https://careers.ibm.com/api/jobs",
+        api_url="https://www-api.ibm.com/search/api/v2",
     )
 
+    PAGE_SIZE = 100
+    MAX_JOBS = 2500
+    SOURCE_FIELDS = [
+        "_id", "title", "url", "description", "dcdate",
+        "field_keyword_08",  # job category
+        "field_keyword_17",  # work arrangement (Hybrid / Remote / On-site)
+        "field_keyword_18",  # experience level
+        "field_keyword_19",  # location
+    ]
+
     async def scrape(self) -> ScrapeResult:
-        """Scrape IBM careers API."""
         all_jobs = []
-        page = 1
-
-        while page <= self.config.max_pages:
-            params = {
-                "page": page,
-                "limit": self.config.page_size,
-                "sort": "date",
-                "category": "Software Engineering",
+        offset = 0
+        pages = 0
+        while offset < self.MAX_JOBS:
+            body = {
+                "appId": "careers",
+                "scopes": ["careers2"],
+                "query": {"bool": {"must": []}},
+                "size": self.PAGE_SIZE,
+                "from": offset,
+                "sort": [{"dcdate": "desc"}, {"_score": "desc"}],
+                "lang": "zz",
+                "sm": {"query": "", "lang": "zz"},
+                "_source": self.SOURCE_FIELDS,
             }
-
-            try:
-                data = await self.fetch_json(self.config.api_url, params=params)
-
-                jobs = data.get("jobs", []) or data.get("results", [])
-                if not jobs:
-                    break
-
-                for job_data in jobs:
-                    job = self.parse_job(job_data)
-                    if job:
-                        all_jobs.append(job)
-
-                # Check pagination
-                total = data.get("total", 0)
-                if page * self.config.page_size >= total:
-                    break
-
-                page += 1
-
-            except Exception as e:
-                self.logger.error(f"Error fetching page {page}: {e}")
+            data = await self.fetch_json(self.config.api_url, method="POST", json_data=body)
+            hits = self.expect_list((data or {}).get("hits") or {}, "hits")
+            pages += 1
+            if not hits:
+                break
+            all_jobs.extend(self.parse_all(hits))
+            total = ((data.get("hits") or {}).get("total") or {}).get("value") or 0
+            offset += len(hits)
+            if offset >= total or len(hits) < self.PAGE_SIZE:
                 break
 
-        return ScrapeResult(
-            success=True,
-            jobs=all_jobs,
-            pages_scraped=page,
-        )
+        seen = set()
+        all_jobs = [j for j in all_jobs if not (j.external_job_id in seen or seen.add(j.external_job_id))]
+        return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=pages)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        """Parse IBM job data."""
         try:
-            job_id = raw.get("id", "") or raw.get("jobId", "")
-
+            src = raw.get("_source") or {}
+            url = src.get("url") or ""
+            title = src.get("title") or ""
+            if not url or not title:
+                return None
+            m = re.search(r"jobId=(\d+)", url)
+            arrangement = (src.get("field_keyword_17") or "").lower()
             return ScrapedJob(
-                title=raw.get("title", ""),
-                location=raw.get("location", "") or raw.get("city", ""),
-                job_url=raw.get("url", "") or f"https://careers.ibm.com/job/{job_id}",
-                external_job_id=str(job_id),
-                job_description=raw.get("description", ""),
-                department=raw.get("category", "") or raw.get("department", ""),
-                posted_date=self.parse_date(raw.get("datePosted", "")),
-                raw_data=raw,
+                title=title,
+                location=src.get("field_keyword_19") or "",
+                job_url=url,
+                external_job_id=m.group(1) if m else raw.get("_id", ""),
+                job_description=src.get("description") or None,
+                department=src.get("field_keyword_08") or "",
+                posted_date=self.parse_date(src.get("dcdate") or ""),
+                remote_type=("remote" if "remote" in arrangement else
+                             "hybrid" if "hybrid" in arrangement else
+                             "on-site" if arrangement else None),
             )
         except Exception as e:
             self.logger.warning(f"Error parsing job: {e}")

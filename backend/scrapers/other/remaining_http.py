@@ -4,13 +4,14 @@ Converts Google, Snap, Meta, TikTok, ByteDance, NBCUniversal, Abbott,
 Waymo, and others from Playwright to direct HTTP API calls.
 """
 
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult, UnexpectedResponseError
 from scrapers.registry import ScraperRegistry
 from scrapers.custom.remaining_scrapers import WorkdayMixin
 from typing import List, Optional
 from datetime import datetime
 import asyncio
 import json
+import re
 
 
 # ─── Abbott (Workday API — confirmed 2000+ jobs) ──────────────────────────
@@ -98,277 +99,221 @@ class SnapHTTPScraper(HTTPScraper):
             return None
 
 
-# ─── Google (HTML scraper — custom careers site, no public API) ────────────
-# Google careers uses a custom site with no JSON API.
-# We scrape the NEXT_DATA from their SSR page.
+# ─── Google (HTML page with embedded AF_initDataCallback JSON) ─────────────
+# The results page server-renders 20 jobs per page into
+# AF_initDataCallback({key: 'ds:1', ..., data: [[job, ...], None, total, page_size]}).
+# Job record indexes: 0=id, 1=title, 3=[None, responsibilities html],
+# 4=[None, qualifications html], 7=company, 9=[[location, ...], ...], 12=[created_secs, nanos].
+_BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 @ScraperRegistry.register(category="big_tech")
 class GoogleHTTPScraper(HTTPScraper):
-    config = ScraperConfig(company_slug="google", company_name="Google", careers_url="https://www.google.com/about/careers/applications/jobs/results", scraper_type=ScraperType.HTTP, rate_limit=10, max_pages=20)
+    # 20 jobs/page; ~1s per page. 3 pages in flight keeps a full US crawl
+    # (~90 pages) around 40s, well under the 120s Celery soft limit.
+    config = ScraperConfig(company_slug="google", company_name="Google", careers_url="https://www.google.com/about/careers/applications/jobs/results", scraper_type=ScraperType.HTTP, rate_limit=10, max_pages=120)
+    RESULTS_URL = "https://www.google.com/about/careers/applications/jobs/results"
+    CONCURRENCY = 3
+    _DS1 = re.compile(r"AF_initDataCallback\(\{key: 'ds:1', hash: '\d+', data:(.*?), sideChannel: \{\}\}\);", re.S)
+
+    async def _page(self, page: int) -> tuple[list, int]:
+        session = await self.get_session()
+        params = {"location": "United States", "page": str(page)}
+        async with session.get(self.RESULTS_URL, params=params, headers=_BROWSER_HEADERS) as resp:
+            resp.raise_for_status()
+            html = await resp.text()
+        m = self._DS1.search(html)
+        if not m:
+            raise UnexpectedResponseError("Google results page has no ds:1 AF_initDataCallback block")
+        data = json.loads(m.group(1))
+        jobs = self.expect_list(data[0] if isinstance(data, list) and data else None)
+        total = data[2] if len(data) > 2 and isinstance(data[2], int) else 0
+        return jobs, total
 
     async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        page = 1
-        while page <= self.config.max_pages:
-            url = f"https://www.google.com/about/careers/applications/jobs/results?page={page}&q=&location=United+States"
-            html = await self.fetch_text(url)
-            if not html:
-                break
+        first, total = await self._page(1)
+        raw_jobs = list(first)
+        per_page = max(len(first), 1)
+        last_page = min(self.config.max_pages, -(-total // per_page)) if total else 1
+        sem = asyncio.Semaphore(self.CONCURRENCY)
 
-            # Extract job data from the HTML
-            import re
-            # Google embeds job data in the page as JSON
-            matches = re.findall(r'"title":"([^"]+)"[^}]*"id":"([^"]+)"[^}]*"locations":\[([^\]]*)\]', html)
-            if not matches:
-                break
+        async def fetch(page: int) -> list:
+            async with sem:
+                try:
+                    jobs, _ = await self._page(page)
+                    return jobs
+                except Exception as e:
+                    self.logger.warning(f"Google page {page} failed: {e}")
+                    return []
 
-            for title, job_id, locs_raw in matches:
-                locs = re.findall(r'"([^"]+)"', locs_raw)
-                location = ", ".join(locs) if locs else ""
-                all_jobs.append(ScrapedJob(
-                    title=title,
-                    location=location,
-                    job_url=f"https://www.google.com/about/careers/applications/jobs/results/{job_id}",
-                    external_job_id=job_id,
-                ))
+        for jobs in await asyncio.gather(*(fetch(p) for p in range(2, last_page + 1))):
+            raw_jobs.extend(jobs)
+        seen, unique = set(), []
+        for job in self.parse_all(raw_jobs):
+            if job.external_job_id not in seen:
+                seen.add(job.external_job_id)
+                unique.append(job)
+        return ScrapeResult(success=True, jobs=unique, jobs_found=len(unique), pages_scraped=last_page, total_pages=last_page)
 
-            if len(matches) < 20:
-                break
-            page += 1
-            await asyncio.sleep(1)
-
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        return None  # Parsing done inline in scrape()
-
-    async def fetch_text(self, url: str) -> Optional[str]:
-        """Fetch raw HTML text."""
+    def parse_job(self, raw: list) -> Optional[ScrapedJob]:
         try:
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
-                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=15)) as resp:
-                    if resp.status == 200:
-                        return await resp.text()
-        except Exception as e:
-            self.logger.error(f"Fetch error: {e}")
-        return None
-
-
-# ─── Meta (Custom GraphQL — no public API, use search page scraping) ──────
-@ScraperRegistry.register(category="big_tech")
-class MetaHTTPScraper(HTTPScraper):
-    config = ScraperConfig(company_slug="meta", company_name="Meta", careers_url="https://www.metacareers.com/jobs", scraper_type=ScraperType.HTTP, rate_limit=10, max_pages=20)
-
-    async def scrape(self) -> ScrapeResult:
-        # Meta's GraphQL API requires specific doc_ids that change.
-        # Scrape the HTML search results page instead.
-        all_jobs: List[ScrapedJob] = []
-        page = 0
-        while page < self.config.max_pages:
-            url = f"https://www.metacareers.com/jobs?page={page}"
-            html = await self.fetch_text(url)
-            if not html:
-                break
-
-            import re
-            # Meta embeds job data as JSON in the page
-            matches = re.findall(r'"jobId":"(\d+)","title":"([^"]+)"[^}]*"location":"([^"]*)"', html)
-            if not matches:
-                # Try alternate pattern
-                matches = re.findall(r'href="/v2/jobs/(\d+)/"[^>]*>([^<]+)</a>', html)
-
-            if not matches:
-                break
-
-            for match in matches:
-                if len(match) == 3:
-                    job_id, title, location = match
-                else:
-                    job_id, title = match
-                    location = ""
-                all_jobs.append(ScrapedJob(
-                    title=title, location=location,
-                    job_url=f"https://www.metacareers.com/v2/jobs/{job_id}/",
-                    external_job_id=job_id,
-                ))
-
-            if len(matches) < 10:
-                break
-            page += 1
-            await asyncio.sleep(1)
-
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        return None
-
-    async def fetch_text(self, url: str) -> Optional[str]:
-        try:
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
-                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=15)) as resp:
-                    if resp.status == 200:
-                        return await resp.text()
-        except Exception as e:
-            self.logger.error(f"Fetch error: {e}")
-        return None
-
-
-# ─── TikTok / ByteDance (Custom API) ─────────────────────────────────────
-@ScraperRegistry.register(category="big_tech")
-class TikTokHTTPScraper(HTTPScraper):
-    config = ScraperConfig(company_slug="tiktok", company_name="TikTok", careers_url="https://careers.tiktok.com", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=20)
-
-    async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        offset = 0
-        limit = 20
-        while offset < self.config.max_pages * limit:
-            url = f"https://careers.tiktok.com/api/v1/search/job?keyword=&limit={limit}&offset={offset}&language=en"
-            html = await self.fetch_text(url)
-            if not html:
-                break
-            try:
-                data = json.loads(html)
-            except:
-                break
-            jobs = data.get("data", {}).get("job_list", [])
-            if not jobs:
-                break
-            for job in jobs:
-                parsed = self.parse_job(job)
-                if parsed:
-                    all_jobs.append(parsed)
-            if len(jobs) < limit:
-                break
-            offset += limit
-            await asyncio.sleep(0.5)
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            title = raw.get("title", "")
-            job_id = str(raw.get("id", ""))
-            location = raw.get("location", "")
-            if isinstance(location, list):
-                location = ", ".join(location)
-            elif isinstance(location, dict):
-                location = location.get("city", "")
+            job_id, title = str(raw[0]), raw[1]
+            if not job_id or not title:
+                return None
+            locations = raw[9] or []
+            location = "; ".join(loc[0] for loc in locations if loc and loc[0])
+            desc = "".join(part[1] for part in (raw[3], raw[4]) if isinstance(part, list) and len(part) > 1 and part[1])
+            created = raw[12] if len(raw) > 12 else None
+            posted = datetime.utcfromtimestamp(created[0]) if isinstance(created, list) and created and created[0] else None
             return ScrapedJob(
                 title=title, location=location,
-                job_url=f"https://careers.tiktok.com/position/{job_id}",
-                external_job_id=job_id,
+                job_url=f"{self.RESULTS_URL}/{job_id}",
+                external_job_id=job_id, job_description=desc or None, posted_date=posted,
             )
-        except Exception as e:
-            self.logger.error(f"Error parsing TikTok job: {e}")
+        except (IndexError, TypeError) as e:
+            self.logger.debug(f"Error parsing Google job: {e}")
             return None
 
-    async def fetch_text(self, url: str) -> Optional[str]:
-        try:
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
-                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=15)) as resp:
-                    if resp.status == 200:
-                        return await resp.text()
-        except Exception as e:
-            self.logger.error(f"Fetch error: {e}")
+
+# ─── Meta ─────────────────────────────────────────────────────────────────
+# DISABLED: no public job list reachable over plain HTTP as of 2026-09-29.
+# metacareers.com/jobsearch renders results via a Relay GraphQL query whose
+# doc_id is not in the page, and the old /jobs HTML scrape now returns an
+# error page (HTTP 400 without browser headers). A possible route: the
+# sitemap https://www.metacareers.com/jobsearch/sitemap.xml lists ~1000
+# /profile/job_details/{id}/ URLs, and each detail page has a JobPosting
+# JSON-LD block, but that is one 0.5MB request per job (too slow for the
+# 120s task limit).
+@ScraperRegistry.register(category="big_tech")
+class MetaHTTPScraper(HTTPScraper):
+    config = ScraperConfig(
+        company_slug="meta", company_name="Meta", careers_url="https://www.metacareers.com/jobsearch",
+        scraper_type=ScraperType.HTTP, rate_limit=10, max_pages=20,
+        enabled=False,
+        disabled_reason="no public job list over HTTP as of 2026-09-29 (GraphQL doc_id not exposed; sitemap + per-job JSON-LD too slow)",
+    )
+
+    async def scrape(self) -> ScrapeResult:
+        return ScrapeResult(success=False, error_message=self.config.disabled_reason)
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         return None
+
+
+# ─── TikTok / ByteDance (ATSX public supplier API) ─────────────────────────
+# Both career sites (lifeattiktok.com, joinbytedance.com) POST to
+# /api/v1/public/supplier/search/job/posts; the "website-path" header picks
+# the board. careers.tiktok.com and jobs.bytedance.com /api/v1/search/job now
+# return an empty 200 body.
+@ScraperRegistry.register(category="big_tech")
+class TikTokHTTPScraper(HTTPScraper):
+    config = ScraperConfig(company_slug="tiktok", company_name="TikTok", careers_url="https://lifeattiktok.com/search", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=60)
+    API_URL = "https://api.lifeattiktok.com/api/v1/public/supplier/search/job/posts"
+    WEBSITE_PATH = "tiktok"
+    ORIGIN = "https://lifeattiktok.com"
+    PAGE_SIZE = 100
+
+    async def scrape(self) -> ScrapeResult:
+        raw_jobs: list = []
+        headers = {"website-path": self.WEBSITE_PATH, "origin": self.ORIGIN, "referer": f"{self.ORIGIN}/", "accept-language": "en-US"}
+        offset, total = 0, None
+        for _ in range(self.config.max_pages):
+            body = {
+                "recruitment_id_list": [], "job_category_id_list": [], "subject_id_list": [],
+                "location_code_list": [], "keyword": "", "limit": self.PAGE_SIZE, "offset": offset,
+            }
+            data = await self.fetch_json(self.API_URL, method="POST", json_data=body, headers=headers)
+            payload = data.get("data") if isinstance(data, dict) else None
+            if not isinstance(payload, dict):
+                raise UnexpectedResponseError(f"no 'data' object (code={data.get('code') if isinstance(data, dict) else '?'})")
+            jobs = self.expect_list(payload, "job_post_list") if offset == 0 else (payload.get("job_post_list") or [])
+            total = payload.get("count", total)
+            raw_jobs.extend(jobs)
+            offset += self.PAGE_SIZE
+            if len(jobs) < self.PAGE_SIZE or (total is not None and offset >= total):
+                break
+            await asyncio.sleep(0.2)
+        jobs = self.parse_all(raw_jobs)
+        return ScrapeResult(success=True, jobs=jobs, jobs_found=len(jobs), pages_scraped=offset // self.PAGE_SIZE)
+
+    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
+        try:
+            job_id = str(raw.get("id") or "")
+            title = raw.get("title") or ""
+            if not job_id or not title:
+                return None
+            city = raw.get("city_info") or {}
+            location = city.get("en_name") or city.get("i18n_name") or city.get("name") or ""
+            category = raw.get("job_category") or {}
+            desc = "\n\n".join(p for p in (raw.get("description"), raw.get("requirement")) if p)
+            recruit = (raw.get("recruit_type") or {}).get("en_name") or None
+            return ScrapedJob(
+                title=title, location=location,
+                job_url=f"{self.ORIGIN}/search/{job_id}",
+                external_job_id=job_id,
+                job_description=desc or None,
+                department=category.get("en_name") or category.get("i18n_name") or "",
+                employment_type=recruit,
+            )
+        except Exception as e:
+            self.logger.error(f"Error parsing {self.config.company_name} job: {e}")
+            return None
 
 
 @ScraperRegistry.register(category="big_tech")
 class ByteDanceHTTPScraper(TikTokHTTPScraper):
-    config = ScraperConfig(company_slug="bytedance", company_name="ByteDance", careers_url="https://jobs.bytedance.com", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=20)
-
-    async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        offset = 0
-        limit = 20
-        while offset < self.config.max_pages * limit:
-            url = f"https://jobs.bytedance.com/api/v1/search/job?keyword=&limit={limit}&offset={offset}&language=en"
-            html = await self.fetch_text(url)
-            if not html:
-                break
-            try:
-                data = json.loads(html)
-            except:
-                break
-            jobs = data.get("data", {}).get("job_list", [])
-            if not jobs:
-                break
-            for job in jobs:
-                if parsed := self.parse_job(job):
-                    all_jobs.append(parsed)
-            if len(jobs) < limit:
-                break
-            offset += limit
-            await asyncio.sleep(0.5)
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            title = raw.get("title", "")
-            job_id = str(raw.get("id", ""))
-            location = raw.get("location", "")
-            if isinstance(location, list):
-                location = ", ".join(location)
-            elif isinstance(location, dict):
-                location = location.get("city", "")
-            return ScrapedJob(
-                title=title, location=location,
-                job_url=f"https://jobs.bytedance.com/position/{job_id}",
-                external_job_id=job_id,
-            )
-        except:
-            return None
+    config = ScraperConfig(company_slug="bytedance", company_name="ByteDance", careers_url="https://joinbytedance.com/search", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=60)
+    API_URL = "https://jobs.bytedance.com/api/v1/public/supplier/search/job/posts"
+    WEBSITE_PATH = "en"
+    ORIGIN = "https://joinbytedance.com"
 
 
-# ─── Dynatrace (SmartRecruiters) ──────────────────────────────────────────
+# ─── Dynatrace (Coveo search behind dynatrace.com/careers) ─────────────────
+# SmartRecruiters "Dynatrace" board is empty; the careers site queries its own
+# /api/coveo/search/ proxy (POST, returns every opening in one response).
 @ScraperRegistry.register(category="other")
 class DynatraceHTTPScraper(HTTPScraper):
-    config = ScraperConfig(company_slug="dynatrace", company_name="Dynatrace", careers_url="https://careers.dynatrace.com", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=20)
-    API_URL = "https://careers.smartrecruiters.com/DynatraceAlliances"
+    config = ScraperConfig(company_slug="dynatrace", company_name="Dynatrace", careers_url="https://www.dynatrace.com/careers/jobs/", scraper_type=ScraperType.HTTP, rate_limit=20, max_pages=1)
+    API_URL = "https://www.dynatrace.com/api/coveo/search/"
 
     async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        offset = 0
-        while offset < 500:
-            url = f"https://api.smartrecruiters.com/v1/companies/Dynatrace/postings?limit=100&offset={offset}"
-            data = await self.fetch_json(url)
-            if not data:
-                break
-            jobs = data.get("content", [])
-            if not jobs:
-                break
-            for job in jobs:
-                if parsed := self.parse_job(job):
-                    all_jobs.append(parsed)
-            if len(jobs) < 100:
-                break
-            offset += 100
-            await asyncio.sleep(0.3)
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+        body = {"q": None, "numberOfResults": 1000, "wildcards": True, "facets": []}
+        data = await self.fetch_json(self.API_URL, method="POST", json_data=body, headers={"Accept": "application/json"})
+        jobs = self.parse_all(self.expect_list(data, "results"))
+        return ScrapeResult(success=True, jobs=jobs, jobs_found=len(jobs), pages_scraped=1)
+
+    @staticmethod
+    def _first(value) -> str:
+        if isinstance(value, list):
+            return ", ".join(str(v) for v in value if v)
+        return str(value or "")
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
-            title = raw.get("name", "")
-            job_id = str(raw.get("id", raw.get("uuid", "")))
-            loc = raw.get("location", {})
-            location = f"{loc.get('city', '')}, {loc.get('region', '')}, {loc.get('country', '')}".strip(", ")
-            posted = raw.get("releasedDate", "")
-            posted_date = None
-            if posted:
-                try:
-                    posted_date = datetime.fromisoformat(posted.replace("Z", "+00:00"))
-                except:
-                    pass
-            department = raw.get("department", {}).get("label", "") if isinstance(raw.get("department"), dict) else ""
+            meta = raw.get("raw") or {}
+            job_id = str(meta.get("id") or meta.get("job_id") or "")
+            title = raw.get("title") or meta.get("title") or ""
+            url = raw.get("clickUri") or meta.get("url") or ""
+            if not job_id or not title or not url:
+                return None
+            location = ", ".join(p for p in (self._first(meta.get("office_locations")), self._first(meta.get("country"))) if p)
+            flex = self._first(meta.get("flex_option")).lower()
+            ts = meta.get("date")
+            posted = datetime.utcfromtimestamp(int(ts) / 1000) if ts else None
             return ScrapedJob(
-                title=title, location=location,
-                job_url=raw.get("ref", f"https://careers.smartrecruiters.com/Dynatrace/{job_id}"),
-                external_job_id=job_id, department=department, posted_date=posted_date,
+                title=title, location=location, job_url=url, external_job_id=job_id,
+                job_description=meta.get("description") or None,
+                department=self._first(meta.get("team")) or self._first(meta.get("division")),
+                posted_date=posted,
+                employment_type=self._first(meta.get("employment_type")) or None,
+                remote_type="remote" if "remote" in flex else ("hybrid" if "hybrid" in flex else None),
             )
         except Exception as e:
             self.logger.error(f"Error parsing Dynatrace job: {e}")

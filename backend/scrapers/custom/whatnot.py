@@ -6,11 +6,14 @@ from typing import List, Optional
 from datetime import datetime
 
 
+# DISABLED: board dead as of 2026-09-29; new ATS unknown
 @ScraperRegistry.register(category="custom")
 class WhatnotScraper(HTTPScraper):
     config = ScraperConfig(
         company_slug="whatnot", company_name="Whatnot", careers_url="https://www.whatnot.com/careers",
-        scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10,
+        scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; new ATS unknown", rate_limit=30, max_pages=10,
     )
     API_URL = "https://boards-api.greenhouse.io/v1/boards/whatnot/jobs"
 

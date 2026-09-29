@@ -40,6 +40,7 @@ class ScraperRegistry:
     _scrapers: dict[str, Type[BaseScraper]] = {}
     _categories: dict[str, list[str]] = {}  # category -> [slugs]
     _metadata: dict[str, dict] = {}  # slug -> {category, type, etc.}
+    _disabled: dict[str, dict] = {}  # slug -> {class, category, reason}
     _loaded: bool = False
 
     @classmethod
@@ -60,6 +61,16 @@ class ScraperRegistry:
                 )
 
             slug = scraper_cls.config.company_slug
+
+            if not getattr(scraper_cls.config, "enabled", True):
+                cls._disabled[slug] = {
+                    "class": scraper_cls.__name__,
+                    "category": category,
+                    "company_name": scraper_cls.config.company_name,
+                    "reason": scraper_cls.config.disabled_reason or "disabled",
+                }
+                logger.debug(f"Skipping disabled scraper: {slug}")
+                return scraper_cls
 
             if slug in cls._scrapers:
                 logger.warning(f"Scraper '{slug}' already registered, overwriting")
@@ -174,6 +185,17 @@ class ScraperRegistry:
         return cls._metadata.copy()
 
     @classmethod
+    def get_disabled(cls) -> dict[str, dict]:
+        """
+        Scrapers present in code but disabled via ScraperConfig(enabled=False).
+
+        Returns:
+            Dict of slug -> {class, category, company_name, reason}
+        """
+        cls._ensure_loaded()
+        return cls._disabled.copy()
+
+    @classmethod
     def list_categories(cls) -> list[str]:
         """
         List all categories.
@@ -257,6 +279,7 @@ class ScraperRegistry:
         cls._scrapers.clear()
         cls._categories.clear()
         cls._metadata.clear()
+        cls._disabled.clear()
         cls._loaded = False
         cls._load_all_scrapers()
 

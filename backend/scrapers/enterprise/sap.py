@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; jobs.sap.com is a client-rendered Next.js site with no public JSON API found - new source unknown
 @ScraperRegistry.register(category="enterprise")
 class SAPScraper(HTTPScraper):
     """Scraper for SAP careers."""
@@ -26,6 +27,8 @@ class SAPScraper(HTTPScraper):
         company_name="SAP",
         careers_url="https://jobs.sap.com/",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; jobs.sap.com is a client-rendered Next.js site with no public JSON API found - new source unknown",
         rate_limit=15,
         api_url="https://jobs.sap.com/api/jobs",
     )

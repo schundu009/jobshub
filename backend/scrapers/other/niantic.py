@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; careers page redirects to Scopely - new ATS unknown
 @ScraperRegistry.register(category="other")
 class NianticScraper(HTTPScraper):
     """Scraper for Niantic careers."""
@@ -26,6 +27,8 @@ class NianticScraper(HTTPScraper):
         company_name="Niantic",
         careers_url="https://nianticlabs.com/careers",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; careers page redirects to Scopely - new ATS unknown",
         rate_limit=20,
         api_url="https://boards-api.greenhouse.io/v1/boards/nilocker/jobs",
     )

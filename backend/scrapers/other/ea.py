@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; ea.gr8people.com gone, EA hires via Avature (jobs.ea.com) - no mixin
 @ScraperRegistry.register(category="other")
 class EAScraper(HTTPScraper):
     """Scraper for EA careers."""
@@ -26,6 +27,8 @@ class EAScraper(HTTPScraper):
         company_name="Electronic Arts",
         careers_url="https://ea.gr8people.com/jobs",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; ea.gr8people.com gone, EA hires via Avature (jobs.ea.com) - no mixin",
         rate_limit=15,
         api_url="https://ea.gr8people.com/api/jobs",
     )

@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; jobs.dell.com API returns Akamai 403 and no public Workday/ATS board found
 @ScraperRegistry.register(category="other")
 class DellScraper(HTTPScraper):
     """Scraper for Dell careers."""
@@ -26,6 +27,8 @@ class DellScraper(HTTPScraper):
         company_name="Dell Technologies",
         careers_url="https://jobs.dell.com/",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; jobs.dell.com API returns Akamai 403 and no public Workday/ATS board found",
         rate_limit=15,
         api_url="https://jobs.dell.com/api/jobs",
     )

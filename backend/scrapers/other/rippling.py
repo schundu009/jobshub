@@ -17,6 +17,7 @@ from scrapers.base import (
 from scrapers.registry import ScraperRegistry
 
 
+# DISABLED: board dead as of 2026-09-29; Rippling uses its own ATS (ats.rippling.com) - no mixin
 @ScraperRegistry.register(category="other")
 class RipplingScraper(HTTPScraper):
     """Scraper for Rippling careers."""
@@ -26,6 +27,8 @@ class RipplingScraper(HTTPScraper):
         company_name="Rippling",
         careers_url="https://www.rippling.com/careers",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="board dead as of 2026-09-29; Rippling uses its own ATS (ats.rippling.com) - no mixin",
         rate_limit=20,
         api_url="https://boards-api.greenhouse.io/v1/boards/rippling/jobs",
     )
