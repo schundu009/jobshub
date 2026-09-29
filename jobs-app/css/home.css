@@ -71,7 +71,7 @@ a { text-decoration: none; }
 .gh-g i { width: 5px; height: 5px; border-radius: 50%; }
 .gh-g i:nth-child(1) { background: #4285f4; } .gh-g i:nth-child(2) { background: #ea4335; }
 .gh-g i:nth-child(3) { background: #fbbc04; } .gh-g i:nth-child(4) { background: #34a853; }
-html body .gh-display {
+:root:root body .gh-display {
   margin: 20px 0 0; font-size: clamp(34px, 4.6vw, 60px) !important; line-height: 1.08;
   font-weight: 500 !important; letter-spacing: -.035em !important;
 }
@@ -91,7 +91,7 @@ html body .gh-display {
 }
 .gh-search:hover, .gh-search:focus-within { border-color: transparent; box-shadow: var(--c-shadow-2); }
 .gh-search svg { width: 22px; height: 22px; color: var(--c-ink-3); flex: none; }
-html body .gh-search input {
+:root:root body .gh-search input {
   flex: 1; min-width: 0; min-height: 44px; padding: 0 !important;
   border: 0 !important; box-shadow: none !important; background: transparent !important; font-size: 16px !important;
 }
@@ -121,11 +121,11 @@ html body .gh-search input {
 .gh-sec-tight { padding-block: 32px 72px; }
 .gh-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px 32px; margin-bottom: 28px; }
 .gh-head p, .gh-cta p { margin: 8px 0 0; font-size: 16px; line-height: 24px; color: var(--c-ink-2); }
-html body .gh-h2 { margin: 0; font-size: clamp(28px, 3vw, 40px) !important; line-height: 1.12; font-weight: 500 !important; letter-spacing: -.03em !important; }
+:root:root body .gh-h2 { margin: 0; font-size: clamp(28px, 3vw, 40px) !important; line-height: 1.12; font-weight: 500 !important; letter-spacing: -.03em !important; }
 .gh-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .gh-card { padding: 24px; border: 1px solid var(--c-line); border-radius: 16px; background: var(--c-surface); transition: box-shadow .2s; }
 .gh-card:hover { box-shadow: 0 1px 3px rgba(60,64,67,.15), 0 4px 12px -4px rgba(60,64,67,.2); }
-html body .gh-card h3 { margin: 16px 0 8px; font-size: 18px; line-height: 24px; font-weight: 500; }
+:root:root body .gh-card h3 { margin: 16px 0 8px; font-size: 18px; line-height: 24px; font-weight: 500; }
 .gh-card p { margin: 0; color: var(--c-ink-2); line-height: 22px; }
 @media (max-width: 900px) { .gh-steps { grid-template-columns: 1fr; } }
 .gh-cta {

@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-grid.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-theme-alpine.css">
     <!-- Theme Toggle Support -->
-    <link rel="stylesheet" href="/css/theme.css?v=202609291426">
+    <link rel="stylesheet" href="/css/theme.css?v=202609291457">
     <!-- Shared Sidebar Styles -->
-    <link rel="stylesheet" href="/css/sidebar.css?v=202609291426">
+    <link rel="stylesheet" href="/css/sidebar.css?v=202609291457">
     <style>
         :root, [data-theme="light"] {
             /* Google-color theme - light */
@@ -2611,8 +2611,23 @@
             background: var(--c-surface-3, var(--c-surface-2)); color: var(--c-ink-2);
         }
         .row-mark-applied { background: var(--c-green-tint); color: var(--c-green); }
-        .description-cell { display: flex; flex-direction: column; padding: 4px 0; width: 100%; min-width: 0; overflow: hidden; }
-        .skill-match-line { color: var(--c-ink-3); font-size: 11px; font-weight: 500; margin-bottom: 2px; }
+        /* AG Grid sets line-height to the row height on every cell; reset it so
+           the match label and the two-line preview fit inside the row. */
+        .ag-theme-alpine .ag-cell[col-id="job_description"] { display: flex; align-items: center; line-height: normal; }
+        .description-cell { display: flex; flex-direction: column; justify-content: center; gap: 2px; width: 100%; min-width: 0; max-height: 100%; overflow: hidden; line-height: 16px; }
+        .skill-compare { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+        .skill-group-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--c-ink); margin-bottom: 8px; }
+        .skill-group-count { margin-left: auto; font-size: 12px; color: var(--c-ink-2); font-variant-numeric: tabular-nums; }
+        .skill-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+        .skill-dot.is-match { background: var(--c-green); } .skill-dot.is-missing { background: var(--c-red); }
+        .skill-dot.is-extra, .skill-dot.is-job { background: var(--c-ink-3); }
+        .skill-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .skill-chip { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 8px; font-size: 12px; font-weight: 500; border: 1px solid transparent; }
+        .skill-chip.is-match { background: var(--c-green-tint); color: var(--c-green); }
+        .skill-chip.is-missing { background: var(--c-red-tint); color: var(--c-red); }
+        .skill-chip.is-extra, .skill-chip.is-job { background: transparent; color: var(--c-ink-2); border-color: var(--c-line); }
+        .skill-match-line { color: var(--c-ink-3); font-size: 11px; line-height: 14px; font-weight: 500; white-space: nowrap; }
+        .description-cell .job-description-preview { line-height: 18px !important; max-height: 36px; }
 
         html body .ag-theme-alpine .posted-date-label.posted-fresh {
             display: inline-flex; align-items: center; height: 24px; padding: 0 8px;
@@ -2647,7 +2662,7 @@
     </style>
         <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291426">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291457">
 </head>
 <body>
     <!-- Mobile Menu Button -->
@@ -2756,17 +2771,26 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 <input type="text" id="search-input" aria-label="Search jobs by title, company, or keywords" placeholder="Search jobs by title, company, or keywords...">
             </div>
-            <select class="filter-select" id="location-filter">
-                <option value="" selected>All Locations</option>
-                <option value="remote">Remote</option>
-                <option value="united states">US Locations</option>
-                <option value="san francisco">San Francisco</option>
-                <option value="new york">New York</option>
-                <option value="seattle">Seattle</option>
-                <option value="europe">Europe</option>
-                <option value="uk">United Kingdom</option>
-                <option value="canada">Canada</option>
-                <option value="india">India</option>
+            <select class="filter-select" id="location-filter" aria-label="Location">
+                <option value="" selected>Any location</option>
+                <optgroup label="Countries &amp; regions">
+                    <option value="united states">United States (incl. US remote)</option>
+                    <option value="remote">Remote (any country)</option>
+                    <option value="canada">Canada</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="europe">Europe (incl. UK)</option>
+                    <option value="india">India</option>
+                </optgroup>
+                <optgroup label="US metro areas">
+                    <option value="san francisco">San Francisco Bay Area</option>
+                    <option value="new york">New York City</option>
+                    <option value="seattle">Seattle area</option>
+                    <option value="los angeles">Los Angeles</option>
+                    <option value="austin">Austin</option>
+                    <option value="boston">Boston</option>
+                    <option value="chicago">Chicago</option>
+                    <option value="denver">Denver / Boulder</option>
+                </optgroup>
             </select>
             <div class="multi-select-dropdown" id="work-type-dropdown">
                 <button type="button" class="filter-select multi-select-toggle" id="work-type-toggle">
@@ -2940,22 +2964,12 @@
                         <div class="detail-section">
                             <div class="detail-section-title">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                                Skills Match Analysis
+                                Skills comparison
                                 <span style="margin-left: auto; font-size: 11px; color: var(--text-muted);">
                                     <span id="detail-skills-matched">0</span>/<span id="detail-skills-total">0</span>
                                 </span>
                             </div>
-                            <table class="detail-skills-table">
-                                <thead>
-                                    <tr>
-                                        <th>Skill/Technology</th>
-                                        <th>Category</th>
-                                        <th>Match</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="detail-skills-tbody">
-                                </tbody>
-                            </table>
+                            <div class="skill-compare" id="detail-skills-compare"></div>
                         </div>
                     </div>
                     <div class="detail-actions">
@@ -2972,10 +2986,11 @@
 
     <!-- AG Grid JS -->
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
-    <script src="/js/app.js?v=202609291426"></script>
+    <script src="/js/app.js?v=202609291457"></script>
+    <script src="/js/skills.js?v=202609291457"></script>
     <!-- Premium Icon Library -->
-    <script src="/js/icons.js?v=202609291426"></script>
-    <script src="/js/subscription-gate.js?v=202609291426"></script>
+    <script src="/js/icons.js?v=202609291457"></script>
+    <script src="/js/subscription-gate.js?v=202609291457"></script>
 
     <script>
         // Filter-section icons. Nav, theme, logout and mobile-menu icons are
@@ -3441,10 +3456,28 @@
         }
 
         const CITY_ALIASES = {
-            'san francisco': ['san francisco', 'sf bay area', 'bay area', 'south san francisco'],
-            'new york': ['new york', 'nyc', 'manhattan', 'brooklyn'],
-            'seattle': ['seattle', 'bellevue', 'redmond', 'kirkland']
+            'san francisco': ['san francisco', 'sf bay area', 'bay area', 'south san francisco', 'palo alto', 'mountain view', 'menlo park', 'sunnyvale', 'san jose', 'santa clara', 'cupertino', 'redwood city', 'san mateo', 'foster city', 'oakland', 'berkeley'],
+            'new york': ['new york', 'nyc', 'manhattan', 'brooklyn', 'jersey city'],
+            'seattle': ['seattle', 'bellevue', 'redmond', 'kirkland'],
+            'los angeles': ['los angeles', 'santa monica', 'pasadena', 'irvine', 'culver city'],
+            'austin': ['austin'],
+            'boston': ['boston', 'cambridge, ma', 'somerville'],
+            'chicago': ['chicago'],
+            'denver': ['denver', 'boulder']
         };
+
+        // Region named in the title ("SRE — UK", "Engineer (EMEA)"). Used when the
+        // location itself doesn't say where ("Remote").
+        const RX_TITLE_US = /(?<![\w])(US|USA|U\.S\.|United States|AMER|Americas|North America|NA)(?![\w])/;
+        const RX_TITLE_FOREIGN = /(?<![\w])(UK|U\.K\.|United Kingdom|EMEA|EU|Europe|APAC|APJ|LATAM|India|Canada|Germany|France|Ireland|Netherlands|Spain|Poland|Australia|Japan|Singapore|Brazil|Mexico|Israel|London|Dublin|Berlin|Amsterdam|Toronto|Bangalore|Bengaluru)(?![\w])/;
+        const titleRegionCache = new Map();
+        function titleRegions(title) {
+            const t = String(title || '');
+            if (titleRegionCache.has(t)) return titleRegionCache.get(t);
+            const out = { us: RX_TITLE_US.test(t), foreign: RX_TITLE_FOREIGN.test(t), regions: t ? classifyLocation(t.replace(/\b(Remote|Hybrid)\b/gi, '')) : new Set() };
+            titleRegionCache.set(t, out);
+            return out;
+        }
 
         const cityFilterRegexCache = new Map();
         function locationMatchesFilter(job, filter) {
@@ -3452,12 +3485,21 @@
             const loc = job.location || '';
             const regions = classifyLocation(loc);
             switch (filter) {
-                case 'united states': return regions.has('us') || regions.has('unspecified');
+                case 'united states': {
+                    if (regions.has('us')) return true;
+                    if (!regions.has('unspecified')) return false;
+                    // "Remote" with a region in the title: trust the title.
+                    const hint = titleRegions(job.title);
+                    return hint.us || !hint.foreign;
+                }
                 case 'remote': return /(?<![\w])(remote|anywhere|work from home|wfh)(?![\w])/i.test(loc) || job.job_type === 'remote';
-                case 'uk': return regions.has('uk');
-                case 'europe': return regions.has('uk') || regions.has('europe');
-                case 'canada': return regions.has('canada');
-                case 'india': return regions.has('india');
+                case 'uk': return regions.has('uk') || (regions.has('unspecified') && titleRegions(job.title).regions.has('uk'));
+                case 'europe': {
+                    const t = regions.has('unspecified') ? titleRegions(job.title).regions : new Set();
+                    return regions.has('uk') || regions.has('europe') || t.has('uk') || t.has('europe');
+                }
+                case 'canada': return regions.has('canada') || (regions.has('unspecified') && titleRegions(job.title).regions.has('canada'));
+                case 'india': return regions.has('india') || (regions.has('unspecified') && titleRegions(job.title).regions.has('india'));
                 default: {
                     if (!cityFilterRegexCache.has(filter)) cityFilterRegexCache.set(filter, wordsRx(CITY_ALIASES[filter] || [filter]));
                     return cityFilterRegexCache.get(filter).test(loc);
@@ -3556,49 +3598,14 @@
             return SPECIAL_SKILL_MATCHERS[skill] || termRegex(skill);
         }
 
-        const TECH_KEYWORDS = [
-            'kubernetes', 'k8s', 'docker', 'terraform', 'ansible', 'jenkins', 'aws', 'gcp', 'azure',
-            'python', 'java', 'go', 'rust', 'node.js', 'nodejs', 'typescript', 'javascript',
-            'react', 'vue', 'angular', 'next.js', 'postgresql', 'mysql', 'mongodb', 'redis', 'kafka',
-            'pytorch', 'tensorflow', 'spark', 'airflow', 'prometheus', 'grafana', 'datadog',
-            'linux', 'git', 'ci/cd', 'graphql', 'rest', 'grpc', 'scala', 'ruby', 'swift', 'kotlin',
-            'snowflake', 'redshift', 'bigquery', 'dbt', 'etl', 'mlflow', 'multi-cloud', 'oci', 'databricks',
-            'c++', 'c#', 'cuda'
-        ];
-        const TECH_MATCHERS = TECH_KEYWORDS.map(t => [t, skillMatcher(t)]);
-
-        // Returns canonical upper-case tech names found in (original-case) text.
+        // Every skill in the text, canonical names, no cap (js/skills.js taxonomy).
         function extractTechStack(text) {
-            if (!text) return [];
-            const plain = /<[a-z][\s\S]*>/i.test(text) ? toPlainText(text) : String(text);
-            const found = [];
-            for (const [tech, rx] of TECH_MATCHERS) {
-                if (rx.test(plain)) found.push(tech.toUpperCase());
-            }
-            return [...new Set(found)].slice(0, 8);
+            if (!text || typeof CariaraSkills === 'undefined') return [];
+            return CariaraSkills.extract(text).map(skill => skill.name);
         }
 
-        const SKILL_PATTERNS = [
-            'kubernetes', 'docker', 'aws', 'azure', 'gcp', 'terraform', 'ansible',
-            'python', 'java', 'javascript', 'typescript', 'go', 'rust', 'c++', 'c#',
-            'react', 'vue', 'angular', 'node', 'django', 'flask', 'spring',
-            'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch',
-            'ci/cd', 'jenkins', 'github actions', 'gitlab', 'argocd',
-            'prometheus', 'grafana', 'datadog', 'splunk',
-            'linux', 'unix', 'bash', 'shell scripting',
-            'microservices', 'api', 'rest', 'graphql', 'grpc',
-            'agile', 'scrum', 'jira'
-        ];
-        const SKILL_MATCHERS = SKILL_PATTERNS.map(s => [s, skillMatcher(s)]);
-
-        // Returns canonical lower-case skill names found in (original-case) text.
         function extractSkillsFromDescription(text) {
-            if (!text) return [];
-            const found = [];
-            for (const [skill, rx] of SKILL_MATCHERS) {
-                if (rx.test(text)) found.push(skill);
-            }
-            return found;
+            return extractTechStack(text);
         }
 
         function extractSalary(job) {
@@ -3880,7 +3887,7 @@
                 autoHeight: false
             },
             animateRows: true,
-            rowHeight: 58,
+            rowHeight: 64,
             headerHeight: 40,
             pagination: true,
             paginationPageSize: 50,
@@ -4080,10 +4087,7 @@
                 }
                 if (!resume) throw new Error('No resume uploaded');
                 const resumeText = String(resume.content || '');
-                resumeSkills = [...new Set([
-                    ...extractSkillsFromDescription(resumeText),
-                    ...extractTechStack(resumeText).map(skill => skill.toLowerCase())
-                ])];
+                resumeSkills = extractTechStack(resumeText);
             } catch (error) {
                 if (error?.message !== 'No resume uploaded') console.warn('Could not load resume skills for matching:', error);
                 resumeSkills = getUserSkillsFromStorage();
@@ -4488,7 +4492,7 @@
                 const query = new URLSearchParams({
                     active_only: 'true',
                     posted_within_hours: String(timeRangeHours),
-                    description_chars: '2000'
+                    description_chars: '20000'
                 });
                 if (currentRole) {
                     query.set('role', currentRole);
@@ -4704,12 +4708,15 @@
             const techStackContainer = document.getElementById('detail-tech-stack');
             const techStack = job.tech_stack || [];
             techStackContainer.innerHTML = techStack.length
-                ? techStack.slice(0, 15).map(tech => `<span class="tech-tag">${escapeHtml(tech)}</span>`).join('')
+                ? techStack.map(tech => `<span class="tech-tag">${escapeHtml(tech)}</span>`).join('')
                 : '<span class="detail-muted">No tech stack detected</span>';
 
             const { score } = populateSkillsAnalysis(job);
             document.getElementById('detail-match-score').textContent = score == null ? '—' : `${score}%`;
             document.getElementById('detail-match-bar').style.width = `${score ?? 0}%`;
+            if (job._full_description == null) {
+                loadFullPosting(job).then(fullJob => { if (selectedJobId === fullJob.id) showJobDetail(fullJob); });
+            }
 
             const viewBtn = document.getElementById('detail-view-btn');
             const url = safeHttpUrl(job.job_url);
@@ -4727,41 +4734,54 @@
         }
 
         function populateSkillsAnalysis(job) {
-            const tbody = document.getElementById('detail-skills-tbody');
-            const { skills, matchedSkills, matched, total, score } = getJobSkillMatch(job);
-            const techLower = new Set((job.tech_stack || []).map(t => t.toLowerCase()));
-            const rows = skills.map(skill => {
-                const isMatch = matchedSkills.has(skill);
-                const category = techLower.has(skill) ? 'Tech' : 'Required';
-                return `<tr>
-                        <td>${escapeHtml(skill)}</td>
-                        <td><span class="chip">${category}</span></td>
-                        <td><span class="skill-match ${isMatch ? 'yes' : 'no'}" aria-label="${isMatch ? 'On your resume' : 'Not on your resume'}">${isMatch ? '✓' : '✗'}</span></td>
-                    </tr>`;
-            }).join('');
-            tbody.innerHTML = rows || '<tr><td colspan="3" class="detail-muted" style="text-align:center;">No skills detected</td></tr>';
+            const box = document.getElementById('detail-skills-compare');
+            const { cmp, matched, total, score } = getJobSkillMatch(job);
+            const chips = (list, cls) => list.map(skill =>
+                `<span class="skill-chip ${cls}" title="${escapeHtml(skill.category)}">${escapeHtml(skill.name)}</span>`).join('');
+            const group = (label, list, cls, empty) => `
+                <div class="skill-group">
+                    <div class="skill-group-head"><span class="skill-dot ${cls}"></span>${label}<span class="skill-group-count">${list.length}</span></div>
+                    <div class="skill-chips">${list.length ? chips(list, cls) : `<span class="detail-muted">${empty}</span>`}</div>
+                </div>`;
+            if (!cmp.resumeTotal) {
+                box.innerHTML = `<p class="detail-muted">Upload a resume in <a href="documents.html">Resumes</a> to compare skills.</p>`
+                    + group('Skills in this job', cmp.matched.concat(cmp.missing), 'is-job', 'No skills found in this posting');
+            } else {
+                box.innerHTML =
+                    group('Matched', cmp.matched, 'is-match', 'None of this job’s skills are on your resume') +
+                    group('Missing from your resume', cmp.missing, 'is-missing', 'Nothing missing') +
+                    group('Only on your resume', cmp.extra, 'is-extra', '—');
+            }
             document.getElementById('detail-skills-matched').textContent = matched;
             document.getElementById('detail-skills-total').textContent = total;
             return { matched, total, score };
         }
 
+        // The list carries a plain-text description; the panel compares
+        // against the full posting.
+        async function loadFullPosting(job) {
+            if (job._full_description != null) return job;
+            try {
+                const full = await apiRequest(`/jobs/${encodeURIComponent(job.id)}`);
+                job._full_description = toPlainText(full?.job_description || '') || job._plain_description || '';
+                job.tech_stack = extractTechStack(job._full_description);
+            } catch (error) {
+                job._full_description = job._plain_description || '';
+            }
+            return job;
+        }
+
         function getJobSkillMatch(job) {
-            const text = job._plain_description ?? toPlainText(job.job_description);
-            const techStack = job.tech_stack || extractTechStack(text) || [];
-            const skills = [...new Set([
-                ...extractSkillsFromDescription(text),
-                ...techStack
-            ].map(skill => String(skill).toLowerCase()))].slice(0, 20);
-            const userSkills = new Set(getUserSkillsFromStorage().map(skill => String(skill).toLowerCase()));
-            const matchedSkills = new Set(skills.filter(skill => userSkills.has(skill)));
-            const total = skills.length;
-            const matched = matchedSkills.size;
+            const text = job._full_description ?? job._plain_description ?? toPlainText(job.job_description);
+            const jobSkills = job._full_description ? extractTechStack(text) : (job.tech_stack || extractTechStack(text));
+            const cmp = CariaraSkills.compare(jobSkills, getUserSkillsFromStorage());
             return {
-                skills,
-                matchedSkills,
-                matched,
-                total,
-                score: total && userSkills.size ? Math.round(matched / total * 100) : null
+                cmp,
+                skills: jobSkills,
+                matchedSkills: new Set(cmp.matched.map(skill => skill.name.toLowerCase())),
+                matched: cmp.matched.length,
+                total: cmp.jobTotal,
+                score: cmp.score
             };
         }
 
@@ -4776,6 +4796,6 @@
     </script>
 
     <!-- Shared Sidebar JavaScript -->
-    <script src="/js/sidebar.js?v=202609291426"></script>
+    <script src="/js/sidebar.js?v=202609291457"></script>
 </body>
 </html>

@@ -370,7 +370,7 @@ async def get_jobs(
 
     # Payload size control
     description_chars: Optional[int] = Query(
-        None, ge=100, le=5000,
+        None, ge=100, le=20000,
         description="If set, job_description is returned as plain text truncated to this many characters"
     ),
 
