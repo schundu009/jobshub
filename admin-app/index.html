@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara Admin - Dashboard</title>
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/admin-layout.css">
+    <title>Dashboard · Cariara Admin</title>
+    <link rel="stylesheet" href="/css/theme.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291615">
     <style>
         /* Enterprise Dashboard Styles */
         .dashboard-grid {
@@ -34,9 +35,9 @@
             background: var(--accent-gradient);
         }
 
-        .metric-card.success::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
-        .metric-card.warning::before { background: linear-gradient(90deg, #eab308, #fbbf24); }
-        .metric-card.info::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .metric-card.success::before { background: var(--c-green); }
+        .metric-card.warning::before { background: var(--c-yellow); }
+        .metric-card.info::before { background: var(--c-blue); }
         .metric-card.purple::before { background: var(--accent-gradient); }
 
         .metric-header {
@@ -82,8 +83,8 @@
             border-radius: 4px;
         }
 
-        .metric-change.positive { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
-        .metric-change.negative { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .metric-change.positive { background: var(--c-green-tint); color: var(--c-green); }
+        .metric-change.negative { background: var(--c-red-tint); color: var(--c-red); }
         .metric-change.neutral { background: var(--bg-tertiary); color: var(--text-secondary); }
 
         .section-header {
@@ -148,12 +149,12 @@
             text-transform: capitalize;
         }
 
-        .status-wishlist .status-count { color: #eab308; }
-        .status-applied .status-count { color: #3b82f6; }
-        .status-interviewing .status-count { color: #14b8a6; }
-        .status-offer .status-count { color: #22c55e; }
-        .status-rejected .status-count { color: #ef4444; }
-        .status-withdrawn .status-count { color: #6b7280; }
+        .status-wishlist .status-count { color: var(--c-yellow); }
+        .status-applied .status-count { color: var(--c-blue); }
+        .status-interviewing .status-count { color: var(--c-blue); }
+        .status-offer .status-count { color: var(--c-green); }
+        .status-rejected .status-count { color: var(--c-red); }
+        .status-withdrawn .status-count { color: var(--c-ink-2); }
 
         .activity-table {
             width: 100%;
@@ -256,6 +257,22 @@
             100% { background-position: -200% 0; }
         }
 
+        .sys-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--c-surface-2);
+            border-radius: 8px;
+        }
+        .sys-label { color: var(--c-ink-2); }
+        .sys-value { font-weight: 500; color: var(--c-ink-2); text-align: right; }
+        .sys-value.ok { color: var(--c-green); }
+        .sys-value.warn { color: var(--c-yellow); }
+        .sys-value.bad { color: var(--c-red); }
+        .sys-value a { color: inherit; }
+
         .two-column {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -269,6 +286,8 @@
         }
     </style>
     <meta name="robots" content="noindex,nofollow">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291615">
 </head>
 <body>
     <header>
@@ -277,9 +296,9 @@
                 <svg width="120" height="32" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#5eead4"/>
-                            <stop offset="50%" style="stop-color:#14b8a6"/>
-                            <stop offset="100%" style="stop-color:#0d9488"/>
+                            <stop offset="0%" style="stop-color:#8ab4f8"/>
+                            <stop offset="50%" style="stop-color:#1967d2"/>
+                            <stop offset="100%" style="stop-color:#185abc"/>
                         </linearGradient>
                     </defs>
                     <text x="0" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600" fill="url(#logoGradient)">Cariara</text>
@@ -314,7 +333,7 @@
             <div class="metric-card purple">
                 <div class="metric-header">
                     <span class="metric-label">Total Jobs</span>
-                    <div class="metric-icon">📋</div>
+                    <div class="metric-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
                 </div>
                 <div class="metric-value" id="total-jobs">-</div>
                 <span class="metric-change neutral" id="jobs-change">Loading...</span>
@@ -323,7 +342,7 @@
             <div class="metric-card info">
                 <div class="metric-header">
                     <span class="metric-label">Active Sources</span>
-                    <div class="metric-icon">🏢</div>
+                    <div class="metric-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M3 21h18"/></svg></div>
                 </div>
                 <div class="metric-value" id="total-companies">-</div>
                 <span class="metric-change neutral">Companies tracked</span>
@@ -331,8 +350,8 @@
 
             <div class="metric-card success">
                 <div class="metric-header">
-                    <span class="metric-label">Jobs Today</span>
-                    <div class="metric-icon">📈</div>
+                    <span class="metric-label">Posted in last 24h</span>
+                    <div class="metric-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div>
                 </div>
                 <div class="metric-value" id="jobs-today">-</div>
                 <span class="metric-change positive" id="today-change">New listings</span>
@@ -340,11 +359,11 @@
 
             <div class="metric-card warning">
                 <div class="metric-header">
-                    <span class="metric-label">Pending Review</span>
-                    <div class="metric-icon">⏳</div>
+                    <span class="metric-label">Upcoming interviews</span>
+                    <div class="metric-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></div>
                 </div>
-                <div class="metric-value" id="pending-review">-</div>
-                <span class="metric-change neutral">In wishlist</span>
+                <div class="metric-value" id="upcoming-interviews">-</div>
+                <span class="metric-change neutral">Next 7 days</span>
             </div>
         </div>
 
@@ -376,19 +395,24 @@
                 </div>
                 <div id="system-status">
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                            <span style="color: var(--text-secondary);">API</span>
-                            <span style="color: #22c55e; font-weight: 500;">● Healthy</span>
+                        <div class="sys-row">
+                            <span class="sys-label">API</span>
+                            <span class="sys-value" id="api-status">Checking…</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                            <span style="color: var(--text-secondary);">Redis</span>
-                            <span style="color: #22c55e; font-weight: 500;" id="redis-status">● Checking...</span>
+                        <div class="sys-row">
+                            <span class="sys-label">Redis</span>
+                            <span class="sys-value" id="redis-status">Checking…</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                            <span style="color: var(--text-secondary);">Scrapers</span>
-                            <span style="color: var(--text-muted); font-weight: 500;" id="scraper-status">● Checking...</span>
+                        <div class="sys-row">
+                            <span class="sys-label">Workers</span>
+                            <span class="sys-value" id="worker-status">Checking…</span>
+                        </div>
+                        <div class="sys-row">
+                            <span class="sys-label">Scrapers</span>
+                            <span class="sys-value" id="scraper-status">Checking…</span>
                         </div>
                     </div>
+                    <div id="queue-warnings" style="margin-top: 12px; font-size: 13px;"></div>
                 </div>
             </div>
         </div>
@@ -422,44 +446,47 @@
         </div>
     </main>
 
-    <script src="/js/app.js"></script>
-    <script src="/js/admin-sidebar.js"></script>
+    <script src="/js/app.js?v=202609291615"></script>
+    <script src="/js/admin-sidebar.js?v=202609291615"></script>
     <script>
+        const DASH_TIMEOUT_MS = 10000;
+
+        function setStatus(id, text, level, href) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.className = 'sys-value' + (level ? ' ' + level : '');
+            el.innerHTML = href
+                ? `<a href="${escapeHtml(href)}">● ${escapeHtml(text)}</a>`
+                : `● ${escapeHtml(text)}`;
+        }
+
         async function loadDashboard() {
             try {
-                const summary = await apiRequest('/analytics/summary');
+                const summary = await apiRequest('/analytics/summary', 'GET', null, { timeout: DASH_TIMEOUT_MS });
+                setStatus('api-status', 'Healthy', 'ok');
 
-                // Update main metrics
-                document.getElementById('total-jobs').textContent = summary.total_jobs.toLocaleString();
-                document.getElementById('total-companies').textContent = summary.total_companies.toLocaleString();
-                document.getElementById('pending-review').textContent = (summary.status_counts.wishlist || 0).toLocaleString();
+                const statusCounts = summary.status_counts || {};
+                document.getElementById('total-jobs').textContent = Number(summary.total_jobs || 0).toLocaleString();
+                document.getElementById('total-companies').textContent = Number(summary.total_companies || 0).toLocaleString();
+                document.getElementById('upcoming-interviews').textContent = Number(summary.upcoming_interviews || 0).toLocaleString();
+                document.getElementById('jobs-change').textContent = 'Active listings';
 
-                // Update jobs change text
-                document.getElementById('jobs-change').textContent = `${summary.total_companies} sources tracked`;
-
-                // Status overview
-                const statusOverview = document.getElementById('status-overview');
                 const statuses = ['wishlist', 'applied', 'interviewing', 'offer', 'rejected', 'withdrawn'];
-                let statusHtml = '';
-                statuses.forEach(status => {
-                    const count = summary.status_counts[status] || 0;
-                    statusHtml += `
-                        <div class="status-item status-${status}" onclick="window.location='jobs.html?status=${status}'">
-                            <div class="status-count">${count.toLocaleString()}</div>
-                            <div class="status-label">${status}</div>
-                        </div>
-                    `;
-                });
-                statusOverview.innerHTML = statusHtml;
+                document.getElementById('status-overview').innerHTML = statuses.map(status => `
+                    <a class="status-item status-${status}" href="jobs.html?status=${status}" style="text-decoration: none; color: inherit;">
+                        <div class="status-count">${Number(statusCounts[status] || 0).toLocaleString()}</div>
+                        <div class="status-label">${status}</div>
+                    </a>
+                `).join('');
 
-                // Recent activity
                 const activityTbody = document.getElementById('activity-tbody');
-                if (summary.recent_activity.length === 0) {
+                const recent = summary.recent_activity || [];
+                if (recent.length === 0) {
                     activityTbody.innerHTML = `
                         <tr>
                             <td colspan="4">
                                 <div class="empty-state">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                                     <p>No recent activity</p>
                                     <a href="jobs.html" class="btn btn-primary" style="margin-top: 12px;">Import Jobs</a>
                                 </div>
@@ -467,96 +494,101 @@
                         </tr>
                     `;
                 } else {
-                    let activityHtml = '';
-                    summary.recent_activity.forEach(job => {
-                        activityHtml += `
-                            <tr onclick="window.location='job_detail.html?id=${job.id}'">
-                                <td class="job-title-cell">${job.title}</td>
-                                <td class="company-cell">${job.company_name || '-'}</td>
+                    activityTbody.innerHTML = recent.map(job => {
+                        const href = `job_detail.html?id=${encodeURIComponent(job.id)}`;
+                        return `
+                            <tr data-href="${escapeHtml(href)}">
+                                <td class="job-title-cell"><a href="${escapeHtml(href)}" style="color: inherit; text-decoration: none;">${escapeHtml(job.title)}</a></td>
+                                <td class="company-cell">${escapeHtml(job.company_name || '-')}</td>
                                 <td>${getStatusBadge(job.status)}</td>
                                 <td class="time-cell">${formatDate(job.created_at)}</td>
                             </tr>
                         `;
-                    });
-                    activityTbody.innerHTML = activityHtml;
+                    }).join('');
                 }
-
-                // Load jobs today count
-                loadJobsToday();
-
             } catch (error) {
                 console.error('Failed to load dashboard:', error);
-                document.getElementById('status-overview').innerHTML = '<p style="color: var(--error); padding: 20px; text-align: center;">Failed to load dashboard data. Check console for details.</p>';
+                setStatus('api-status', 'Unreachable', 'bad');
+                const msg = `<p style="color: var(--c-red); padding: 20px; text-align: center;">Couldn't load dashboard data: ${escapeHtml(error.message)}</p>`;
+                document.getElementById('status-overview').innerHTML = msg;
+                document.getElementById('activity-tbody').innerHTML = `<tr><td colspan="4">${msg}</td></tr>`;
             }
         }
 
         async function loadJobsToday() {
+            const valueEl = document.getElementById('jobs-today');
+            const changeEl = document.getElementById('today-change');
             try {
-                // Get jobs from last 24 hours
-                const response = await apiRequest('/jobs?posted_within_hours=24&limit=1&all=true');
-                document.getElementById('jobs-today').textContent = response.total.toLocaleString();
-                document.getElementById('today-change').textContent = `+${response.total} today`;
-                document.getElementById('today-change').className = response.total > 0 ? 'metric-change positive' : 'metric-change neutral';
+                const response = await apiRequest('/jobs?posted_within_hours=24&limit=1&all=true&description_chars=100', 'GET', null, { timeout: DASH_TIMEOUT_MS });
+                const total = Number(response.total || 0);
+                valueEl.textContent = total.toLocaleString();
+                changeEl.textContent = total > 0 ? `+${total.toLocaleString()} new listings` : 'No new listings';
+                changeEl.className = total > 0 ? 'metric-change positive' : 'metric-change neutral';
             } catch (e) {
-                document.getElementById('jobs-today').textContent = '-';
+                valueEl.textContent = '-';
+                changeEl.textContent = "Couldn't load";
+                changeEl.className = 'metric-change negative';
             }
         }
 
-        async function checkSystemHealth() {
+        async function loadWorkerStatus() {
             try {
-                const response = await fetch(API_BASE.replace('/api', '') + '/health/redis');
-                const data = await response.json();
+                const st = await apiRequest('/celery/status', 'GET', null, { timeout: DASH_TIMEOUT_MS });
+                setStatus('redis-status', st.redis_connected ? 'Connected' : 'Disconnected', st.redis_connected ? 'ok' : 'bad');
 
-                document.getElementById('redis-status').innerHTML = data.status === 'healthy'
-                    ? '<span style="color: #22c55e;">● Healthy</span>'
-                    : '<span style="color: #ef4444;">● Unhealthy</span>';
-
-                document.getElementById('scraper-status').innerHTML = '<span style="color: #22c55e;">● Active</span>';
-            } catch (e) {
-                document.getElementById('redis-status').innerHTML = '<span style="color: #ef4444;">● Error</span>';
-            }
-        }
-
-        // Check admin access
-        function checkAdminAccess() {
-            const token = localStorage.getItem('access_token');
-            const userJson = localStorage.getItem('user');
-
-            if (!token || !userJson) {
-                window.location.href = '/login.html';
-                return false;
-            }
-
-            try {
-                const user = JSON.parse(userJson);
-                const role = user.role || 'job_seeker';
-                const isAdmin = ['administrator', 'manager', 'developer', 'admin'].includes(role);
-
-                if (!isAdmin) {
-                    alert('Access denied. Admin privileges required.');
-                    window.location.href = '/login.html';
-                    return false;
+                const workers = (st.workers || []).filter(w => w.status === 'online');
+                const queues = st.queues || [];
+                const backlog = queues.reduce((n, q) => n + Number(q.messages || 0), 0);
+                if (workers.length === 0) {
+                    setStatus('worker-status', 'No workers', 'bad', '/settings.html#celery');
+                } else {
+                    const text = `${workers.length} online` + (backlog ? ` · ${backlog.toLocaleString()} queued` : ' · queues empty');
+                    setStatus('worker-status', text, 'ok', '/settings.html#celery');
                 }
-                return true;
+
+                // Queues nobody consumes: tasks sent there will never run.
+                const orphaned = queues.filter(q => Number(q.consumers || 0) === 0);
+                const warn = document.getElementById('queue-warnings');
+                if (orphaned.length && workers.length) {
+                    warn.innerHTML = `<span style="color: var(--c-yellow);">No consumers on: ${orphaned.map(q => `${escapeHtml(q.name)}${q.messages ? ` (${Number(q.messages).toLocaleString()} waiting)` : ''}`).join(', ')}</span>`;
+                } else {
+                    warn.innerHTML = '';
+                }
             } catch (e) {
-                window.location.href = '/login.html';
-                return false;
+                setStatus('redis-status', "Couldn't load", 'bad');
+                setStatus('worker-status', "Couldn't load", 'bad');
             }
         }
 
-        // Initialize everything after DOM is ready
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize admin layout first
+        async function loadScraperHealth() {
+            try {
+                const data = await apiRequest('/scrapers/status', 'GET', null, { timeout: DASH_TIMEOUT_MS });
+                const h = summarizeScraperHealth(data);
+                if (h.critical) {
+                    setStatus('scraper-status', `${h.critical} critical · ${h.warning} warning`, 'bad', '/settings.html#scrapers');
+                } else if (h.warning) {
+                    setStatus('scraper-status', `${h.warning} warning of ${h.total}`, 'warn', '/settings.html#scrapers');
+                } else {
+                    setStatus('scraper-status', `${h.healthy} healthy`, 'ok', '/settings.html#scrapers');
+                }
+            } catch (e) {
+                setStatus('scraper-status', "Couldn't load", 'bad');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!requireAdmin()) return;
             initAdminLayout('dashboard', 'Dashboard');
 
-            // Check admin access
-            if (!checkAdminAccess()) {
-                return;
-            }
+            document.getElementById('activity-tbody').addEventListener('click', (e) => {
+                const row = e.target.closest('tr[data-href]');
+                if (row && !e.target.closest('a')) window.location.href = row.dataset.href;
+            });
 
-            // Load dashboard data
-            await loadDashboard();
-            checkSystemHealth();
+            // Independent loads: a slow or failing call never blocks the others.
+            // Wave 1 (4 calls), then the heavier scraper-status scan.
+            Promise.allSettled([loadDashboard(), loadJobsToday(), loadWorkerStatus()])
+                .then(() => loadScraperHealth());
         });
     </script>
 </body>

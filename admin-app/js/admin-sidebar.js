@@ -62,23 +62,7 @@ function renderAdminSidebar(activePageId) {
     return `
         <aside class="admin-sidebar" id="admin-sidebar">
             <div class="admin-sidebar-header">
-                <a href="/index.html" class="admin-logo">
-                    <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="sidebarLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#5eead4"/>
-                                <stop offset="50%" style="stop-color:#14b8a6"/>
-                                <stop offset="100%" style="stop-color:#0d9488"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M24 6C14.059 6 6 14.059 6 24C6 33.941 14.059 42 24 42C27.8 42 31.3 40.8 34 38.8" stroke="url(#sidebarLogoGradient)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-                        <line x1="26" y1="18" x2="40" y2="18" stroke="url(#sidebarLogoGradient)" stroke-width="2.5" stroke-linecap="round"/>
-                        <line x1="26" y1="25" x2="36" y2="25" stroke="url(#sidebarLogoGradient)" stroke-width="2.5" stroke-linecap="round"/>
-                        <line x1="26" y1="32" x2="32" y2="32" stroke="url(#sidebarLogoGradient)" stroke-width="2.5" stroke-linecap="round"/>
-                        <circle cx="42" cy="32" r="2.5" stroke="url(#sidebarLogoGradient)" stroke-width="1.5" fill="none"/>
-                    </svg>
-                    <span class="admin-logo-text">Cariara</span>
-                </a>
+                <a href="/index.html" class="c-brand admin-logo" aria-label="Cariara Admin home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="28" height="28"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="22"><span class="c-brand-product">Admin</span></a>
             </div>
             <nav class="admin-nav">
                 ${navHtml}
@@ -174,121 +158,83 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Admin logout function
+// Admin logout: clears the local session only (never calls /auth/logout-all).
 function adminLogout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    if (typeof logout === 'function') return logout();
+    ['access_token', 'refresh_token', 'token', 'user', 'redirect_after_login'].forEach(k => localStorage.removeItem(k));
     window.location.href = '/login.html';
 }
 
 // Update user info in sidebar (signout is in topbar)
 function updateAdminUserInfo() {
     const userInfoSection = document.getElementById('admin-user-info-section');
+    if (!userInfoSection) return;
 
-    // Populate user info section only (signout is in topbar)
-    if (userInfoSection) {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const name = user.name || 'Admin';
-        const email = user.email || '';
-        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'A';
-        const role = user.role || 'admin';
-        const roleDisplay = role === 'admin' ? 'Administrator' : role.charAt(0).toUpperCase() + role.slice(1);
+    let user = {};
+    try { user = JSON.parse(localStorage.getItem('user') || '{}') || {}; } catch (e) { user = {}; }
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const name = user.name || user.full_name || 'Admin';
+    const email = user.email || '';
+    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'A';
+    const role = String(user.role || 'admin');
+    const roleDisplay = role === 'admin' ? 'Administrator' : role.charAt(0).toUpperCase() + role.slice(1);
 
-        userInfoSection.innerHTML = `
-            <div class="admin-user-info">
-                <div class="admin-user-avatar">${initials}</div>
-                <div class="admin-user-details">
-                    <div class="admin-user-name">${name}</div>
-                    <div class="admin-user-email">${email || roleDisplay}</div>
-                </div>
+    userInfoSection.innerHTML = `
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">${esc(initials)}</div>
+            <div class="admin-user-details">
+                <div class="admin-user-name">${esc(name)}</div>
+                <div class="admin-user-email">${esc(email || roleDisplay)}</div>
             </div>
-        `;
-    }
+        </div>
+        <button type="button" class="admin-logout-btn" onclick="adminLogout()">${getNavIcon('logout', 20)}<span>Sign out</span></button>
+    `;
 }
 
-// Theme toggle function
-function toggleTheme() {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-
-    // Update theme icons
-    updateThemeIcons(newTheme);
-}
-
-function updateThemeIcons(theme) {
-    const moonIcon = document.getElementById('theme-icon-moon');
-    const sunIcon = document.getElementById('theme-icon-sun');
-
-    if (moonIcon && sunIcon) {
-        if (theme === 'dark') {
-            moonIcon.style.display = 'none';
-            sunIcon.style.display = 'block';
-        } else {
-            moonIcon.style.display = 'block';
-            sunIcon.style.display = 'none';
-        }
-    }
-}
-
-// Initialize theme on page load
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcons(savedTheme);
-}
-
+/**
+ * Build the shared admin shell around the page's existing content.
+ * Existing DOM nodes are MOVED (not re-serialized), so event listeners bound
+ * before this call and elements outside <main> (modals, toasts) keep working.
+ * Theme handling lives in app.js (initTheme/toggleTheme/updateThemeIcon).
+ */
 function initAdminLayout(pageId, pageTitle, breadcrumb = null) {
     try {
-        // Initialize theme first
-        initTheme();
+        if (document.querySelector('.admin-layout')) return;
 
-        // Remove existing header if present
-        const existingHeader = document.querySelector('header');
-        if (existingHeader) {
-            existingHeader.remove();
-        }
+        document.querySelectorAll('body > header').forEach(h => h.remove());
 
-        // Remove existing main and wrap content
-        const existingMain = document.querySelector('main');
-        const mainContent = existingMain ? existingMain.innerHTML : '<p>Loading...</p>';
-
-        // Create new layout structure
-        const layoutHtml = `
+        const tpl = document.createElement('template');
+        tpl.innerHTML = `
             <div class="admin-layout">
                 ${renderAdminSidebar(pageId)}
                 <div class="admin-main">
                     ${renderAdminTopbar(pageTitle, breadcrumb)}
-                    <div class="admin-content">
-                        ${mainContent}
-                    </div>
+                    <div class="admin-content"></div>
                 </div>
             </div>
-        `;
+        `.trim();
+        const layout = tpl.content.firstElementChild;
+        const content = layout.querySelector('.admin-content');
 
-        // Replace body content (keeping scripts)
-        const scripts = document.body.querySelectorAll('script');
-        document.body.innerHTML = layoutHtml;
-        scripts.forEach(script => document.body.appendChild(script.cloneNode(true)));
+        const existingMain = document.querySelector('main');
+        if (existingMain) {
+            while (existingMain.firstChild) content.appendChild(existingMain.firstChild);
+            existingMain.remove();
+        }
 
-        // Update user info after layout is rendered
-        setTimeout(updateAdminUserInfo, 0);
+        // Other visible page content outside <main> goes into the content area;
+        // fixed overlays (modals, toasts) stay at body level so positioning is unaffected.
+        Array.from(document.body.children).forEach(el => {
+            if (['SCRIPT', 'STYLE', 'TEMPLATE', 'LINK', 'NOSCRIPT'].includes(el.tagName)) return;
+            if (/modal|overlay|toast|dialog/i.test(`${el.id} ${el.className}`)) return;
+            content.appendChild(el);
+        });
+
+        document.body.insertBefore(layout, document.body.firstChild);
+
+        if (typeof initTheme === 'function') initTheme();
+        updateAdminUserInfo();
     } catch (error) {
         console.error('Failed to initialize admin layout:', error);
-        // Don't leave the page blank - show an error message
-        if (!document.querySelector('.admin-layout')) {
-            document.body.innerHTML = `
-                <div style="padding: 40px; text-align: center; color: #ef4444;">
-                    <h2>Error loading admin page</h2>
-                    <p>${error.message}</p>
-                    <button onclick="window.location.reload()" style="padding: 10px 20px; cursor: pointer;">Reload Page</button>
-                </div>
-            `;
-        }
     }
 }

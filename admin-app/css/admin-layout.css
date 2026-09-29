@@ -83,7 +83,7 @@
 }
 
 .admin-nav-item.active {
-    background: #14b8a6;
+    background: #1967d2;
     color: #ffffff;
     border: none;
 }
@@ -100,7 +100,7 @@
 
 .admin-nav-item .nav-badge {
     margin-left: auto;
-    background: #14b8a6;
+    background: #1967d2;
     color: white;
     font-size: 11px;
     font-weight: 600;
@@ -124,7 +124,7 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    background: linear-gradient(135deg, #1967d2 0%, #185abc 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -197,7 +197,7 @@
 }
 
 .admin-topbar-breadcrumb a:hover {
-    color: #14b8a6;
+    color: #1967d2;
 }
 
 .admin-topbar-right {
@@ -531,7 +531,7 @@
 .admin-card-title svg {
     width: 20px;
     height: 20px;
-    color: #14b8a6;
+    color: #1967d2;
 }
 
 /* Quick Stats Grid */
@@ -558,12 +558,12 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #14b8a6, #2dd4bf);
+    background: linear-gradient(90deg, #1967d2, #4285f4);
 }
 
 .admin-stat-card.success::before { background: linear-gradient(90deg, #22c55e, #4ade80); }
 .admin-stat-card.warning::before { background: linear-gradient(90deg, #eab308, #fbbf24); }
-.admin-stat-card.info::before { background: linear-gradient(90deg, #14b8a6, #2dd4bf); }
+.admin-stat-card.info::before { background: linear-gradient(90deg, #1967d2, #4285f4); }
 .admin-stat-card.error::before { background: linear-gradient(90deg, #ef4444, #f87171); }
 
 .admin-stat-label {
@@ -764,12 +764,12 @@
     justify-content: center;
     font-size: 11px;
     font-weight: 600;
-    color: #14b8a6;
+    color: #1967d2;
     flex-shrink: 0;
 }
 
 .sidebar-company-item:hover .company-initial {
-    background: #14b8a6;
+    background: #1967d2;
     color: white;
 }
 
@@ -846,9 +846,9 @@
 }
 
 .job-type-item.active {
-    background: rgba(20, 184, 166, 0.1);
-    color: #14b8a6;
-    border: 1px solid rgba(20, 184, 166, 0.3);
+    background: rgba(25, 103, 210, 0.1);
+    color: #1967d2;
+    border: 1px solid rgba(25, 103, 210, 0.3);
 }
 
 .job-type-label {
@@ -909,7 +909,7 @@
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    background: linear-gradient(135deg, #1967d2 0%, #185abc 100%);
     display: flex;
     align-items: center;
     justify-content: center;

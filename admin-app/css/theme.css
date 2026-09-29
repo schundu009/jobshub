@@ -33,21 +33,21 @@
     --border-subtle: #f1f5f9;
 
     /* Teal accent colors */
-    --accent-primary: #14b8a6;
-    --accent-hover: #0d9488;
-    --accent-gradient: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #0d9488 100%);
-    --accent-light: #5eead4;
-    --accent-medium: #14b8a6;
-    --accent-deep: #0d9488;
-    --accent-blue: #14b8a6;
-    --accent-blue-muted: rgba(20, 184, 166, 0.15);
-    --accent-blue-light: #14b8a6;
-    --accent-purple: #0d9488;
+    --accent-primary: #1967d2;
+    --accent-hover: #185abc;
+    --accent-gradient: linear-gradient(135deg, #4285f4 0%, #1967d2 50%, #185abc 100%);
+    --accent-light: #8ab4f8;
+    --accent-medium: #1967d2;
+    --accent-deep: #185abc;
+    --accent-blue: #1967d2;
+    --accent-blue-muted: rgba(25, 103, 210, 0.15);
+    --accent-blue-light: #1967d2;
+    --accent-purple: #185abc;
 
     /* Legacy purple aliases for compatibility */
-    --purple-light: #5eead4;
-    --purple-medium: #14b8a6;
-    --purple-deep: #0d9488;
+    --purple-light: #8ab4f8;
+    --purple-medium: #1967d2;
+    --purple-deep: #185abc;
 
     /* Status colors */
     --success: #16a34a;
@@ -55,8 +55,8 @@
     --error: #dc2626;
     --error-muted: #fef2f2;
     --warning: #ca8a04;
-    --primary-yellow: #14b8a6;
-    --primary-yellow-light: #5eead4;
+    --primary-yellow: #1967d2;
+    --primary-yellow-light: #8ab4f8;
 
     /* Sidebar specific - Dark navy */
     --sidebar-bg: #0f172a;
@@ -92,21 +92,21 @@
     --border-subtle: #1e293b;
 
     /* Teal accent colors */
-    --accent-primary: #2dd4bf;
-    --accent-hover: #5eead4;
-    --accent-gradient: linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #14b8a6 100%);
-    --accent-light: #5eead4;
-    --accent-medium: #2dd4bf;
-    --accent-deep: #14b8a6;
-    --accent-blue: #2dd4bf;
+    --accent-primary: #4285f4;
+    --accent-hover: #8ab4f8;
+    --accent-gradient: linear-gradient(135deg, #8ab4f8 0%, #4285f4 50%, #1967d2 100%);
+    --accent-light: #8ab4f8;
+    --accent-medium: #4285f4;
+    --accent-deep: #1967d2;
+    --accent-blue: #4285f4;
     --accent-blue-muted: rgba(45, 212, 191, 0.15);
-    --accent-blue-light: #5eead4;
-    --accent-purple: #14b8a6;
+    --accent-blue-light: #8ab4f8;
+    --accent-purple: #1967d2;
 
     /* Legacy purple aliases for compatibility */
-    --purple-light: #5eead4;
-    --purple-medium: #2dd4bf;
-    --purple-deep: #14b8a6;
+    --purple-light: #8ab4f8;
+    --purple-medium: #4285f4;
+    --purple-deep: #1967d2;
 
     /* Status colors */
     --success: #22c55e;
@@ -114,8 +114,8 @@
     --error: #ef4444;
     --error-muted: #450a0a;
     --warning: #eab308;
-    --primary-yellow: #2dd4bf;
-    --primary-yellow-light: #5eead4;
+    --primary-yellow: #4285f4;
+    --primary-yellow-light: #8ab4f8;
 
     /* Sidebar specific - Dark navy */
     --sidebar-bg: #0f172a;
@@ -231,7 +231,7 @@ a:hover {
 }
 
 .sidebar-nav a.active {
-    background: #14b8a6 !important;
+    background: #1967d2 !important;
     color: #ffffff !important;
 }
 
@@ -261,8 +261,8 @@ a:hover {
 }
 
 .sidebar-filter-item.active {
-    background: rgba(20, 184, 166, 0.15) !important;
-    color: #14b8a6 !important;
+    background: rgba(25, 103, 210, 0.15) !important;
+    color: #1967d2 !important;
 }
 
 .sidebar-filter-item .filter-count {
@@ -280,13 +280,13 @@ a:hover {
 }
 
 .sidebar-company-item.active {
-    background: rgba(20, 184, 166, 0.15) !important;
-    color: #14b8a6 !important;
+    background: rgba(25, 103, 210, 0.15) !important;
+    color: #1967d2 !important;
 }
 
 .sidebar-company-item .company-initial {
     background: #f1f5f9 !important;
-    color: #14b8a6 !important;
+    color: #1967d2 !important;
 }
 
 .sidebar-company-item .company-count {
@@ -940,7 +940,7 @@ header .theme-toggle button:hover {
 }
 
 [data-theme="dark"] .sidebar-nav a.active {
-    background: #14b8a6 !important;
+    background: #1967d2 !important;
     color: #ffffff !important;
 }
 
@@ -963,7 +963,7 @@ header .theme-toggle button:hover {
 
 [data-theme="dark"] .sidebar-filter-item.active {
     background: rgba(45, 212, 191, 0.15) !important;
-    color: #2dd4bf !important;
+    color: #4285f4 !important;
 }
 
 [data-theme="dark"] .sidebar-filter-item .filter-count {
@@ -982,12 +982,12 @@ header .theme-toggle button:hover {
 
 [data-theme="dark"] .sidebar-company-item.active {
     background: rgba(45, 212, 191, 0.15) !important;
-    color: #2dd4bf !important;
+    color: #4285f4 !important;
 }
 
 [data-theme="dark"] .sidebar-company-item .company-initial {
     background: #1e293b !important;
-    color: #2dd4bf !important;
+    color: #4285f4 !important;
 }
 
 [data-theme="dark"] .sidebar-company-item .company-count {
@@ -1062,7 +1062,7 @@ header .theme-toggle button:hover {
 
 [data-theme="light"] .admin-nav-item.active,
 :root .admin-nav-item.active {
-    background: #14b8a6 !important;
+    background: #1967d2 !important;
     color: #ffffff !important;
 }
 
@@ -1176,7 +1176,7 @@ header .theme-toggle button:hover {
 }
 
 [data-theme="dark"] .admin-nav-item.active {
-    background: #14b8a6 !important;
+    background: #1967d2 !important;
     color: #ffffff !important;
 }
 

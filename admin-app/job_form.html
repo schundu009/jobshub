@@ -1,31 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Add/Edit Job</title>
-    <link rel="stylesheet" href="/css/theme.css">
+    <title>Job · Cariara Admin</title>
+    <link rel="stylesheet" href="/css/theme.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291615">
     <meta name="robots" content="noindex,nofollow">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291615">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Cariara</h1>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Dashboard</a></li>
-                    <li><a href="jobs.html" class="active">Jobs</a></li>
-                    <li><a href="companies.html">Companies</a></li>
-                    <li><a href="analytics.html">Analytics</a></li>
-                    <li><a href="settings.html">Settings</a></li>
-                </ul>
-                <div class="theme-toggle">
-                    <button id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
-                </div>
-            </nav>
-        </div>
-    </header>
-
     <main class="container">
         <div class="page-header">
             <h2 id="page-title">Add New Job</h2>
@@ -117,10 +103,13 @@
         </div>
     </main>
 
-    <script src="/js/app.js"></script>
+    <script src="/js/app.js?v=202609291615"></script>
+    <script src="/js/admin-sidebar.js?v=202609291615"></script>
     <script>
         const jobId = getUrlParam('id');
         const isEdit = !!jobId;
+        const adminOk = requireAdmin();
+        if (adminOk) initAdminLayout('jobs', isEdit ? 'Edit job' : 'Add job', '<a href="/jobs.html">Jobs</a>');
 
         async function initForm() {
             await loadCompanyOptions('company_id');
@@ -128,7 +117,7 @@
             if (isEdit) {
                 document.getElementById('page-title').textContent = 'Edit Job';
                 try {
-                    const job = await apiRequest(`/jobs/${jobId}`);
+                    const job = await apiRequest(`/jobs/${encodeURIComponent(jobId)}`);
                     document.getElementById('title').value = job.title || '';
                     document.getElementById('company_id').value = job.company_id || '';
                     document.getElementById('location').value = job.location || '';
@@ -169,11 +158,11 @@
 
             try {
                 if (isEdit) {
-                    await apiRequest(`/jobs/${jobId}`, 'PUT', formData);
+                    await apiRequest(`/jobs/${encodeURIComponent(jobId)}`, 'PUT', formData);
                     showAlert('Job updated successfully');
                 } else {
                     const result = await apiRequest('/jobs', 'POST', formData);
-                    window.location.href = `job_detail.html?id=${result.id}`;
+                    window.location.href = `job_detail.html?id=${encodeURIComponent(result.id)}`;
                     return;
                 }
                 window.location.href = 'jobs.html';
@@ -182,7 +171,7 @@
             }
         });
 
-        initForm();
+        if (adminOk) initForm();
     </script>
 </body>
 </html>

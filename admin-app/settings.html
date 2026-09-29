@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - Cariara Admin</title>
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/admin-layout.css">
+    <title>Settings · Cariara Admin</title>
+    <link rel="stylesheet" href="/css/theme.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291615">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -478,10 +478,12 @@
         .progress-wrap { margin-top: 12px; display: none; }
         .progress-wrap.visible { display: block; }
         .progress-bar { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #14b8a6, #0d9488); border-radius: 3px; transition: width 0.3s; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #1967d2, #185abc); border-radius: 3px; transition: width 0.3s; }
         .progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
     </style>
     <meta name="robots" content="noindex,nofollow">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291615">
 </head>
 <body>
     <main class="container">
@@ -529,7 +531,7 @@
                         </div>
 
                         <div id="api-key-display" class="key-display" style="display: none;">
-                            <svg width="14" height="14" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" style="color: var(--c-green);" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             <span style="color: var(--text-secondary); font-size: 12px;"><span id="active-provider-label">OpenAI</span>:</span>
                             <code id="api-key-preview">sk-****</code>
                             <button id="remove-btn" class="btn btn-ghost btn-xs" onclick="removeApiKey()" style="margin-left: auto;">Remove</button>
@@ -553,16 +555,7 @@
                             <div>
                                 <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Model</label>
                                 <select id="ai-model-select" class="select" onchange="setAIModel()" style="width: 100%;">
-                                    <optgroup label="OpenAI">
-                                        <option value="gpt-4o-mini">GPT-4o Mini</option>
-                                        <option value="gpt-4o">GPT-4o</option>
-                                        <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                                    </optgroup>
-                                    <optgroup label="Claude">
-                                        <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-                                        <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku</option>
-                                        <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                                    </optgroup>
+                                    <option value="">Loading models…</option>
                                 </select>
                             </div>
                         </div>
@@ -588,8 +581,9 @@
                                 <option value="warning">Warning</option>
                                 <option value="critical">Critical</option>
                                 <option value="healthy">Healthy</option>
+                                <option value="disabled">Disabled</option>
                             </select>
-                            <button class="btn btn-secondary btn-sm" onclick="runAllWarningScrapers()">
+                            <button class="btn btn-secondary btn-sm" onclick="runAllWarningScrapers(this)">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
                                 Run Warning
                             </button>
@@ -646,23 +640,23 @@
                     </div>
                     <div class="card-body">
                         <div class="action-grid">
-                            <button class="action-btn" onclick="triggerCeleryTask('scrape_all_companies')">
+                            <button class="action-btn" onclick=\"triggerCeleryTask('scrape_all_companies', this)\">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
                                 <span class="text">Run All Scrapers</span>
                             </button>
-                            <button class="action-btn" onclick="triggerCeleryTask('cleanup_old_scraper_runs')">
+                            <button class="action-btn" onclick=\"triggerCeleryTask('cleanup_old_scraper_runs', this)\">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
                                 <span class="text">Cleanup Runs</span>
                             </button>
-                            <button class="action-btn" onclick="triggerCeleryTask('mark_stale_jobs_inactive')">
+                            <button class="action-btn" onclick=\"triggerCeleryTask('mark_stale_jobs_inactive', this)\">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
                                 <span class="text">Mark Stale</span>
                             </button>
-                            <button class="action-btn" onclick="triggerCeleryTask('fetch_missing_descriptions')">
+                            <button class="action-btn" onclick=\"triggerCeleryTask('fetch_missing_descriptions', this)\">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
                                 <span class="text">Fetch Descriptions</span>
                             </button>
-                            <button class="action-btn" onclick="triggerCeleryTask('process_pending_applications')">
+                            <button class="action-btn" onclick=\"triggerCeleryTask('process_pending_applications', this)\">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
                                 <span class="text">Process Apply</span>
                             </button>
@@ -785,38 +779,43 @@
         </div>
     </main>
 
-    <script src="/js/app.js"></script>
-    <script src="/js/admin-sidebar.js"></script>
+    <script src="/js/app.js?v=202609291615"></script>
+    <script src="/js/admin-sidebar.js?v=202609291615"></script>
     <script>
-        // Initialize
-        document.addEventListener('DOMContentLoaded', async function() {
+        // Each tab's data loads on first open (keeps first paint to <= 3 API calls).
+        const TAB_LOADERS = {
+            ai: () => Promise.allSettled([checkApiKeyStatus(), loadDefaultProvider(), loadAIModel()]),
+            scrapers: () => loadScraperStatus(),
+            workers: () => Promise.allSettled([loadCeleryStatus(), loadCelerySchedules(), loadRecentTasks()]),
+            data: () => loadJobAgeFilter(),
+        };
+        const TAB_ALIASES = { celery: 'workers', worker: 'workers', scraper: 'scrapers' };
+        const loadedTabs = new Set();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!requireAdmin()) return;
             initAdminLayout('settings', 'Settings');
-            if (!requireAuth()) return;
 
             document.getElementById('api-key-input').addEventListener('keypress', e => { if (e.key === 'Enter') saveApiKey(); });
 
-            await Promise.all([
-                checkApiKeyStatus(),
-                loadDefaultProvider(),
-                loadAIModel(),
-                loadJobAgeFilter(),
-                loadScraperStatus(),
-                loadCeleryStatus(),
-                loadCelerySchedules(),
-                loadRecentTasks()
-            ]);
+            const hashTab = (window.location.hash || '').slice(1).toLowerCase();
+            switchTab(TAB_LOADERS[TAB_ALIASES[hashTab] || hashTab] ? (TAB_ALIASES[hashTab] || hashTab) : 'ai', false);
         });
 
-        // Tab switching
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-            document.getElementById(`tab-${tabId}`).classList.add('active');
+        // Tab switching (lazy-loads the panel's data the first time it's shown)
+        function switchTab(tabId, updateHash = true) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tabId}`));
+            if (updateHash) history.replaceState(null, '', `#${tabId}`);
+            if (!loadedTabs.has(tabId) && TAB_LOADERS[tabId]) {
+                loadedTabs.add(tabId);
+                TAB_LOADERS[tabId]();
+            }
         }
 
         // Helper functions
         function formatRelativeTime(date) {
+            if (!(date instanceof Date) || isNaN(date)) return '--';
             const now = new Date();
             const diff = now - date;
             const mins = Math.floor(diff / 60000);
@@ -829,16 +828,34 @@
             return date.toLocaleDateString();
         }
 
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
+        // Backend timestamps are naive UTC ISO strings; parse them as UTC.
+        function parseUtc(value) {
+            if (!value) return null;
+            const str = String(value);
+            return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(str) ? str : str + 'Z');
+        }
+
+        function setInlineStatus(el, text, level) {
+            el.textContent = text;
+            el.style.color = level === 'ok' ? 'var(--c-green)' : level === 'error' ? 'var(--c-red)' : 'var(--c-ink-2)';
         }
 
         // ============== AI Provider Functions ==============
         let currentProvider = 'openai';
         let defaultProvider = 'openai';
-        let aiModelSettings = { openai_model: 'gpt-4o-mini', claude_model: 'claude-3-5-sonnet-20241022' };
+        // Fallbacks when GET /settings/ai-model doesn't return model lists.
+        const FALLBACK_MODELS = {
+            openai: [
+                { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+                { id: 'gpt-4o', name: 'GPT-4o' },
+            ],
+            anthropic: [
+                { id: 'claude-opus-5-5', name: 'Claude Opus 5.5' },
+                { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5' },
+                { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5' },
+            ],
+        };
+        let aiModelSettings = { openai_model: 'gpt-4o-mini', claude_model: 'claude-sonnet-5-5', openai_models: null, claude_models: null };
 
         function switchProvider(provider) {
             currentProvider = provider;
@@ -857,12 +874,12 @@
             const label = document.getElementById('active-provider-label');
 
             try {
-                const res = await apiRequest(`/settings/api-key?provider=${currentProvider}`);
-                if (res.is_set) {
+                const res = await apiRequest(`/settings/api-key?provider=${encodeURIComponent(currentProvider)}`);
+                if (res && res.is_set) {
                     badge.className = 'badge badge-success';
                     badge.innerHTML = '<span class="badge-dot"></span>Active';
                     display.style.display = 'flex';
-                    preview.textContent = res.key_preview;
+                    preview.textContent = res.key_preview || '';
                     label.textContent = currentProvider === 'openai' ? 'OpenAI' : 'Anthropic';
                 } else {
                     badge.className = 'badge badge-warning';
@@ -872,6 +889,7 @@
             } catch (e) {
                 badge.className = 'badge badge-danger';
                 badge.innerHTML = '<span class="badge-dot"></span>Error';
+                badge.title = e.message;
             }
         }
 
@@ -892,7 +910,7 @@
         async function removeApiKey() {
             if (!confirm('Remove this API key?')) return;
             try {
-                await apiRequest(`/settings/api-key?provider=${currentProvider}`, 'DELETE');
+                await apiRequest(`/settings/api-key?provider=${encodeURIComponent(currentProvider)}`, 'DELETE');
                 showAlert('API key removed');
                 checkApiKeyStatus();
             } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
@@ -901,7 +919,7 @@
         async function loadDefaultProvider() {
             try {
                 const res = await apiRequest('/settings/default-ai-provider');
-                defaultProvider = res.provider || 'openai';
+                defaultProvider = (res && res.provider) || 'openai';
                 updateDefaultProviderUI();
             } catch (e) { console.error(e); }
         }
@@ -924,44 +942,72 @@
         async function loadAIModel() {
             try {
                 const res = await apiRequest('/settings/ai-model');
-                aiModelSettings = res;
-                updateModelSelector();
-            } catch (e) { console.error(e); }
+                aiModelSettings = { ...aiModelSettings, ...(res || {}) };
+            } catch (e) {
+                console.error(e);
+            }
+            updateModelSelector();
         }
 
+        function normalizeModels(list, fallback) {
+            if (!Array.isArray(list) || list.length === 0) return fallback;
+            return list.map(m => typeof m === 'string' ? { id: m, name: m } : { id: m.id || m.value, name: m.name || m.label || m.id })
+                .filter(m => m.id);
+        }
+
+        // Options come from GET /settings/ai-model (openai_models / claude_models);
+        // the current provider's list is shown so the saved value is always selectable.
         function updateModelSelector() {
             const select = document.getElementById('ai-model-select');
-            select.value = defaultProvider === 'anthropic'
-                ? (aiModelSettings.claude_model || 'claude-3-5-sonnet-20241022')
-                : (aiModelSettings.openai_model || 'gpt-4o-mini');
+            const isAnthropic = defaultProvider === 'anthropic';
+            const models = isAnthropic
+                ? normalizeModels(aiModelSettings.claude_models || aiModelSettings.anthropic_models, FALLBACK_MODELS.anthropic)
+                : normalizeModels(aiModelSettings.openai_models, FALLBACK_MODELS.openai);
+            const current = isAnthropic ? aiModelSettings.claude_model : aiModelSettings.openai_model;
+            select.innerHTML = '';
+            const group = document.createElement('optgroup');
+            group.label = isAnthropic ? 'Anthropic' : 'OpenAI';
+            models.forEach(m => group.appendChild(new Option(m.name, m.id)));
+            if (current && !models.some(m => m.id === current)) {
+                group.appendChild(new Option(`${current} (current, unsupported)`, current));
+            }
+            select.appendChild(group);
+            if (current) select.value = current;
         }
 
         async function setAIModel() {
             const model = document.getElementById('ai-model-select').value;
+            if (!model) return;
             try {
                 await apiRequest('/settings/ai-model', 'POST', { model });
-                if (model.startsWith('claude')) aiModelSettings.claude_model = model;
+                if (defaultProvider === 'anthropic') aiModelSettings.claude_model = model;
                 else aiModelSettings.openai_model = model;
                 showAlert('Model updated');
-            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+            } catch (e) {
+                showAlert('Failed: ' + e.message, 'error');
+                updateModelSelector();
+            }
         }
 
         // ============== Scraper Functions ==============
+        // GET /scrapers/status returns a bare list; health is computed client-side
+        // by summarizeScraperHealth() in app.js (same rules as /scrapers/run-warning).
         let allScrapers = [];
 
         async function loadScraperStatus() {
             try {
-                const data = await apiRequest('/scrapers/status');
-                allScrapers = data.scrapers || [];
+                const data = await apiRequest('/scrapers/status', 'GET', null, { timeout: 30000 });
+                const h = summarizeScraperHealth(data);
+                allScrapers = h.scrapers;
 
-                document.getElementById('scraper-total').textContent = data.total || 0;
-                document.getElementById('scraper-healthy').textContent = data.healthy || 0;
-                document.getElementById('scraper-warning').textContent = data.warning || 0;
-                document.getElementById('scraper-critical').textContent = data.critical || 0;
+                document.getElementById('scraper-total').textContent = h.total.toLocaleString();
+                document.getElementById('scraper-healthy').textContent = h.healthy.toLocaleString();
+                document.getElementById('scraper-warning').textContent = h.warning.toLocaleString();
+                document.getElementById('scraper-critical').textContent = h.critical.toLocaleString();
 
                 renderScraperTable();
             } catch (e) {
-                document.getElementById('scraper-table-body').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;">Error loading</td></tr>';
+                document.getElementById('scraper-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--c-red);padding:30px;">Couldn't load scrapers: ${escapeHtml(e.message)}</td></tr>`;
             }
         }
 
@@ -970,51 +1016,62 @@
         function renderScraperTable() {
             const filter = document.getElementById('scraper-filter').value;
             const tbody = document.getElementById('scraper-table-body');
+            const order = { critical: 0, warning: 1, disabled: 2, healthy: 3 };
 
-            let filtered = allScrapers;
-            if (filter !== 'all') {
-                filtered = allScrapers.filter(s => s.health_status === filter);
-            }
+            const filtered = (filter === 'all' ? allScrapers.slice() : allScrapers.filter(s => s.health === filter))
+                .sort((a, b) => (order[a.health] - order[b.health]) || (a.company_name || '').localeCompare(b.company_name || ''));
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:30px;">No scrapers</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--c-ink-2);padding:30px;">No scrapers</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = filtered.map(s => `
+            tbody.innerHTML = filtered.map(s => {
+                const slug = s.company_slug || s.slug || '';
+                const lastSuccess = s.last_success_at || s.last_success;
+                const err = s.last_error ? ` title="${escapeHtml(s.last_error)}"` : '';
+                return `
                 <tr>
-                    <td><strong>${escapeHtml(s.company_name)}</strong><br><span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">${escapeHtml(s.company_slug)}</span></td>
-                    <td><span class="health ${s.health_status}">${s.health_status}</span></td>
-                    <td style="font-size:12px;color:var(--text-secondary);">${s.last_success_at ? formatRelativeTime(new Date(s.last_success_at)) : '--'}</td>
-                    <td style="font-family:var(--font-mono);font-size:12px;">${s.consecutive_failures || 0}</td>
-                    <td style="font-family:var(--font-mono);font-size:12px;">${s.active_jobs || 0}</td>
-                    <td><button class="btn btn-ghost btn-xs" onclick="runScraper('${s.company_slug}')">Run</button></td>
-                </tr>
-            `).join('');
+                    <td><strong>${escapeHtml(s.company_name || slug)}</strong><br><span style="font-size:11px;color:var(--c-ink-2);font-family:var(--font-mono);">${escapeHtml(slug)}</span></td>
+                    <td><span class="health ${escapeHtml(s.health)}"${err}>${escapeHtml(s.health)}</span></td>
+                    <td style="font-size:12px;color:var(--c-ink-2);">${lastSuccess ? formatRelativeTime(parseUtc(lastSuccess)) : 'Never'}</td>
+                    <td style="font-family:var(--font-mono);font-size:12px;">${Number(s.consecutive_failures || 0)}</td>
+                    <td style="font-family:var(--font-mono);font-size:12px;">${Number(s.active_jobs || 0).toLocaleString()}</td>
+                    <td>${slug ? `<button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(slug)}', this)">Run</button>` : ''}</td>
+                </tr>`;
+            }).join('');
         }
 
-        async function runScraper(slug) {
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = '...';
+        async function runScraper(slug, btn) {
+            if (btn) { btn.disabled = true; btn.textContent = '...'; }
             try {
-                const data = await apiRequest(`/scrapers/${slug}/run-sync`, 'POST');
-                showAlert(`${slug}: +${data.jobs_new || 0} new`);
+                const data = await apiRequest(`/scrapers/${encodeURIComponent(slug)}/run-sync`, 'POST', null, { timeout: 120000 });
+                if (data && data.status === 'success') {
+                    showAlert(`${slug}: ${Number(data.jobs_found || 0)} found, +${Number(data.jobs_new || 0)} new, ${Number(data.jobs_updated || 0)} updated`);
+                } else {
+                    showAlert(`${slug} failed: ${(data && (data.error || data.status)) || 'unknown error'}`, 'error');
+                }
                 await loadScraperStatus();
-            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
-            finally { btn.disabled = false; btn.textContent = 'Run'; }
+            } catch (e) { showAlert(`${slug} failed: ${e.message}`, 'error'); }
+            finally { if (btn) { btn.disabled = false; btn.textContent = 'Run'; } }
         }
 
-        async function runAllWarningScrapers() {
-            const btn = event.target;
+        // Dispatches Celery tasks via POST /scrapers/run-warning (returns
+        // {status, task_id, message}); doesn't block the API like run-warning-sync.
+        async function runAllWarningScrapers(btn) {
+            const original = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<svg class="spin" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+            btn.textContent = 'Dispatching…';
             try {
-                const data = await apiRequest('/scrapers/run-warning-sync', 'POST');
-                showAlert(`Ran ${data.total_triggered || 0} scrapers`);
-                await loadScraperStatus();
+                const data = await apiRequest('/scrapers/run-warning', 'POST');
+                if (data && data.status === 'no_action') {
+                    showAlert(data.message || 'No warning scrapers found');
+                } else {
+                    showAlert(data?.message || 'Warning scrapers dispatched to workers');
+                }
+                setTimeout(loadScraperStatus, 5000);
             } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
-            finally { btn.disabled = false; btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>Run Warning'; }
+            finally { btn.disabled = false; btn.innerHTML = original; }
         }
 
         // ============== Celery Functions ==============
@@ -1026,6 +1083,8 @@
 
             try {
                 const status = await apiRequest('/celery/status');
+                const workerList = status.workers || [];
+                const queueList = status.queues || [];
 
                 badge.className = status.connected ? 'badge badge-success' : 'badge badge-warning';
                 badge.innerHTML = `<span class="badge-dot"></span>${status.connected ? 'Connected' : 'No Workers'}`;
@@ -1033,84 +1092,115 @@
                 redis.textContent = status.redis_connected ? 'Connected' : 'Offline';
                 redis.className = 'value ' + (status.redis_connected ? 'online' : 'offline');
 
-                workers.textContent = status.workers.length;
-                workers.className = 'value ' + (status.workers.length > 0 ? 'online' : 'offline');
+                workers.textContent = workerList.length;
+                workers.className = 'value ' + (workerList.length > 0 ? 'online' : 'offline');
 
-                if (status.queues.length > 0) {
-                    queues.innerHTML = status.queues.map(q => `
-                        <div class="queue-pill">
-                            <span class="name">${escapeHtml(q.name)}</span>
-                            <span class="count ${q.messages > 0 ? 'active' : ''}">${q.messages}</span>
-                        </div>
-                    `).join('');
+                if (queueList.length > 0) {
+                    queues.innerHTML = queueList.map(q => {
+                        const noConsumer = workerList.length > 0 && Number(q.consumers || 0) === 0;
+                        return `
+                        <div class="queue-pill"${noConsumer ? ' title="No worker consumes this queue" style="border-color: var(--c-yellow);"' : ''}>
+                            <span class="name">${escapeHtml(q.name)}${noConsumer ? ' · no consumer' : ''}</span>
+                            <span class="count ${q.messages > 0 ? 'active' : ''}">${Number(q.messages || 0).toLocaleString()}</span>
+                        </div>`;
+                    }).join('');
                 } else {
-                    queues.innerHTML = '<span style="color:var(--text-muted);">No queues</span>';
+                    queues.innerHTML = '<span style="color:var(--c-ink-2);">No queues</span>';
                 }
             } catch (e) {
                 badge.className = 'badge badge-danger';
                 badge.innerHTML = '<span class="badge-dot"></span>Error';
+                queues.innerHTML = `<span style="color:var(--c-red);">Couldn't load: ${escapeHtml(e.message)}</span>`;
             }
+        }
+
+        // "{0, 18, 12, 6}" / "*/6" / "0,6,12,18" -> interval in hours (null if unknown)
+        function intervalFromCronHours(hourField) {
+            if (hourField == null) return null;
+            const str = String(hourField);
+            const step = str.match(/\*\/(\d+)/);
+            if (step) return parseInt(step[1], 10);
+            const hours = (str.match(/\d+/g) || []).map(Number).filter(h => h >= 0 && h < 24).sort((a, b) => a - b);
+            if (hours.length === 0) return null;
+            if (hours.length === 1) return 24;
+            return Math.round(24 / hours.length);
         }
 
         async function loadCelerySchedules() {
             try {
-                const schedules = await apiRequest('/celery/schedules');
-                let interval = 6, autoApply = true, descFetch = true;
+                const res = await apiRequest('/celery/schedules');
+                const schedules = Array.isArray(res) ? res : (res.schedules || []);
+                const settingsObj = Array.isArray(res) ? {} : (res.settings || res);
+                let interval = settingsObj.scraper_interval_hours ?? settingsObj.interval_hours ?? null;
+                let autoApply = settingsObj.auto_apply_enabled ?? null;
+                let descFetch = settingsObj.description_fetch_enabled ?? null;
+
                 for (const s of schedules) {
-                    if (s.name.includes('scraper')) {
-                        const m = s.schedule.match(/(\d+)\s*hours?/i);
-                        if (m) interval = parseInt(m[1]);
+                    const id = `${s.name || ''} ${s.task || ''}`.toLowerCase();
+                    if (interval == null && (s.interval_hours != null) && id.includes('scrape_all')) interval = s.interval_hours;
+                    if (interval == null && (id.includes('scrape-all') || id.includes('scrape_all_companies'))) {
+                        // schedule looks like "cron({0} {0, 18, 12, 6} * * *)": take the hour field
+                        const m = String(s.schedule || '').match(/cron\(\s*(\{[^}]*\}|\S+)\s+(\{[^}]*\}|\S+)/);
+                        interval = intervalFromCronHours(m ? m[2] : null);
                     }
-                    if (s.name.includes('auto_apply')) autoApply = s.enabled;
-                    if (s.name.includes('description')) descFetch = s.enabled;
+                    if (autoApply == null && (id.includes('auto_apply') || id.includes('pending-applications') || id.includes('process_pending_applications'))) autoApply = s.enabled;
+                    if (descFetch == null && id.includes('description')) descFetch = s.enabled;
                 }
-                document.getElementById('scraper-interval-hours').value = interval;
-                document.getElementById('auto-apply-enabled').checked = autoApply;
-                document.getElementById('description-fetch-enabled').checked = descFetch;
-            } catch (e) { console.error(e); }
+
+                const intervalSelect = document.getElementById('scraper-interval-hours');
+                if (interval != null) {
+                    const v = String(interval);
+                    if (![...intervalSelect.options].some(o => o.value === v)) intervalSelect.add(new Option(`${v} hours`, v));
+                    intervalSelect.value = v;
+                }
+                if (autoApply != null) document.getElementById('auto-apply-enabled').checked = !!autoApply;
+                if (descFetch != null) document.getElementById('description-fetch-enabled').checked = !!descFetch;
+            } catch (e) {
+                console.error(e);
+                showAlert("Couldn't load schedules: " + e.message, 'error');
+            }
         }
 
         async function saveCelerySchedules() {
             try {
-                await apiRequest('/celery/schedules', 'PUT', {
-                    scraper_interval_hours: parseInt(document.getElementById('scraper-interval-hours').value),
+                const res = await apiRequest('/celery/schedules', 'PUT', {
+                    scraper_interval_hours: parseInt(document.getElementById('scraper-interval-hours').value, 10),
                     auto_apply_enabled: document.getElementById('auto-apply-enabled').checked,
                     description_fetch_enabled: document.getElementById('description-fetch-enabled').checked
                 });
-                showAlert('Schedule saved');
+                showAlert((res && res.message) || 'Schedule saved');
             } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
         }
 
-        async function triggerCeleryTask(taskName) {
-            const btn = event.target.closest('.action-btn');
-            btn.disabled = true;
+        async function triggerCeleryTask(taskName, btn) {
+            if (btn) btn.disabled = true;
             try {
                 const res = await apiRequest('/celery/tasks/trigger', 'POST', { task_name: taskName });
-                showAlert(`Task ${taskName} triggered`);
+                showAlert((res && res.message) || `Task ${taskName} triggered`);
                 setTimeout(() => { loadCeleryStatus(); loadRecentTasks(); }, 2000);
             } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
-            finally { btn.disabled = false; }
+            finally { if (btn) btn.disabled = false; }
         }
 
         async function loadRecentTasks() {
             const container = document.getElementById('recent-tasks-container');
             try {
                 const tasks = await apiRequest('/celery/tasks/recent?limit=15');
-                if (tasks.length === 0) {
-                    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No tasks</div>';
+                if (!tasks || tasks.length === 0) {
+                    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-ink-2);">No tasks</div>';
                     return;
                 }
                 container.innerHTML = tasks.map(t => `
-                    <div class="task-item">
+                    <div class="task-item"${t.error ? ` title="${escapeHtml(t.error)}"` : ''}>
                         <div>
                             <div class="name">${escapeHtml(t.name)}</div>
-                            <div class="meta">${t.started_at ? formatRelativeTime(new Date(t.started_at)) : '--'}</div>
+                            <div class="meta">${t.started_at || t.completed_at ? formatRelativeTime(parseUtc(t.started_at || t.completed_at)) : '--'}</div>
                         </div>
-                        <span class="badge badge-${t.status === 'SUCCESS' ? 'success' : 'danger'}">${t.status}</span>
+                        <span class="badge badge-${t.status === 'SUCCESS' ? 'success' : 'danger'}">${escapeHtml(t.status)}</span>
                     </div>
                 `).join('');
             } catch (e) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Error</div>';
+                container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--c-red);">Couldn't load tasks: ${escapeHtml(e.message)}</div>`;
             }
         }
 
@@ -1129,11 +1219,11 @@
             try {
                 await apiRequest('/settings/job-age-filter', 'POST', { days: parseInt(days) });
                 status.textContent = 'Saved';
-                status.style.color = '#22c55e';
+                status.style.color = 'var(--c-green)';
                 setTimeout(() => { status.textContent = ''; }, 2000);
             } catch (e) {
                 status.textContent = 'Error';
-                status.style.color = '#ef4444';
+                status.style.color = 'var(--c-red)';
             }
         }
 
@@ -1142,17 +1232,17 @@
             const result = document.getElementById('cleanup-result');
             const content = document.getElementById('cleanup-result-content');
             result.style.display = 'block';
-            content.innerHTML = '<div style="text-align:center;color:var(--text-muted);">Analyzing...</div>';
+            content.innerHTML = '<div style="text-align:center;color:var(--c-ink-2);">Analyzing...</div>';
 
             try {
-                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE');
+                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE', null, { timeout: 60000 });
                 content.innerHTML = `
-                    <div class="cleanup-stat"><div class="value" style="color:#ef4444;">${res.jobs_count}</div><div class="label">Jobs</div></div>
+                    <div class="cleanup-stat"><div class="value" style="color:var(--c-red);">${Number(res.jobs_count || 0).toLocaleString()}</div><div class="label">Jobs</div></div>
                     <div class="cleanup-stat"><div class="value">${res.interviews_count}</div><div class="label">Interviews</div></div>
                     <div class="cleanup-stat"><div class="value">${res.notes_count}</div><div class="label">Notes</div></div>
                     <div class="cleanup-stat"><div class="value">${res.documents_count}</div><div class="label">Docs</div></div>
                 `;
-            } catch (e) { content.innerHTML = `<div style="color:#ef4444;">Error: ${e.message}</div>`; }
+            } catch (e) { content.innerHTML = `<div style="color:var(--c-red);">Error: ${escapeHtml(e.message)}</div>`; }
         }
 
         async function executeCleanup() {
@@ -1162,77 +1252,87 @@
             const result = document.getElementById('cleanup-result');
             const content = document.getElementById('cleanup-result-content');
             result.style.display = 'block';
-            content.innerHTML = '<div style="text-align:center;color:var(--text-muted);">Deleting...</div>';
+            content.innerHTML = '<div style="text-align:center;color:var(--c-ink-2);">Deleting...</div>';
 
             try {
-                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE');
-                content.innerHTML = `<div style="color:#22c55e;font-weight:600;text-align:center;">Deleted ${res.jobs_count} jobs</div>`;
+                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE', null, { timeout: 120000 });
+                content.innerHTML = `<div style="color:var(--c-green);font-weight:600;text-align:center;">Deleted ${res.jobs_count} jobs</div>`;
                 showAlert(`Deleted ${res.jobs_count} jobs`);
-            } catch (e) { content.innerHTML = `<div style="color:#ef4444;">Error: ${e.message}</div>`; }
+            } catch (e) { content.innerHTML = `<div style="color:var(--c-red);">Error: ${escapeHtml(e.message)}</div>`; }
         }
 
         async function cleanupDuplicates() {
             const status = document.getElementById('duplicates-result');
             status.textContent = 'Scanning...';
             try {
-                const check = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE');
+                const check = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE', null, { timeout: 60000 });
                 if (check.duplicates_count === 0) {
                     status.textContent = 'None found';
-                    status.style.color = '#22c55e';
+                    status.style.color = 'var(--c-green)';
                     return;
                 }
                 if (!confirm(`Found ${check.duplicates_count} duplicates. Remove?`)) {
                     status.textContent = `${check.duplicates_count} found`;
                     return;
                 }
-                const res = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE');
+                const res = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE', null, { timeout: 120000 });
                 status.textContent = `${res.duplicates_count} removed`;
-                status.style.color = '#22c55e';
-            } catch (e) { status.textContent = 'Error'; status.style.color = '#ef4444'; }
+                status.style.color = 'var(--c-green)';
+            } catch (e) { status.textContent = 'Error'; status.style.color = 'var(--c-red)'; }
         }
 
         let fetchProgressInterval = null;
+
+        function finishFetch(text, level) {
+            clearInterval(fetchProgressInterval);
+            fetchProgressInterval = null;
+            setInlineStatus(document.getElementById('descriptions-result'), text, level);
+            document.getElementById('fetch-desc-btn').disabled = false;
+            setTimeout(() => { document.getElementById('fetch-progress-container').classList.remove('visible'); }, 3000);
+        }
+
         async function fetchMissingDescriptions() {
             const status = document.getElementById('descriptions-result');
             const btn = document.getElementById('fetch-desc-btn');
             const progress = document.getElementById('fetch-progress-container');
 
-            status.textContent = 'Starting...';
+            setInlineStatus(status, 'Starting...');
             btn.disabled = true;
 
             try {
-                const res = await apiRequest('/ingest/fetch-all-descriptions', 'POST');
-                if (res.jobs_queued > 0) {
+                const res = await apiRequest('/ingest/fetch-all-descriptions', 'POST', null, { timeout: 60000 });
+                if (res && res.jobs_queued > 0) {
+                    setInlineStatus(status, `${Number(res.jobs_queued).toLocaleString()} queued`);
                     progress.classList.add('visible');
-                    fetchProgressInterval = setInterval(() => pollFetchProgress(), 3000);
+                    clearInterval(fetchProgressInterval);
+                    fetchProgressInterval = setInterval(pollFetchProgress, 3000);
+                    pollFetchProgress();
                 } else {
-                    status.textContent = 'No jobs to fetch';
-                    status.style.color = '#22c55e';
+                    setInlineStatus(status, (res && res.message) || 'No jobs to fetch', 'ok');
                     btn.disabled = false;
                 }
             } catch (e) {
-                status.textContent = 'Error';
-                status.style.color = '#ef4444';
+                setInlineStatus(status, 'Error: ' + e.message, 'error');
                 btn.disabled = false;
             }
         }
 
+        // GET /ingest/fetch-progress -> {status: idle|running|completed, total, processed, updated, failed}
         async function pollFetchProgress() {
             try {
-                const s = await apiRequest('/ingest/fetch-descriptions-status');
-                const pct = s.total > 0 ? Math.round((s.processed / s.total) * 100) : 0;
+                const s = await apiRequest('/ingest/fetch-progress');
+                const total = Number(s.total || 0), processed = Number(s.processed || 0);
+                const pct = total > 0 ? Math.round((processed / total) * 100) : 0;
                 document.getElementById('fetch-progress-bar').style.width = `${pct}%`;
-                document.getElementById('fetch-progress-status').textContent = s.status === 'completed' ? 'Done!' : 'Processing...';
-                document.getElementById('fetch-progress-stats').textContent = `${s.processed} / ${s.total}`;
+                document.getElementById('fetch-progress-status').textContent = s.status === 'completed' ? 'Done' : 'Processing...';
+                document.getElementById('fetch-progress-stats').textContent = `${processed.toLocaleString()} / ${total.toLocaleString()}`;
 
                 if (s.status === 'completed' || s.status === 'idle') {
-                    clearInterval(fetchProgressInterval);
-                    document.getElementById('descriptions-result').textContent = `Done! ${s.updated || 0} updated`;
-                    document.getElementById('descriptions-result').style.color = '#22c55e';
-                    document.getElementById('fetch-desc-btn').disabled = false;
-                    setTimeout(() => { document.getElementById('fetch-progress-container').classList.remove('visible'); }, 3000);
+                    finishFetch(`Done: ${Number(s.updated || 0).toLocaleString()} updated${s.failed ? `, ${Number(s.failed).toLocaleString()} failed` : ''}`, 'ok');
                 }
-            } catch (e) { clearInterval(fetchProgressInterval); }
+            } catch (e) {
+                finishFetch("Couldn't check progress: " + e.message, 'error');
+            }
         }
     </script>
 </body>

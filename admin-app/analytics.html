@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara Admin - Analytics</title>
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/admin-layout.css">
+    <title>Analytics · Cariara Admin</title>
+    <link rel="stylesheet" href="/css/theme.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291615">
     <style>
         .analytics-grid {
             display: grid;
@@ -153,6 +154,8 @@
         }
     </style>
     <meta name="robots" content="noindex,nofollow">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291615">
 </head>
 <body>
     <main class="container">
@@ -234,48 +237,62 @@
         </div>
     </main>
 
-    <script src="/js/app.js"></script>
-    <script src="/js/admin-sidebar.js"></script>
+    <script src="/js/app.js?v=202609291615"></script>
+    <script src="/js/admin-sidebar.js?v=202609291615"></script>
     <script>
         const statusColors = {
-            wishlist: '#eab308',
-            applied: '#2563eb',
-            interviewing: '#14b8a6',
-            offer: '#22c55e',
-            rejected: '#ef4444',
-            withdrawn: '#94a3b8'
+            wishlist: 'var(--c-yellow)',
+            applied: 'var(--c-blue)',
+            interviewing: 'var(--c-blue)',
+            offer: 'var(--c-green)',
+            rejected: 'var(--c-red)',
+            withdrawn: 'var(--c-ink-2)'
         };
 
-        async function loadAnalytics() {
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        function showLoadError(containerId, error) {
+            const el = document.getElementById(containerId);
+            if (el) el.innerHTML = `<p style="color: var(--c-red); text-align: center;">Couldn't load: ${escapeHtml(error.message)}</p>`;
+        }
+
+        // Each panel loads independently (one failure doesn't blank the page), in two
+        // waves of 4 so the first paint doesn't fire 8 parallel requests.
+        async function loadPanel(endpoint, onData, errorTarget) {
             try {
-                const [summary, statusBreakdown, responseRate, locations, excitement, companies, timeline, interviewStats] = await Promise.all([
-                    apiRequest('/analytics/summary'),
-                    apiRequest('/analytics/status-breakdown'),
-                    apiRequest('/analytics/response-rate'),
-                    apiRequest('/analytics/by-location'),
-                    apiRequest('/analytics/excitement-distribution'),
-                    apiRequest('/analytics/by-company'),
-                    apiRequest('/analytics/timeline'),
-                    apiRequest('/analytics/interview-stats')
-                ]);
-
-                document.getElementById('total-jobs').textContent = summary.total_jobs;
-                document.getElementById('interview-rate').textContent = responseRate.interview_rate + '%';
-                document.getElementById('offer-rate').textContent = responseRate.offer_rate + '%';
-                document.getElementById('avg-excitement').textContent = excitement.average + ' ★';
-
-                renderStatusChart(statusBreakdown);
-                renderResponseRates(responseRate);
-                renderInterviewStats(interviewStats);
-                renderUpcomingInterviews(interviewStats.upcoming);
-                renderLocations(locations.locations);
-                renderExcitement(excitement);
-                renderCompanies(companies.companies);
-                renderTimeline(timeline.timeline);
-
+                onData(await apiRequest(endpoint));
             } catch (error) {
-                console.error('Failed to load analytics:', error);
+                console.error(`Failed to load ${endpoint}:`, error);
+                if (errorTarget) showLoadError(errorTarget, error);
             }
+        }
+
+        async function loadAnalytics() {
+            await Promise.all([
+                loadPanel('/analytics/summary', summary => setText('total-jobs', Number(summary.total_jobs || 0).toLocaleString())),
+                loadPanel('/analytics/status-breakdown', renderStatusChart, 'status-chart'),
+                loadPanel('/analytics/response-rate', rr => {
+                    setText('interview-rate', rr.interview_rate + '%');
+                    setText('offer-rate', rr.offer_rate + '%');
+                    renderResponseRates(rr);
+                }, 'response-rates'),
+                loadPanel('/analytics/interview-stats', stats => {
+                    renderInterviewStats(stats);
+                    renderUpcomingInterviews(stats.upcoming);
+                }, 'interview-stats'),
+            ]);
+            await Promise.all([
+                loadPanel('/analytics/by-location', d => renderLocations(d.locations), 'location-chart'),
+                loadPanel('/analytics/excitement-distribution', d => {
+                    setText('avg-excitement', d.average + ' ★');
+                    renderExcitement(d);
+                }, 'excitement-chart'),
+                loadPanel('/analytics/by-company', d => renderCompanies(d.companies), 'company-chart'),
+                loadPanel('/analytics/timeline', d => renderTimeline(d.timeline), 'timeline-chart'),
+            ]);
         }
 
         function renderStatusChart(data) {
@@ -287,9 +304,9 @@
                 const width = (item.count / maxCount * 100);
                 html += `
                     <div class="bar-row">
-                        <span class="bar-label">${item.status}</span>
+                        <span class="bar-label">${escapeHtml(item.status)}</span>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: ${width}%; background-color: ${statusColors[item.status]}"></div>
+                            <div class="bar-fill" style="width: ${width}%; background-color: ${statusColors[item.status] || 'var(--c-blue)'}"></div>
                         </div>
                         <span class="bar-value">${item.count}</span>
                     </div>
@@ -353,7 +370,7 @@
         function renderUpcomingInterviews(interviews) {
             const container = document.getElementById('upcoming-interviews');
             if (!interviews || interviews.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No upcoming interviews</p>';
+                container.innerHTML = '<p style="color: var(--c-ink-2); text-align: center;">No upcoming interviews</p>';
                 return;
             }
 
@@ -361,9 +378,9 @@
             interviews.forEach(interview => {
                 html += `
                     <div class="upcoming-interview">
-                        <div class="title">${interview.job_title || 'Unknown Position'}</div>
-                        <div class="company">${interview.company_name || 'Unknown Company'}</div>
-                        <div class="date">${formatDateTime(interview.interview_date)} - ${interview.interview_type || 'Interview'}</div>
+                        <div class="title">${escapeHtml(interview.job_title || 'Unknown Position')}</div>
+                        <div class="company">${escapeHtml(interview.company_name || 'Unknown Company')}</div>
+                        <div class="date">${formatDateTime(interview.interview_date)} - ${escapeHtml(interview.interview_type || 'Interview')}</div>
                     </div>
                 `;
             });
@@ -373,7 +390,7 @@
         function renderLocations(locations) {
             const container = document.getElementById('location-chart');
             if (!locations || locations.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No location data</p>';
+                container.innerHTML = '<p style="color: var(--c-ink-2); text-align: center;">No location data</p>';
                 return;
             }
 
@@ -381,7 +398,7 @@
             locations.slice(0, 10).forEach(loc => {
                 html += `
                     <div class="location-item">
-                        <span>${loc.location}</span>
+                        <span>${escapeHtml(loc.location)}</span>
                         <span style="font-weight: 600;">${loc.count}</span>
                     </div>
                 `;
@@ -403,7 +420,7 @@
                     <div class="bar-row">
                         <span class="bar-label">${stars}</span>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: ${width}%; background-color: #f39c12"></div>
+                            <div class="bar-fill" style="width: ${width}%; background-color: var(--c-yellow)"></div>
                         </div>
                         <span class="bar-value">${item.count}</span>
                     </div>
@@ -416,7 +433,7 @@
         function renderCompanies(companies) {
             const container = document.getElementById('company-chart');
             if (!companies || companies.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No company data</p>';
+                container.innerHTML = '<p style="color: var(--c-ink-2); text-align: center;">No company data</p>';
                 return;
             }
 
@@ -427,9 +444,9 @@
                 const width = (company.job_count / maxCount * 100);
                 html += `
                     <div class="bar-row">
-                        <span class="bar-label" style="width: 120px;">${company.company_name.substring(0, 15)}</span>
+                        <span class="bar-label" style="width: 120px;" title="${escapeHtml(company.company_name)}">${escapeHtml(String(company.company_name || '').substring(0, 15))}</span>
                         <div class="bar-container">
-                            <div class="bar-fill" style="width: ${width}%; background-color: var(--accent-primary)"></div>
+                            <div class="bar-fill" style="width: ${width}%; background-color: var(--c-blue)"></div>
                         </div>
                         <span class="bar-value">${company.job_count}</span>
                     </div>
@@ -442,7 +459,7 @@
         function renderTimeline(timeline) {
             const container = document.getElementById('timeline-chart');
             if (!timeline || timeline.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No timeline data</p>';
+                container.innerHTML = '<p style="color: var(--c-ink-2); text-align: center;">No timeline data</p>';
                 return;
             }
 
@@ -465,7 +482,7 @@
                 </div>
             `;
 
-            html += '<div style="margin-top: 15px;"><small style="color: var(--text-muted);">Last 14 days:</small></div>';
+            html += '<div style="margin-top: 15px;"><small style="color: var(--c-ink-2);">Last 14 days:</small></div>';
             html += '<div style="display: flex; gap: 3px; align-items: end; height: 60px; margin-top: 10px;">';
 
             const last14 = timeline.slice(-14);
@@ -473,8 +490,8 @@
 
             last14.forEach(day => {
                 const height = day.count > 0 ? Math.max((day.count / max14 * 50), 4) : 2;
-                const color = day.count > 0 ? 'var(--accent-primary)' : 'var(--border-default)';
-                html += `<div style="flex: 1; height: ${height}px; background: ${color}; border-radius: 2px;" title="${day.date}: ${day.count}"></div>`;
+                const color = day.count > 0 ? 'var(--c-blue)' : 'var(--c-line)';
+                html += `<div style="flex: 1; height: ${height}px; background: ${color}; border-radius: 2px;" title="${escapeHtml(day.date)}: ${Number(day.count)}"></div>`;
             });
 
             html += '</div>';
@@ -483,13 +500,8 @@
 
         // Initialize everything after DOM is ready
         document.addEventListener('DOMContentLoaded', async function() {
-            // Initialize admin layout first
+            if (!requireAdmin()) return;
             initAdminLayout('analytics', 'Analytics');
-
-            // Check authentication
-            if (!requireAuth()) {
-                return;
-            }
 
             // Load analytics data
             await loadAnalytics();

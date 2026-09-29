@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Job Details</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-    <link rel="stylesheet" href="/css/theme.css">
-    <link rel="stylesheet" href="/css/admin-layout.css">
+    <title>Job · Cariara Admin</title>
+    <link rel="stylesheet" href="/css/theme.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291615">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -82,7 +82,7 @@
         }
 
         .sidebar-nav a.active {
-            background: #14b8a6;
+            background: #1967d2;
             color: #ffffff;
         }
 
@@ -409,7 +409,7 @@
 
         .status-select.status-wishlist { background-color: #f59e0b; color: white; }
         .status-select.status-applied { background-color: #3b82f6; color: white; }
-        .status-select.status-interviewing { background-color: #14b8a6; color: white; }
+        .status-select.status-interviewing { background-color: #1967d2; color: white; }
         .status-select.status-offer { background-color: #10b981; color: white; }
         .status-select.status-rejected { background-color: #ef4444; color: white; }
         .status-select.status-withdrawn { background-color: #64748b; color: white; }
@@ -1370,7 +1370,7 @@
         }
 
         .source-badge.greenhouse { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
-        .source-badge.lever { background: rgba(20, 184, 166, 0.15); color: var(--accent-purple); }
+        .source-badge.lever { background: rgba(25, 103, 210, 0.15); color: var(--accent-purple); }
         .source-badge.ashby { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
         .source-badge.workday { background: rgba(245, 158, 11, 0.15); color: var(--accent-yellow); }
 
@@ -1443,7 +1443,7 @@
             width: 20px;
             height: 20px;
             border-radius: 4px;
-            background: rgba(20, 184, 166, 0.15);
+            background: rgba(25, 103, 210, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1744,59 +1744,11 @@
         }
     </style>
     <meta name="robots" content="noindex,nofollow">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291615">
+    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291615">
 </head>
 <body>
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <img src="/images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
-        </div>
-
-        <nav class="sidebar-nav">
-            <!-- MAIN Section -->
-            <div class="nav-section-title">Main</div>
-            <a href="index.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                Dashboard
-            </a>
-            <a href="jobs.html" class="active">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                Jobs
-            </a>
-            <a href="companies.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                Companies
-            </a>
-
-            <!-- ANALYTICS Section -->
-            <div class="nav-section-title">Analytics</div>
-            <a href="analytics.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Analytics
-            </a>
-
-            <!-- SYSTEM Section -->
-            <div class="nav-section-title">System</div>
-            <a href="settings.html">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Settings
-            </a>
-        </nav>
-        <div class="sidebar-user" id="user-menu"></div>
-    </aside>
-
-    <!-- Top Right Controls -->
-    <div class="top-right-controls">
-        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-            <svg id="theme-icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            <svg id="theme-icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-        </button>
-        <button class="signout-btn" onclick="logout()">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            Sign Out
-        </button>
-    </div>
-
     <!-- Main Content -->
     <main class="main-content">
         <div id="job-content">
@@ -2025,86 +1977,17 @@
         </div>
     </div>
 
-    <script src="/js/app.js"></script>
+    <script src="/js/app.js?v=202609291615"></script>
+    <script src="/js/admin-sidebar.js?v=202609291615"></script>
     <script>
         // Use API_BASE from app.js (already loaded)
 
-        // Theme
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('jobtrails-theme', theme);
-            updateThemeIcons(theme);
-        }
+        // Theme, logout and session helpers come from app.js; the shared admin shell
+        // (sidebar, topbar, theme toggle, sign-out) comes from admin-sidebar.js.
+        const adminOk = requireAdmin();
+        if (adminOk) initAdminLayout('jobs', 'Job', '<a href="/jobs.html">Jobs</a>');
 
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') || 'dark';
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        }
-
-        function updateThemeIcons(theme) {
-            const sunIcon = document.getElementById('theme-icon-sun');
-            const moonIcon = document.getElementById('theme-icon-moon');
-            if (sunIcon && moonIcon) {
-                if (theme === 'light') {
-                    sunIcon.style.display = 'none';
-                    moonIcon.style.display = 'block';
-                } else {
-                    sunIcon.style.display = 'block';
-                    moonIcon.style.display = 'none';
-                }
-            }
-        }
-
-        function initTheme() {
-            const savedTheme = localStorage.getItem('jobtrails-theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcons(savedTheme);
-        }
-        initTheme();
-
-        // Logout function for top-right button
-        function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
-        }
-
-        // User Menu - check both token AND user data
-        function initUserMenu() {
-            const userMenu = document.getElementById('user-menu');
-            const token = localStorage.getItem('access_token');
-            const userJson = localStorage.getItem('user');
-
-            if (token && userJson) {
-                try {
-                    const user = JSON.parse(userJson);
-                    const displayName = user.name || user.email?.split('@')[0] || 'User';
-                    const email = user.email || '';
-                    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
-                    userMenu.innerHTML = `
-                        <div class="sidebar-user-info">
-                            <div class="sidebar-user-avatar">${initials}</div>
-                            <div class="sidebar-user-details">
-                                <div class="sidebar-user-name">${displayName}</div>
-                                <div class="sidebar-user-email">${email}</div>
-                            </div>
-                        </div>
-                    `;
-                } catch (e) { console.error('Error parsing user data:', e); }
-            }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login.html';
-        }
-
-        initUserMenu();
+        function handleLogout() { logout(); }
 
         // Toast
         function showToast(message, type = 'success') {
@@ -2127,59 +2010,21 @@
             showToast(message, type);
         }
 
-        // Auth check is now handled on the discover page (main entry point)
 
         const jobId = getUrlParam('id');
         let currentJob = null;
 
-        // API request with timeout and auto-retry
+        // Retries transient failures (timeouts / 5xx / network) with backoff; auth
+        // refresh and error parsing are handled by apiRequest() in app.js.
         async function apiRequestWithTimeout(endpoint, timeout = 30000, maxRetries = 3) {
             let lastError;
             for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), timeout);
-
                 try {
-                    const token = getAccessToken();
-                    const response = await fetch(`${API_BASE}${endpoint}`, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-
-                    if (response.status === 401) {
-                        const refreshed = await refreshAccessToken();
-                        if (refreshed) {
-                            const newToken = getAccessToken();
-                            const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${newToken}`
-                                }
-                            });
-                            if (!retryResponse.ok) throw new Error('Request failed');
-                            return retryResponse.json();
-                        } else {
-                            handleLogout();
-                            return null;
-                        }
-                    }
-
-                    if (!response.ok) throw new Error('Request failed');
-                    return response.json();
+                    return await apiRequest(endpoint, 'GET', null, { timeout });
                 } catch (error) {
-                    clearTimeout(timeoutId);
                     lastError = error;
-                    if (error.name === 'AbortError') {
-                        lastError = new Error('Request timed out');
-                    }
-                    if (attempt < maxRetries) {
-                        await new Promise(r => setTimeout(r, 1000 * attempt));
-                        continue;
-                    }
+                    if (error.status && error.status < 500) break;
+                    if (attempt < maxRetries) await new Promise(r => setTimeout(r, 1000 * attempt));
                 }
             }
             throw lastError;
@@ -2187,7 +2032,7 @@
 
         async function loadJobDetail() {
             if (!jobId) {
-                window.location.href = 'https://jobs.cariara.com/discover.html';
+                window.location.href = '/jobs.html';
                 return;
             }
             document.getElementById('job-content').innerHTML = `
@@ -2197,7 +2042,7 @@
                 </div>
             `;
             try {
-                currentJob = await apiRequestWithTimeout(`/jobs/${jobId}`);
+                currentJob = await apiRequestWithTimeout(`/jobs/${encodeURIComponent(jobId)}`);
                 if (currentJob) {
                     renderJobDetail(currentJob);
                 }
@@ -2206,8 +2051,8 @@
                 document.getElementById('job-content').innerHTML = `
                     <div class="empty-state">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <p>${error.message || 'Failed to load job'}</p>
-                        <button onclick="loadJobDetail()" style="margin-top: 12px; padding: 8px 16px; background: var(--accent-blue); color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button>
+                        <p>${escapeHtml(error.message || 'Failed to load job')}</p>
+                        <button type="button" class="btn btn-primary" onclick="loadJobDetail()" style="margin-top: 12px;">Retry</button>
                     </div>
                 `;
             }
@@ -2216,108 +2061,126 @@
         function getSourceBadge(source) {
             if (!source || source === 'manual') return '';
             const labels = { greenhouse: 'Greenhouse', lever: 'Lever', ashby: 'Ashby', smartrecruiters: 'SmartRecruiters', workable: 'Workable', recruitee: 'Recruitee', workday: 'Workday' };
-            return `<span class="source-badge ${source}">${labels[source] || source}</span>`;
+            return `<span class="source-badge ${labels[source] ? source : ''}">${escapeHtml(labels[source] || source)}</span>`;
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        const DESC_TECH_TERMS = ['Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
+            'Kubernetes', 'Docker', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API',
+            'CI/CD', 'DevOps', 'Machine Learning', 'AI', 'ML', 'Linux', 'Go', 'Rust', 'Java',
+            'Terraform', 'Ansible', 'Jenkins', 'Git', 'Prometheus', 'Grafana', 'Kafka'];
+        const DESC_HIGHLIGHT_RE = new RegExp(
+            '(\\d+\\+?\\s*(?:years?|yrs?))|\\b(' +
+            DESC_TECH_TERMS.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') +
+            ')(?![\\w.])', 'gi');
+
+        // Wrap years-of-experience and tech terms in spans by splitting text nodes
+        // (no innerHTML, so decoded "<" in text can never become markup).
+        function highlightTextNodes(root) {
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            const nodes = [];
+            while (walker.nextNode()) nodes.push(walker.currentNode);
+            nodes.forEach(node => {
+                const text = node.nodeValue;
+                DESC_HIGHLIGHT_RE.lastIndex = 0;
+                if (!DESC_HIGHLIGHT_RE.test(text)) return;
+                DESC_HIGHLIGHT_RE.lastIndex = 0;
+                const frag = document.createDocumentFragment();
+                let last = 0, m;
+                while ((m = DESC_HIGHLIGHT_RE.exec(text)) !== null) {
+                    if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+                    const span = document.createElement('span');
+                    span.className = m[1] ? 'desc-highlight' : 'desc-tech';
+                    span.textContent = m[0];
+                    frag.appendChild(span);
+                    last = m.index + m[0].length;
+                }
+                if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+                node.parentNode.replaceChild(frag, node);
+            });
+        }
+
+        const DESC_ALLOWED_TAGS = new Set(['P', 'BR', 'UL', 'OL', 'LI', 'STRONG', 'B', 'EM', 'I', 'H1', 'H2', 'H3', 'H4', 'A']);
+        const DESC_DROP_WITH_CONTENT = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'TEMPLATE', 'NOSCRIPT', 'SVG', 'MATH', 'HEAD', 'TITLE', 'FORM', 'BUTTON', 'SELECT', 'TEXTAREA', 'IMG', 'VIDEO', 'AUDIO']);
+
+        // Rebuild scraped markup into a fresh element using an allow-list.
+        // Parsing happens in an inert DOMParser document (no image loads, no handlers run);
+        // unknown elements are unwrapped (their text kept), attributes are dropped
+        // except http(s) hrefs on links.
+        function sanitizeDescriptionNode(src, dest) {
+            src.childNodes.forEach(child => {
+                if (child.nodeType === Node.TEXT_NODE) {
+                    dest.appendChild(document.createTextNode(child.nodeValue));
+                    return;
+                }
+                if (child.nodeType !== Node.ELEMENT_NODE) return;
+                const tag = child.tagName.toUpperCase();
+                if (DESC_DROP_WITH_CONTENT.has(tag)) return;
+                if (!DESC_ALLOWED_TAGS.has(tag)) {
+                    // Block-level wrappers (div, section, table rows...) keep their line breaks.
+                    const block = /^(DIV|SECTION|ARTICLE|HEADER|FOOTER|TABLE|TR|H5|H6|BLOCKQUOTE|PRE)$/.test(tag);
+                    if (block && dest.lastChild) dest.appendChild(document.createElement('br'));
+                    sanitizeDescriptionNode(child, dest);
+                    return;
+                }
+                const el = document.createElement(tag.toLowerCase());
+                if (tag === 'A') {
+                    const href = (child.getAttribute('href') || '').trim();
+                    if (/^https?:\/\//i.test(href)) {
+                        el.setAttribute('href', href);
+                        el.setAttribute('target', '_blank');
+                        el.setAttribute('rel', 'noopener noreferrer');
+                    }
+                }
+                if (/^H[1-4]$/.test(tag)) el.className = 'desc-section-title';
+                if (tag === 'UL' || tag === 'OL') el.className = 'desc-list';
+                sanitizeDescriptionNode(child, el);
+                if (tag === 'P') {
+                    if (!el.textContent.trim()) return;
+                    el.className = 'desc-para';
+                }
+                dest.appendChild(el);
+            });
         }
 
         /**
          * Formats HTML job descriptions from ATS systems (Greenhouse, Lever, etc.)
-         * Sanitizes and styles the HTML content
+         * Returns sanitized HTML (only allow-listed tags; text is escaped on serialization).
          */
         function formatHtmlDescription(html) {
-            // Create a temporary container to parse HTML
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
+            const doc = new DOMParser().parseFromString(String(html), 'text/html');
+            const container = document.createElement('div');
+            container.className = 'desc-formatted desc-html-content';
+            sanitizeDescriptionNode(doc.body, container);
+            highlightTextNodes(container);
+            const wrapper = document.createElement('div');
+            wrapper.appendChild(container);
+            return wrapper.innerHTML;
+        }
 
-            // Remove script tags and event handlers for security
-            temp.querySelectorAll('script, style, iframe, object, embed').forEach(el => el.remove());
-            temp.querySelectorAll('*').forEach(el => {
-                // Remove event handlers
-                Array.from(el.attributes).forEach(attr => {
-                    if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
-                });
-                // Remove dangerous attributes
-                el.removeAttribute('style'); // We'll apply our own styles
-            });
-
-            // Style headers (h1-h6, strong in divs that look like headers)
-            temp.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(h => {
-                h.classList.add('desc-section-title');
-            });
-
-            // Style lists
-            temp.querySelectorAll('ul, ol').forEach(list => {
-                list.classList.add('desc-list');
-            });
-
-            // Style paragraphs
-            temp.querySelectorAll('p').forEach(p => {
-                if (p.textContent.trim()) {
-                    p.classList.add('desc-para');
+        /**
+         * Render AI output as text with light markdown (headings, bold, bullets).
+         * Escapes first, so model output can never inject markup.
+         */
+        function renderAIText(text) {
+            const lines = escapeHtml(text || '').split(/\r?\n/);
+            let html = '';
+            let inList = false;
+            const inline = s => s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/(^|\s)\*(\S.*?\S|\S)\*(?=\s|$)/g, '$1<em>$2</em>');
+            lines.forEach(line => {
+                const t = line.trim();
+                const bullet = t.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
+                if (bullet) {
+                    if (!inList) { html += '<ul style="padding-left: 20px; margin: 4px 0;">'; inList = true; }
+                    html += `<li>${inline(bullet[1])}</li>`;
+                    return;
                 }
+                if (inList) { html += '</ul>'; inList = false; }
+                const heading = t.match(/^#{1,4}\s+(.*)$/);
+                if (heading) { html += `<strong style="display:block;margin-top:12px;color:var(--c-ink);">${inline(heading[1])}</strong>`; return; }
+                html += t ? `<p style="margin: 0 0 8px;">${inline(t)}</p>` : '';
             });
-
-            // Highlight tech terms and experience
-            const techTerms = ['Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Azure', 'GCP',
-                'Kubernetes', 'Docker', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'Redis', 'GraphQL', 'REST API',
-                'CI/CD', 'DevOps', 'Machine Learning', 'AI', 'ML', 'Linux', 'Go', 'Rust', 'Java',
-                'Terraform', 'Ansible', 'Jenkins', 'Git', 'Prometheus', 'Grafana', 'Kafka'];
-
-            // Escape special regex characters
-            function escapeRegex(str) {
-                return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            }
-
-            function highlightText(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    let text = node.textContent;
-                    let hasMatch = false;
-
-                    // Check for years of experience
-                    if (/\d+\+?\s*(?:years?|yrs?)/i.test(text)) hasMatch = true;
-                    // Check for tech terms
-                    techTerms.forEach(term => {
-                        try {
-                            if (new RegExp(`\\b${escapeRegex(term)}\\b`, 'i').test(text)) hasMatch = true;
-                        } catch(e) {}
-                    });
-
-                    if (hasMatch) {
-                        const span = document.createElement('span');
-                        let html = text;
-                        // Highlight years
-                        html = html.replace(/(\d+\+?\s*(?:years?|yrs?))/gi, '<span class="desc-highlight">$1</span>');
-                        // Highlight tech terms
-                        techTerms.forEach(term => {
-                            try {
-                                const regex = new RegExp(`\\b(${escapeRegex(term)})\\b`, 'gi');
-                                html = html.replace(regex, '<span class="desc-tech">$1</span>');
-                            } catch(e) {}
-                        });
-                        span.innerHTML = html;
-                        node.parentNode.replaceChild(span, node);
-                    }
-                } else if (node.nodeType === Node.ELEMENT_NODE && !['SCRIPT', 'STYLE'].includes(node.tagName)) {
-                    Array.from(node.childNodes).forEach(highlightText);
-                }
-            }
-            highlightText(temp);
-
-            // Clean up empty divs and spans
-            temp.querySelectorAll('div, span').forEach(el => {
-                if (!el.textContent.trim() && !el.querySelector('img, svg')) {
-                    el.remove();
-                }
-            });
-
-            // Wrap in our container
-            return `<div class="desc-formatted desc-html-content">${temp.innerHTML}</div>`;
+            if (inList) html += '</ul>';
+            return `<div style="white-space: normal;">${html}</div>`;
         }
 
         /**
@@ -2355,27 +2218,6 @@
                 /^(how\s*to\s*apply|application\s*process|next\s*steps)/i,
                 /^(equal\s*opportunity|eeo|diversity)/i
             ];
-
-            const sectionIcons = {
-                'about': '🏢', 'company': '🏢', 'team': '👥', 'meet': '👥', 'who': '🏢',
-                'what you': '💼', 'responsibilities': '💼', 'role': '💼', 'duties': '💼',
-                'looking for': '🎯', 'requirements': '🎯', 'qualifications': '🎯', 'minimum': '🎯', 'basic': '🎯',
-                'preferred': '⭐', 'nice to': '⭐', 'bonus': '⭐', 'desired': '⭐',
-                'skills': '🛠️', 'technical': '🛠️',
-                'benefits': '🎁', 'perks': '🎁', 'offer': '🎁', 'compensation': '💰', 'salary': '💰',
-                'education': '🎓', 'experience': '📅',
-                'location': '📍', 'where': '📍',
-                'apply': '📝', 'application': '📝',
-                'equal': '🤝', 'eeo': '🤝', 'diversity': '🌈'
-            };
-
-            function getIconForSection(title) {
-                const lower = title.toLowerCase();
-                for (const [key, icon] of Object.entries(sectionIcons)) {
-                    if (lower.includes(key)) return icon;
-                }
-                return '📋';
-            }
 
             function isSectionHeader(line) {
                 const trimmed = line.trim();
@@ -2479,10 +2321,9 @@
                 // Check for section header
                 if (isSectionHeader(trimmed)) {
                     closeSection();
-                    const icon = getIconForSection(trimmed);
                     const cleanTitle = trimmed.replace(/:$/, '');
                     html += `<div class="desc-section">`;
-                    html += `<h3 class="desc-section-title"><span class="desc-icon">${icon}</span>${escapeHtml(cleanTitle)}</h3>`;
+                    html += `<h3 class="desc-section-title">${escapeHtml(cleanTitle)}</h3>`;
                     currentSection = cleanTitle;
                     return;
                 }
@@ -2516,12 +2357,12 @@
         function renderJobDetail(job) {
             const sourceBadge = getSourceBadge(job.source);
             const inactiveBadge = job.is_active === false ? '<span class="inactive-badge">Inactive</span>' : '';
-            const companyInitial = (job.company_name || 'C')[0].toUpperCase();
+            const companyInitial = escapeHtml((job.company_name || 'C')[0].toUpperCase());
 
             // Excitement stars
             let starsHtml = '';
             for (let i = 1; i <= 5; i++) {
-                starsHtml += i <= job.excitement_level ? '★' : '<span class="empty">★</span>';
+                starsHtml += i <= Number(job.excitement_level) ? '★' : '<span class="empty">★</span>';
             }
 
             // Interviews
@@ -2535,10 +2376,10 @@
                         <div class="interview-item">
                             <div class="interview-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>
                             <div class="interview-details">
-                                <div class="interview-type">${interview.interview_type || 'Interview'}</div>
+                                <div class="interview-type">${escapeHtml(interview.interview_type || 'Interview')}</div>
                                 <div class="interview-date">${formatDateTime(interview.interview_date)}</div>
                             </div>
-                            <span class="interview-outcome ${outcomeClass}">${interview.outcome}</span>
+                            <span class="interview-outcome ${outcomeClass}">${escapeHtml(interview.outcome)}</span>
                         </div>
                     `;
                 });
@@ -2553,7 +2394,7 @@
                     notesHtml += `
                         <div class="note-item">
                             <div class="note-header">
-                                <span class="note-type">${note.note_type}</span>
+                                <span class="note-type">${escapeHtml(note.note_type)}</span>
                                 <span class="note-date">${formatDateTime(note.created_at)}</span>
                             </div>
                             <p>${escapeHtml(note.content)}</p>
@@ -2586,7 +2427,7 @@
                         </div>
                     </div>
                     <div class="header-actions">
-                        <select id="status-select" class="status-select status-${job.status}" onchange="updateStatus(this.value)">
+                        <select id="status-select" class="status-select status-${escapeHtml(job.status)}" onchange="updateStatus(this.value)">
                             <option value="wishlist" ${job.status === 'wishlist' ? 'selected' : ''}>Wishlist</option>
                             <option value="applied" ${job.status === 'applied' ? 'selected' : ''}>Applied</option>
                             <option value="interviewing" ${job.status === 'interviewing' ? 'selected' : ''}>Interviewing</option>
@@ -2594,7 +2435,7 @@
                             <option value="rejected" ${job.status === 'rejected' ? 'selected' : ''}>Rejected</option>
                             <option value="withdrawn" ${job.status === 'withdrawn' ? 'selected' : ''}>Withdrawn</option>
                         </select>
-                        <a href="job_form.html?id=${job.id}" class="btn-icon" title="Edit">
+                        <a href="job_form.html?id=${encodeURIComponent(job.id)}" class="btn-icon" title="Edit">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </a>
                         <button class="btn-icon btn-icon-danger" onclick="deleteJob()" title="Delete">
@@ -2626,17 +2467,13 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         Research
                     </button>
-                    <button class="ai-tool-btn btn-auto-apply" onclick="openAutoApplyModal()" id="btn-auto-apply" ${!job.job_url ? 'disabled title="Job URL required"' : ''}>
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Auto Apply
-                    </button>
                 </div>
 
                 <!-- Job Description -->
                 <div class="desc-card">
                     <div class="desc-card-header">
                         <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h4>
-                        ${job.job_url ? `<a href="${escapeHtml(job.job_url)}" target="_blank" class="link-mini">View Original</a>` : ''}
+                        ${safeUrl(job.job_url) ? `<a href="${safeUrl(job.job_url)}" target="_blank" rel="noopener noreferrer" class="link-mini">View Original</a>` : ''}
                     </div>
                     <div class="desc-card-body">${formatJobDescription(job.job_description)}</div>
                 </div>
@@ -2687,7 +2524,7 @@
             if (!confirm('Are you sure you want to delete this job?')) return;
             try {
                 await apiRequest(`/jobs/${jobId}`, 'DELETE');
-                window.location.href = 'https://jobs.cariara.com/discover.html';
+                window.location.href = '/jobs.html';
             } catch (error) {
                 showAlert('Failed to delete job: ' + error.message, 'error');
             }
@@ -2759,7 +2596,7 @@
             let defaultDocId = null;
             docs.forEach(doc => {
                 const isDefault = doc.is_default ? ' (Default)' : '';
-                options += `<option value="${doc.id}" ${doc.is_default ? 'selected' : ''}>${doc.filename}${isDefault}</option>`;
+                options += `<option value="${escapeHtml(doc.id)}" ${doc.is_default ? 'selected' : ''}>${escapeHtml(doc.filename)}${isDefault}</option>`;
                 if (doc.is_default) defaultDocId = doc.id;
             });
             selectEl.innerHTML = options;
@@ -2810,7 +2647,7 @@
                 const response = await apiRequest('/users/documents/default-resume', 'GET');
                 if (response?.content) {
                     hiddenInput.value = response.content;
-                    statusDiv.innerHTML = `<span style="color: var(--accent-green);">✓ Using: ${response.filename}</span>`;
+                    statusDiv.innerHTML = `<span style="color: var(--c-green);">Using: ${escapeHtml(response.filename)}</span>`;
                     return true;
                 } else {
                     statusDiv.innerHTML = '<span style="color: var(--accent-red);">No resume content found. <a href="https://jobs.cariara.com/documents.html" style="color: var(--accent-blue);">Upload Resume</a></span>';
@@ -2861,9 +2698,9 @@
             resultDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Generating your cover letter...</p>';
             try {
                 const response = await apiRequest('/ai/cover-letter', 'POST', { job_id: parseInt(jobId), resume_text: resumeText });
-                resultDiv.innerHTML = `<div class="ai-result">${response.cover_letter}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result">${renderAIText(response.cover_letter)}</div>`;
             } catch (error) {
-                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--c-red);">Error: ${escapeHtml(error.message)}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate';
@@ -2879,9 +2716,9 @@
             resultDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Generating practice questions...</p>';
             try {
                 const response = await apiRequest('/ai/interview-questions', 'POST', { job_id: parseInt(jobId), interview_type: interviewType });
-                resultDiv.innerHTML = `<div class="ai-result">${response.questions}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result">${renderAIText(response.questions)}</div>`;
             } catch (error) {
-                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--c-red);">Error: ${escapeHtml(error.message)}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate';
@@ -2899,26 +2736,26 @@
             try {
                 const response = await apiRequest('/ai/job-match', 'POST', { job_id: parseInt(jobId), resume_text: resumeText });
                 const scoreClass = response.match_score >= 70 ? 'high' : response.match_score >= 50 ? 'medium' : 'low';
-                let html = `<div class="match-score ${scoreClass}">${response.match_score}%</div>`;
+                let html = `<div class="match-score ${scoreClass}">${Number(response.match_score) || 0}%</div>`;
                 if (response.matching_skills?.length > 0) {
                     html += '<h4 style="margin-top: 15px; color: var(--text-primary);">Matching Skills</h4><div class="skills-list">';
-                    response.matching_skills.forEach(skill => { html += `<span class="skill-tag match">${skill}</span>`; });
+                    response.matching_skills.forEach(skill => { html += `<span class="skill-tag match">${escapeHtml(skill)}</span>`; });
                     html += '</div>';
                 }
                 if (response.missing_skills?.length > 0) {
                     html += '<h4 style="margin-top: 15px; color: var(--text-primary);">Missing Skills</h4><div class="skills-list">';
-                    response.missing_skills.forEach(skill => { html += `<span class="skill-tag missing">${skill}</span>`; });
+                    response.missing_skills.forEach(skill => { html += `<span class="skill-tag missing">${escapeHtml(skill)}</span>`; });
                     html += '</div>';
                 }
-                if (response.summary) html += `<h4 style="margin-top: 15px; color: var(--text-primary);">Summary</h4><p style="color: var(--text-secondary);">${response.summary}</p>`;
+                if (response.summary) html += `<h4 style="margin-top: 15px; color: var(--text-primary);">Summary</h4><p style="color: var(--text-secondary);">${escapeHtml(response.summary)}</p>`;
                 if (response.recommendations?.length > 0) {
                     html += '<h4 style="margin-top: 15px; color: var(--text-primary);">Recommendations</h4><ul style="color: var(--text-secondary); padding-left: 20px;">';
-                    response.recommendations.forEach(rec => { html += `<li>${rec}</li>`; });
+                    response.recommendations.forEach(rec => { html += `<li>${escapeHtml(rec)}</li>`; });
                     html += '</ul>';
                 }
                 resultDiv.innerHTML = html;
             } catch (error) {
-                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--c-red);">Error: ${escapeHtml(error.message)}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Analyze';
@@ -2931,12 +2768,12 @@
             const resultDiv = document.getElementById('research-result');
             btn.disabled = true;
             btn.innerHTML = '<div class="loading-spinner" style="width:18px;height:18px;"></div> Researching...';
-            resultDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Researching ' + currentJob.company_name + '...</p>';
+            resultDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Researching ' + escapeHtml(currentJob.company_name) + '...</p>';
             try {
                 const response = await apiRequest('/ai/company-research', 'POST', { company_name: currentJob.company_name });
-                resultDiv.innerHTML = `<div class="ai-result">${response.research}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result">${renderAIText(response.research)}</div>`;
             } catch (error) {
-                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--c-red);">Error: ${escapeHtml(error.message)}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate Research';
@@ -2964,10 +2801,10 @@
                             Copy Text
                         </button>
                     </div>
-                    <div class="ai-result" id="ats-resume-content">${response.ats_resume}</div>
+                    <div class="ai-result" id="ats-resume-content">${escapeHtml(response.ats_resume)}</div>
                 `;
             } catch (error) {
-                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--accent-red);">Error: ${error.message}</div>`;
+                resultDiv.innerHTML = `<div class="ai-result" style="color: var(--c-red);">Error: ${escapeHtml(error.message)}</div>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Generate ATS Resume';
@@ -3201,7 +3038,7 @@
                 await runPreflightCheck();
             } catch (error) {
                 console.error('Failed to reset counter:', error);
-                alert('Failed to reset counter: ' + error.message);
+                showAlert('Failed to reset counter: ' + error.message, 'error');
             }
         }
 
@@ -3249,7 +3086,7 @@
             btn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Submit Application';
         }
 
-        loadJobDetail();
+        if (adminOk) loadJobDetail();
     </script>
 </body>
 </html>
