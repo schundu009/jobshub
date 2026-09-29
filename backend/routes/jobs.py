@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 from typing import Optional, List
 import re
 import hashlib
+import json
 from datetime import date, datetime, timedelta
 
 import html
@@ -366,10 +367,18 @@ async def get_jobs(
     """
     # Generate cache key for this query
     user_role = roles or role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
+    score_preferences = None
+    if current_user and not all:
+        score_preferences = hashlib.sha256(json.dumps({
+            "user_id": current_user.id,
+            "custom_preferences": current_user.custom_preferences or {},
+            "target_seniority": current_user.target_seniority,
+        }, sort_keys=True, default=str).encode()).hexdigest()[:16]
     cache_key = _get_cache_key(
         "jobs",
         status=status, source=source, active_only=active_only, company_id=company_id,
         posted_within_hours=posted_within_hours, role=user_role, all_jobs=all,
+        score_preferences=score_preferences,
         min_score=min_score, limit=limit, offset=offset
     )
 

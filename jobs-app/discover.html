@@ -3433,9 +3433,16 @@
         }
 
         function extractSalary(job) {
-            // First check database fields
-            if (job.salary_min || job.salary_max) {
-                return { min: job.salary_min, max: job.salary_max };
+            // Prefer structured salary values from the database.
+            const toAmount = (value) => {
+                if (value == null || value === '') return null;
+                const amount = Number(String(value).replace(/[$,\s]/g, ''));
+                return Number.isFinite(amount) && amount > 0 ? amount : null;
+            };
+            const storedMin = toAmount(job.salary_min);
+            const storedMax = toAmount(job.salary_max);
+            if (storedMin != null || storedMax != null) {
+                return { min: storedMin, max: storedMax };
             }
             // Then try parsing from description
             const description = job.job_description;
@@ -3506,10 +3513,12 @@
                 }).format(n);
             };
 
-            if (salary.max) {
+            if (salary.min != null && salary.max != null) {
                 return `${fmt(salary.min)} - ${fmt(salary.max)}`;
             }
-            return fmt(salary.min) + '+';
+            if (salary.min != null) return fmt(salary.min) + '+';
+            if (salary.max != null) return `Up to ${fmt(salary.max)}`;
+            return null;
         }
 
         function detectJobType(job) {
@@ -3590,7 +3599,7 @@
                 displayText = plainDesc.length > 150 ? plainDesc.substring(0, 150) + '...' : plainDesc;
             }
 
-            const showMatch = currentRole && score > 0;
+            const showMatch = job.has_match_score && score != null;
             const matchHtml = showMatch ? `<div style="color:var(--text-secondary);font-size:10px;font-weight:500;margin-bottom:2px;">Match: ${Math.round(score)}%</div>` : '';
 
             return `<div style="display:flex;flex-direction:column;padding:4px 0;width:100%;min-width:0;overflow:hidden;">
@@ -3995,8 +4004,9 @@
                 applyFilters();
                 updateActiveFilters();
             });
-            document.getElementById('match-filter').addEventListener('change', (e) => {
-                applyFilters();
+            document.getElementById('match-filter').addEventListener('change', () => {
+                // A lower score threshold can add jobs omitted by the previous API request.
+                loadJobs();
                 updateActiveFilters();
             });
 
@@ -4316,15 +4326,18 @@
                 if (excludeCitizenship && requiresUSCitizenship(node.data)) return false;
 
                 // Salary filters - check min and max
-                if (salaryMinFilter && node.data.salary_min_val < salaryMinFilter) {
-                    return false;
-                }
-                if (salaryMaxFilter && node.data.salary_min_val > salaryMaxFilter) {
-                    return false;
+                // Salary ranges must overlap the selected pay band. Unknown salary
+                // is not silently treated as zero.
+                const offerMin = node.data.salary_min_val;
+                const offerMax = node.data.salary_max_val;
+                if (salaryMinFilter || salaryMaxFilter) {
+                    if (offerMin == null && offerMax == null) return false;
+                    if (salaryMinFilter && (offerMax ?? offerMin) < salaryMinFilter) return false;
+                    if (salaryMaxFilter && (offerMin ?? offerMax) > salaryMaxFilter) return false;
                 }
 
-                // Match % filter
-                if (matchMinFilter && (node.data.relevance_score || 0) < matchMinFilter) {
+                // A match filter only applies to jobs that have a role-based score.
+                if (matchMinFilter && (node.data.relevance_score == null || node.data.relevance_score < matchMinFilter)) {
                     return false;
                 }
 
@@ -4422,7 +4435,7 @@
             gridApi.onFilterChanged();
             setTimeout(() => {
                 let rowCount = 0;
-                gridApi.forEachNode(() => rowCount++);
+                gridApi.forEachNodeAfterFilter(() => rowCount++);
                 updateStats(allJobs.length, rowCount);
             }, 100);
         }
@@ -4490,19 +4503,33 @@
                 console.log('[JobFilter] Saved roles:', savedRoles);
                 console.log('[JobFilter] Current role (legacy):', currentRole);
 
-                // Build URL based on user's saved roles
-                // Priority: saved roles from profile > no filtering
-                let url;
-                if (savedRoles.length > 0) {
-                    // Use user's saved roles (comma-separated) - NO LIMIT since roles filter aggressively
-                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&roles=${savedRoles.join(',')}&min_score=20`;
-                } else if (currentRole) {
-                    // Fallback to legacy UI-selected role
-                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&role=${currentRole}&min_score=20`;
+                // An explicit sidebar selection overrides saved roles. Otherwise,
+                // score against every saved role and keep the best match.
+                const matchFilterControl = document.getElementById('match-filter');
+                const hasScoringRole = Boolean(currentRole || savedRoles.length > 0);
+                matchFilterControl.disabled = !hasScoringRole;
+                matchFilterControl.title = hasScoringRole
+                    ? 'Filter by relevance score for your selected role(s)'
+                    : 'Choose a role to calculate match scores';
+                if (!hasScoringRole) matchFilterControl.value = '';
+                const matchFilterValue = Number(matchFilterControl.value) || 0;
+                const minimumScore = matchFilterValue > 0 ? Math.min(matchFilterValue, 20) : 20;
+                const query = new URLSearchParams({
+                    active_only: 'true',
+                    posted_within_hours: String(timeRangeHours)
+                });
+                if (currentRole) {
+                    query.set('role', currentRole);
+                    query.set('min_score', String(minimumScore));
+                } else if (savedRoles.length > 0) {
+                    query.set('roles', savedRoles.join(','));
+                    query.set('min_score', String(minimumScore));
                 } else {
-                    // No roles configured - show recent jobs with limit
-                    url = `/jobs?active_only=true&posted_within_hours=${timeRangeHours}&all=true&limit=200`;
+                    // No role profile means scores are unavailable, so load jobs unscored.
+                    query.set('all', 'true');
+                    query.set('limit', '200');
                 }
+                const url = `/jobs?${query.toString()}`;
 
                 console.log('[JobFilter] API URL:', url);
 
@@ -4515,17 +4542,21 @@
 
                 processedJobs = allJobs.map(job => {
                     const salary = extractSalary(job);
-                    // Use backend score if available, otherwise compute locally
-                    // Backend returns score as job.relevance.score (nested object)
-                    const backendScore = job.relevance?.score || job.relevance_score || job.score || 0;
-                    const relevance = backendScore > 0 ? { score: backendScore, isRelevant: true } : computeRelevance(job, roleConfig);
+                    // Backend scores are authoritative, including a valid score of zero.
+                    const backendScore = job.relevance?.score ?? job.relevance_score ?? job.score;
+                    const hasBackendScore = backendScore != null && Number.isFinite(Number(backendScore));
+                    const relevance = hasBackendScore
+                        ? { score: Number(backendScore), isRelevant: job.relevance?.is_relevant ?? Number(backendScore) > 0 }
+                        : (roleConfig ? computeRelevance(job, roleConfig) : null);
                     return {
                         ...job,
                         tech_stack: extractTechStack(job.job_description),
-                        relevance_score: relevance.score,
-                        is_relevant: relevance.isRelevant,
+                        relevance_score: relevance?.score ?? null,
+                        is_relevant: relevance?.isRelevant ?? false,
+                        has_match_score: hasBackendScore || Boolean(roleConfig),
                         salary_display: formatSalary(salary, job.location),
-                        salary_min_val: salary?.min || 0,
+                        salary_min_val: salary?.min ?? null,
+                        salary_max_val: salary?.max ?? null,
                         job_type: detectJobType(job)
                     };
                 });
