@@ -54,7 +54,7 @@ function renderJobsSidebar(activePageId) {
                         <line x1="26" y1="32" x2="32" y2="32" stroke="url(#sidebarLogoGradient)" stroke-width="2.5" stroke-linecap="round"/>
                         <circle cx="42" cy="32" r="2.5" stroke="url(#sidebarLogoGradient)" stroke-width="1.5" fill="none"/>
                     </svg>
-                    <span class="jobs-logo-text">Cariara</span>
+                    <span class="jobs-logo-text">Jobshub</span>
                 </a>
             </div>
             <nav class="jobs-nav">

@@ -92,6 +92,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
+    <meta name="robots" content="noindex,nofollow">
 </head>
 <body>
     <div class="login-container" id="login-container">
@@ -153,11 +154,11 @@
             const refreshToken = params.get('refresh_token');
             const userId = params.get('user_id');
             const userEmail = params.get('user_email');
-            const userName = decodeURIComponent(params.get('user_name') || '');
+            const userName = params.get('user_name') || '';
             const userRole = params.get('user_role');
             const onboardingCompleted = params.get('onboarding_completed') === 'true';
             const rolesConfirmed = params.get('roles_confirmed') === 'true';
-            const jobRoles = params.get('job_roles') ? JSON.parse(decodeURIComponent(params.get('job_roles'))) : [];
+            const jobRoles = params.get('job_roles') ? JSON.parse(params.get('job_roles')) : [];
 
             if (accessToken && refreshToken) {
                 // Store tokens

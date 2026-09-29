@@ -91,6 +91,9 @@ class Settings(BaseSettings):
     # OAuth redirect base (frontend URL)
     oauth_redirect_base: str = os.environ.get("OAUTH_REDIRECT_BASE", "http://localhost:3000")
 
+    # Jobshub frontend origin, including local development when needed.
+    jobs_frontend_url: str = "https://jobs.cariara.com"
+
     # Backend URL (for OAuth callbacks)
     backend_url: str = os.environ.get("BACKEND_URL", "http://localhost:8000")
 

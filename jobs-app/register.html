@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Register</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <title>Jobshub - Register</title>
     <link rel="stylesheet" href="/css/theme.css">
     <style>
         body {
@@ -178,19 +177,24 @@
             text-decoration: underline;
         }
     </style>
+    <link rel="stylesheet" href="/css/jobshub.css">
+    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+    <meta name="robots" content="noindex,follow">
+    <script src="/js/google-signin.js" defer></script>
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo-container">
-                    <img src="/images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
+                    <img src="/images/logo-full.svg" alt="Jobshub" class="logo" style="height:40px;width:auto;">
                 </div>
                 <p>Create your job seeker account</p>
             </div>
 
             <div id="error-message" class="auth-error"></div>
 
+            <div class="social-buttons"><a id="google-login" class="social-btn" href="/login.html">Continue with Google</a></div>
             <form id="register-form">
                 <div class="form-group">
                     <label for="name">Full Name</label>
@@ -232,7 +236,7 @@
     </div>
 
     <script>
-        const API_BASE = window.location.hostname === 'localhost'
+        const API_BASE = ['localhost', '127.0.0.1'].includes(window.location.hostname)
             ? 'http://localhost:8000'
             : 'https://cariara-backend.up.railway.app';
         const DEFAULT_REDIRECT = 'discover.html';

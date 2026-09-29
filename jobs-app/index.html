@@ -1,15 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara Jobs - Redirecting...</title>
-    <script>
-        // Redirect to discover page
-        window.location.href = '/discover.html';
-    </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jobshub — Find jobs and organize your next career move</title>
+  <meta name="description" content="Find your next role with Jobshub. Discover jobs, organize your resume and cover letters, and keep your job search in one workspace.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#1967d2">
+  <link rel="canonical" href="https://jobs.cariara.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Jobshub — Your next move starts with a search">
+  <meta property="og:description" content="Discover jobs and keep your career search organized in one workspace.">
+  <meta property="og:url" content="https://jobs.cariara.com/">
+  <meta property="og:site_name" content="Jobshub">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/jobshub.css">
+  <link rel="stylesheet" href="/css/home.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Jobshub","url":"https://jobs.cariara.com/","description":"Job discovery and a personal workspace for your job search."}</script>
 </head>
 <body>
-    <p>Redirecting to Job Discovery...</p>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <a class="wordmark" href="/" aria-label="Jobshub home"><img src="/images/logo-icon.svg" alt="" width="30" height="30">Jobshub</a>
+    <nav aria-label="Main navigation"><a class="about-link" href="#how-it-works">How it works</a><a href="/login.html">Sign in</a><a class="pill primary" href="/register.html">Get started</a></nav>
+  </header>
+  <main id="main">
+    <section class="hero" aria-labelledby="headline">
+      <p class="eyebrow">A little clarity for your next chapter</p>
+      <h1 id="headline">Your next move.<br><span>One search away.</span></h1>
+      <p>Find roles that fit your skills. Keep your documents and next steps together, from first search to final interview.</p>
+      <form class="search-form" action="/discover.html" method="get" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+        <input type="search" name="q" aria-label="Job title, company, or skill" placeholder="Job title, company, or skill" maxlength="200" required>
+        <button class="pill primary" type="submit">Search</button>
+      </form>
+      <div class="suggestions" aria-label="Search ideas"><a href="/discover.html?q=Software%20engineer">Software engineer</a><a href="/discover.html?q=Product%20designer">Product designer</a><a href="/discover.html?q=Data%20analyst">Data analyst</a></div>
+      <small>Sign in to explore jobs and save your progress.</small>
+    </section>
+    <section class="workspace" id="how-it-works" aria-labelledby="workspace-title">
+      <div><p class="eyebrow">Less tab-hopping. More direction.</p><h2 id="workspace-title">A workspace for the work of finding work.</h2><p>Your next role takes more than a search. Jobshub brings job discovery, application documents, and your preferences into one place.</p><a class="pill" href="/login.html">Open your workspace <span aria-hidden="true">&nbsp;→</span></a></div>
+      <div class="preview"><div class="preview-head">Your search, organized <span>How Jobshub works</span></div><ol class="workflow"><li><span class="step">1</span><div><strong>Find a role that fits</strong><p>Search by title, company, and keywords.</p></div></li><li><span class="step">2</span><div><strong>Get your documents ready</strong><p>Keep resumes and cover letters close at hand.</p></div></li><li><span class="step">3</span><div><strong>Make your next move</strong><p>Review the role and apply with the employer.</p></div></li></ol></div>
+    </section>
+    <section class="about" aria-label="About Jobshub"><div><h2>Built around your search.</h2><p>Choose the roles and work arrangements that matter to you. Return to a focused workspace whenever you’re ready to take the next step.</p></div><div><h2>Your account, your workspace.</h2><p>Use your email or continue with Google. Your personal documents and account settings stay behind sign-in.</p><a class="pill" href="/login.html">Continue to sign in</a></div></section>
+  </main>
+  <footer class="site-footer"><span>Jobshub · A clearer path to your next role.</span><nav aria-label="Footer"><a href="/">Home</a><a href="/login.html">Sign in</a><a href="/register.html">Create account</a></nav></footer>
 </body>
 </html>

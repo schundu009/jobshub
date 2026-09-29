@@ -84,6 +84,7 @@ PUBLIC_ENDPOINTS = {
     "/health",
     "/health/redis",
     # Auth endpoints (login/register flow)
+    "/auth/providers",
     "/auth/register",
     "/auth/login",
     "/auth/refresh",

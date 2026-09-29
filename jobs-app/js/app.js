@@ -51,6 +51,10 @@ function isAuthenticated() {
  * Call this at the top of protected pages.
  */
 function requireAuth() {
+    const search = new URLSearchParams(window.location.search).get('q');
+    if (search && window.location.pathname.includes('discover')) {
+        sessionStorage.setItem('jobshub_search', search.slice(0, 200));
+    }
     if (!isAuthenticated()) {
         // Store the intended destination for redirect after login
         const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -327,13 +331,13 @@ async function loadJobOptions(selectId, selectedId = null) {
 
 // Theme Toggle Functions
 function initTheme() {
-    const savedTheme = localStorage.getItem('jobtrails-theme') || 'dark';
+    const savedTheme = localStorage.getItem('jobtrails-theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
 }
 
 function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('jobtrails-theme', newTheme);

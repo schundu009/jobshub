@@ -17,6 +17,9 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
 import httpx
 import secrets
+from typing import Literal
+from urllib.parse import urlencode
+from utils.security import as_utc
 
 try:
     from database import get_db
@@ -72,6 +75,10 @@ def get_or_create_oauth_user(
     user = db.query(User).filter(User.email == email.lower()).first()
 
     if user:
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="Account is disabled")
+        if user.locked_until and as_utc(user.locked_until) > datetime.now(timezone.utc):
+            raise HTTPException(status_code=403, detail="Account is temporarily locked")
         # Update last login
         user.last_login_at = datetime.now(timezone.utc)
         # Mark email as verified since OAuth provider verified it
@@ -96,51 +103,42 @@ def get_or_create_oauth_user(
 
 async def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
     """Create redirect to frontend with tokens in URL fragment."""
-    import urllib.parse
     import json
     access_token, _ = create_access_token(user.id, user.email, user.role)
     refresh_token, _ = create_refresh_token(user.id)
 
     # Determine redirect URL based on portal (separate domains)
     if portal == "jobs":
-        base_url = "https://jobs.cariara.com/login.html"
+        base_url = f"{settings.jobs_frontend_url.rstrip('/')}/login.html"
     elif portal == "ascend":
         base_url = "https://capra.cariara.com/login"
     else:
         base_url = "https://admin.cariara.com/login.html"
 
-    # URL encode the user name to handle special characters
-    encoded_name = urllib.parse.quote(user.name or '')
+    # Encode each value once so names and email addresses cannot alter the fragment.
+    fragment = urlencode({
+        "access_token": access_token, "refresh_token": refresh_token,
+        "user_id": user.id, "user_email": user.email, "user_name": user.name or "",
+        "user_role": user.role or "user",
+        "onboarding_completed": str(bool(user.onboarding_completed)).lower(),
+        "roles_confirmed": str(bool(user.roles_confirmed_at)).lower(),
+        "job_roles": json.dumps(user.job_roles or []),
+        "has_jobs_access": "true", "plan_type": "pro",
+    })
+    response = RedirectResponse(url=f"{base_url}#{fragment}")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
-    # Get onboarding status
-    onboarding_completed = "true" if user.onboarding_completed else "false"
 
-    # Get roles confirmation status
-    roles_confirmed = "true" if user.roles_confirmed_at else "false"
-
-    # Encode job_roles as JSON string (URL encoded)
-    job_roles_json = urllib.parse.quote(json.dumps(user.job_roles or []))
-
-    # Subscription check disabled - allow all authenticated users
-    has_jobs_access = "true"
-    plan_type = "pro"  # Grant access to all users
-
-    # Redirect to frontend with tokens in URL fragment (not query params for security)
-    redirect_url = (
-        f"{base_url}"
-        f"#access_token={access_token}"
-        f"&refresh_token={refresh_token}"
-        f"&user_id={user.id}"
-        f"&user_email={user.email}"
-        f"&user_name={encoded_name}"
-        f"&user_role={user.role or 'user'}"
-        f"&onboarding_completed={onboarding_completed}"
-        f"&roles_confirmed={roles_confirmed}"
-        f"&job_roles={job_roles_json}"
-        f"&has_jobs_access={has_jobs_access}"
-        f"&plan_type={plan_type}"
-    )
-    return RedirectResponse(url=redirect_url)
+@router.get("/providers")
+def available_providers():
+    """Expose availability, never OAuth credentials."""
+    return {
+        "google": bool(settings.google_client_id and settings.google_client_secret),
+        "github": bool(settings.github_client_id and settings.github_client_secret),
+        "linkedin": bool(settings.linkedin_client_id and settings.linkedin_client_secret),
+    }
 
 
 # =============================================================================
@@ -148,9 +146,9 @@ async def create_frontend_redirect(user: User, portal: str = "admin") -> Redirec
 # =============================================================================
 
 @router.get("/google/login")
-async def google_login(request: Request, redirect: str = "admin"):
+async def google_login(request: Request, redirect: Literal["jobs", "admin", "ascend"] = "jobs"):
     """Initiate Google OAuth login."""
-    if not settings.google_client_id:
+    if not (settings.google_client_id and settings.google_client_secret):
         raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Google OAuth not configured"
@@ -164,7 +162,7 @@ async def google_login(request: Request, redirect: str = "admin"):
 @router.get("/google/callback")
 async def google_callback(request: Request, db: Session = Depends(get_db)):
     """Handle Google OAuth callback."""
-    portal = request.session.get("oauth_portal", "admin")
+    portal = request.session.pop("oauth_portal", "jobs")
     try:
         token = await oauth.google.authorize_access_token(request)
         user_info = token.get("userinfo")
@@ -176,8 +174,10 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
             )
 
         email = user_info.get("email")
-        name = user_info.get("name", email.split("@")[0])
         google_id = user_info.get("sub")
+        if not email or not google_id or user_info.get("email_verified") is not True:
+            raise HTTPException(status_code=400, detail="A verified Google email is required")
+        name = user_info.get("name") or email.split("@")[0]
 
         user = get_or_create_oauth_user(db, email, name, "google", google_id)
         return await create_frontend_redirect(user, portal)
@@ -185,12 +185,12 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         # Redirect to login with error
         if portal == "jobs":
-            error_base = "https://jobs.cariara.com/login.html"
+            error_base = f"{settings.jobs_frontend_url.rstrip('/')}/login.html"
         elif portal == "ascend":
             error_base = "https://ascend.cariara.com/login"
         else:
             error_base = "https://admin.cariara.com/login.html"
-        error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
+        error_url = f"{error_base}#" + urlencode({"error": "oauth_failed", "message": "Google sign-in could not be completed. Try again or sign in with your email."})
         return RedirectResponse(url=error_url)
 
 

@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Settings</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <title>Jobshub - Settings</title>
     <link rel="stylesheet" href="/css/theme.css">
     <!-- Shared Sidebar Styles -->
     <link rel="stylesheet" href="/css/sidebar.css">
@@ -639,6 +638,9 @@
             .form-row { gap: 6px; }
         }
     </style>
+    <link rel="stylesheet" href="/css/jobshub.css">
+    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+    <meta name="robots" content="noindex,follow">
 </head>
 <body>
     <!-- Mobile Menu Button -->
@@ -654,7 +656,7 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="/images/logo-full.svg" alt="Cariara" class="logo">
+            <img src="/images/logo-full.svg" alt="Jobshub" class="logo">
         </div>
         <nav class="sidebar-nav">
             <!-- APPLICATION Section -->
@@ -1020,11 +1022,11 @@
         }
 
         function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
             setTheme(current === 'dark' ? 'light' : 'dark');
         }
 
-        setTheme(localStorage.getItem('jobtrails-theme') || 'dark');
+        setTheme(localStorage.getItem('jobtrails-theme') || 'light');
 
         // Mobile sidebar functions
         function toggleMobileSidebar() {

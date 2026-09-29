@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cariara - Jobs</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap">
+    <title>Jobshub - Jobs</title>
     <!-- AG Grid CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-grid.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-theme-alpine.css">
@@ -2583,6 +2582,9 @@
             border: 1px solid rgba(90, 106, 130, 0.35);
         }
     </style>
+    <link rel="stylesheet" href="/css/jobshub.css">
+    <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
+    <meta name="robots" content="noindex,follow">
 </head>
 <body>
     <!-- Mobile Menu Button -->
@@ -2597,7 +2599,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="/images/logo-full.svg" alt="Cariara" class="logo" style="height:40px;width:auto;">
+            <img src="/images/logo-full.svg" alt="Jobshub" class="logo" style="height:40px;width:auto;">
         </div>
         <div class="sidebar-nav">
             <!-- APPLICATION Section -->
@@ -2661,16 +2663,7 @@
 
         <!-- Header -->
         <div class="discover-header">
-            <svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
-                <defs>
-                    <linearGradient id="headerTextGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#5eead4"/>
-                        <stop offset="50%" style="stop-color:#14b8a6"/>
-                        <stop offset="100%" style="stop-color:#0d9488"/>
-                    </linearGradient>
-                </defs>
-                <text x="0" y="30" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="600" fill="url(#headerTextGradient)">Cariara</text>
-            </svg>
+            <h1>Find your next role</h1>
             <div class="header-stats">
                 <span>Total Jobs: <strong id="total-jobs">0</strong></span>
                 <span class="stat-separator">|</span>
@@ -2693,7 +2686,7 @@
         <div class="controls-bar">
             <div class="search-box">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="search-input" placeholder="Search jobs by title, company, or keywords...">
+                <input type="text" id="search-input" aria-label="Search jobs by title, company, or keywords" placeholder="Search jobs by title, company, or keywords...">
             </div>
             <select class="filter-select" id="location-filter">
                 <option value="" selected>All Locations</option>
@@ -3065,7 +3058,7 @@
         }
 
         function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
             setTheme(current === 'dark' ? 'light' : 'dark');
         }
 
@@ -3128,7 +3121,7 @@
 
         // Initialize theme on page load
         initTheme();
-        const currentTheme = localStorage.getItem('jobtrails-theme') || 'dark';
+        const currentTheme = localStorage.getItem('jobtrails-theme') || 'light';
         updateThemeIcons(currentTheme);
 
         // Exclude dropdown toggle
@@ -3804,6 +3797,11 @@
             detectAndSetUserLocation();
 
             const gridDiv = document.querySelector('#jobsGrid');
+            const initialSearch = new URLSearchParams(window.location.search).get('q')
+                || sessionStorage.getItem('jobshub_search') || '';
+            gridOptions.quickFilterText = initialSearch.slice(0, 200);
+            document.getElementById('search-input').value = gridOptions.quickFilterText;
+            sessionStorage.removeItem('jobshub_search');
             agGrid.createGrid(gridDiv, gridOptions);
             setupEventListeners();
 
