@@ -233,6 +233,9 @@
         }
         .form-control textarea { min-height: 100px; resize: vertical; }
         .form-control input::placeholder { color: var(--text-muted); }
+        .form-control select option { color:#202124; background:#fff; }
+        .base-resume-status { display:block; min-height:16px; margin-top:6px; color:#5f6368; font-size:12px; }
+        .base-resume-status.error { color:#c5221f; }
 
         /* Tags Input */
         .tags-container {
@@ -724,6 +727,7 @@
                         <select name="base_resume" id="base-resume-select" required>
                             <option value="">Select a resume...</option>
                         </select>
+                        <small id="base-resume-status" class="base-resume-status" role="status" aria-live="polite"></small>
                     </div>
                 </div>
 
@@ -983,28 +987,40 @@
         async function loadResumes() {
             const select = document.getElementById('base-resume-select');
             if (!select) return;
-
+            const help = document.getElementById('base-resume-status');
+            const setStatus = (message, isError = false) => {
+                if (!help) return;
+                help.textContent = message;
+                help.classList.toggle('error', isError);
+            };
+            select.innerHTML = '<option value="">Loading resumes…</option>';
+            setStatus('Loading your saved resumes…');
             try {
                 const token = localStorage.getItem('access_token');
+                if (!token) throw new Error('Please sign in again to load your saved resumes.');
                 const response = await fetch(`${API_BASE}/api/users/documents?type=resume`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (response.ok) {
-                    const resumes = await response.json();
-                    select.innerHTML = '<option value="">Select a resume...</option>';
-                    resumes.forEach(resume => {
-                        const option = document.createElement('option');
-                        option.value = resume.id;
-                        option.textContent = `${resume.filename}${resume.is_default ? ' (Default)' : ''}`;
-                        if (settings.base_resume_id === resume.id) {
-                            option.selected = true;
-                        }
-                        select.appendChild(option);
-                    });
+                if (!response.ok) {
+                    if (response.status === 401) throw new Error('Your session expired. Sign in again to load your resumes.');
+                    throw new Error(`Could not load resumes (server returned ${response.status}).`);
                 }
+                const payload = await response.json();
+                if (!Array.isArray(payload)) throw new Error('The resume list returned an unexpected response.');
+                const resumes = payload.filter(resume => resume && resume.id != null && resume.filename);
+                select.replaceChildren(new Option('Select a resume...', ''));
+                resumes.forEach(resume => {
+                    const option = new Option(`${resume.filename}${resume.is_default ? ' (Default)' : ''}`, String(resume.id));
+                    select.appendChild(option);
+                });
+                const selected = resumes.find(resume => String(resume.id) === String(settings.base_resume_id))
+                    || resumes.find(resume => resume.is_default);
+                if (selected) select.value = String(selected.id);
+                setStatus(resumes.length ? `${resumes.length} saved resume${resumes.length === 1 ? '' : 's'} available.` : 'No saved resumes found. Upload one in Resumes.');
             } catch (e) {
                 console.error('Failed to load resumes:', e);
+                select.replaceChildren(new Option('Unable to load resumes', ''));
+                setStatus(e.message || 'Could not load resumes. Please try again.', true);
             }
         }
 
@@ -1426,6 +1442,9 @@
                 });
                 if (r.ok) {
                     settings = await r.json();
+                    // Start independently of optional form population work so a
+                    // slow external lookup cannot leave the resume select empty.
+                    void loadResumes();
                     await populateForm();
                 } else if (r.status === 401) {
                     window.location.href = 'login.html';
@@ -1509,9 +1528,6 @@
                 document.getElementById('address-country-select').value = detectedCountry;
                 updateCurrencyDisplay(detectedCountry);
             }
-
-            // Load resumes for base resume dropdown
-            await loadResumes();
 
             // Check which tabs are already completed based on existing data
             checkTabCompletion();

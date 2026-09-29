@@ -795,6 +795,61 @@
             .ats-hero { flex-direction: column; }
             .gauge-wrap { width: 110px; height: 110px; }
         }
+        /* Google-inspired light surfaces and visible Cariara branding. */
+        body { background:#f8fafd; color:#202124; }
+        .main-shell,.optimizer-layout,.output-panel { background:#fff; }
+        .job-banner { background:#fff; border-bottom:1px solid #dadce0; }
+        .job-banner::before { display:none; }
+        .back-btn { color:#5f6368; }
+        .back-btn:hover { color:#1a73e8; }
+        .banner-eyebrow { color:#1a73e8; }
+        .banner-title { color:#202124; }
+        .banner-company { color:#1a73e8; }
+        .banner-subtitle { color:#5f6368; }
+        .banner-badge { background:#e8f0fe; border-color:#d2e3fc; color:#1967d2; }
+        .optimizer-brand { display:flex; align-items:center; gap:9px; margin-bottom:8px; color:#3c4043; font-size:12px; font-weight:700; letter-spacing:.02em; }
+        .optimizer-brand img { width:28px; height:28px; }
+        .panel { scrollbar-color:#dadce0 transparent; }
+        .panel::-webkit-scrollbar-thumb { background:#dadce0; }
+        .input-panel { background:#fff; border-right:1px solid #dadce0; }
+        .panel-title { color:#202124; }
+        .panel-sub,.field-label,.url-label,.kbd-hint,.empty-state p,.empty-step,.loading-sub { color:#5f6368; }
+        .badge-gold { background:#fef7e0; color:#b06000; border-color:#fce8b2; }
+        .badge-slate { background:#f1f3f4; color:#5f6368; border-color:#dadce0; }
+        .field-textarea,.field-input,.url-input { background:#fff; border:1px solid #dadce0; color:#202124; }
+        .field-textarea:focus,.field-input:focus,.url-input:focus { border-color:#1a73e8; background:#fff; box-shadow:0 0 0 2px #d2e3fc; }
+        .field-textarea::placeholder,.field-input::placeholder { color:#80868b; }
+        .url-row input { background:#fff; border-color:#dadce0; color:#202124; }
+        .btn-fetch { background:#e8f0fe; border-color:#d2e3fc; color:#1967d2; }
+        .btn-fetch:hover { background:#d2e3fc; }
+        .btn-outline,.tab-action { background:#fff; border-color:#dadce0; color:#3c4043; }
+        .btn-outline:hover,.tab-action:hover:not(:disabled) { background:#f8fafd; border-color:#1a73e8; color:#1a73e8; }
+        .btn-primary { background:#1a73e8; color:#fff; box-shadow:none; }
+        .btn-primary:hover:not(:disabled) { background:#1967d2; box-shadow:0 1px 3px rgba(60,64,67,.3); }
+        .btn-generate { background:#1a73e8; box-shadow:0 2px 6px rgba(60,64,67,.25); }
+        .btn-generate:hover:not(:disabled) { background:#1967d2; box-shadow:0 4px 10px rgba(60,64,67,.25); }
+        .output-header,.tab-bar { background:#fff; border-color:#dadce0; }
+        .tab-btn { color:#5f6368; }
+        .tab-btn.active { color:#1a73e8; }
+        .tab-btn.active { color:#1a73e8; border-color:#1a73e8; }
+        .tab-content { background:#f8fafd; }
+        .empty-icon-wrap { background:#e8f0fe; border-color:#d2e3fc; color:#1a73e8; }
+        .empty-steps,.qs-card,.kw-card,.ats-sec,.skill-table { background:#fff; border-color:#dadce0; }
+        .step-pill,.load-progress-track,.load-progress-card { background:#f1f3f4; border-color:#dadce0; color:#5f6368; }
+        .step-pill.active { background:#e8f0fe; border-color:#d2e3fc; color:#1967d2; box-shadow:none; }
+        .step-pill.done { background:#e6f4ea; border-color:#ceead6; color:#137333; }
+        .load-progress-fill { background:#4285f4; }
+        .qs-label,.skill-name,.ats-sec-title,.r-desc,.ats-stat-key,.kw-title { color:#5f6368; }
+        .skill-table th { background:#f1f3f4; color:#5f6368; }
+        .skill-table td,.skill-table th,.ats-sec-head,.ats-rec-item,.ats-weak-item { border-color:#dadce0; }
+        .skill-table tbody tr:nth-child(even) { background:#f8fafd; }
+        .skill-table tbody tr:hover { background:#e8f0fe; }
+        .g-track { stroke:#dadce0; }
+        .r-bar-track { background:#e8eaed; }
+        .g-denom,.g-sub,.skill-gap-count,.c-none { color:#80868b; }
+        #toast.success { background:#e6f4ea; border-color:#34a853; color:#137333; }
+        #toast.info { background:#e8f0fe; border-color:#4285f4; color:#1967d2; }
+        #toast.error { background:#fce8e6; border-color:#ea4335; color:#c5221f; }
     </style>
     <link rel="stylesheet" href="/css/jobshub.css">
     <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
@@ -814,6 +869,7 @@
         </a>
         <div class="banner-row">
             <div class="banner-left">
+                <div class="optimizer-brand"><img src="/images/logo-icon.svg" alt="Cariara"><span>Cariara</span></div>
                 <div class="banner-eyebrow">Resume Optimizer</div>
                 <h1 class="banner-title">Tailoring for <span class="banner-company" id="banner-company">Company</span></h1>
                 <p class="banner-subtitle" id="banner-subtitle">AI-optimized for ATS systems and hiring managers.</p>
