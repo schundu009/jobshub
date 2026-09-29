@@ -10,11 +10,51 @@ _cached_api_key = None
 
 # Available Claude models
 CLAUDE_MODELS = {
-    "claude-3-5-sonnet-20241022": "Claude 3.5 Sonnet (Best)",
-    "claude-3-5-haiku-20241022": "Claude 3.5 Haiku (Fast)",
-    "claude-3-opus-20240229": "Claude 3 Opus (Most Capable)",
+    "claude-opus-5-5": "Claude Opus 5.5 (Most Capable)",
+    "claude-sonnet-5-5": "Claude Sonnet 5.5 (Best)",
+    "claude-haiku-4-5-20251001": "Claude Haiku 4.5 (Fast)",
 }
-DEFAULT_MODEL = "claude-3-5-sonnet-20241022"
+DEFAULT_MODEL = "claude-sonnet-5-5"
+
+# Retired model ids (e.g. a stale AppSetting "claude_model") -> closest current model,
+# so an old saved setting doesn't turn every request into a provider 404.
+_LEGACY_MODEL_PREFIXES = (
+    ("claude-3-opus", "claude-opus-5-5"),
+    ("claude-3-5-haiku", "claude-haiku-4-5-20251001"),
+    ("claude-3-haiku", "claude-haiku-4-5-20251001"),
+    ("claude-3-5-sonnet", "claude-sonnet-5-5"),
+    ("claude-3-7-sonnet", "claude-sonnet-5-5"),
+    ("claude-3", "claude-sonnet-5-5"),
+)
+
+_logged_model_errors = set()
+
+
+def resolve_claude_model(model: str) -> str:
+    """Map a configured model id to a currently supported one."""
+    if model in CLAUDE_MODELS:
+        return model
+    for prefix, replacement in _LEGACY_MODEL_PREFIXES:
+        if model and model.startswith(prefix):
+            return replacement
+    return DEFAULT_MODEL
+
+
+def _create_message(anthropic_client, **kwargs):
+    """messages.create with a single clear log line when the model id 404s."""
+    try:
+        return anthropic_client.messages.create(**kwargs)
+    except anthropic.NotFoundError as e:
+        model = kwargs.get("model")
+        if model not in _logged_model_errors:
+            _logged_model_errors.add(model)
+            import logging
+            logging.getLogger(__name__).error(
+                "Anthropic model %r not found (404) - it may be retired. "
+                "Update the 'claude_model' setting or DEFAULT_MODEL. Provider said: %s",
+                model, e,
+            )
+        raise
 
 
 def get_db_setting(key: str, default: str = None) -> str:
@@ -37,9 +77,7 @@ def get_db_setting(key: str, default: str = None) -> str:
 def get_claude_model() -> str:
     """Get the configured Claude model from database."""
     model = get_db_setting("claude_model", DEFAULT_MODEL)
-    if model in CLAUDE_MODELS:
-        return model
-    return DEFAULT_MODEL
+    return resolve_claude_model(model)
 
 
 def get_anthropic_api_key():
@@ -115,7 +153,7 @@ Sincerely,
 [Candidate's actual name]
 """
 
-    response = anthropic_client.messages.create(
+    response = _create_message(anthropic_client, 
         model=get_claude_model(),
         max_tokens=1000,
         messages=[
@@ -159,7 +197,7 @@ Instructions:
 - Format as a numbered list with the question followed by the tip
 """
 
-    response = anthropic_client.messages.create(
+    response = _create_message(anthropic_client, 
         model=get_claude_model(),
         max_tokens=1500,
         messages=[
@@ -206,7 +244,7 @@ SUMMARY:
 [2-3 sentence overall assessment]
 """
 
-    response = anthropic_client.messages.create(
+    response = _create_message(anthropic_client, 
         model=get_claude_model(),
         max_tokens=1000,
         messages=[
@@ -301,7 +339,7 @@ Provide actionable suggestions in these categories:
 Be specific and reference actual content from the resume when possible.
 """
 
-    response = anthropic_client.messages.create(
+    response = _create_message(anthropic_client, 
         model=get_claude_model(),
         max_tokens=1500,
         messages=[
@@ -357,7 +395,7 @@ Create a comprehensive but concise research summary including:
 Note: Base this on general knowledge. For the most current information, the candidate should also check the company's website and recent news.
 """
 
-    response = anthropic_client.messages.create(
+    response = _create_message(anthropic_client, 
         model=get_claude_model(),
         max_tokens=1500,
         messages=[
@@ -432,7 +470,7 @@ RULES:
 """
 
     try:
-        response = anthropic_client.messages.create(
+        response = _create_message(anthropic_client, 
             model=get_claude_model(),
             max_tokens=800,
             messages=[
@@ -490,7 +528,7 @@ Instructions:
 Output the complete rewritten resume in a clean, professional format. Do not include any commentary - just output the optimized resume text ready to be used.
 """
 
-    response = anthropic_client.messages.create(
+    response = _create_message(anthropic_client, 
         model=get_claude_model(),
         max_tokens=3000,
         messages=[

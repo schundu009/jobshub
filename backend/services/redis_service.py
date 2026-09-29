@@ -21,6 +21,22 @@ except ImportError:
     from config import settings
 
 
+class _CircuitRedis(redis.Redis):
+    """Redis client that opens the service circuit on connection/timeouts."""
+
+    def __init__(self, *args, service=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._service = service
+
+    def execute_command(self, *args, **options):
+        try:
+            return super().execute_command(*args, **options)
+        except (redis.ConnectionError, redis.TimeoutError):
+            if self._service is not None:
+                self._service.mark_down()
+            raise
+
+
 class RedisService:
     """
     Redis service for distributed caching and state management.
@@ -34,30 +50,52 @@ class RedisService:
     PREFIX_SESSION = "session:"
     PREFIX_CACHE = "cache:"
 
+    # When Redis is unreachable, skip it entirely for this many seconds instead
+    # of paying a connect/socket timeout on every request (fail open).
+    CIRCUIT_OPEN_SECONDS = 15
+
     def __init__(self, redis_url: Optional[str] = None):
         """Initialize Redis connection pool."""
         self.redis_url = redis_url or settings.redis_url
         self._pool = None
         self._client = None
+        self._down_until = 0.0
 
     @property
     def pool(self) -> redis.ConnectionPool:
         """Lazy-initialize connection pool."""
         if self._pool is None:
-            self._pool = redis.ConnectionPool.from_url(
+            self._pool = redis.BlockingConnectionPool.from_url(
                 self.redis_url,
-                max_connections=10,
+                max_connections=50,
+                timeout=1,  # wait at most 1s for a free pooled connection
                 decode_responses=True,
-                socket_timeout=5,
-                socket_connect_timeout=5,
+                socket_timeout=1,
+                socket_connect_timeout=1,
+                health_check_interval=30,
             )
         return self._pool
 
+    def mark_down(self) -> None:
+        """Open the circuit: treat Redis as unavailable for a short period."""
+        self._down_until = time.monotonic() + self.CIRCUIT_OPEN_SECONDS
+
+    @property
+    def available(self) -> bool:
+        return time.monotonic() >= self._down_until
+
     @property
     def client(self) -> redis.Redis:
-        """Get Redis client from pool."""
+        """Get Redis client from pool.
+
+        Raises redis.ConnectionError while the circuit is open; every caller
+        already accesses ``self.client`` inside ``try/except redis.RedisError``
+        so this fails open without touching the network.
+        """
+        if not self.available:
+            raise redis.ConnectionError("Redis circuit open (recent connection failure)")
         if self._client is None:
-            self._client = redis.Redis(connection_pool=self.pool)
+            self._client = _CircuitRedis(service=self, connection_pool=self.pool)
         return self._client
 
     def ping(self) -> bool:
@@ -200,6 +238,9 @@ class RedisService:
             remaining = limit - current_count - 1
             return True, remaining, 0
 
+        except (redis.ConnectionError, redis.TimeoutError):
+            self.mark_down()
+            return True, limit, 0
         except redis.RedisError:
             # Fail open on Redis errors
             return True, limit, 0

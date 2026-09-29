@@ -48,7 +48,7 @@ class NoteUpdate(BaseModel):
 
 
 @router.get("")
-async def get_all_notes(
+def get_all_notes(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -70,7 +70,7 @@ async def get_all_notes(
 
 
 @router.get("/job/{job_id}")
-async def get_notes_by_job(
+def get_notes_by_job(
     job_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -96,7 +96,7 @@ async def get_notes_by_job(
 
 
 @router.post("")
-async def create_note(
+def create_note(
     note: NoteCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -122,7 +122,7 @@ async def create_note(
 
 
 @router.put("/{note_id}")
-async def update_note(
+def update_note(
     note_id: int,
     note: NoteUpdate,
     current_user: User = Depends(get_current_user),
@@ -146,7 +146,7 @@ async def update_note(
 
 
 @router.delete("/{note_id}")
-async def delete_note(
+def delete_note(
     note_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

@@ -9,14 +9,14 @@ Security features:
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
 import re
 
 from database import get_db
-from models import Company, User
+from models import Company, Job, User
 from middleware.auth import get_current_user
 
 router = APIRouter(prefix="/api/companies", tags=["companies"])
@@ -75,17 +75,25 @@ class CompanyResponse(BaseModel):
 
 
 @router.get("")
-async def get_all_companies(
+def get_all_companies(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     companies = db.query(Company).filter(
         or_(Company.user_id == current_user.id, Company.user_id == None)
     ).all()
+
+    # One grouped count of jobs visible to this user (shared + own), instead of
+    # loading every job of every company.
+    job_counts = dict(
+        db.query(Job.company_id, func.count(Job.id)).filter(
+            Job.company_id.isnot(None),
+            or_(Job.user_id == None, Job.user_id == current_user.id),
+        ).group_by(Job.company_id).all()
+    )
+
     result = []
     for company in companies:
-        # Only count jobs visible to this user
-        user_jobs = [j for j in company.jobs if j.user_id == current_user.id or j.user_id is None]
         result.append({
             "id": company.id,
             "name": company.name,
@@ -95,13 +103,13 @@ async def get_all_companies(
             "location": company.location,
             "notes": company.notes,
             "created_at": company.created_at,
-            "job_count": len(user_jobs)
+            "job_count": job_counts.get(company.id, 0)
         })
     return result
 
 
 @router.get("/{company_id}")
-async def get_company(
+def get_company(
     company_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -130,7 +138,7 @@ async def get_company(
 
 
 @router.post("")
-async def create_company(
+def create_company(
     company: CompanyCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -143,7 +151,7 @@ async def create_company(
 
 
 @router.put("/{company_id}")
-async def update_company(
+def update_company(
     company_id: int,
     company: CompanyUpdate,
     current_user: User = Depends(get_current_user),
@@ -170,7 +178,7 @@ async def update_company(
 
 
 @router.delete("/{company_id}")
-async def delete_company(
+def delete_company(
     company_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

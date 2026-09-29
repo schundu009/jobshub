@@ -43,9 +43,9 @@ def get_engine():
             poolclass=QueuePool,
             pool_size=settings.db_pool_size,
             max_overflow=settings.db_max_overflow,
-            pool_timeout=settings.db_pool_timeout,
+            pool_timeout=settings.db_pool_timeout,  # fail fast (default 5s) instead of piling up requests
             pool_recycle=settings.db_pool_recycle,
-            pool_pre_ping=True,  # Verify connections before use
+            pool_pre_ping=True,  # Verify connections before use (handles Railway dropping idle conns)
         )
 
 
@@ -59,11 +59,62 @@ except Exception as e:
     engine = None
 
 
+# Advisory-lock keys for startup migrations (arbitrary, stable 64-bit ints).
+EARLY_MIGRATIONS_LOCK_KEY = 7342001
+STARTUP_MIGRATIONS_LOCK_KEY = 7342002
+DOCUMENT_OWNERSHIP_LOCK_KEY = 7342003
+
+
+@contextmanager
+def migration_lock(key: int, wait: bool = False):
+    """
+    Serialize startup migrations across uvicorn workers / replicas.
+
+    On PostgreSQL takes a session-level advisory lock on a dedicated
+    connection and yields True if this process holds it. With ``wait=False``
+    (pg_try_advisory_lock) a worker that loses the race yields False and should
+    skip the migration; another worker is already running it. On SQLite (single
+    process dev/tests) it always yields True.
+    """
+    if engine is None or engine.dialect.name != "postgresql":
+        yield True
+        return
+
+    from sqlalchemy import text
+
+    conn = engine.connect()
+    acquired = False
+    try:
+        if wait:
+            conn.execute(text("SELECT pg_advisory_lock(:k)"), {"k": key})
+            acquired = True
+        else:
+            acquired = bool(conn.execute(text("SELECT pg_try_advisory_lock(:k)"), {"k": key}).scalar())
+        conn.commit()
+        yield acquired
+    finally:
+        try:
+            if acquired:
+                conn.execute(text("SELECT pg_advisory_unlock(:k)"), {"k": key})
+                conn.commit()
+        finally:
+            conn.close()
+
+
 def _run_early_migrations():
     """Run critical migrations before models are loaded."""
     if engine is None:
         print("Skipping early migrations - no database connection")
         return
+
+    with migration_lock(EARLY_MIGRATIONS_LOCK_KEY) as acquired:
+        if not acquired:
+            print("Early migrations already running in another worker - skipping")
+            return
+        _run_early_migrations_locked()
+
+
+def _run_early_migrations_locked():
 
     from sqlalchemy import text
 

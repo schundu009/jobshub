@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer(auto_error=False)
 
 
-async def get_current_user(
+def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
@@ -113,7 +113,27 @@ async def get_current_user(
     return user
 
 
-async def get_current_user_optional(
+def get_current_user_detached(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db),
+) -> User:
+    """
+    Like get_current_user, but ends the session's transaction right after the
+    lookup so the pooled DB connection goes back to the pool before the
+    handler runs (a Session otherwise pins its connection until the request
+    finishes).
+
+    For handlers that do slow non-DB work (Celery/Redis inspection). The
+    returned User is detached: plain column attributes (id, role, email, ...)
+    work, lazy relationships do not.
+    """
+    user = get_current_user(credentials, db)
+    db.expunge(user)
+    db.rollback()
+    return user
+
+
+def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
@@ -127,12 +147,12 @@ async def get_current_user_optional(
         return None
 
     try:
-        return await get_current_user(credentials, db)
+        return get_current_user(credentials, db)
     except HTTPException:
         return None
 
 
-async def get_current_admin(
+def get_current_admin(
     current_user: User = Depends(get_current_user)
 ) -> User:
     """

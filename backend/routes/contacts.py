@@ -92,7 +92,7 @@ class ContactUpdate(BaseModel):
 
 
 @router.get("")
-async def get_all_contacts(
+def get_all_contacts(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -118,7 +118,7 @@ async def get_all_contacts(
 
 
 @router.get("/{contact_id}")
-async def get_contact(
+def get_contact(
     contact_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -146,7 +146,7 @@ async def get_contact(
 
 
 @router.get("/company/{company_id}")
-async def get_contacts_by_company(
+def get_contacts_by_company(
     company_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -169,7 +169,7 @@ async def get_contacts_by_company(
 
 
 @router.post("")
-async def create_contact(
+def create_contact(
     contact: ContactCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -191,7 +191,7 @@ async def create_contact(
 
 
 @router.put("/{contact_id}")
-async def update_contact(
+def update_contact(
     contact_id: int,
     contact: ContactUpdate,
     current_user: User = Depends(get_current_user),
@@ -218,7 +218,7 @@ async def update_contact(
 
 
 @router.delete("/{contact_id}")
-async def delete_contact(
+def delete_contact(
     contact_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

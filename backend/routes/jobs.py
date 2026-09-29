@@ -54,6 +54,7 @@ try:
 except Exception:
     redis_service = None
 
+MAX_SCORING_CANDIDATES = 3000  # most recent title-matched jobs scored per request
 CACHE_TTL_JOBS = 300  # Cache job lists for 5 minutes (scoring is expensive)
 
 
@@ -101,13 +102,12 @@ def _apply_title_filter(query, role_profiles: List[dict]):
 
 
 def _redis_available() -> bool:
-    """Check if Redis is available (called dynamically, not at import time)."""
-    if redis_service is None:
-        return False
-    try:
-        return redis_service.ping()
-    except Exception:
-        return False
+    """Whether to attempt Redis at all.
+
+    No PING round-trip per call: cache operations fail open on their own and
+    the Redis service trips a short circuit breaker on connection errors.
+    """
+    return redis_service is not None and redis_service.available
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
@@ -347,7 +347,7 @@ def job_to_response(
 # ============== Endpoints ==============
 
 @router.get("")
-async def get_jobs(
+def get_jobs(
     # Filtering
     status: Optional[str] = Query(None, description="Filter by job status"),
     source: Optional[str] = Query(None, description="Filter by source (greenhouse, lever, etc.)"),
@@ -509,13 +509,14 @@ async def get_jobs(
     # This dramatically reduces the number of jobs to score
     query = _apply_title_filter(query, role_profiles)
 
-    # After title filtering, get all matching jobs (no arbitrary limit)
-    # The title filter typically reduces 26K jobs to a few thousand
+    # After title filtering, score only the most recent candidates. Scoring
+    # needs title + description, so descriptions are loaded, but capping the
+    # candidate set bounds memory/latency on broad role filters.
     try:
         all_jobs = query.order_by(
             Job.posted_date.desc().nullslast(),
             Job.created_at.desc()
-        ).all()
+        ).limit(MAX_SCORING_CANDIDATES).all()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
 
@@ -574,7 +575,7 @@ async def get_jobs(
 
 
 @router.get("/discover")
-async def discover_jobs(
+def discover_jobs(
     role: str = Query(..., description="Role profile slug (required)"),
     limit: int = Query(25, ge=1, le=100, description="Maximum results"),
     min_score: float = Query(40, ge=0, le=100, description="Minimum relevance score"),
@@ -599,7 +600,7 @@ async def discover_jobs(
         )
 
     # Get active jobs visible to user (owned or shared)
-    query = db.query(Job).filter(
+    query = db.query(Job).options(joinedload(Job.company)).filter(
         Job.is_active == True,
         or_(Job.user_id == current_user.id, Job.user_id == None)
     )
@@ -611,9 +612,15 @@ async def discover_jobs(
                 (Job.posted_date == None) & (Job.created_at >= cutoff_date)
             )
         )
-    jobs = query.all()
+    # Same candidate selection as GET /api/jobs: SQL title pre-filter, then
+    # only the most recent MAX_SCORING_CANDIDATES get scored (was: every active job).
+    query = _apply_title_filter(query, [role_profile])
+    jobs = query.order_by(
+        Job.posted_date.desc().nullslast(),
+        Job.created_at.desc()
+    ).limit(MAX_SCORING_CANDIDATES).all()
 
-    # Score all jobs
+    # Score candidate jobs
     scored_jobs = []
     for job in jobs:
         result = compute_job_relevance(job, role_profile)
@@ -651,7 +658,7 @@ async def discover_jobs(
 
 
 @router.get("/compare/{job_id}")
-async def compare_job_relevance(
+def compare_job_relevance(
     job_id: int,
     roles: str = Query("devops,backend,frontend", description="Comma-separated role slugs to compare"),
     current_user: User = Depends(get_current_user),
@@ -754,7 +761,7 @@ def list_available_roles(db: Session = Depends(get_db)):
 
 
 @router.get("/{job_id}")
-async def get_job(
+def get_job(
     job_id: int,
     role: Optional[str] = Query(None, description="Role to compute relevance for"),
     current_user: User = Depends(get_current_user),
@@ -839,7 +846,7 @@ async def get_job(
 
 
 @router.post("")
-async def create_job(
+def create_job(
     job: JobCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -862,7 +869,7 @@ async def create_job(
 
 
 @router.put("/{job_id}")
-async def update_job(
+def update_job(
     job_id: int,
     job: JobUpdate,
     current_user: User = Depends(get_current_user),
@@ -899,7 +906,7 @@ async def update_job(
 
 
 @router.delete("/{job_id}")
-async def delete_job(
+def delete_job(
     job_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -919,7 +926,7 @@ async def delete_job(
 
 
 @router.patch("/{job_id}/status")
-async def update_job_status(
+def update_job_status(
     job_id: int,
     status_update: StatusUpdate,
     current_user: User = Depends(get_current_user),
@@ -972,7 +979,7 @@ def _check_ai_summary_rate_limit(user_id: int) -> None:
 
 
 @router.post("/{job_id}/ai-summary")
-async def generate_job_ai_summary(
+def generate_job_ai_summary(
     job_id: int,
     force: bool = False,
     current_user: User = Depends(get_current_user),
@@ -1036,7 +1043,7 @@ async def generate_job_ai_summary(
 
 
 @router.get("/{job_id}/ai-summary")
-async def get_job_ai_summary(
+def get_job_ai_summary(
     job_id: int,
     db: Session = Depends(get_db)
 ):

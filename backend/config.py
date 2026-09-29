@@ -29,10 +29,12 @@ class Settings(BaseSettings):
     database_url: str = os.environ.get("DATABASE_URL", "postgresql://chundu@localhost:5432/jobtrails")
 
     # Connection pool settings (sized for 4 concurrent Celery workers + API)
+    # Per process (uvicorn runs WEB_CONCURRENCY workers, each with its own pool).
+    # Override with DB_POOL_SIZE / DB_MAX_OVERFLOW / DB_POOL_TIMEOUT / DB_POOL_RECYCLE.
     db_pool_size: int = 10
-    db_max_overflow: int = 20
-    db_pool_timeout: int = 5
-    db_pool_recycle: int = 30  # Recycle connections every 30s (Railway may drop idle connections)
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 5  # seconds to wait for a pooled connection before erroring
+    db_pool_recycle: int = 1800  # pool_pre_ping handles dropped idle conns; recycle every 30 min
 
     # ==========================================================================
     # REDIS

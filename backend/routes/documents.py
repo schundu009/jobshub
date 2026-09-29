@@ -122,7 +122,7 @@ def validate_doc_type(doc_type: str) -> str:
 # =============================================================================
 
 @router.get("")
-async def get_all_documents(
+def get_all_documents(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -148,7 +148,7 @@ async def get_all_documents(
 
 
 @router.get("/job/{job_id}")
-async def get_documents_by_job(
+def get_documents_by_job(
     job_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -257,7 +257,7 @@ async def upload_document(
 
 
 @router.delete("/{document_id}")
-async def delete_document(
+def delete_document(
     document_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

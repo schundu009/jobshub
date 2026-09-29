@@ -349,3 +349,101 @@ def get_scraper_stats(db: Session, company_slug: str) -> dict:
             for run in recent_runs
         ],
     }
+
+
+def get_all_scraper_stats(db: Session, company_slugs: list[str]) -> list[dict]:
+    """
+    Bulk version of get_scraper_stats for many scrapers (no recent_runs list).
+
+    Uses a constant number of queries regardless of how many scrapers exist:
+      1. scraper_configs WHERE company_slug IN (...)
+      2. companies whose lower(name) matches a scraper's company name
+      3. job counts (total / active) GROUP BY company_id
+      4. last error among each scraper's 10 most recent runs (window function,
+         supported by PostgreSQL and SQLite >= 3.25)
+
+    Returns dicts in the same order as ``company_slugs`` with the same keys as
+    get_scraper_stats (minus "recent_runs").
+    """
+    from sqlalchemy import case, func
+    from models import ScraperRun, ScraperConfigDB
+
+    if not company_slugs:
+        return []
+
+    # 1. Configs
+    configs = {
+        c.company_slug: c
+        for c in db.query(ScraperConfigDB).filter(
+            ScraperConfigDB.company_slug.in_(company_slugs)
+        ).all()
+    }
+
+    # Company display names from the registry (in-memory)
+    names = {}
+    for slug in company_slugs:
+        metadata = ScraperRegistry.get_metadata(slug)
+        names[slug] = metadata["company_name"] if metadata else slug
+
+    # 2. Company name -> id (case-insensitive exact match, lowest id wins)
+    lowered = sorted({n.lower() for n in names.values() if n})
+    company_ids: dict[str, int] = {}
+    if lowered:
+        rows = db.query(Company.id, func.lower(Company.name)).filter(
+            func.lower(Company.name).in_(lowered)
+        ).order_by(Company.id).all()
+        for cid, lname in rows:
+            company_ids.setdefault(lname, cid)
+
+    # 3. Job counts per company
+    job_counts: dict[int, tuple[int, int]] = {}
+    ids = sorted(set(company_ids.values()))
+    if ids:
+        rows = db.query(
+            Job.company_id,
+            func.count(Job.id),
+            func.sum(case((Job.is_active == True, 1), else_=0)),  # noqa: E712
+        ).filter(Job.company_id.in_(ids)).group_by(Job.company_id).all()
+        for cid, total, active in rows:
+            job_counts[cid] = (int(total or 0), int(active or 0))
+
+    # 4. Last error among the 10 most recent runs of each scraper
+    ranked = db.query(
+        ScraperRun.company_slug.label("slug"),
+        ScraperRun.success.label("success"),
+        ScraperRun.error_message.label("error_message"),
+        func.row_number().over(
+            partition_by=ScraperRun.company_slug,
+            order_by=ScraperRun.run_at.desc(),
+        ).label("rn"),
+    ).filter(ScraperRun.company_slug.in_(company_slugs)).subquery()
+
+    last_errors: dict[str, str] = {}
+    rows = db.query(ranked.c.slug, ranked.c.error_message).filter(
+        ranked.c.rn <= 10,
+        ranked.c.success == False,  # noqa: E712
+        ranked.c.error_message.isnot(None),
+        ranked.c.error_message != "",
+    ).order_by(ranked.c.slug, ranked.c.rn).all()
+    for slug, message in rows:
+        last_errors.setdefault(slug, message)
+
+    results = []
+    for slug in company_slugs:
+        config = configs.get(slug)
+        company_name = names[slug]
+        cid = company_ids.get(company_name.lower()) if company_name else None
+        total_jobs, active_jobs = job_counts.get(cid, (0, 0)) if cid else (0, 0)
+        results.append({
+            "company_slug": slug,
+            "company_name": company_name,
+            "is_enabled": config.is_enabled if config else True,
+            "consecutive_failures": config.consecutive_failures if config else 0,
+            "total_runs": config.total_runs if config else 0,
+            "last_success_at": config.last_success_at.isoformat() if config and config.last_success_at else None,
+            "last_failure_at": config.last_failure_at.isoformat() if config and config.last_failure_at else None,
+            "last_error": last_errors.get(slug),
+            "active_jobs": active_jobs,
+            "total_jobs": total_jobs,
+        })
+    return results

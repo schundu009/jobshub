@@ -47,6 +47,9 @@ def client(db, monkeypatch):
         yield db
     app.dependency_overrides[get_db] = override_db
     monkeypatch.setattr(redis_service, "ping", lambda: False)
+    # Keep tests off any real Redis: open the service's circuit breaker so
+    # cache/rate-limit calls fail open without network I/O.
+    monkeypatch.setattr(redis_service, "_down_until", float("inf"))
     monkeypatch.setattr(redis_service, "is_token_blacklisted", lambda _: False)
     monkeypatch.setattr(redis_service, "get_user_blacklist_time", lambda _: None)
     import main

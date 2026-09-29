@@ -19,6 +19,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import Response
 from contextlib import asynccontextmanager
+import anyio
+import anyio.to_thread
 import os
 import time
 import logging
@@ -131,15 +133,13 @@ class RateLimiter:
         self._use_redis = True
 
     def _check_redis(self) -> bool:
-        """Check if Redis is available."""
-        if not self._use_redis:
-            return False
-        try:
-            return redis_service.ping()
-        except Exception:
-            self._use_redis = False
-            logger.warning("Redis unavailable, falling back to in-memory rate limiting")
-            return False
+        """Whether to try Redis for this request.
+
+        No per-request PING: the Redis service keeps a short-lived circuit
+        breaker that trips on connection errors/timeouts, so a down Redis
+        costs nothing and we fall back to in-memory limiting.
+        """
+        return self._use_redis and redis_service.available
 
     def is_allowed(
         self,
@@ -157,11 +157,13 @@ class RateLimiter:
         limit = config["limit"]
         window = config["window"]
 
-        # Try Redis first
+        # Try Redis first (fails open; trips the circuit on connection errors)
         if self._check_redis():
-            return redis_service.check_rate_limit(
+            result = redis_service.check_rate_limit(
                 client_id, limit, window, endpoint_category
             )
+            if redis_service.available:
+                return result
 
         # Fallback to in-memory
         return self._in_memory_check((client_id, endpoint_category), limit, window)
@@ -241,6 +243,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+_RATE_LIMIT_EXEMPT_PATHS = {"/health", "/health/db", "/health/redis", "/metrics"}
+_RATE_LIMIT_THREADS = anyio.CapacityLimiter(20)
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Rate limiting middleware with endpoint-specific limits."""
 
@@ -275,6 +281,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return "default"
 
     async def dispatch(self, request: Request, call_next):
+        # Health checks and CORS preflights must never wait on Redis.
+        if request.method == "OPTIONS" or request.url.path in _RATE_LIMIT_EXEMPT_PATHS:
+            return await call_next(request)
+
         # Get client identifier
         # Prefer user ID from token, fall back to IP
         client_id = request.client.host if request.client else "unknown"
@@ -296,8 +306,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         method = request.method
         category = self._get_endpoint_category(path, method)
 
-        # Check rate limit
-        is_allowed, remaining, retry_after = rate_limiter.is_allowed(client_id, category)
+        # Check rate limit off the event loop (Redis I/O is blocking). Uses a
+        # dedicated limiter so it never queues behind DB-bound handler threads.
+        is_allowed, remaining, retry_after = await anyio.to_thread.run_sync(
+            rate_limiter.is_allowed, client_id, category, limiter=_RATE_LIMIT_THREADS
+        )
 
         config = RATE_LIMITS.get(category, RATE_LIMITS["default"])
 
@@ -522,30 +535,41 @@ def run_migrations():
             except Exception as e:
                 logger.warning(f"Could not seed admin user: {e}")
 
-        # Extend job table columns for longer Eightfold URLs and titles
-        try:
-            # Extend job_url to TEXT for very long URLs
-            conn.execute(text("ALTER TABLE jobs ALTER COLUMN job_url TYPE TEXT"))
-            logger.info("Extended job_url column to TEXT")
-        except Exception as e:
-            if "already" not in str(e).lower():
-                logger.debug(f"job_url column note: {e}")
-
-        try:
-            # Extend title to VARCHAR(500)
-            conn.execute(text("ALTER TABLE jobs ALTER COLUMN title TYPE VARCHAR(500)"))
-            logger.info("Extended title column to VARCHAR(500)")
-        except Exception as e:
-            if "already" not in str(e).lower():
-                logger.debug(f"title column note: {e}")
-
-        try:
-            # Extend location to VARCHAR(500)
-            conn.execute(text("ALTER TABLE jobs ALTER COLUMN location TYPE VARCHAR(500)"))
-            logger.info("Extended location column to VARCHAR(500)")
-        except Exception as e:
-            if "already" not in str(e).lower():
-                logger.debug(f"location column note: {e}")
+        # Extend job table columns for longer Eightfold URLs and titles.
+        # ALTER COLUMN ... TYPE takes an ACCESS EXCLUSIVE lock (and may rewrite
+        # the table), so only run it when the live column type actually differs.
+        # PostgreSQL only - SQLite has no ALTER COLUMN TYPE.
+        conn.commit()
+        if conn.dialect.name == "postgresql":
+            desired_job_column_types = {
+                # column: (data_type, character_maximum_length, DDL type)
+                "job_url": ("text", None, "TEXT"),
+                "title": ("character varying", 500, "VARCHAR(500)"),
+                "location": ("character varying", 500, "VARCHAR(500)"),
+            }
+            try:
+                rows = conn.execute(text(
+                    "SELECT column_name, data_type, character_maximum_length "
+                    "FROM information_schema.columns "
+                    "WHERE table_name = 'jobs' AND table_schema = current_schema() "
+                    "AND column_name IN ('job_url', 'title', 'location')"
+                )).fetchall()
+                current_types = {r[0]: (r[1], r[2]) for r in rows}
+                for col, (data_type, max_len, ddl_type) in desired_job_column_types.items():
+                    current = current_types.get(col)
+                    if current is None or current == (data_type, max_len):
+                        continue
+                    # Never shrink: TEXT already satisfies any VARCHAR target.
+                    if current[0] == "text":
+                        continue
+                    if (current[0] == data_type and max_len is not None
+                            and current[1] is not None and current[1] >= max_len):
+                        continue
+                    conn.execute(text(f"ALTER TABLE jobs ALTER COLUMN {col} TYPE {ddl_type}"))
+                    logger.info(f"Altered jobs.{col} from {current} to {ddl_type}")
+            except Exception as e:
+                logger.warning(f"Could not check/extend jobs column types: {e}")
+                conn.rollback()
 
         conn.commit()
 
@@ -764,21 +788,34 @@ async def lifespan(app: FastAPI):
     # Startup - run migrations in background to not block health checks
     import threading
 
+    from database import (
+        engine,
+        migration_lock,
+        STARTUP_MIGRATIONS_LOCK_KEY,
+        DOCUMENT_OWNERSHIP_LOCK_KEY,
+    )
+
     def run_startup_migrations():
+        # Several uvicorn workers boot at once; only one runs the DDL, the rest skip.
         try:
-            create_tables()
-            run_migrations()
-            logger.info("Startup migrations completed")
+            with migration_lock(STARTUP_MIGRATIONS_LOCK_KEY) as acquired:
+                if not acquired:
+                    logger.info("Startup migrations running in another worker - skipping")
+                    return
+                create_tables()
+                run_migrations()
+                logger.info("Startup migrations completed")
         except Exception as e:
             logger.error(f"Startup migrations failed: {e}")
 
     # Run migrations in background thread so health checks pass immediately
     if not os.environ.get("SKIP_MIGRATIONS"):
-        # Apply ownership changes before serving document requests.
-        from database import engine
+        # Apply ownership changes before serving document requests. This one is
+        # quick and idempotent, so wait for the lock rather than skipping it.
         from migrations.document_ownership import migrate_document_ownership
-        with engine.begin() as conn:
-            migrate_document_ownership(conn)
+        with migration_lock(DOCUMENT_OWNERSHIP_LOCK_KEY, wait=True):
+            with engine.begin() as conn:
+                migrate_document_ownership(conn)
         migration_thread = threading.Thread(target=run_startup_migrations, daemon=True)
         migration_thread.start()
     else:
@@ -938,7 +975,7 @@ def read_root():
 
 
 @app.get("/health")
-def health_check():
+async def health_check():
     """Health check endpoint - must respond quickly for Railway."""
     # Return immediately without checking external services
     # This ensures Railway health checks pass even if Redis/DB are slow

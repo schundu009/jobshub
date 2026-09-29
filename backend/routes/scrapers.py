@@ -24,7 +24,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import ScraperRun, ScraperConfigDB, User
 from scrapers.registry import ScraperRegistry, list_all_scrapers
-from services.scraper_service import get_scraper_stats
+from services.scraper_service import get_scraper_stats, get_all_scraper_stats
+from services.redis_service import redis_service
 from utils.security import validate_url_ssrf_safe
 from middleware.auth import get_current_user
 
@@ -139,6 +140,10 @@ def list_categories(current_user: User = Depends(get_current_user)):
     return {"categories": ScraperRegistry.list_categories()}
 
 
+SCRAPER_STATUS_CACHE_KEY = "scrapers:status"
+SCRAPER_STATUS_CACHE_TTL = 60  # seconds
+
+
 @router.get("/status", response_model=list[ScraperStatus])
 def get_all_status(
     current_user: User = Depends(get_current_user),
@@ -147,26 +152,20 @@ def get_all_status(
     """
     Get status of all scrapers.
 
-    Returns health metrics for each scraper.
+    Returns health metrics for each scraper. Computed with a fixed number of
+    grouped queries (not per scraper) and cached in Redis for 60s.
     """
+    cached = redis_service.cache_get(SCRAPER_STATUS_CACHE_KEY)
+    if cached is not None:
+        return cached
+
     slugs = ScraperRegistry.list_slugs()
-    statuses = []
+    statuses = [
+        ScraperStatus(**stats).model_dump()
+        for stats in get_all_scraper_stats(db, slugs)
+    ]
 
-    for slug in slugs:
-        stats = get_scraper_stats(db, slug)
-        statuses.append(ScraperStatus(
-            company_slug=stats["company_slug"],
-            company_name=stats["company_name"],
-            is_enabled=stats["is_enabled"],
-            consecutive_failures=stats["consecutive_failures"],
-            total_runs=stats["total_runs"],
-            last_success_at=stats["last_success_at"],
-            last_failure_at=stats["last_failure_at"],
-            last_error=stats.get("last_error"),
-            active_jobs=stats["active_jobs"],
-            total_jobs=stats["total_jobs"],
-        ))
-
+    redis_service.cache_set(SCRAPER_STATUS_CACHE_KEY, statuses, SCRAPER_STATUS_CACHE_TTL)
     return statuses
 
 
@@ -418,6 +417,7 @@ def update_scraper_config(
         config.config_overrides = update.config_overrides
 
     db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
     return {
         "company_slug": company_slug,
@@ -613,6 +613,7 @@ def delete_custom_scraper(
     db.query(ScraperRun).filter(ScraperRun.company_slug == company_slug).delete()
     db.query(ScraperConfigDB).filter(ScraperConfigDB.company_slug == company_slug).delete()
     db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
     return {"status": "deleted", "slug": company_slug}
 
@@ -910,7 +911,7 @@ async def run_all_scrapers_sync(
 # ============== Webhook Trigger (No Auth) ==============
 
 @router.post("/webhook/trigger")
-async def webhook_trigger_scrapers(
+def webhook_trigger_scrapers(
     secret: str = Query(..., description="Webhook secret key"),
 ):
     """
@@ -1046,6 +1047,7 @@ def reset_all_failure_counts(
     ).update({"consecutive_failures": 0})
 
     db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
     return {
         "status": "success",
@@ -1077,6 +1079,7 @@ def disable_critical_scrapers(
         disabled_slugs.append(config.company_slug)
 
     db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
     return {
         "status": "success",
@@ -1110,6 +1113,7 @@ def reset_scraper_failures(
         config.is_enabled = True
 
     db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
     return {
         "status": "success",

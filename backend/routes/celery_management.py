@@ -18,8 +18,9 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import User, AppSetting, ScraperRun
-from middleware.auth import get_current_user
+from middleware.auth import get_current_user, get_current_user_detached
 from config import settings
+from services.redis_service import redis_service
 
 router = APIRouter(prefix="/api/celery", tags=["celery"])
 
@@ -95,45 +96,46 @@ def get_celery_app():
 
 
 def get_redis_client():
-    """Get Redis client for queue inspection."""
+    """Shared Redis client (pooled, 1s socket timeouts, circuit breaker)."""
     try:
-        import redis
-        return redis.from_url(settings.redis_url)
+        return redis_service.client
     except Exception:
         return None
 
 
-# ============== Endpoints ==============
+CELERY_STATUS_CACHE_KEY = "celery:status"
+CELERY_SCHEDULES_CACHE_KEY = "celery:schedules"
+CELERY_CACHE_TTL = 20  # seconds
+INSPECT_TIMEOUT = 1.0  # seconds per broadcast
 
-@router.get("/status", response_model=CeleryStatus)
-def get_celery_status(current_user: User = Depends(get_current_user)):
-    """
-    Get Celery worker and queue status.
 
-    Returns information about connected workers and queue depths.
-    """
+def _collect_celery_status() -> CeleryStatus:
+    """Inspect workers + queue depths. No DB access (runs outside any session)."""
     celery_app = get_celery_app()
     workers = []
     queues = []
-    redis_connected = False
 
-    # Check Redis connection
-    redis_client = get_redis_client()
-    if redis_client:
-        try:
-            redis_client.ping()
-            redis_connected = True
-        except Exception:
-            redis_connected = False
+    redis_connected = redis_service.ping()
 
-    # Get worker information
+    # Get worker information. `stats` is the only broadcast that has to wait
+    # the full timeout (unknown number of replies). The follow-up calls are
+    # addressed to the known workers with limit=N, so they return as soon as
+    # every worker has replied. No workers -> skip them entirely.
+    broker_is_redis = (settings.celery_broker_url or "") == settings.redis_url
     try:
-        inspect = celery_app.control.inspect(timeout=2.0)
-
-        # Get active workers
-        active = inspect.active() or {}
-        stats = inspect.stats() or {}
-        active_queues = inspect.active_queues() or {}
+        if broker_is_redis and not redis_connected:
+            # Broker unreachable: a broadcast would just block on reconnects.
+            raise ConnectionError("Celery broker (Redis) unreachable")
+        stats = celery_app.control.inspect(timeout=INSPECT_TIMEOUT).stats() or {}
+        active = {}
+        active_queues = {}
+        if stats:
+            hosts = list(stats.keys())
+            targeted = celery_app.control.inspect(
+                destination=hosts, timeout=INSPECT_TIMEOUT, limit=len(hosts)
+            )
+            active = targeted.active() or {}
+            active_queues = targeted.active_queues() or {}
 
         for hostname, worker_stats in stats.items():
             worker_queues = []
@@ -149,24 +151,26 @@ def get_celery_status(current_user: User = Depends(get_current_user)):
                 concurrency=worker_stats.get('pool', {}).get('max-concurrency', 0),
                 queues=worker_queues,
             ))
-    except Exception as e:
+    except Exception:
         # Workers not reachable
         pass
 
-    # Get queue information from Redis
-    if redis_connected and redis_client:
+    # Get queue information from Redis (one pipelined round-trip)
+    if redis_connected:
         queue_names = ['default', 'scrapers_http', 'scrapers_browser', 'scrapers_orchestrator', 'maintenance']
-        for queue_name in queue_names:
-            try:
-                # Celery uses list with queue name as key
-                messages = redis_client.llen(queue_name)
-                queues.append(QueueInfo(
-                    name=queue_name,
-                    messages=messages,
-                    consumers=len([w for w in workers if queue_name in w.queues]),
-                ))
-            except Exception:
-                queues.append(QueueInfo(name=queue_name, messages=0, consumers=0))
+        try:
+            pipe = redis_service.client.pipeline(transaction=False)
+            for queue_name in queue_names:
+                pipe.llen(queue_name)
+            lengths = pipe.execute(raise_on_error=False)
+        except Exception:
+            lengths = [0] * len(queue_names)
+        for queue_name, messages in zip(queue_names, lengths):
+            queues.append(QueueInfo(
+                name=queue_name,
+                messages=messages if isinstance(messages, int) else 0,
+                consumers=len([w for w in workers if queue_name in w.queues]),
+            ))
 
     return CeleryStatus(
         connected=len(workers) > 0,
@@ -176,14 +180,38 @@ def get_celery_status(current_user: User = Depends(get_current_user)):
     )
 
 
+# ============== Endpoints ==============
+
+@router.get("/status", response_model=CeleryStatus)
+def get_celery_status(current_user: User = Depends(get_current_user_detached)):
+    """
+    Get Celery worker and queue status.
+
+    Returns information about connected workers and queue depths.
+    Cached in Redis for 20s; the auth dependency releases its DB connection
+    before the (slow) worker broadcast runs.
+    """
+    cached = redis_service.cache_get(CELERY_STATUS_CACHE_KEY)
+    if cached:
+        return cached
+
+    status = _collect_celery_status()
+    redis_service.cache_set(CELERY_STATUS_CACHE_KEY, status.model_dump(), CELERY_CACHE_TTL)
+    return status
+
+
 @router.get("/schedules", response_model=List[ScheduleItem])
 def get_schedules(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get configured task schedules.
+    Get configured task schedules. Cached in Redis for 20s.
     """
+    cached = redis_service.cache_get(CELERY_SCHEDULES_CACHE_KEY)
+    if cached is not None:
+        return cached
+
     celery_app = get_celery_app()
     schedules = []
 
@@ -233,6 +261,9 @@ def get_schedules(
             next_run=None,
         ))
 
+    redis_service.cache_set(
+        CELERY_SCHEDULES_CACHE_KEY, [item.model_dump() for item in schedules], CELERY_CACHE_TTL
+    )
     return schedules
 
 
@@ -278,6 +309,7 @@ def update_schedules(
         db.add(AppSetting(key="description_fetch_enabled", value=str(update.description_fetch_enabled).lower()))
 
     db.commit()
+    redis_service.cache_delete(CELERY_SCHEDULES_CACHE_KEY)
 
     return {
         "status": "success",

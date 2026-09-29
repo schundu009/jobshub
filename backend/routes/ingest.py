@@ -1555,7 +1555,7 @@ def fix_database_sequences(
 
 
 @router.post("/refetch-descriptions")
-async def refetch_missing_descriptions(
+def refetch_missing_descriptions(
     background_tasks: BackgroundTasks,
     company_name: Optional[str] = None,
     limit: int = 100,
@@ -1654,7 +1654,7 @@ async def refetch_missing_descriptions(
 
 
 @router.post("/refetch-description/{job_id}")
-async def refetch_single_job_description(
+def refetch_single_job_description(
     job_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -1707,13 +1707,13 @@ fetch_progress = {
 
 
 @router.get("/fetch-progress")
-async def get_fetch_progress(current_user: User = Depends(get_current_user)):
+def get_fetch_progress(current_user: User = Depends(get_current_user)):
     """Get current progress of description fetch operation."""
     return fetch_progress
 
 
 @router.post("/fetch-all-descriptions")
-async def fetch_all_missing_descriptions(
+def fetch_all_missing_descriptions(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

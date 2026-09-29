@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import func, true, text
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, true, text, case, and_
 from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import Optional
@@ -8,198 +9,243 @@ from typing import Optional
 from database import get_db
 from models import Job, Company, Contact, Interview, Note, Document, User
 from middleware.auth import get_current_user
+from services.redis_service import redis_service
+from config import settings
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 
+STATUSES = ["wishlist", "applied", "interviewing", "offer", "rejected", "withdrawn"]
+ANALYTICS_CACHE_PREFIX = "analytics:"
+
+
+def _cached(name: str, compute):
+    """Return cached analytics payload or compute + cache it (fails open)."""
+    key = f"{ANALYTICS_CACHE_PREFIX}{name}"
+    cached = redis_service.cache_get(key)
+    if cached is not None:
+        return cached
+    value = jsonable_encoder(compute())
+    redis_service.cache_set(key, value, settings.cache_ttl_analytics)
+    return value
+
+
+def _count_if(condition):
+    return func.coalesce(func.sum(case((condition, 1), else_=0)), 0)
+
+
 @router.get("/summary")
-async def get_summary(db: Session = Depends(get_db)):
+def get_summary(db: Session = Depends(get_db)):
     """Get dashboard summary statistics."""
-    # Count only active jobs
-    total_jobs = db.query(Job).filter(Job.is_active == True).count()
-    total_companies = db.query(Company).count()
-    total_contacts = db.query(Contact).count()
+    def compute():
+        # One pass over jobs for all active/status counts
+        row = db.query(
+            _count_if(Job.is_active == True),  # noqa: E712
+            *[_count_if(and_(Job.status == st, Job.is_active == True)) for st in STATUSES],  # noqa: E712
+        ).one()
+        total_jobs = int(row[0])
+        status_counts = {st: int(row[i + 1]) for i, st in enumerate(STATUSES)}
 
-    status_counts = {}
-    for status in ["wishlist", "applied", "interviewing", "offer", "rejected", "withdrawn"]:
-        status_counts[status] = db.query(Job).filter(
-            Job.status == status,
-            Job.is_active == True
-        ).count()
+        total_companies = db.query(func.count(Company.id)).scalar() or 0
+        total_contacts = db.query(func.count(Contact.id)).scalar() or 0
 
-    now = datetime.now()
-    week_later = now + timedelta(days=7)
+        now = datetime.now()
+        week_later = now + timedelta(days=7)
 
-    upcoming_interviews = db.query(Interview).join(Job).filter(
-        Interview.interview_date >= now,
-        Interview.interview_date <= week_later,
-        Interview.outcome == "pending"
-    ).count()
+        upcoming_interviews = db.query(func.count(Interview.id)).join(Job).filter(
+            Interview.interview_date >= now,
+            Interview.interview_date <= week_later,
+            Interview.outcome == "pending"
+        ).scalar() or 0
 
-    recent_jobs = db.query(Job).order_by(Job.created_at.desc()).limit(5).all()
+        recent_jobs = db.query(
+            Job.id, Job.title, Job.status, Job.created_at, Company.name
+        ).outerjoin(Company, Job.company_id == Company.id).order_by(
+            Job.created_at.desc()
+        ).limit(5).all()
 
-    recent_activity = [
-        {
-            "id": j.id,
-            "title": j.title,
-            "company_name": j.company.name if j.company else None,
-            "status": j.status,
-            "created_at": j.created_at
-        } for j in recent_jobs
-    ]
+        recent_activity = [
+            {
+                "id": j_id,
+                "title": title,
+                "company_name": company_name,
+                "status": status,
+                "created_at": created_at
+            } for j_id, title, status, created_at, company_name in recent_jobs
+        ]
 
-    return {
-        "total_jobs": total_jobs,
-        "total_companies": total_companies,
-        "total_contacts": total_contacts,
-        "status_counts": status_counts,
-        "upcoming_interviews": upcoming_interviews,
-        "recent_activity": recent_activity
-    }
+        return {
+            "total_jobs": total_jobs,
+            "total_companies": total_companies,
+            "total_contacts": total_contacts,
+            "status_counts": status_counts,
+            "upcoming_interviews": upcoming_interviews,
+            "recent_activity": recent_activity
+        }
+
+    return _cached("summary", compute)
 
 
 @router.get("/status-breakdown")
-async def get_status_breakdown(db: Session = Depends(get_db)):
+def get_status_breakdown(db: Session = Depends(get_db)):
     """Get detailed breakdown of jobs by status."""
-    statuses = ["wishlist", "applied", "interviewing", "offer", "rejected", "withdrawn"]
-    breakdown = []
+    def compute():
+        counts = dict(db.query(Job.status, func.count(Job.id)).group_by(Job.status).all())
+        total = sum(counts.values())
+        breakdown = []
+        for status in STATUSES:
+            count = counts.get(status, 0)
+            percentage = round((count / total * 100), 1) if total > 0 else 0
+            breakdown.append({
+                "status": status,
+                "count": count,
+                "percentage": percentage
+            })
+        return {
+            "total": total,
+            "breakdown": breakdown
+        }
 
-    total = db.query(Job).count()
-
-    for status in statuses:
-        count = db.query(Job).filter(Job.status == status).count()
-        percentage = round((count / total * 100), 1) if total > 0 else 0
-        breakdown.append({
-            "status": status,
-            "count": count,
-            "percentage": percentage
-        })
-
-    return {
-        "total": total,
-        "breakdown": breakdown
-    }
+    return _cached("status-breakdown", compute)
 
 
 @router.get("/timeline")
-async def get_timeline(db: Session = Depends(get_db)):
+def get_timeline(db: Session = Depends(get_db)):
     """Get applications over time (last 30 days)."""
-    now = datetime.now()
-    thirty_days_ago = now - timedelta(days=30)
+    def compute():
+        now = datetime.now()
+        thirty_days_ago = now - timedelta(days=30)
 
-    jobs = db.query(Job).filter(Job.created_at >= thirty_days_ago).all()
+        # func.date() works on both PostgreSQL (returns date) and SQLite (returns 'YYYY-MM-DD')
+        day = func.date(Job.created_at)
+        rows = db.query(day, func.count(Job.id)).filter(
+            Job.created_at >= thirty_days_ago
+        ).group_by(day).all()
 
-    # Group by date
-    daily_counts = defaultdict(int)
-    for job in jobs:
-        if job.created_at:
-            date_str = job.created_at.strftime("%Y-%m-%d")
-            daily_counts[date_str] += 1
+        daily_counts = defaultdict(int)
+        for d, count in rows:
+            if d is None:
+                continue
+            date_str = d.strftime("%Y-%m-%d") if hasattr(d, "strftime") else str(d)[:10]
+            daily_counts[date_str] += count
 
-    # Fill in missing dates
-    timeline = []
-    current = thirty_days_ago
-    while current <= now:
-        date_str = current.strftime("%Y-%m-%d")
-        timeline.append({
-            "date": date_str,
-            "count": daily_counts.get(date_str, 0)
-        })
-        current += timedelta(days=1)
+        # Fill in missing dates
+        timeline = []
+        current = thirty_days_ago
+        while current <= now:
+            date_str = current.strftime("%Y-%m-%d")
+            timeline.append({
+                "date": date_str,
+                "count": daily_counts.get(date_str, 0)
+            })
+            current += timedelta(days=1)
 
-    return {"timeline": timeline}
+        return {"timeline": timeline}
+
+    return _cached("timeline", compute)
 
 
 @router.get("/response-rate")
-async def get_response_rate(db: Session = Depends(get_db)):
+def get_response_rate(db: Session = Depends(get_db)):
     """Calculate response rate and success metrics."""
-    total_applied = db.query(Job).filter(Job.status != "wishlist").count()
-    got_interview = db.query(Job).filter(Job.status.in_(["interviewing", "offer"])).count()
-    got_offer = db.query(Job).filter(Job.status == "offer").count()
-    rejected = db.query(Job).filter(Job.status == "rejected").count()
+    def compute():
+        row = db.query(
+            _count_if(Job.status != "wishlist"),
+            _count_if(Job.status.in_(["interviewing", "offer"])),
+            _count_if(Job.status == "offer"),
+            _count_if(Job.status == "rejected"),
+        ).one()
+        total_applied, got_interview, got_offer, rejected = (int(v) for v in row)
 
-    interview_rate = round((got_interview / total_applied * 100), 1) if total_applied > 0 else 0
-    offer_rate = round((got_offer / total_applied * 100), 1) if total_applied > 0 else 0
-    rejection_rate = round((rejected / total_applied * 100), 1) if total_applied > 0 else 0
+        interview_rate = round((got_interview / total_applied * 100), 1) if total_applied > 0 else 0
+        offer_rate = round((got_offer / total_applied * 100), 1) if total_applied > 0 else 0
+        rejection_rate = round((rejected / total_applied * 100), 1) if total_applied > 0 else 0
 
-    return {
-        "total_applied": total_applied,
-        "got_interview": got_interview,
-        "got_offer": got_offer,
-        "rejected": rejected,
-        "interview_rate": interview_rate,
-        "offer_rate": offer_rate,
-        "rejection_rate": rejection_rate
-    }
+        return {
+            "total_applied": total_applied,
+            "got_interview": got_interview,
+            "got_offer": got_offer,
+            "rejected": rejected,
+            "interview_rate": interview_rate,
+            "offer_rate": offer_rate,
+            "rejection_rate": rejection_rate
+        }
+
+    return _cached("response-rate", compute)
 
 
 @router.get("/by-company")
-async def get_jobs_by_company(db: Session = Depends(get_db)):
+def get_jobs_by_company(db: Session = Depends(get_db)):
     """Get job applications grouped by company."""
-    companies = db.query(Company).all()
-    result = []
+    def compute():
+        rows = db.query(
+            Company.id, Company.name, Job.status, func.count(Job.id)
+        ).join(Job, Job.company_id == Company.id).group_by(
+            Company.id, Company.name, Job.status
+        ).order_by(Company.id).all()
 
-    for company in companies:
-        job_count = len(company.jobs)
-        if job_count > 0:
-            status_breakdown = {}
-            for job in company.jobs:
-                status_breakdown[job.status] = status_breakdown.get(job.status, 0) + 1
-
-            result.append({
-                "company_id": company.id,
-                "company_name": company.name,
-                "job_count": job_count,
-                "status_breakdown": status_breakdown
+        by_company = {}
+        for company_id, company_name, status, count in rows:
+            entry = by_company.setdefault(company_id, {
+                "company_id": company_id,
+                "company_name": company_name,
+                "job_count": 0,
+                "status_breakdown": {}
             })
+            entry["job_count"] += count
+            entry["status_breakdown"][status] = entry["status_breakdown"].get(status, 0) + count
 
-    # Sort by job count descending
-    result.sort(key=lambda x: x["job_count"], reverse=True)
+        result = list(by_company.values())
+        # Sort by job count descending
+        result.sort(key=lambda x: x["job_count"], reverse=True)
+        return {"companies": result}
 
-    return {"companies": result}
+    return _cached("by-company", compute)
 
 
 @router.get("/by-location")
-async def get_jobs_by_location(db: Session = Depends(get_db)):
+def get_jobs_by_location(db: Session = Depends(get_db)):
     """Get job applications grouped by location."""
-    jobs = db.query(Job).all()
+    def compute():
+        rows = db.query(Job.location, func.count(Job.id)).group_by(Job.location).all()
 
-    location_counts = defaultdict(int)
-    for job in jobs:
-        location = job.location or "Not specified"
-        location_counts[location] += 1
+        location_counts = defaultdict(int)
+        for location, count in rows:
+            location_counts[location or "Not specified"] += count
 
-    result = [
-        {"location": loc, "count": count}
-        for loc, count in sorted(location_counts.items(), key=lambda x: x[1], reverse=True)
-    ]
+        result = [
+            {"location": loc, "count": count}
+            for loc, count in sorted(location_counts.items(), key=lambda x: x[1], reverse=True)
+        ]
+        return {"locations": result}
 
-    return {"locations": result}
+    return _cached("by-location", compute)
 
 
 @router.get("/excitement-distribution")
-async def get_excitement_distribution(db: Session = Depends(get_db)):
+def get_excitement_distribution(db: Session = Depends(get_db)):
     """Get distribution of excitement levels."""
-    distribution = []
+    def compute():
+        counts = dict(
+            db.query(Job.excitement_level, func.count(Job.id)).filter(
+                Job.excitement_level.between(1, 5)
+            ).group_by(Job.excitement_level).all()
+        )
+        distribution = [{"level": level, "count": counts.get(level, 0)} for level in range(1, 6)]
 
-    for level in range(1, 6):
-        count = db.query(Job).filter(Job.excitement_level == level).count()
-        distribution.append({
-            "level": level,
-            "count": count
-        })
+        avg_excitement = db.query(func.avg(Job.excitement_level)).scalar()
+        avg_excitement = round(float(avg_excitement), 2) if avg_excitement else 0
 
-    avg_excitement = db.query(func.avg(Job.excitement_level)).scalar()
-    avg_excitement = round(float(avg_excitement), 2) if avg_excitement else 0
+        return {
+            "distribution": distribution,
+            "average": avg_excitement
+        }
 
-    return {
-        "distribution": distribution,
-        "average": avg_excitement
-    }
+    return _cached("excitement-distribution", compute)
 
 
 @router.get("/by-job-type")
-async def get_jobs_by_type(db: Session = Depends(get_db)):
+def get_jobs_by_type(db: Session = Depends(get_db)):
     """Get job counts grouped by job type (derived from title keywords)."""
     import re
 
@@ -216,13 +262,18 @@ async def get_jobs_by_type(db: Session = Depends(get_db)):
         'manager': [r'manager', r'\blead\b', r'director', r'head of', r'vp ', r'principal'],
     }
 
-    jobs = db.query(Job).filter(Job.is_active == True).all()
+    cached = redis_service.cache_get(f"{ANALYTICS_CACHE_PREFIX}by-job-type")
+    if cached is not None:
+        return cached
+
+    # Only the titles are needed - don't load descriptions for every active job
+    jobs = [row[0] for row in db.query(Job.title).filter(Job.is_active == True).all()]
 
     type_counts = {k: 0 for k in JOB_TYPE_PATTERNS.keys()}
     type_counts['other'] = 0
 
-    for job in jobs:
-        title_lower = (job.title or '').lower()
+    for title in jobs:
+        title_lower = (title or '').lower()
         matched = False
 
         for job_type, patterns in JOB_TYPE_PATTERNS.items():
@@ -244,53 +295,62 @@ async def get_jobs_by_type(db: Session = Depends(get_db)):
         if count > 0
     ]
 
-    return {"job_types": result, "total": len(jobs)}
+    payload = {"job_types": result, "total": len(jobs)}
+    redis_service.cache_set(f"{ANALYTICS_CACHE_PREFIX}by-job-type", payload, settings.cache_ttl_analytics)
+    return payload
 
 
 @router.get("/interview-stats")
-async def get_interview_stats(db: Session = Depends(get_db)):
+def get_interview_stats(db: Session = Depends(get_db)):
     """Get interview statistics."""
-    interviews_base = db.query(Interview).join(Job)
+    def compute():
+        base = db.query(Interview).join(Job)
 
-    total_interviews = interviews_base.count()
+        total_interviews = base.count()
 
-    outcome_counts = {}
-    for outcome in ["pending", "passed", "failed", "cancelled"]:
-        outcome_counts[outcome] = interviews_base.filter(Interview.outcome == outcome).count()
+        by_outcome = dict(
+            db.query(Interview.outcome, func.count(Interview.id)).join(Job)
+            .group_by(Interview.outcome).all()
+        )
+        outcome_counts = {o: by_outcome.get(o, 0) for o in ["pending", "passed", "failed", "cancelled"]}
 
-    type_counts = {}
-    for itype in ["phone_screen", "technical", "behavioral", "onsite", "final"]:
-        type_counts[itype] = interviews_base.filter(Interview.interview_type == itype).count()
+        by_type = dict(
+            db.query(Interview.interview_type, func.count(Interview.id)).join(Job)
+            .group_by(Interview.interview_type).all()
+        )
+        type_counts = {t: by_type.get(t, 0) for t in ["phone_screen", "technical", "behavioral", "onsite", "final"]}
 
-    # Upcoming interviews
-    now = datetime.now()
-    upcoming = interviews_base.filter(
-        Interview.interview_date >= now,
-        Interview.outcome == "pending"
-    ).order_by(Interview.interview_date).limit(5).all()
+        # Upcoming interviews
+        now = datetime.now()
+        upcoming = base.options(joinedload(Interview.job).joinedload(Job.company)).filter(
+            Interview.interview_date >= now,
+            Interview.outcome == "pending"
+        ).order_by(Interview.interview_date).limit(5).all()
 
-    upcoming_list = [
-        {
-            "id": i.id,
-            "job_id": i.job_id,
-            "job_title": i.job.title if i.job else None,
-            "company_name": i.job.company.name if i.job and i.job.company else None,
-            "interview_date": i.interview_date,
-            "interview_type": i.interview_type
+        upcoming_list = [
+            {
+                "id": i.id,
+                "job_id": i.job_id,
+                "job_title": i.job.title if i.job else None,
+                "company_name": i.job.company.name if i.job and i.job.company else None,
+                "interview_date": i.interview_date,
+                "interview_type": i.interview_type
+            }
+            for i in upcoming
+        ]
+
+        return {
+            "total_interviews": total_interviews,
+            "by_outcome": outcome_counts,
+            "by_type": type_counts,
+            "upcoming": upcoming_list
         }
-        for i in upcoming
-    ]
 
-    return {
-        "total_interviews": total_interviews,
-        "by_outcome": outcome_counts,
-        "by_type": type_counts,
-        "upcoming": upcoming_list
-    }
+    return _cached("interview-stats", compute)
 
 
 @router.delete("/cleanup/old-jobs")
-async def cleanup_old_jobs(
+def cleanup_old_jobs(
     days: int = Query(default=7, ge=1, le=365, description="Delete jobs older than this many days"),
     dry_run: bool = Query(default=True, description="Preview without deleting"),
     db: Session = Depends(get_db),
@@ -357,12 +417,13 @@ async def cleanup_old_jobs(
     db.query(Job).filter(Job.id.in_(job_ids)).delete(synchronize_session=False)
 
     db.commit()
+    redis_service.cache_delete_pattern(f"{ANALYTICS_CACHE_PREFIX}*")
 
     return result
 
 
 @router.delete("/cleanup/duplicates")
-async def cleanup_duplicates(
+def cleanup_duplicates(
     dry_run: bool = Query(default=True, description="Preview without deleting"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -461,5 +522,6 @@ async def cleanup_duplicates(
     db.query(Job).filter(Job.id.in_(duplicate_ids)).delete(synchronize_session=False)
 
     db.commit()
+    redis_service.cache_delete_pattern(f"{ANALYTICS_CACHE_PREFIX}*")
 
     return response

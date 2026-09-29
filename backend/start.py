@@ -34,7 +34,8 @@ if __name__ == "__main__":
         cmd = [
             "python", "-m", "uvicorn", "main:app",
             "--host", "0.0.0.0",
-            "--port", PORT
+            "--port", PORT,
+            "--workers", os.environ.get("WEB_CONCURRENCY", "3"),
         ]
 
     print(f"Running: {' '.join(cmd)}")

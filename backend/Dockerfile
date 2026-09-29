@@ -43,5 +43,7 @@ COPY . .
 # Expose port (Railway provides PORT env var)
 EXPOSE 8000
 
-# Start the application - use PORT env var for Railway, default to 8000
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start the application - use PORT env var for Railway, default to 8000.
+# Multiple worker processes so one slow request can't stall the whole API.
+# Startup migrations are guarded by a Postgres advisory lock (one worker runs them).
+CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3}"]
