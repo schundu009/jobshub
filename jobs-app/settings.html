@@ -1510,8 +1510,10 @@
             }
 
             // Populate checkboxes
-            if (settings.remote_ok) document.getElementById('remote-ok').checked = true;
-            if (settings.hybrid_ok) document.getElementById('hybrid-ok').checked = true;
+            const remoteOk = document.getElementById('remote-ok');
+            const hybridOk = document.getElementById('hybrid-ok');
+            if (remoteOk) remoteOk.checked = !!settings.remote_ok;
+            if (hybridOk) hybridOk.checked = !!settings.hybrid_ok;
 
             // Populate mode
             if (settings.apply_mode) {
@@ -1524,11 +1526,12 @@
             const countrySelect = document.getElementById('country-select');
             if (countrySelect && countrySelect.value) {
                 updateCurrencyDisplay(countrySelect.value);
-            } else if (!countrySelect.value) {
+            } else if (countrySelect) {
                 // Auto-detect country if not set
                 const detectedCountry = await detectUserCountry();
                 countrySelect.value = detectedCountry;
-                document.getElementById('address-country-select').value = detectedCountry;
+                const addressCountrySelect = document.getElementById('address-country-select');
+                if (addressCountrySelect) addressCountrySelect.value = detectedCountry;
                 updateCurrencyDisplay(detectedCountry);
             }
 
