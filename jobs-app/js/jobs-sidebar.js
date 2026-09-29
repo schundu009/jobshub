@@ -43,9 +43,9 @@ function renderJobsSidebar(activePageId) {
                     <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="sidebarLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#5eead4"/>
-                                <stop offset="50%" style="stop-color:#14b8a6"/>
-                                <stop offset="100%" style="stop-color:#0d9488"/>
+                                <stop offset="0%" style="stop-color:#a8c7fa"/>
+                                <stop offset="50%" style="stop-color:#4285f4"/>
+                                <stop offset="100%" style="stop-color:#1967d2"/>
                             </linearGradient>
                         </defs>
                         <path d="M24 6C14.059 6 6 14.059 6 24C6 33.941 14.059 42 24 42C27.8 42 31.3 40.8 34 38.8" stroke="url(#sidebarLogoGradient)" stroke-width="3.5" stroke-linecap="round" fill="none"/>

@@ -228,7 +228,7 @@ function injectNavigationIcons() {
     // Inject icons for nav links with data-icon attribute
     document.querySelectorAll('.nav-link[data-icon]').forEach(link => {
         const iconName = link.dataset.icon;
-        const icon = CariaraIcons[iconName];
+        const icon = CariaraIcons.mark(iconName, { class: 'cariara-mark', width: 24 });
         if (icon && !link.querySelector('svg')) {
             link.insertAdjacentHTML('afterbegin', icon);
         }
@@ -254,7 +254,7 @@ function injectNavigationIcons() {
     // Inject filter section icons
     document.querySelectorAll('.filter-icon[data-icon], .companies-icon[data-icon]').forEach(el => {
         const iconName = el.dataset.icon;
-        const icon = CariaraIcons[iconName];
+        const icon = CariaraIcons.mark(iconName, { class: 'cariara-mark', width: 24 });
         if (icon && !el.querySelector('svg')) {
             el.insertAdjacentHTML('afterbegin', icon);
         }

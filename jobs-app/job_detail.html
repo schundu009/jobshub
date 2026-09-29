@@ -64,7 +64,7 @@
             font-size: 9px;
             font-weight: 800;
             letter-spacing: 0.15em;
-            color: #6366f1;
+            color: #4285f4;
             text-transform: uppercase;
             margin-bottom: 4px;
         }
@@ -86,12 +86,12 @@
             padding: 5px 13px;
             font-size: 11px;
             font-weight: 700;
-            color: #a5b4fc;
+            color: #a8c7fa;
             letter-spacing: 0.04em;
             white-space: nowrap;
             flex-shrink: 0;
         }
-        .banner-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #6366f1; animation: pulse-dot 2s ease-in-out infinite; }
+        .banner-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #4285f4; animation: pulse-dot 2s ease-in-out infinite; }
         @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
 
         /* ── SPLIT LAYOUT ───────────────────────────────── */
@@ -195,7 +195,7 @@
             background: rgba(99,102,241,0.1);
             border: 1px solid rgba(99,102,241,0.22);
             border-radius: 6px;
-            color: #a5b4fc;
+            color: #a8c7fa;
             font-size: 10px;
             font-weight: 800;
             letter-spacing: 0.06em;
@@ -235,7 +235,7 @@
         /* ── GENERATE BUTTON ─────────────────────────────── */
         .btn-generate {
             width: 100%;
-            background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #7c3aed 100%);
+            background: linear-gradient(135deg, #1967d2 0%, #4285f4 50%, #1967d2 100%);
             border: none;
             border-radius: 11px;
             color: #fff;
@@ -342,7 +342,7 @@
             gap: 6px;
         }
         .tab-btn:hover { color: rgba(255,255,255,0.55); }
-        .tab-btn.active { color: #fff; border-bottom-color: #6366f1; }
+        .tab-btn.active { color: #fff; border-bottom-color: #4285f4; }
         .tab-btn svg { opacity: 0.6; }
         .tab-btn.active svg { opacity: 1; }
 
@@ -394,7 +394,7 @@
             border: 1px solid rgba(99,102,241,0.15);
             display: flex; align-items: center; justify-content: center;
         }
-        .empty-icon { width: 28px; height: 28px; color: #6366f1; }
+        .empty-icon { width: 28px; height: 28px; color: #4285f4; }
         .empty-state h3 { font-size: 15px; font-weight: 700; }
         .empty-state p { font-size: 13px; color: rgba(255,255,255,0.35); max-width: 260px; line-height: 1.6; }
         .empty-steps {
@@ -413,7 +413,7 @@
             border-radius: 50%;
             background: rgba(99,102,241,0.12);
             border: 1px solid rgba(99,102,241,0.22);
-            color: #a5b4fc;
+            color: #a8c7fa;
             font-size: 10px;
             font-weight: 800;
             display: flex; align-items: center; justify-content: center;
@@ -453,7 +453,7 @@
         .step-pill.active {
             background: rgba(99,102,241,0.12);
             border-color: rgba(99,102,241,0.35);
-            color: #a5b4fc;
+            color: #a8c7fa;
             box-shadow: 0 0 12px rgba(99,102,241,0.2);
         }
         .step-pill.done {
@@ -475,7 +475,7 @@
         }
         .load-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #6366f1, #a5b4fc);
+            background: linear-gradient(90deg, #4285f4, #a8c7fa);
             border-radius: 2px;
             width: 0%;
             transition: width 2s cubic-bezier(0.4,0,0.2,1);
@@ -502,7 +502,7 @@
             flex-shrink: 0;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-msg { font-size: 13px; color: #a5b4fc; font-weight: 500; }
+        .loading-msg { font-size: 13px; color: #a8c7fa; font-weight: 500; }
 
         .skel-lines { display: flex; flex-direction: column; gap: 9px; }
         .skel {
@@ -565,8 +565,8 @@
             line-height: 1.7;
             color: #1e293b;
         }
-        .doc-preview h1 { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 10px; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
-        .doc-preview h2 { font-size: 10px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: #6366f1; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin: 20px 0 9px; }
+        .doc-preview h1 { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 10px; border-bottom: 2px solid #4285f4; padding-bottom: 10px; }
+        .doc-preview h2 { font-size: 10px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: #4285f4; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin: 20px 0 9px; }
         .doc-preview h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin: 12px 0 4px; }
         .doc-preview p  { color: #334155; margin-bottom: 8px; }
         .doc-preview ul { margin: 4px 0 10px 18px; }
@@ -700,7 +700,7 @@
             font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
         }
         .cat-required { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
-        .cat-tech     { background: rgba(99,102,241,0.12); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.2); }
+        .cat-tech     { background: rgba(99,102,241,0.12); color: #a8c7fa; border: 1px solid rgba(99,102,241,0.2); }
         .cat-soft     { background: rgba(148,163,184,0.08); color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
         .skill-match-cell { text-align: center; }
         .match-yes { color: #22c55e; }
@@ -799,6 +799,7 @@
     <link rel="stylesheet" href="/css/jobshub.css">
     <link rel="icon" href="/images/logo-icon.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
+    <script src="/js/icons.js" defer></script>
 </head>
 <body>
 <div id="sidebar-container"></div>
@@ -1103,7 +1104,7 @@
                                 <div class="g-dot" id="g-dot"></div>
                                 <svg class="gauge-svg" viewBox="0 0 36 36">
                                     <circle class="g-track" cx="18" cy="18" r="15.915"/>
-                                    <circle class="g-arc" id="g-arc" cx="18" cy="18" r="15.915" stroke="#6366f1"/>
+                                    <circle class="g-arc" id="g-arc" cx="18" cy="18" r="15.915" stroke="#4285f4"/>
                                 </svg>
                                 <div class="gauge-center">
                                     <span class="g-num" id="g-num">0</span>
@@ -1125,7 +1126,7 @@
                                         <div class="ats-stat-key">Missing</div>
                                     </div>
                                     <div class="ats-stat">
-                                        <div class="ats-stat-val" id="stat-coverage" style="color:#6366f1">—</div>
+                                        <div class="ats-stat-val" id="stat-coverage" style="color:#4285f4">—</div>
                                         <div class="ats-stat-key">Coverage</div>
                                     </div>
                                 </div>

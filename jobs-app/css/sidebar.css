@@ -131,7 +131,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: #14b8a6;
+    background: #4285f4;
     opacity: 0;
     transform: scale(0.9);
     transition: all 0.3s ease;
@@ -155,10 +155,10 @@
 
 /* Active state */
 .sidebar-nav a.active {
-    background: #14b8a6;
+    background: #4285f4;
     color: #ffffff;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
 }
 
 .sidebar-nav a.active::before {
@@ -195,7 +195,7 @@
 
 /* Badge */
 .nav-badge {
-    background: #14b8a6;
+    background: #4285f4;
     color: white;
     font-size: 10px;
     font-weight: 700;
@@ -204,7 +204,7 @@
     margin-left: auto;
     min-width: 20px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(20, 184, 166, 0.3);
+    box-shadow: 0 2px 4px rgba(66, 133, 244, 0.3);
 }
 
 /* =============================================================================
@@ -235,7 +235,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    background: linear-gradient(135deg, #4285f4 0%, #1967d2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -243,13 +243,13 @@
     font-weight: 600;
     font-size: 14px;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sidebar-user-info:hover .sidebar-user-avatar {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
+    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
 }
 
 .sidebar-user-details {
@@ -591,7 +591,7 @@
 }
 
 [data-theme="light"] .sidebar-nav a.active {
-    background: #14b8a6;
+    background: #4285f4;
     color: #ffffff;
 }
 
@@ -657,7 +657,7 @@
 }
 
 [data-theme="dark"] .sidebar-nav a.active {
-    background: #14b8a6;
+    background: #4285f4;
     color: #ffffff;
 }
 

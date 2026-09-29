@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/css/sidebar.css">
     <style>
         :root, [data-theme="light"] {
-            /* Teal Theme - Light (Default) */
+            /* Google-color theme - light */
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
@@ -22,25 +22,25 @@
             --bg-hover: #f1f5f9;
             --bg-elevated: #ffffff;
 
-            /* Teal accent colors */
-            --accent-blue: #14b8a6;
-            --accent-blue-hover: #0d9488;
-            --accent-blue-light: #5eead4;
-            --accent-blue-muted: rgba(20, 184, 166, 0.15);
-            --accent-green: #14b8a6;
-            --accent-green-light: #5eead4;
-            --accent-yellow: #14b8a6;
-            --accent-yellow-light: #5eead4;
-            --accent-purple: #14b8a6;
-            --accent-purple-light: #5eead4;
-            --accent-red: #ef4444;
-            --accent-orange: #14b8a6;
-            --accent-cyan: #14b8a6;
-            --accent-pink: #14b8a6;
+            /* Cariara uses Google blue for action and four-color marks for identity. */
+            --accent-blue: #4285f4;
+            --accent-blue-hover: #1967d2;
+            --accent-blue-light: #a8c7fa;
+            --accent-blue-muted: rgba(66, 133, 244, 0.15);
+            --accent-green: #34a853;
+            --accent-green-light: #ceead6;
+            --accent-yellow: #fbbc04;
+            --accent-yellow-light: #feefc3;
+            --accent-purple: #4285f4;
+            --accent-purple-light: #d2e3fc;
+            --accent-red: #ea4335;
+            --accent-orange: #fbbc04;
+            --accent-cyan: #4285f4;
+            --accent-pink: #ea4335;
 
-            /* Teal gradients */
-            --gradient-primary: linear-gradient(135deg, #5eead4 0%, #14b8a6 50%, #0d9488 100%);
-            --gradient-success: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            /* Google blue actions and green positive states */
+            --gradient-primary: linear-gradient(135deg, #a8c7fa 0%, #4285f4 50%, #1967d2 100%);
+            --gradient-success: linear-gradient(135deg, #34a853 0%, #188038 100%);
             --gradient-sidebar: #0f172a;
 
             /* Text Colors - Dark slate */
@@ -52,17 +52,17 @@
             /* Border Colors - Light gray */
             --border-color: #e2e8f0;
             --border-light: #cbd5e1;
-            --border-focus: #14b8a6;
+            --border-focus: #4285f4;
 
             /* Subtle shadows */
             --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
             --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.08);
             --shadow-lg: 0 10px 15px rgba(15, 23, 42, 0.1);
-            --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.15);
+            --shadow-glow: 0 0 20px rgba(66, 133, 244, 0.15);
         }
 
         [data-theme="dark"] {
-            /* Teal Theme - Dark */
+            /* Google-color theme - dark */
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -70,25 +70,25 @@
             --bg-hover: #334155;
             --bg-elevated: #1e293b;
 
-            /* Teal accent colors */
-            --accent-blue: #2dd4bf;
-            --accent-blue-hover: #5eead4;
-            --accent-blue-light: #5eead4;
-            --accent-blue-muted: rgba(45, 212, 191, 0.15);
-            --accent-green: #2dd4bf;
-            --accent-green-light: #5eead4;
-            --accent-yellow: #2dd4bf;
-            --accent-yellow-light: #5eead4;
-            --accent-purple: #2dd4bf;
-            --accent-purple-light: #5eead4;
-            --accent-red: #ef4444;
-            --accent-orange: #2dd4bf;
-            --accent-cyan: #2dd4bf;
-            --accent-pink: #2dd4bf;
+            /* Google colors adjusted for dark surfaces */
+            --accent-blue: #8ab4f8;
+            --accent-blue-hover: #a8c7fa;
+            --accent-blue-light: #a8c7fa;
+            --accent-blue-muted: rgba(138, 180, 248, 0.15);
+            --accent-green: #81c995;
+            --accent-green-light: #1e4620;
+            --accent-yellow: #fdd663;
+            --accent-yellow-light: #594500;
+            --accent-purple: #8ab4f8;
+            --accent-purple-light: #a8c7fa;
+            --accent-red: #f28b82;
+            --accent-orange: #fdd663;
+            --accent-cyan: #8ab4f8;
+            --accent-pink: #f28b82;
 
-            /* Teal gradients */
-            --gradient-primary: linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #14b8a6 100%);
-            --gradient-success: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
+            /* Google blue actions and green positive states */
+            --gradient-primary: linear-gradient(135deg, #a8c7fa 0%, #8ab4f8 50%, #4285f4 100%);
+            --gradient-success: linear-gradient(135deg, #81c995 0%, #34a853 100%);
             --gradient-sidebar: #0f172a;
 
             /* Text Colors */
@@ -100,13 +100,13 @@
             /* Border Colors - Dark slate */
             --border-color: #334155;
             --border-light: #475569;
-            --border-focus: #14b8a6;
+            --border-focus: #4285f4;
 
             /* Shadows with teal glow */
             --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
             --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
-            --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.3);
+            --shadow-glow: 0 0 20px rgba(66, 133, 244, 0.3);
         }
 
         /* Sidebar WHITE background in light theme */
@@ -128,7 +128,7 @@
         }
         .sidebar-nav a.active,
         [data-theme="light"] .sidebar-nav a.active {
-            background: #14b8a6 !important;
+            background: #4285f4 !important;
             color: #ffffff !important;
         }
         .nav-section-title,
@@ -211,7 +211,7 @@
         }
 
         .sidebar-header .brand-name {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Roboto', -apple-system, sans-serif;
             font-size: 18px;
             font-weight: 600;
             color: #0f172a !important;
@@ -247,7 +247,7 @@
         }
 
         .sidebar-nav a.active {
-            background: #14b8a6 !important;
+            background: #4285f4 !important;
             color: #ffffff !important;
         }
 
@@ -290,7 +290,7 @@
             align-items: center;
             gap: 10px;
             padding: 10px 14px;
-            background: #14b8a6 !important;
+            background: #4285f4 !important;
             color: #ffffff !important;
             text-decoration: none;
             border-radius: 4px;
@@ -301,7 +301,7 @@
         }
 
         .sidebar-login-btn:hover {
-            background: #0d9488 !important;
+            background: #1967d2 !important;
         }
 
         .sidebar-login-btn svg {
@@ -324,7 +324,7 @@
             width: 36px;
             height: 36px;
             border-radius: 4px;
-            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%) !important;
+            background: linear-gradient(135deg, #4285f4 0%, #1967d2 100%) !important;
             color: #ffffff !important;
             display: flex;
             align-items: center;
@@ -537,9 +537,9 @@
             width: 48px;
             height: 48px;
             background: #ffffff;
-            border: 2px solid #14b8a6;
+            border: 2px solid #4285f4;
             border-radius: 12px;
-            color: #14b8a6;
+            color: #4285f4;
             cursor: pointer;
             align-items: center;
             justify-content: center;
@@ -547,7 +547,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         .mobile-menu-btn:hover {
-            background: #14b8a6;
+            background: #4285f4;
             color: #ffffff;
         }
         .mobile-menu-btn svg {
@@ -1025,8 +1025,8 @@
 
         /* Active Roles Banner */
         .roles-banner {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-            border: 1px solid rgba(20, 184, 166, 0.3);
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(66, 133, 244, 0.3);
             border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 20px;
@@ -1496,8 +1496,8 @@
         }
 
         .sidebar-filter-item.active {
-            background: rgba(20, 184, 166, 0.15) !important;
-            color: #14b8a6 !important;
+            background: rgba(66, 133, 244, 0.15) !important;
+            color: #4285f4 !important;
         }
 
         .sidebar-filter-item svg {
@@ -1562,8 +1562,8 @@
         }
 
         .sidebar-company-item.active {
-            background: rgba(20, 184, 166, 0.15) !important;
-            color: #14b8a6 !important;
+            background: rgba(66, 133, 244, 0.15) !important;
+            color: #4285f4 !important;
         }
 
         .sidebar-company-item .company-initial {
@@ -1576,13 +1576,13 @@
             justify-content: center;
             font-size: 11px;
             font-weight: 600;
-            color: #14b8a6 !important;
+            color: #4285f4 !important;
             flex-shrink: 0;
         }
 
         .sidebar-company-item:hover .company-initial,
         .sidebar-company-item.active .company-initial {
-            background: #14b8a6 !important;
+            background: #4285f4 !important;
             color: white !important;
         }
 
@@ -1646,7 +1646,7 @@
             color: #ffffff !important;
         }
         [data-theme="dark"] .sidebar-nav a.active {
-            background: #14b8a6 !important;
+            background: #4285f4 !important;
             color: #ffffff !important;
         }
         [data-theme="dark"] .nav-section-title {
@@ -1669,8 +1669,8 @@
             color: #ffffff !important;
         }
         [data-theme="dark"] .sidebar-filter-item.active {
-            background: rgba(20, 184, 166, 0.2) !important;
-            color: #2dd4bf !important;
+            background: rgba(66, 133, 244, 0.2) !important;
+            color: #8ab4f8 !important;
         }
         [data-theme="dark"] .sidebar-filter-item .filter-count {
             color: #94a3b8 !important;
@@ -1689,16 +1689,16 @@
             color: #ffffff !important;
         }
         [data-theme="dark"] .sidebar-company-item.active {
-            background: rgba(20, 184, 166, 0.2) !important;
-            color: #2dd4bf !important;
+            background: rgba(66, 133, 244, 0.2) !important;
+            color: #8ab4f8 !important;
         }
         [data-theme="dark"] .sidebar-company-item .company-initial {
             background: #1e293b !important;
-            color: #2dd4bf !important;
+            color: #8ab4f8 !important;
         }
         [data-theme="dark"] .sidebar-company-item:hover .company-initial,
         [data-theme="dark"] .sidebar-company-item.active .company-initial {
-            background: #14b8a6 !important;
+            background: #4285f4 !important;
             color: #ffffff !important;
         }
         [data-theme="dark"] .sidebar-company-item .company-count {
@@ -2092,7 +2092,7 @@
             --ag-selected-row-background-color: var(--bg-hover);
             --ag-border-color: var(--border-color);
             --ag-odd-row-background-color: var(--bg-secondary);
-            --ag-font-family: 'Inter', -apple-system, sans-serif;
+            --ag-font-family: 'Roboto', -apple-system, sans-serif;
             --ag-font-size: 13px;
             --ag-row-border-color: var(--border-color);
             --ag-header-column-separator-color: var(--border-color);
@@ -2408,9 +2408,9 @@
         }
 
         .type-onsite {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.25) 0%, rgba(13, 148, 136, 0.35) 100%);
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.25) 0%, rgba(25, 103, 210, 0.35) 100%);
             color: var(--accent-purple-light);
-            border: 1px solid rgba(20, 184, 166, 0.4);
+            border: 1px solid rgba(66, 133, 244, 0.4);
         }
         .type-hybrid {
             background: linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(6, 182, 212, 0.3) 100%);
@@ -2562,9 +2562,9 @@
             border: 1px solid rgba(79, 140, 255, 0.35);
         }
         .source-workday {
-            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(20, 184, 166, 0.3) 100%);
+            background: linear-gradient(135deg, rgba(66, 133, 244, 0.2) 0%, rgba(66, 133, 244, 0.3) 100%);
             color: var(--accent-purple-light);
-            border: 1px solid rgba(20, 184, 166, 0.35);
+            border: 1px solid rgba(66, 133, 244, 0.35);
         }
         .source-apple {
             background: linear-gradient(135deg, rgba(139, 154, 181, 0.15) 0%, rgba(139, 154, 181, 0.25) 100%);
@@ -2931,7 +2931,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Applied</div>
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">
-                    <div style="font-size: 28px; font-weight: 700; color: #14b8a6;" id="analytics-interviewing">0</div>
+                    <div style="font-size: 28px; font-weight: 700; color: #4285f4;" id="analytics-interviewing">0</div>
                     <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Interviewing</div>
                 </div>
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; text-align: center;">

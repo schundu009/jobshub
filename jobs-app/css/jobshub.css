@@ -1,5 +1,7 @@
 /* Jobshub: quiet surfaces, clear hierarchy, and a search-first workspace. */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
 :root, [data-theme="light"] {
+  --google-blue:#4285f4; --google-red:#ea4335; --google-yellow:#fbbc04; --google-green:#34a853;
   --bg-primary:#fff; --bg-secondary:#f8fafd; --bg-tertiary:#eef3fb;
   --bg-card:#fff; --bg-hover:#eef3fb; --bg-elevated:#fff;
   --text-primary:#202124; --text-secondary:#444746; --text-muted:#5f6368;
@@ -11,6 +13,7 @@
   --sidebar-bg:#f8fafd; --sidebar-text:#444746; --sidebar-text-active:#174ea6;
 }
 [data-theme="dark"] {
+  --google-blue:#8ab4f8; --google-red:#f28b82; --google-yellow:#fdd663; --google-green:#81c995;
   --bg-primary:#202124; --bg-secondary:#292a2d; --bg-tertiary:#35363a;
   --bg-card:#292a2d; --bg-hover:#35363a; --bg-elevated:#292a2d;
   --text-primary:#e8eaed; --text-secondary:#bdc1c6; --text-muted:#bdc1c6;
@@ -21,9 +24,13 @@
   --sidebar-bg:#292a2d; --sidebar-text:#bdc1c6; --sidebar-text-active:#a8c7fa;
 }
 body, input, select, textarea, button, .auth-header h1, .brand-name, .jobs-logo-text {
-  font-family:Arial, Helvetica, sans-serif;
+  font-family:Roboto, Arial, Helvetica, sans-serif;
 }
 body { color:var(--text-primary); background:var(--bg-primary); }
+body::before {
+  content:""; position:fixed; inset:0 0 auto; height:4px; z-index:10001; pointer-events:none;
+  background:linear-gradient(90deg,var(--google-blue) 0 25%,var(--google-red) 25% 50%,var(--google-yellow) 50% 75%,var(--google-green) 75% 100%);
+}
 :focus-visible { outline:3px solid var(--accent-blue); outline-offset:4px; }
 a, button, input { -webkit-tap-highlight-color:transparent; }
 button, .btn, .btn-submit { transition:background-color .18s, transform .18s; }
@@ -33,6 +40,7 @@ button:active, .btn:active { transform:scale(.98); }
 .sidebar-nav a, .jobs-nav-item { border-radius:28px; color:var(--sidebar-text); }
 .sidebar-nav a.active, .jobs-nav-item.active { background:var(--accent-blue-muted); color:var(--sidebar-text-active); }
 .sidebar-header .brand-name { color:var(--text-primary); }
+.sidebar-nav a .cariara-mark, .filter-icon .cariara-mark, .companies-icon .cariara-mark { width:24px; height:24px; flex:none; }
 .auth-container { min-height:100dvh; padding:32px 20px; background:var(--bg-secondary); }
 .auth-card { max-width:460px; border-radius:28px; background:var(--bg-card); box-shadow:none; padding:40px; }
 .auth-header h1 { font-size:28px; font-weight:500; margin:24px 0 12px; }

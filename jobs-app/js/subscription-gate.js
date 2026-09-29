@@ -104,7 +104,7 @@ function showUpgradeModal(data) {
             .upgrade-modal-icon {
                 width: 64px;
                 height: 64px;
-                background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+                background: linear-gradient(135deg, #4285f4 0%, #1967d2 100%);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -150,13 +150,13 @@ function showUpgradeModal(data) {
             .upgrade-modal-feature svg {
                 width: 20px;
                 height: 20px;
-                color: #14b8a6;
+                color: #4285f4;
                 flex-shrink: 0;
             }
             .upgrade-modal-btn {
                 display: inline-block;
                 padding: 14px 32px;
-                background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+                background: linear-gradient(135deg, #4285f4 0%, #1967d2 100%);
                 color: white;
                 font-size: 16px;
                 font-weight: 600;
@@ -169,7 +169,7 @@ function showUpgradeModal(data) {
             }
             .upgrade-modal-btn:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+                box-shadow: 0 8px 20px rgba(66, 133, 244, 0.4);
             }
             .upgrade-modal-secondary {
                 display: block;
