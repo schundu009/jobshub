@@ -16,6 +16,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+
+# Allow-lists for values interpolated into generated scraper source.
+_SAFE_NAME = re.compile(r"[A-Za-z][A-Za-z0-9 .&\-]{0,79}")
+_SAFE_TOKEN = re.compile(r"[A-Za-z0-9_.\-]{1,120}")
+_SAFE_URL = re.compile(r"https?://[A-Za-z0-9.\-]{1,253}(?::\d{1,5})?(?:/[A-Za-z0-9._~%/\-]*)?(?:\?[A-Za-z0-9._~%=&\-]*)?")
+
 class JobBoardDetector:
     """Detects job board platform from URL patterns."""
 
@@ -290,7 +296,25 @@ class ScraperGenerator:
         api_info: Dict[str, Any]
     ) -> Tuple[str, str]:
         """Generate scraper code and save to file."""
+        # These values are written into Python source that is then imported,
+        # so anything outside a strict allow-list is rejected (no quotes,
+        # backslashes, braces or newlines can ever reach the template).
+        company_name = (company_name or "").strip()
+        careers_url = (careers_url or "").strip()
+        if not _SAFE_NAME.fullmatch(company_name):
+            raise ValueError("Company name may only contain letters, numbers, spaces and . & -")
+        if not _SAFE_URL.fullmatch(careers_url):
+            raise ValueError("Careers URL must be a plain http(s) URL")
+        metadata = api_info.get('metadata', {}) or {}
+        for key, value in metadata.items():
+            if not _SAFE_TOKEN.fullmatch(str(value)):
+                raise ValueError(f"Unexpected characters in detected {key}")
+        for key, value in api_info.items():
+            if key != 'metadata' and isinstance(value, str) and not _SAFE_URL.fullmatch(value) and not _SAFE_TOKEN.fullmatch(value):
+                raise ValueError(f"Unexpected characters in detected {key}")
         slug = self._slugify(company_name)
+        if not slug or not slug[0].isalpha():
+            raise ValueError("Company name must start with a letter")
         class_name = self._to_class_name(company_name)
         metadata = api_info.get('metadata', {})
 
