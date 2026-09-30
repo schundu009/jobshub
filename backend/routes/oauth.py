@@ -101,6 +101,11 @@ def get_or_create_oauth_user(
     return user
 
 
+def aiapply_callback_url() -> str:
+    """Fixed AIApply landing page for OAuth results (never caller-supplied)."""
+    return f"{settings.aiapply_url.rstrip('/')}/auth/callback"
+
+
 async def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
     """Create redirect to frontend with tokens in URL fragment."""
     import json
@@ -110,6 +115,8 @@ async def create_frontend_redirect(user: User, portal: str = "admin") -> Redirec
     # Determine redirect URL based on portal (separate domains)
     if portal == "jobs":
         base_url = f"{settings.jobs_frontend_url.rstrip('/')}/login.html"
+    elif portal == "aiapply":
+        base_url = aiapply_callback_url()
     elif portal == "ascend":
         base_url = "https://capra.cariara.com/login"
     else:
@@ -146,7 +153,7 @@ def available_providers():
 # =============================================================================
 
 @router.get("/google/login")
-async def google_login(request: Request, redirect: Literal["jobs", "admin", "ascend"] = "jobs"):
+async def google_login(request: Request, redirect: Literal["jobs", "admin", "ascend", "aiapply"] = "jobs"):
     """Initiate Google OAuth login."""
     if not (settings.google_client_id and settings.google_client_secret):
         raise HTTPException(
@@ -186,6 +193,8 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
         # Redirect to login with error
         if portal == "jobs":
             error_base = f"{settings.jobs_frontend_url.rstrip('/')}/login.html"
+        elif portal == "aiapply":
+            error_base = aiapply_callback_url()
         elif portal == "ascend":
             error_base = "https://ascend.cariara.com/login"
         else:

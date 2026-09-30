@@ -96,6 +96,10 @@ class Settings(BaseSettings):
     # Jobshub frontend origin, including local development when needed.
     jobs_frontend_url: str = "https://jobs.cariara.com"
 
+    # AIApply (admin-only auto-apply app) origin; Google sign-in returns to
+    # {aiapply_url}/auth/callback when started with ?redirect=aiapply.
+    aiapply_url: str = os.environ.get("AIAPPLY_URL", "https://aiapply.up.railway.app")
+
     # Backend URL (for OAuth callbacks)
     backend_url: str = os.environ.get("BACKEND_URL", "http://localhost:8000")
 
