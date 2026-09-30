@@ -5,7 +5,7 @@
       "source": "/:path((?!jobs/admin).*)",
       "has": [{ "type": "host", "value": "admin.cariara.com" }],
       "destination": "https://cariara.com/jobs/admin/:path",
-      "permanent": false
+      "permanent": true
     }
   ],
   "rewrites": [
