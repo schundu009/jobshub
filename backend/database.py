@@ -187,6 +187,17 @@ def _run_early_migrations_locked():
                 conn.rollback()
                 print(f"Could not add jobs columns early: {e}")
 
+            # cariara.com identity link columns on users (ORM selects them).
+            try:
+                from migrations.cariara_identity import migrate_cariara_identity
+                added = migrate_cariara_identity(conn)
+                conn.commit()
+                if added:
+                    print(f"Added cariara identity columns: {added}")
+            except Exception as e:
+                conn.rollback()
+                print(f"Could not add cariara identity columns: {e}")
+
             # One-time migration: Set onboarding_completed for users with resumes
             try:
                 result = conn.execute(text("""

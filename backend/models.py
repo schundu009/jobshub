@@ -173,6 +173,16 @@ class User(Base):
     job_roles = Column(JSON, default=list)  # Array of role slugs (max 5)
     roles_confirmed_at = Column(DateTime, nullable=True)  # When roles were confirmed
 
+    # cariara.com identity link (services/cariara_identity.py). identity_source
+    # is "cariara" for accounts created from a cariara.com sign-in; NULL for
+    # native jobportal accounts (including ones later linked by email).
+    cariara_user_id = Column(String(64), nullable=True, unique=True, index=True)
+    identity_source = Column(String(20), nullable=True)
+    # Last cariara.com plan seen for this user (plan_type when paid+active,
+    # else "free"), for plan checks that run without the user's token.
+    cariara_plan = Column(String(32), nullable=True)
+    cariara_plan_checked_at = Column(DateTime, nullable=True)
+
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

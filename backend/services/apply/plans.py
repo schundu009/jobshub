@@ -5,7 +5,7 @@ Paid status comes from capra-backend (services.subscription_service, the same
 source as GET /api/auth/subscription-status). ApplyPreference.plan_override
 ("pro"/"paid" or "free") takes precedence; it is ops-set only, for comp
 accounts and local development. Admins (middleware.auth.ADMIN_ROLES) count
-as paid.
+as paid, and so does a paid cariara.com plan (services.cariara_identity).
 """
 import asyncio
 from dataclasses import dataclass
@@ -48,6 +48,12 @@ def resolve_plan(user, override: Optional[str] = None) -> PlanInfo:
     from middleware.auth import is_admin
     if is_admin(user):
         return PlanInfo(True, "admin", PAID_DAILY_CAP_MAX)
+
+    # A paid cariara.com plan (services.cariara_identity) counts as paid.
+    from services.cariara_identity import cariara_paid_plan
+    cariara_plan = cariara_paid_plan(user)
+    if cariara_plan:
+        return PlanInfo(True, cariara_plan, PAID_DAILY_CAP_MAX)
 
     result = verify_subscription_sync(user.id) or {}
     if result.get("hasAccess"):

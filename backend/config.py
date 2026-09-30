@@ -104,6 +104,29 @@ class Settings(BaseSettings):
     backend_url: str = os.environ.get("BACKEND_URL", "http://localhost:8000")
 
     # ==========================================================================
+    # CARIARA.COM IDENTITY (users signed in on cariara.com / copilot)
+    # ==========================================================================
+    # A cariara.com access token is verified by asking cariara's Prep API who
+    # it belongs to (GET /api/v1/auth/me). Jobportal never holds cariara's
+    # signing secret. See services/cariara_identity.py.
+    cariara_auth_enabled: bool = True
+    cariara_api_url: str = "https://copilot-prep.up.railway.app"
+    cariara_me_path: str = "/api/v1/auth/me"
+    cariara_subscription_path: str = "/api/v1/billing/subscription"
+    cariara_verify_timeout_seconds: float = 3.0
+    cariara_cache_ttl_seconds: int = 60
+    # cariara plan_type values that count as paid (apps/api lib/_shared/plans.js
+    # PAID_PLAN_TYPES, plus the synthesized 'admin').
+    cariara_paid_plans: str = "byok,platform,team,lifetime,admin"
+    # How long a stored cariara plan counts for work that runs without the
+    # user's token (Celery tasks); refreshed on every verified request.
+    cariara_plan_max_age_hours: int = 24
+
+    @property
+    def cariara_paid_plans_set(self) -> set:
+        return {p.strip().lower() for p in self.cariara_paid_plans.split(",") if p.strip()}
+
+    # ==========================================================================
     # SCRAPER SETTINGS
     # ==========================================================================
     scraper_default_rate_limit: int = 30

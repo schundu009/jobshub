@@ -8,7 +8,7 @@ Includes token blacklist checking for secure logout/revocation.
 import logging
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
@@ -29,31 +29,68 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer(auto_error=False)
 
 
+def _unauthorized(detail: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def _header_value(value) -> Optional[str]:
+    """A Header() param's value; direct callers leave the FieldInfo default in place."""
+    return value.strip() or None if isinstance(value, str) else None
+
+
+def _check_account(user: User) -> User:
+    if not user.is_active:
+        raise _unauthorized("User account is disabled")
+    if user.locked_until and as_utc(user.locked_until) > datetime.now(timezone.utc):
+        raise _unauthorized("Account is temporarily locked")
+    return user
+
+
+def _user_from_cariara(token: str, db: Session) -> Optional[User]:
+    """jobportal User for a cariara.com token (services/cariara_identity.py), or None."""
+    from services.cariara_identity import CariaraUnavailable, user_from_cariara_token
+
+    try:
+        user = user_from_cariara_token(db, token)
+    except CariaraUnavailable as exc:
+        logger.warning("cariara.com sign-in could not be verified: %s", exc)
+        # Fail closed, but say it's temporary so the client doesn't sign out.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="cariara.com sign-in could not be verified, try again shortly",
+        )
+    return _check_account(user) if user is not None else None
+
+
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    x_cariara_token: Optional[str] = Header(None, alias="X-Cariara-Token"),
 ) -> User:
     """
     Dependency to get the current authenticated user.
 
-    Requires valid Bearer token in Authorization header.
+    Accepts either a jobportal access token (Authorization: Bearer, checked
+    first, unchanged behavior) or a cariara.com access token, sent as
+    Authorization: Bearer <token> or X-Cariara-Token: <token>.
     """
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    cariara_token = _header_value(x_cariara_token)
+    if not credentials and not cariara_token:
+        raise _unauthorized("Authentication required")
 
-    token = credentials.credentials
-    payload = decode_token(token)
+    token = credentials.credentials if credentials else None
+    payload = decode_token(token) if token else None
 
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        # Not a jobportal token: try it (or X-Cariara-Token) as a cariara.com token.
+        user = _user_from_cariara(cariara_token or token, db)
+        if user is not None:
+            return user
+        raise _unauthorized("Invalid or expired token")
 
     # Check token type
     if payload.get("type") != "access":
@@ -116,6 +153,7 @@ def get_current_user(
 def get_current_user_detached(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db),
+    x_cariara_token: Optional[str] = Header(None, alias="X-Cariara-Token"),
 ) -> User:
     """
     Like get_current_user, but ends the session's transaction right after the
@@ -127,7 +165,7 @@ def get_current_user_detached(
     returned User is detached: plain column attributes (id, role, email, ...)
     work, lazy relationships do not.
     """
-    user = get_current_user(credentials, db)
+    user = get_current_user(credentials, db, x_cariara_token)
     db.expunge(user)
     db.rollback()
     return user
@@ -135,7 +173,8 @@ def get_current_user_detached(
 
 def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    x_cariara_token: Optional[str] = Header(None, alias="X-Cariara-Token"),
 ) -> Optional[User]:
     """
     Dependency to optionally get the current user.
@@ -143,11 +182,11 @@ def get_current_user_optional(
     Returns None if not authenticated (instead of raising exception).
     Useful for routes that work both authenticated and unauthenticated.
     """
-    if not credentials:
+    if not credentials and not _header_value(x_cariara_token):
         return None
 
     try:
-        return get_current_user(credentials, db)
+        return get_current_user(credentials, db, x_cariara_token)
     except HTTPException:
         return None
 

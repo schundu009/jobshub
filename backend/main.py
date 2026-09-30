@@ -33,6 +33,7 @@ from database import create_tables, get_db
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
 # Legacy server-side auto_apply router removed; Cariara Auto Apply lives in routes/apply.py
 from routes import apply as apply_routes
+from routes import cariara_auth as cariara_auth_routes
 from contracts import routes as contracts_routes
 from config import settings as app_settings
 from services.redis_service import redis_service
@@ -738,6 +739,16 @@ def run_migrations():
 
         conn.commit()
 
+        # cariara.com identity link columns on users (normally added by the
+        # early migrations in database.py; this also covers SQLite)
+        try:
+            from migrations.cariara_identity import migrate_cariara_identity
+            migrate_cariara_identity(conn)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Could not add cariara identity columns: {e}")
+            conn.rollback()
+
         # Contract classification + freshness columns on jobs
         try:
             from migrations.job_classification import migrate_job_classification
@@ -949,6 +960,7 @@ app.include_router(users.router)
 app.include_router(scrapers.router)
 app.include_router(internal_auth.router)
 app.include_router(apply_routes.router)
+app.include_router(cariara_auth_routes.router)
 app.include_router(celery_management.router)
 app.include_router(apify.router)
 app.include_router(auto_heal.router)
