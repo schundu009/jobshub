@@ -1741,6 +1741,155 @@
             .ai-tool-btn { flex: 1 1 calc(50% - 2px); padding: 4px 6px; font-size: 10px; }
             .ai-tool-btn svg { width: 10px; height: 10px; }
         }
+
+        /* ===== Job detail layout (2026-09 redesign) =====================
+           Reading column (the job) + action rail (what you do with it).
+           Shared Cariara tokens only, so light and dark both follow the theme. */
+        .jd {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 48px;
+            align-items: start;
+            max-width: 1180px;
+            margin-top: 8px;
+        }
+        .jd-main { min-width: 0; }
+
+        .jd-head { padding-bottom: 24px; border-bottom: 1px solid var(--c-line-soft); }
+        .jd-eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .jd-logo {
+            width: 28px; height: 28px; border-radius: 8px; flex: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--c-blue-tint); color: var(--c-blue);
+            font: 500 14px/1 var(--c-display);
+        }
+        .jd-company { font-size: 15px; font-weight: 500; color: var(--c-ink); }
+        .jd-eyebrow .source-badge, .jd-eyebrow .inactive-badge {
+            font-size: 12px; font-weight: 500; line-height: 20px; padding: 0 8px; margin: 0;
+            border-radius: 6px; background: var(--c-surface-3); color: var(--c-ink-2); border: 0;
+        }
+        .jd-eyebrow .inactive-badge { background: var(--c-red-tint); color: var(--c-red); }
+        .jd-title {
+            font: 400 28px/36px var(--c-display);
+            letter-spacing: -0.01em;
+            color: var(--c-ink);
+            margin: 0 0 8px;
+            text-wrap: balance;
+        }
+        .jd-meta { display: flex; flex-wrap: wrap; gap: 4px 0; margin: 0; font-size: 14px; color: var(--c-ink-3); }
+        .jd-meta span + span::before { content: "·"; margin: 0 10px; color: var(--c-outline); }
+
+        .jd-desc { padding-top: 24px; max-width: 720px; } /* heading row lines up with the 70ch prose */
+        .jd-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .jd-label {
+            font-size: 13px; font-weight: 500; letter-spacing: .01em;
+            color: var(--c-ink-2); margin: 0; display: block;
+        }
+        .jd-link { font-size: 13px; color: var(--c-blue); text-decoration: none; white-space: nowrap; }
+        .jd-link:hover { text-decoration: underline; }
+        .jd-link:focus-visible, .jd-add:focus-visible, .jd-tools .ai-tool-btn:focus-visible {
+            outline: 2px solid var(--c-blue); outline-offset: 2px; border-radius: 6px;
+        }
+
+        /* Description prose: ~70ch measure, real paragraph and list rhythm. */
+        .jd-prose { max-width: 70ch; padding: 0; background: none; border: 0; font-size: 15px; line-height: 1.65; color: var(--c-ink); }
+        .jd-prose .desc-formatted, .jd-prose .desc-html-content { padding: 0; background: none; border: 0; font-size: inherit; line-height: inherit; color: inherit; }
+        .jd-prose p { margin: 0 0 14px; font-size: inherit; line-height: inherit; color: inherit; }
+        .jd-prose h1, .jd-prose h2, .jd-prose h3, .jd-prose h4, .jd-prose h5, .jd-prose h6,
+        .jd-prose .desc-section-title, .jd-prose .section-header {
+            font: 500 16px/24px var(--c-display); color: var(--c-ink);
+            margin: 28px 0 8px; padding: 0; border: 0; background: none; text-transform: none; letter-spacing: 0;
+        }
+        .jd-prose > :first-child, .jd-prose .desc-html-content > :first-child { margin-top: 0; }
+        .jd-prose ul, .jd-prose ol { margin: 0 0 16px; padding-left: 22px; }
+        .jd-prose li {
+            list-style: disc outside; margin: 0 0 6px; padding: 0 0 0 2px; border: 0 !important;
+            font-size: inherit; line-height: inherit; color: inherit;
+        }
+        .jd-prose ol > li { list-style-type: decimal; }
+        .jd-prose li::before { content: none !important; display: none !important; }
+        .jd-prose li::marker { color: var(--c-ink-3); }
+        /* Tech terms / requirement phrases: emphasis by weight, not coloured chips. */
+        .jd-prose .desc-tech, .jd-prose .desc-highlight {
+            background: none; border: 0; padding: 0; margin: 0; border-radius: 0;
+            font: inherit; font-weight: 500; color: inherit;
+        }
+        .jd-prose strong, .jd-prose b { font-weight: 600; color: var(--c-ink); }
+        .jd-prose a { color: var(--c-blue); }
+        .jd-prose .desc-empty {
+            display: block; padding: 20px 0; text-align: left; font-size: 14px; color: var(--c-ink-3);
+            background: none; border: 0;
+        }
+        .jd-prose .desc-empty svg { display: none; }
+
+        /* Action rail */
+        .jd-rail { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 28px; }
+        .jd-panel { display: flex; flex-direction: column; gap: 10px; }
+        .jd-panel + .jd-panel { padding-top: 24px; border-top: 1px solid var(--c-line-soft); }
+        .jd-panel .jd-section-head { margin-bottom: 0; }
+        .jd-status-row { display: flex; align-items: center; gap: 8px; }
+        .jd-status-row .status-select {
+            flex: 1; height: 36px; padding: 0 32px 0 12px; border-radius: 8px;
+            font-size: 14px; font-weight: 500; border: 1px solid var(--c-line);
+            background-color: var(--c-surface); color: var(--c-ink);
+        }
+        .jd-status-row .status-select.status-wishlist { background-color: var(--c-yellow-tint); color: var(--c-yellow); border-color: transparent; }
+        .jd-status-row .status-select.status-applied,
+        .jd-status-row .status-select.status-interviewing { background-color: var(--c-blue-tint); color: var(--c-blue); border-color: transparent; }
+        .jd-status-row .status-select.status-offer { background-color: var(--c-green-tint); color: var(--c-green); border-color: transparent; }
+        .jd-status-row .status-select.status-rejected { background-color: var(--c-red-tint); color: var(--c-red); border-color: transparent; }
+        .jd-status-row .btn-icon {
+            width: 36px; height: 36px; border-radius: 8px; flex: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: transparent; border: 1px solid var(--c-line); color: var(--c-ink-2);
+        }
+        .jd-status-row .btn-icon:hover { background: var(--c-state); color: var(--c-ink); }
+        .jd-status-row .btn-icon-danger:hover { color: var(--c-red); border-color: var(--c-red); }
+        .jd-status-row .btn-icon svg { width: 16px; height: 16px; }
+
+        .jd-tools { display: flex; flex-direction: column; gap: 2px; margin: 0 -10px; }
+        .jd-tools .ai-tool-btn {
+            display: flex; align-items: center; gap: 10px; width: 100%;
+            padding: 8px 10px; border: 0; border-radius: 8px; background: transparent;
+            font-size: 14px; font-weight: 400; color: var(--c-ink); text-align: left; cursor: pointer;
+            transition: background-color 150ms cubic-bezier(.25, 1, .5, 1);
+        }
+        .jd-tools .ai-tool-btn svg { width: 16px; height: 16px; color: var(--c-ink-3); flex: none; }
+        .jd-tools .ai-tool-btn:hover:not(:disabled) { background: var(--c-state); }
+        .jd-tools .ai-tool-btn:disabled { color: var(--c-ink-3); cursor: not-allowed; }
+
+        .jd-add {
+            font-size: 13px; font-weight: 500; color: var(--c-blue); background: none; border: 0;
+            padding: 2px 6px; margin-right: -6px; border-radius: 6px; cursor: pointer;
+        }
+        .jd-add:hover { background: var(--c-blue-tint); }
+        .jd-empty { margin: 0; font-size: 14px; color: var(--c-ink-3); }
+        .jd-panel .interview-item, .jd-panel .note-item {
+            background: none; border: 0; border-radius: 0; padding: 8px 0; margin: 0;
+            border-bottom: 1px solid var(--c-line-soft); font-size: 14px;
+        }
+        .jd-panel .interview-item:last-child, .jd-panel .note-item:last-child { border-bottom: 0; }
+        .jd-panel .note-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+        .jd-panel .note-type {
+            font-size: 12px; font-weight: 500; text-transform: capitalize; letter-spacing: 0;
+            padding: 0; background: none; color: var(--c-ink-2); border-radius: 0;
+        }
+        .jd-panel .note-date, .jd-panel .interview-date { font-size: 12px; color: var(--c-ink-3); }
+        .jd-panel .note-item p, .jd-panel .interview-type { font-size: 14px; line-height: 1.5; color: var(--c-ink); margin: 0; }
+
+        @media (max-width: 1100px) {
+            .jd { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+            .jd-rail { position: static; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+            .jd-panel + .jd-panel { padding-top: 0; border-top: 0; }
+            .jd-head { padding-bottom: 20px; }
+        }
+        @media (max-width: 600px) {
+            .jd-title { font-size: 22px; line-height: 30px; }
+            .jd-rail { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .jd-tools .ai-tool-btn { transition: none; }
+        }
     </style>
     <meta name="robots" content="noindex,nofollow">
     <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
@@ -2390,7 +2539,7 @@
             // Interviews
             let interviewsHtml = '';
             if (!job.interviews || job.interviews.length === 0) {
-                interviewsHtml = `<div class="empty-state"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><p>No interviews scheduled</p></div>`;
+                interviewsHtml = '<p class="jd-empty">None scheduled.</p>';
             } else {
                 job.interviews.forEach(interview => {
                     const outcomeClass = interview.outcome === 'passed' ? 'passed' : interview.outcome === 'failed' ? 'failed' : 'pending';
@@ -2410,7 +2559,7 @@
             // Notes
             let notesHtml = '';
             if (!job.notes || job.notes.length === 0) {
-                notesHtml = `<div class="empty-state"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg><p>No notes yet</p></div>`;
+                notesHtml = '<p class="jd-empty">No notes yet.</p>';
             } else {
                 job.notes.forEach(note => {
                     notesHtml += `
@@ -2431,24 +2580,35 @@
                     Back to Jobs
                 </a>
 
-                <!-- Compact Header -->
-                <div class="compact-header">
-                    <div class="header-left">
-                        <div class="title-row">
-                            <div class="company-logo-sm">${companyInitial}</div>
-                            <div class="title-info">
-                                <h1 class="job-title-compact">${escapeHtml(job.title)}${sourceBadge}${inactiveBadge}</h1>
-                                <div class="company-meta">
-                                    <span class="company-name">${escapeHtml(job.company_name) || 'Company'}</span>
-                                    <span class="separator">•</span>
-                                    <span>${escapeHtml(job.location) || 'Location not specified'}</span>
-                                    ${job.salary_min || job.salary_max ? `<span class="separator">•</span><span>${formatSalary(job.salary_min, job.salary_max)}</span>` : ''}
-                                    ${job.posted_date ? `<span class="separator">•</span><span>Posted: ${formatDate(job.posted_date)}</span>` : ''}
-                                </div>
-                            </div>
+                <div class="jd">
+                <div class="jd-main">
+                    <div class="jd-head">
+                        <div class="jd-eyebrow">
+                            <span class="jd-logo" aria-hidden="true">${companyInitial}</span>
+                            <span class="jd-company">${escapeHtml(job.company_name) || 'Company'}</span>
+                            ${sourceBadge}${inactiveBadge}
                         </div>
+                        <h1 class="jd-title">${escapeHtml(job.title)}</h1>
+                        <p class="jd-meta">
+                            <span>${escapeHtml(job.location) || 'Location not specified'}</span>
+                            ${job.salary_min || job.salary_max ? `<span>${formatSalary(job.salary_min, job.salary_max)}</span>` : ''}
+                            ${job.posted_date ? `<span>Posted ${formatDate(job.posted_date)}</span>` : ''}
+                        </p>
                     </div>
-                    <div class="header-actions">
+
+                    <section class="jd-desc" aria-labelledby="jd-desc-title">
+                        <div class="jd-section-head">
+                            <h2 id="jd-desc-title" class="jd-label">Description</h2>
+                            ${safeUrl(job.job_url) ? `<a href="${safeUrl(job.job_url)}" target="_blank" rel="noopener noreferrer" class="jd-link">View original posting ↗</a>` : ''}
+                        </div>
+                        <div class="desc-card-body jd-prose">${formatJobDescription(job.job_description)}</div>
+                    </section>
+                </div>
+
+                <aside class="jd-rail" aria-label="Job actions">
+                    <div class="jd-panel">
+                        <label class="jd-label" for="status-select">Status</label>
+                        <div class="jd-status-row">
                         <select id="status-select" class="status-select status-${escapeHtml(job.status)}" onchange="updateStatus(this.value)">
                             <option value="wishlist" ${job.status === 'wishlist' ? 'selected' : ''}>Wishlist</option>
                             <option value="applied" ${job.status === 'applied' ? 'selected' : ''}>Applied</option>
@@ -2460,15 +2620,15 @@
                         <a href="job_form.html?id=${encodeURIComponent(job.id)}" class="btn-icon" title="Edit">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </a>
-                        <button class="btn-icon btn-icon-danger" onclick="deleteJob()" title="Delete">
+                        <button class="btn-icon btn-icon-danger" onclick="deleteJob()" title="Delete" aria-label="Delete job">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- AI Tools Bar -->
-                <div class="ai-tools-bar">
-                    <span class="label">AI Tools</span>
+                    <div class="jd-panel">
+                    <h2 class="jd-label">AI tools</h2>
+                    <div class="jd-tools">
                     <button class="ai-tool-btn" onclick="openCoverLetterModal()">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Cover Letter
@@ -2489,36 +2649,25 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         Research
                     </button>
-                </div>
-
-                <!-- Job Description -->
-                <div class="desc-card">
-                    <div class="desc-card-header">
-                        <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>Job Description</h4>
-                        ${safeUrl(job.job_url) ? `<a href="${safeUrl(job.job_url)}" target="_blank" rel="noopener noreferrer" class="link-mini">View Original</a>` : ''}
                     </div>
-                    <div class="desc-card-body">${formatJobDescription(job.job_description)}</div>
-                </div>
+                    </div>
 
-                <!-- Interviews & Notes Row -->
-                <div class="info-row info-row-2col">
-                    <!-- Interviews -->
-                    <div class="mini-card">
-                        <div class="mini-card-header">
-                            <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Interviews</h4>
-                            <button class="btn-add-mini" onclick="openInterviewModal()">+ Add</button>
+                    <div class="jd-panel">
+                        <div class="jd-section-head">
+                            <h2 class="jd-label">Interviews</h2>
+                            <button type="button" class="jd-add" onclick="openInterviewModal()">Add</button>
                         </div>
-                        <div class="mini-card-body">${interviewsHtml}</div>
+                        ${interviewsHtml}
                     </div>
 
-                    <!-- Notes -->
-                    <div class="mini-card">
-                        <div class="mini-card-header">
-                            <h4><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>Notes</h4>
-                            <button class="btn-add-mini" onclick="openNoteModal()">+ Add</button>
+                    <div class="jd-panel">
+                        <div class="jd-section-head">
+                            <h2 class="jd-label">Notes</h2>
+                            <button type="button" class="jd-add" onclick="openNoteModal()">Add</button>
                         </div>
-                        <div class="mini-card-body">${notesHtml}</div>
+                        ${notesHtml}
                     </div>
+                </aside>
                 </div>
             `;
 

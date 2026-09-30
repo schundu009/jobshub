@@ -18,7 +18,7 @@
   height: 64px; display: flex; align-items: center;
   padding: 0 20px !important; background: var(--c-surface) !important; border-bottom: 0 !important;
 }
-:root:root body .admin-nav { padding: 8px 12px !important; }
+:root:root body .admin-nav { padding: 8px 12px !important; background: transparent !important; } /* theme.css paints it navy in dark mode */
 :root:root body .admin-nav-section { margin: 0 0 4px !important; padding: 0 !important; }
 :root:root body .admin-nav-section + .admin-nav-section { margin-top: 12px !important; }
 :root:root body .admin-nav-label {
