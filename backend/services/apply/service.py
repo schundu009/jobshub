@@ -546,7 +546,8 @@ def handoff_payload(app: Application) -> Dict[str, Any]:
         value = (answers.get(q["id"]) or {}).get("value")
         if value in (None, "", []):
             continue
-        prefill.append({"question_id": q["id"], "label": q["label"], "value": value})
+        prefill.append({"question_id": q["id"], "label": q["label"], "value": value,
+                        "type": q.get("type"), "category": q.get("category")})
     return {"apply_url": app.apply_url, "prefill": prefill, "cover_letter_text": app.cover_letter_text}
 
 

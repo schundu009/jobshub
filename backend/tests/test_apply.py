@@ -612,6 +612,37 @@ def test_auto_mode_prepares_and_auto_approves(client, db, paid, monkeypatch):
     assert client.get("/api/apply/extension/next", headers=h).json() == {"application": None}
 
 
+def test_extension_finds_the_application_for_the_page(client, db, paid):
+    from routes.apply import _posting_key
+    assert _posting_key("https://job-boards.greenhouse.io/anthropic/jobs/4461450008?gh_src=x") == \
+        _posting_key("https://boards.greenhouse.io/embed/job_app?for=anthropic&token=1&gh_jid=4461450008") == \
+        ("greenhouse", "4461450008")
+    assert _posting_key("https://jobs.lever.co/acme/abc-123/apply") == _posting_key("https://jobs.lever.co/acme/abc-123")
+
+    h = headers(paid)
+    job = make_job(db, GH_ANTHROPIC_URL, external_id="4461450008", title="Account Executive")
+    app = Application(user_id=paid.id, job_id=job.id, status="approved", apply_url=GH_ANTHROPIC_URL,
+                      form_schema_snapshot=[{"id": "question_1", "label": "LinkedIn", "type": "text", "category": "custom"}],
+                      answers={"question_1": {"value": "https://linkedin.com/in/me"}})
+    db.add(app)
+    db.commit()
+    got = client.get("/api/apply/extension/for-url", headers=h,
+                     params={"url": "https://job-boards.greenhouse.io/anthropic/jobs/4461450008#app"}).json()["application"]
+    assert got["id"] == app.id
+    assert got["prefill"] == [{"question_id": "question_1", "label": "LinkedIn", "value": "https://linkedin.com/in/me",
+                               "type": "text", "category": "custom"}]
+    other = client.get("/api/apply/extension/for-url", headers=h,
+                       params={"url": "https://job-boards.greenhouse.io/anthropic/jobs/999999"}).json()
+    assert other == {"application": None}
+
+
+def test_extension_origin_is_allowed_by_cors(client):
+    r = client.options("/api/apply/extension/for-url", headers={
+        "Origin": "chrome-extension://abcdefghijklmnopabcdefghijklmnop",
+        "Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "x-cariara-token"})
+    assert r.headers.get("access-control-allow-origin") == "chrome-extension://abcdefghijklmnopabcdefghijklmnop"
+
+
 def test_review_mode_never_auto_approves(client, db, paid, ashby_job):
     h = headers(paid)
     client.put("/api/apply/preferences", headers=h, json={"enabled": True, "mode": "review"})

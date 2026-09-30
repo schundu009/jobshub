@@ -6,8 +6,10 @@ Phase 2) submits them. No endpoint here submits anything to an employer.
 """
 import logging
 import os
+import re
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -519,7 +521,7 @@ def get_stats(current_user: User = Depends(get_current_user), db: Session = Depe
     }
 
 
-# --------------------------------------------------------------------------- extension (Phase 2 placeholders)
+# --------------------------------------------------------------------------- extension (Phase 2)
 
 @router.get("/extension/next")
 def extension_next(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -532,6 +534,45 @@ def extension_next(current_user: User = Depends(get_current_user), db: Session =
     detail = svc.application_detail(db, app, current_user)
     detail.update(svc.handoff_payload(app))
     return {"application": detail}
+
+
+_GH_JOB_ID = re.compile(r"(?:[?&]gh_jid=|/jobs/)(\d{4,})")
+
+
+def _posting_key(url: Optional[str]) -> Optional[tuple]:
+    """What identifies one posting across its board, embed and apply URLs."""
+    if not url:
+        return None
+    m = _GH_JOB_ID.search(url)
+    if m and ("greenhouse" in url or "gh_jid=" in url):
+        return ("greenhouse", m.group(1))
+    try:
+        parts = urlsplit(url.strip())
+    except ValueError:
+        return None
+    host = (parts.hostname or "").lower().removeprefix("www.")
+    if not host:
+        return None
+    path = re.sub(r"/(application|apply)/?$", "", parts.path.rstrip("/"))
+    return ("url", host, path.lower())
+
+
+@router.get("/extension/for-url")
+def extension_for_url(url: str = Query(..., max_length=2000), current_user: User = Depends(get_current_user),
+                      db: Session = Depends(get_db)):
+    """The approved (or opened) application for the posting at `url`, with its prefill payload."""
+    key = _posting_key(url)
+    if key is None:
+        return {"application": None}
+    apps = (db.query(Application).options(joinedload(Application.job).joinedload(Job.company))
+            .filter(Application.user_id == current_user.id, Application.status.in_(("approved", "handed_off")))
+            .order_by(Application.id.desc()).limit(200).all())
+    for app in apps:
+        if key in (_posting_key(app.apply_url), _posting_key(app.job.job_url if app.job else None)):
+            detail = svc.application_detail(db, app, current_user)
+            detail.update(svc.handoff_payload(app))
+            return {"application": detail}
+    return {"application": None}
 
 
 @router.post("/applications/{app_id}/extension-result")
