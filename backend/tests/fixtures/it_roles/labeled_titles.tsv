@@ -666,3 +666,8 @@ OUT	Security Specialist II	curated
 OUT	Risk & Compliance Analyst	curated
 OUT	Finance Analyst/Accounting	curated
 OUT	Store Associate/Cashier	curated
+# 2026-09-30: user decision: TAM is a tech role
+IN	Technical Account Manager	user
+IN	Senior Technical Account Manager, Enterprise	user
+OUT	Account Manager	curated
+OUT	Key Account Manager	curated

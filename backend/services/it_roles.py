@@ -394,6 +394,7 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
                  r"(?:analyst|engineer|specialist|architect|administrator|consultant)s?"),
     ("software", r"forward deployed (?:software )?engineers?"),
     ("tech_writing", r"tech writers?|technical writers?"),
+    ("software", r"technical account (?:manager|lead|director|executive)s?"),  # TAM: technical, customer-facing (user decision 2026-09-30)
     ("design_ux", r"design systems? (?:designer|engineer|lead|manager|architect)s?"),
     ("software", r"(?:solutions?|technical|cloud|software|saas|security|data|network|platform) sales engineers?|"
                  r"(?:technical|technology|software|it|data|cyber ?security|developer) interns?|"
