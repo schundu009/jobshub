@@ -650,3 +650,19 @@ OUT	Building Engineer	curated
 OUT	Cloud Account Executive	curated
 OUT	Account Manager - Salesforce	curated
 OUT	Sales Intern	curated
+# 2026-09-30: false negatives found by the contracts agent
+IN	Data Security Specialist II	contracts
+IN	Project Manager - Service Now HR	contracts
+IN	Lead Adobe Commerce / Magento 2 Engineer	contracts
+IN	Senior Business Systems Analyst / Underwriting Workflows	contracts
+IN	Principal Forward Deployed Engineer/Finance/Hybrid	contracts
+IN	Application Packaging Engineer	contracts
+IN	Tech Writer/Content Creator	contracts
+IN	Network Security Risk & Compliance Analyst II	contracts
+IN	Design Systems Designer	contracts
+IN	UI/UX Designer	curated
+IN	AI/ML Engineer	curated
+OUT	Security Specialist II	curated
+OUT	Risk & Compliance Analyst	curated
+OUT	Finance Analyst/Accounting	curated
+OUT	Store Associate/Cashier	curated

@@ -64,7 +64,7 @@ _SUBS = (
     (re.compile(r"\bjr\.", re.I), "jr "),
 )
 _NON_WORD = re.compile(r"[^a-z0-9]+")
-_SEGMENT_SPLIT = re.compile(r"\s[-–—|:]\s|[,(\[|–—]|\s-(?=\S)|(?<=\S)-\s")
+_SEGMENT_SPLIT = re.compile(r"\s[-–—|:/]\s|[,(\[|–—]|\s-(?=\S)|(?<=\S)-\s|(?<=[A-Za-z]{3})/(?=[A-Za-z]{3})")
 
 
 def _norm(text: str) -> str:
@@ -78,7 +78,7 @@ def _norm(text: str) -> str:
 # (verdict, category, lean, pattern). Patterns run on normalized text (lowercase,
 # single spaces, padded); they are wrapped in word boundaries.
 
-_ERP = (r"salesforce|sfdc|servicenow|workday|sap|abap|oracle|peoplesoft|netsuite|(?<!vehicle )dynamics|d365|guidewire|"
+_ERP = (r"salesforce|sfdc|servicenow|service now|workday|magento|adobe commerce|shopify|bigcommerce|commercetools|salesforce commerce|sap|abap|oracle|peoplesoft|netsuite|(?<!vehicle )dynamics|d365|guidewire|"
         r"dynamics 365|dynamics crm|microsoft dynamics|ms dynamics|pega|appian|mulesoft|veeva|epic|cerner|siebel|jde|jd edwards|infor|ifs|kronos|ukg|"
         r"coupa|ariba|anaplan|hubspot|marketo|sitecore|aem|adobe experience manager|sharepoint|"
         r"power platform|power apps?|power automate|outsystems|mendix|informatica|tableau|power bi|looker|"
@@ -388,7 +388,13 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
     ("security", r"(?:cyber ?security|information security|application security|cloud security|network security) (?:engineer|analyst|architect)s?"),
     ("embedded_hw", r"(?:firmware|embedded|fpga|asic|rtl) (?:software )?(?:engineer|developer|designer)s?|"
                     r"(?:ic|asic|soc|chip|silicon|pre silicon|post silicon) (?:\w+ )?(?:validation|verification|design|test) engineers?"),
-    ("it_support", r"(?:customer|technical|product|application|production|it|software|cloud|platform) support engineers?"),
+    ("it_support", r"(?:customer|technical|product|application|production|it|software|cloud|platform) support engineers?|"
+                   r"application packaging (?:engineer|specialist|analyst)s?|(?:msi|sccm|intune) packag\w* (?:engineer|specialist|analyst)s?"),
+    ("security", r"(?:data|information|it|cyber|network|cloud|application|identity) security (?:\w+ ){0,3}"
+                 r"(?:analyst|engineer|specialist|architect|administrator|consultant)s?"),
+    ("software", r"forward deployed (?:software )?engineers?"),
+    ("tech_writing", r"tech writers?|technical writers?"),
+    ("design_ux", r"design systems? (?:designer|engineer|lead|manager|architect)s?"),
     ("software", r"(?:solutions?|technical|cloud|software|saas|security|data|network|platform) sales engineers?|"
                  r"(?:technical|technology|software|it|data|cyber ?security|developer) interns?|"
                  r"(?:technical|software|it|data|engineering) (?:co op|coop|internship)s?"),
@@ -455,7 +461,7 @@ _NON_IT_QUALIFIER = re.compile(r"(?<![a-z0-9])(?:" + "|".join((
     r"trade", r"contract", r"sourcing", r"grant", r"community", r"employee relations", r"organizational development",
     r"grievance", r"provider", r"omnichannel", r"study", r"front office", r"mep", r"sprinkler", r"thermal",
     r"materials", r"material", r"assembly", r"equipment", r"new model", r"pharmacy", r"intake", r"aseptic",
-    r"commerce", r"business solutions", r"creative", r"design studio", r"onboarding", r"experience",
+    r"business solutions", r"creative", r"design studio", r"onboarding", r"experience",
 )) + r")(?![a-z0-9])")
 
 _IT_CONTEXT = re.compile(r"(?<![a-z0-9])(?:" + "|".join((
