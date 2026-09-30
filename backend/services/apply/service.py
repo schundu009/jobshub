@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from models import (
     AnswerBankEntry, Application, ApplicationEvent, ApplyPreference, ApplyProfile,
@@ -397,6 +397,16 @@ def _score_now(db: Session, user: User, job: Job) -> Optional[int]:
         return None
 
 
+def duplicate_application(db: Session, user_id: int, job: Job) -> Optional[Application]:
+    """The user's application (any status) for the same role at the same company, from any listing."""
+    from services.apply.matching import posting_key
+
+    key = posting_key(job)
+    apps = (db.query(Application).options(joinedload(Application.job).joinedload(Job.company))
+            .filter(Application.user_id == user_id).all())
+    return next((a for a in apps if a.job is not None and posting_key(a.job) == key), None)
+
+
 def create_application(db: Session, user: User, job: Job, created_by: str = "user",
                        match_score: Optional[int] = None, ai_drafter=None) -> Application:
     if match_score is None:
@@ -474,6 +484,8 @@ def job_payload(job: Optional[Job], ats: Optional[str] = None, full: bool = True
         data.update({
             "job_url": job.job_url,
             "posted_date": job.posted_date.isoformat() if job.posted_date else None,
+            "salary_min": job.salary_min,
+            "salary_max": job.salary_max,
             "ats": ats,
         })
     return data
@@ -577,6 +589,8 @@ def prepare_auto_for_user(db: Session, user: User, ai_drafter=None) -> Dict[str,
         job = db.query(Job).filter(Job.id == item.job_id).first()
         if not job or not job.is_active or is_stale_for_apply(job):
             continue
+        if duplicate_application(db, user.id, job) is not None:
+            continue  # the same role, applied to from another listing
         try:
             app = create_application(db, user, job, created_by="auto", match_score=item.match_score,
                                      ai_drafter=ai_drafter)

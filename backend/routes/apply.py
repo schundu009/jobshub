@@ -233,15 +233,30 @@ def get_queue(limit: int = Query(50, ge=1, le=100), current_user: User = Depends
 
         build_queue_for(db, current_user)
         db.refresh(prefs)
+    from services.apply.matching import applied_posting_keys, posting_key
+
     applied = db.query(Application.job_id).filter(Application.user_id == current_user.id)
-    items = (db.query(ApplyQueueItem)
-             .options(joinedload(ApplyQueueItem.job).joinedload(Job.company))
-             .filter(ApplyQueueItem.user_id == current_user.id, ~ApplyQueueItem.job_id.in_(applied))
-             .order_by(ApplyQueueItem.match_score.desc(), ApplyQueueItem.id.asc())
-             .limit(limit).all())
+    rows = (db.query(ApplyQueueItem)
+            .options(joinedload(ApplyQueueItem.job).joinedload(Job.company))
+            .filter(ApplyQueueItem.user_id == current_user.id, ~ApplyQueueItem.job_id.in_(applied))
+            .order_by(ApplyQueueItem.match_score.desc(), ApplyQueueItem.id.asc())
+            .all())
+    # Strict: one item per role, and none for a role already applied to from another listing.
+    seen = applied_posting_keys(db, current_user.id)
+    items = []
+    for item in rows:
+        if item.job is None:
+            continue
+        key = posting_key(item.job)
+        if key in seen:
+            continue
+        seen.add(key)
+        items.append(item)
+        if len(items) >= limit:
+            break
     return {
         "items": [{"job": svc.job_payload(item.job, item.ats), "match_score": item.match_score,
-                   "reasons": item.reasons or []} for item in items if item.job is not None],
+                   "reasons": item.reasons or []} for item in items],
         "generated_at": prefs.queue_generated_at.isoformat() if prefs.queue_generated_at else None,
     }
 
@@ -279,6 +294,10 @@ def create_application(body: CreateApplication, current_user: User = Depends(get
     job = db.query(Job).filter(Job.id == body.job_id).first()
     if job is None or (job.user_id is not None and job.user_id != current_user.id):
         raise HTTPException(status_code=404, detail="Job not found")
+    dup = svc.duplicate_application(db, current_user.id, job)
+    if dup is not None:
+        return JSONResponse(status_code=409, content={
+            "detail": "You already have an application for this role at this company", "id": dup.id})
     cap = svc.effective_daily_cap(prefs, plan)
     if svc.today_count(db, current_user.id) >= cap:
         return JSONResponse(status_code=429, content={

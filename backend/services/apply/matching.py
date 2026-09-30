@@ -195,6 +195,45 @@ def score_job(job, ctx: MatchContext) -> Optional[Tuple[int, List[str], Optional
     return max(0, min(100, score)), reasons, ref.ats
 
 
+# ----------------------------------------------------------------- duplicates
+
+# "Engineer - Remote", "Engineer | Austin, TX", "Engineer (Hybrid)", "Engineer (New York, NY)"
+_LOC_WORDS = r"remote|hybrid|on-?site|in[- ]office|anywhere|us|usa|united states|multiple locations"
+_TITLE_LOC_TAIL = re.compile(
+    r"\s*(?:[-–—|,:]\s*(?:%s|[^-–—|,:()]+,\s*[a-z]{2}(?![a-z]))(?:\s*[-–—|,/]\s*(?:%s))*"
+    r"|[(\[]\s*(?:%s|[^()\[\]]+,\s*[a-z]{2}(?![a-z]))\s*[)\]])\s*$" % (_LOC_WORDS, _LOC_WORDS, _LOC_WORDS), re.I)
+_TITLE_ABBR = {"sr": "senior", "snr": "senior", "jr": "junior", "mgr": "manager", "eng": "engineer",
+               "engr": "engineer", "dev": "developer", "swe": "software engineer"}
+
+
+def _norm_words(text: str) -> str:
+    words = re.sub(r"[^a-z0-9+#]+", " ", (text or "").lower()).split()
+    return " ".join(_TITLE_ABBR.get(w, w) for w in words)
+
+
+def posting_key(job) -> Tuple[str, str]:
+    """(company, role) that identifies one opening across its city / remote copies."""
+    title = job.title or ""
+    for _ in range(3):  # several stacked tails: "Engineer (Remote) - Austin, TX"
+        stripped = _TITLE_LOC_TAIL.sub("", title).strip()
+        if stripped == title or not stripped:
+            break
+        title = stripped
+    company = getattr(job, "company", None)
+    name = _norm_words(company.name if company is not None and company.name else "")
+    return (name or f"#{getattr(job, 'company_id', None) or job.id}", _norm_words(title))
+
+
+def applied_posting_keys(db: Session, user_id: int) -> Set[Tuple[str, str]]:
+    """Keys of every role the user already has an application for (any status)."""
+    from models import Application, Job
+
+    jobs = (db.query(Job).options(joinedload(Job.company))
+            .join(Application, Application.job_id == Job.id)
+            .filter(Application.user_id == user_id).all())
+    return {posting_key(j) for j in jobs}
+
+
 MAX_LISTED_DAYS = 45  # listed_since older than this is too stale to apply to automatically
 
 
@@ -244,10 +283,16 @@ def build_queue(db: Session, user, prefs, resume_text: str = "") -> int:
 
     ctx = MatchContext(user, prefs, resume_text)
     applied = {row[0] for row in db.query(Application.job_id).filter(Application.user_id == user.id).all()}
+    applied_keys = applied_posting_keys(db, user.id)
     scored = []
+    keys = {}
     for job in candidate_jobs(db, country=user_country(user)):
         if job.id in applied:
             continue
+        key = posting_key(job)
+        if key in applied_keys:
+            continue  # the same role at the same company, already applied to from another listing
+        keys[job.id] = key
         result = score_job(job, ctx)
         if not result:
             continue
@@ -255,7 +300,15 @@ def build_queue(db: Session, user, prefs, resume_text: str = "") -> int:
         if score >= MATCH_MIN_SCORE_TO_STORE:
             scored.append((score, job.id, reasons, ats))
     scored.sort(key=lambda x: (-x[0], -x[1]))
-    top = scored[:QUEUE_SIZE]
+    # One queue item per role: the best-scoring (then newest) of its city / remote copies.
+    seen = set()
+    unique = []
+    for row in scored:
+        if keys[row[1]] in seen:
+            continue
+        seen.add(keys[row[1]])
+        unique.append(row)
+    top = unique[:QUEUE_SIZE]
 
     db.query(ApplyQueueItem).filter(ApplyQueueItem.user_id == user.id).delete(synchronize_session=False)
     now = datetime.utcnow()

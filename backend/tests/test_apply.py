@@ -549,6 +549,37 @@ def test_patch_application_documents(client, db, paid, gh_job):
 
 # =========================================================================== auto mode & queue
 
+def test_posting_key_ignores_location_copies_only():
+    from services.apply.matching import posting_key
+
+    def key(title, company="SpaceX"):
+        return posting_key(Job(id=1, title=title, company=Company(name=company)))
+
+    assert key("Sr. SRE (Starlink)") == key("Senior SRE (Starlink)")
+    assert key("Software Engineer - Remote") == key("Software Engineer | Austin, TX") == key("Software Engineer (New York, NY)")
+    assert key("Software Engineer, Backend, Payments") != key("Software Engineer")
+    assert key("Software Engineer II") != key("Software Engineer")
+    assert key("Software Engineer", "Acme") != key("Software Engineer")
+
+
+def test_queue_and_applications_are_strictly_deduplicated(client, db, paid, monkeypatch):
+    from tasks import apply_tasks
+    monkeypatch.setattr(apply_tasks, "get_db", session_factory(db))
+    h = headers(paid)
+    ny = make_job(db, ASHBY_URL, title="Enterprise Account Executive", company="Anyscale")
+    sf = make_job(db, ASHBY_URL.replace("-", "a", 1), title="Enterprise Account Executive - Remote",
+                  company="Anyscale", location="San Francisco, CA", days_old=2)
+    queue = client.get("/api/apply/queue", headers=h).json()["items"]
+    assert len(queue) == 1 and queue[0]["job"]["id"] in (ny.id, sf.id)  # one item for the role
+    assert "salary_min" in queue[0]["job"]
+    kept = queue[0]["job"]["id"]
+    other = sf.id if kept == ny.id else ny.id
+    assert client.post("/api/apply/applications", json={"job_id": kept}, headers=h).status_code == 201
+    r = client.post("/api/apply/applications", json={"job_id": other}, headers=h)
+    assert r.status_code == 409 and "this role" in r.json()["detail"]
+    assert client.get("/api/apply/queue", headers=h).json()["items"] == []
+
+
 def test_queue_build_and_exclusions(client, db, paid, monkeypatch):
     from tasks import apply_tasks
     monkeypatch.setattr(apply_tasks, "get_db", session_factory(db))
