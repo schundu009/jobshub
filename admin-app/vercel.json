@@ -1,32 +1,54 @@
 {
   "version": 2,
-  "redirects": [
-    {
-      "source": "/:path((?!jobs/admin).*)",
-      "has": [{ "type": "host", "value": "admin.cariara.com" }],
-      "destination": "https://cariara.com/jobs/admin/:path",
-      "permanent": true
-    }
-  ],
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/jobs/admin", "destination": "/index.html" },
-    { "source": "/jobs/admin/", "destination": "/index.html" },
-    { "source": "/jobs/admin/:page([a-z_-]+)", "destination": "/:page.html" },
-    { "source": "/jobs/admin/:path*", "destination": "/:path*" }
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/jobs/admin",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/jobs/admin/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/jobs/admin/:page([a-z_-]+)",
+      "destination": "/:page.html"
+    },
+    {
+      "source": "/jobs/admin/:path*",
+      "destination": "/:path*"
+    }
   ],
   "headers": [
     {
       "source": "/((?!(?:jobs/admin/)?(?:js|css|images)/).*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/(jobs/admin/)?js/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     },
     {
       "source": "/(jobs/admin/)?css/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     }
   ]
 }

@@ -14,7 +14,7 @@ git add -A && git commit -m "Your message" && git push origin main
 
 ### Production URLs
 - **Jobs (customer)**: https://cariara.com/jobs/firm, /jobs/contract, /jobs/firm/auto-apply (copilot repo, `apps/web`)
-- **Admin**: https://cariara.com/jobs/admin (this repo's `admin-app`, proxied by cariara.com; admin.cariara.com redirects there; jobs.cariara.com is retired)
+- **Admin**: https://cariara.com/jobs/admin (this repo's `admin-app`, proxied by cariara.com from the Vercel domain cariara-admin.vercel.app; admin.cariara.com and jobs.cariara.com are retired)
 - **Backend API**: https://cariara-backend.up.railway.app
 
 Railway and Vercel auto-deploy from `main` branch within 1-2 minutes.
@@ -154,7 +154,7 @@ Customer-facing "Auto Apply" (paid plans only): cariara.com/jobs/firm/auto-apply
 ## Common Issues
 
 ### Admin under cariara.com/jobs/admin
-copilot `apps/web/vercel.json` proxies `^/jobs/admin` to `admin.cariara.com/jobs/admin`; `admin-app/vercel.json` rewrites `/jobs/admin/*` to its files and redirects every other admin.cariara.com path to cariara.com/jobs/admin. Keep `cleanUrls`/`trailingSlash` off there, or its redirects send users to the admin host.
+copilot `apps/web/vercel.json` proxies `^/jobs/admin` to `cariara-admin.vercel.app/jobs/admin` (the admin-app project's public Vercel domain; its other *.vercel.app URLs are behind Vercel login); `admin-app/vercel.json` rewrites `/jobs/admin/*` to its files. Keep `cleanUrls`/`trailingSlash` off there, or its redirects send users to the admin host.
 
 ### Railway SSL Errors
 For internal PostgreSQL connections, ensure `sslmode=disable`:
