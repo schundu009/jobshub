@@ -6,6 +6,10 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from database import Base
+# ContractJob.company points at models.Company; importing it here keeps the
+# mapper resolvable in processes that load only the contracts package
+# (maintenance scripts, a worker running only contract tasks).
+import models  # noqa: F401,E402
 
 SOURCE_TYPES = ("staffing", "company_board", "aggregator")
 
