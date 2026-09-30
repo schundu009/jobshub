@@ -270,18 +270,13 @@ def test_scoring_candidates_are_capped_to_most_recent(client, db, monkeypatch):
     assert sorted(j["title"] for j in body["jobs"]) == ["Backend Engineer new", "Backend Engineer newer"]
 
 
-def test_legacy_role_paging_uses_cached_ranking(client, db, monkeypatch):
-    import routes.jobs as jobs_route
+def test_role_without_sort_uses_the_matcher(client, db):
     for i in range(4):
         add_job(db, title=f"Senior Backend Engineer {i}", job_description="python go kubernetes microservices apis")
-    calls = []
-    real = jobs_route.compute_job_relevance
-    monkeypatch.setattr(jobs_route, "compute_job_relevance", lambda *a, **k: calls.append(1) or real(*a, **k))
     first = client.get(f"{BASE}&role=backend&min_score=0&limit=2&offset=0").json()
-    n = len(calls)
     second = client.get(f"{BASE}&role=backend&min_score=0&limit=2&offset=2").json()
-    assert len(calls) == n and first["total"] == second["total"] == 4
-    assert first["relevance_filtering"] is True and "relevance" in first["jobs"][0]
+    assert first["total"] == second["total"] == 4
+    assert first["sort"] == "match" and "match_score" in first["jobs"][0]
     assert first["jobs"][0]["job_description"]  # full rows for the page, not the scoring columns
 
 
