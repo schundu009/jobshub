@@ -28,10 +28,9 @@ def test_revived_scrapers_are_registered(slug, cls):
     assert slug not in ScraperRegistry.get_disabled()
 
 
-def test_ripplematch_stays_disabled():
-    disabled = ScraperRegistry.get_disabled()
+def test_ripplematch_is_removed():
     assert ScraperRegistry.get("ripplematch") is None
-    assert "no open roles" in disabled["ripplematch"]["reason"]
+    assert "ripplematch" not in ScraperRegistry.get_disabled()
 
 
 @pytest.mark.parametrize("slug,fragment", [

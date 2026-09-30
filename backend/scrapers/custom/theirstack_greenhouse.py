@@ -118,11 +118,7 @@ class LushCosmeticsScraper(GreenhouseMixin, HTTPScraper):
 
 # LightspeedScraper — Greenhouse board 404 (moved to Ashby: api.ashbyhq.com/posting-api/job-board/lightspeed)
 
-# board dead as of 2026-09-29; no open roles anywhere: ripplematch.com/careers links to Greenhouse 'ripplematch' (0 jobs), Workable 'ripplematch' has 0, SmartRecruiters 'ripplematch' only a test posting, no Ashby/Lever board
-@ScraperRegistry.register(category="custom")
-class RipplematchScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="ripplematch", company_name="RippleMatch", careers_url="https://ripplematch.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10, enabled=False, disabled_reason="board dead as of 2026-09-29; no open roles anywhere: ripplematch.com/careers links to Greenhouse 'ripplematch' (0 jobs), Workable 'ripplematch' has 0, SmartRecruiters 'ripplematch' only a test posting, no Ashby/Lever board")
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/ripplematch/jobs"
+# RippleMatch: removed 2026-09-29 - no open roles on any board (Greenhouse/Workable/SmartRecruiters/Ashby/Lever)
 
 @ScraperRegistry.register(category="custom")
 class NewRelicScraper(GreenhouseMixin, HTTPScraper):

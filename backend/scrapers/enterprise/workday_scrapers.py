@@ -197,11 +197,7 @@ class PNCWorkdayScraper(WorkdayMixin, HTTPScraper):
     API_URL = "https://pnc.wd5.myworkdayjobs.com/wday/cxs/pnc/external/jobs"
 
 
-# DISABLED: board dead as of 2026-09-29; Discover merged into Capital One (see capitalone scraper)
-@ScraperRegistry.register(category="enterprise")
-class DiscoverWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="discover", company_name="Discover Financial", careers_url="https://discover.wd5.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; Discover merged into Capital One (see capitalone scraper)")
-    API_URL = "https://discover.wd5.myworkdayjobs.com/wday/cxs/discover/external/jobs"
+# Discover Financial: removed 2026-09-29 - merged into Capital One (see capitalone scraper).
 
 
 # Site name fixed (verified 2026-09-29)
