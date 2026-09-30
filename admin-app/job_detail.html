@@ -2,11 +2,11 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
+    <link rel="icon" href="/jobs/admin/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job · Cariara Admin</title>
-    <link rel="stylesheet" href="/css/theme.css?v=202609291817">
-    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/theme.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/admin-layout.css?v=202609291817">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1892,8 +1892,8 @@
         }
     </style>
     <meta name="robots" content="noindex,nofollow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
-    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/admin-cariara.css?v=202609291817">
 </head>
 <body>
     <!-- Sidebar -->
@@ -2125,15 +2125,15 @@
         </div>
     </div>
 
-    <script src="/js/app.js?v=202609291817"></script>
-    <script src="/js/admin-sidebar.js?v=202609291817"></script>
+    <script src="/jobs/admin/js/app.js?v=202609291817"></script>
+    <script src="/jobs/admin/js/admin-sidebar.js?v=202609291817"></script>
     <script>
         // Use API_BASE from app.js (already loaded)
 
         // Theme, logout and session helpers come from app.js; the shared admin shell
         // (sidebar, topbar, theme toggle, sign-out) comes from admin-sidebar.js.
         const adminOk = requireAdmin();
-        if (adminOk) initAdminLayout('jobs', 'Job', '<a href="/jobs.html">Jobs</a>');
+        if (adminOk) initAdminLayout('jobs', 'Job', '<a href="/jobs/admin/jobs.html">Jobs</a>');
 
         function handleLogout() { logout(); }
 
@@ -2180,7 +2180,7 @@
 
         async function loadJobDetail() {
             if (!jobId) {
-                window.location.href = '/jobs.html';
+                window.location.href = '/jobs/admin/jobs.html';
                 return;
             }
             document.getElementById('job-content').innerHTML = `
@@ -2695,7 +2695,7 @@
             if (!confirm('Are you sure you want to delete this job?')) return;
             try {
                 await apiRequest(`/jobs/${jobId}`, 'DELETE');
-                window.location.href = '/jobs.html';
+                window.location.href = '/jobs/admin/jobs.html';
             } catch (error) {
                 showAlert('Failed to delete job: ' + error.message, 'error');
             }

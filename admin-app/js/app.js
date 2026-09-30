@@ -70,7 +70,7 @@ function rememberCurrentPage() {
 function requireAuth() {
     if (!isAuthenticated()) {
         rememberCurrentPage();
-        window.location.replace('/login.html');
+        window.location.replace('/jobs/admin/login.html');
         return false;
     }
     return true;
@@ -85,7 +85,7 @@ function requireAdmin() {
     if (!requireAuth()) return false;
     if (!isAdminUser()) {
         rememberCurrentPage();
-        window.location.replace('/login.html');
+        window.location.replace('/jobs/admin/login.html');
         return false;
     }
     return true;
@@ -93,7 +93,7 @@ function requireAdmin() {
 
 function logout() {
     ['access_token', 'refresh_token', 'token', 'user', 'redirect_after_login'].forEach(k => localStorage.removeItem(k));
-    window.location.href = '/login.html';
+    window.location.href = '/jobs/admin/login.html';
 }
 
 // Single-flight refresh: parallel 401s share one /auth/refresh call, because the

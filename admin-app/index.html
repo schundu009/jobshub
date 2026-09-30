@@ -2,11 +2,11 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
+    <link rel="icon" href="/jobs/admin/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard · Cariara Admin</title>
-    <link rel="stylesheet" href="/css/theme.css?v=202609291817">
-    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/theme.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/admin-layout.css?v=202609291817">
     <style>
         /* Enterprise Dashboard Styles */
         .dashboard-grid {
@@ -286,8 +286,8 @@
         }
     </style>
     <meta name="robots" content="noindex,nofollow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
-    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/admin-cariara.css?v=202609291817">
 </head>
 <body>
     <header>
@@ -446,8 +446,8 @@
         </div>
     </main>
 
-    <script src="/js/app.js?v=202609291817"></script>
-    <script src="/js/admin-sidebar.js?v=202609291817"></script>
+    <script src="/jobs/admin/js/app.js?v=202609291817"></script>
+    <script src="/jobs/admin/js/admin-sidebar.js?v=202609291817"></script>
     <script>
         const DASH_TIMEOUT_MS = 10000;
 
@@ -540,10 +540,10 @@
                 const queues = st.queues || [];
                 const backlog = queues.reduce((n, q) => n + Number(q.messages || 0), 0);
                 if (workers.length === 0) {
-                    setStatus('worker-status', 'No workers', 'bad', '/settings.html#celery');
+                    setStatus('worker-status', 'No workers', 'bad', '/jobs/admin/settings.html#celery');
                 } else {
                     const text = `${workers.length} online` + (backlog ? ` · ${backlog.toLocaleString()} queued` : ' · queues empty');
-                    setStatus('worker-status', text, 'ok', '/settings.html#celery');
+                    setStatus('worker-status', text, 'ok', '/jobs/admin/settings.html#celery');
                 }
 
                 // Queues nobody consumes: tasks sent there will never run.
@@ -565,11 +565,11 @@
                 const data = await apiRequest('/scrapers/status', 'GET', null, { timeout: DASH_TIMEOUT_MS });
                 const h = summarizeScraperHealth(data);
                 if (h.critical) {
-                    setStatus('scraper-status', `${h.critical} critical · ${h.warning} warning`, 'bad', '/settings.html#scrapers');
+                    setStatus('scraper-status', `${h.critical} critical · ${h.warning} warning`, 'bad', '/jobs/admin/settings.html#scrapers');
                 } else if (h.warning) {
-                    setStatus('scraper-status', `${h.warning} warning of ${h.total}`, 'warn', '/settings.html#scrapers');
+                    setStatus('scraper-status', `${h.warning} warning of ${h.total}`, 'warn', '/jobs/admin/settings.html#scrapers');
                 } else {
-                    setStatus('scraper-status', `${h.healthy} healthy`, 'ok', '/settings.html#scrapers');
+                    setStatus('scraper-status', `${h.healthy} healthy`, 'ok', '/jobs/admin/settings.html#scrapers');
                 }
             } catch (e) {
                 setStatus('scraper-status', "Couldn't load", 'bad');

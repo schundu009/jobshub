@@ -7,21 +7,21 @@ const ADMIN_NAV_ITEMS = [
     {
         section: 'Main',
         items: [
-            { id: 'dashboard', label: 'Dashboard', href: '/index.html', icon: 'dashboard' },
-            { id: 'jobs', label: 'Jobs', href: '/jobs.html', icon: 'briefcase' },
-            { id: 'companies', label: 'Companies', href: '/companies.html', icon: 'building' },
+            { id: 'dashboard', label: 'Dashboard', href: '/jobs/admin/index.html', icon: 'dashboard' },
+            { id: 'jobs', label: 'Jobs', href: '/jobs/admin/jobs.html', icon: 'briefcase' },
+            { id: 'companies', label: 'Companies', href: '/jobs/admin/companies.html', icon: 'building' },
         ]
     },
     {
         section: 'Analytics',
         items: [
-            { id: 'analytics', label: 'Analytics', href: '/analytics.html', icon: 'chart' },
+            { id: 'analytics', label: 'Analytics', href: '/jobs/admin/analytics.html', icon: 'chart' },
         ]
     },
     {
         section: 'System',
         items: [
-            { id: 'settings', label: 'Settings', href: '/settings.html', icon: 'settings' },
+            { id: 'settings', label: 'Settings', href: '/jobs/admin/settings.html', icon: 'settings' },
         ]
     }
 ];
@@ -62,7 +62,7 @@ function renderAdminSidebar(activePageId) {
     return `
         <aside class="admin-sidebar" id="admin-sidebar">
             <div class="admin-sidebar-header">
-                <a href="/index.html" class="c-brand admin-logo" aria-label="Cariara Admin home"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="28" height="28"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="22"><span class="c-brand-product">Admin</span></a>
+                <a href="/jobs/admin/index.html" class="c-brand admin-logo" aria-label="Cariara Admin home"><img class="c-brand-mark" src="/jobs/admin/images/cariara-mark.svg" alt="" width="28" height="28"><img class="c-brand-word" src="/jobs/admin/images/cariara-wordmark.svg" alt="Cariara" height="22"><span class="c-brand-product">Admin</span></a>
             </div>
             <nav class="admin-nav">
                 ${navHtml}
@@ -162,7 +162,7 @@ document.addEventListener('click', (e) => {
 function adminLogout() {
     if (typeof logout === 'function') return logout();
     ['access_token', 'refresh_token', 'token', 'user', 'redirect_after_login'].forEach(k => localStorage.removeItem(k));
-    window.location.href = '/login.html';
+    window.location.href = '/jobs/admin/login.html';
 }
 
 // Update user info in sidebar (signout is in topbar)

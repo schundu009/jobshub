@@ -2,10 +2,10 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
+    <link rel="icon" href="/jobs/admin/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign in · Cariara Admin</title>
-    <link rel="stylesheet" href="/css/theme.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/theme.css?v=202609291817">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -100,12 +100,12 @@
         .logo { display: flex; justify-content: center; margin-bottom: 8px; }
     </style>
     <meta name="robots" content="noindex,nofollow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
-    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/jobs/admin/css/admin-cariara.css?v=202609291817">
 </head>
 <body>
     <div class="login-container" id="login-container">
-        <div class="logo"><a href="/login.html" class="c-brand" aria-label="Cariara Admin"><img class="c-brand-mark" src="/images/cariara-mark.svg" alt="" width="32" height="32"><img class="c-brand-word" src="/images/cariara-wordmark.svg" alt="Cariara" height="24"><span class="c-brand-product">Admin</span></a></div>
+        <div class="logo"><a href="/jobs/admin/login.html" class="c-brand" aria-label="Cariara Admin"><img class="c-brand-mark" src="/jobs/admin/images/cariara-mark.svg" alt="" width="32" height="32"><img class="c-brand-word" src="/jobs/admin/images/cariara-wordmark.svg" alt="Cariara" height="24"><span class="c-brand-product">Admin</span></a></div>
         <h1>Sign in to Cariara Admin</h1>
         <p class="subtitle">Administrator accounts only</p>
 
@@ -166,11 +166,11 @@
             ['access_token', 'refresh_token', 'token', 'user'].forEach(k => localStorage.removeItem(k));
         }
 
-        // Only same-origin paths ("/jobs.html?x=1"), never "//host" or "https:".
+        // Only same-origin paths ("/jobs/admin/jobs.html?x=1"), never "//host" or "https:".
         function nextPage() {
             const saved = localStorage.getItem('redirect_after_login') || '';
             localStorage.removeItem('redirect_after_login');
-            return /^\/(?!\/)[\w\-./?=&%#]*$/.test(saved) && !saved.startsWith('/login') ? saved : '/index.html';
+            return /^\/(?!\/)[\w\-./?=&%#]*$/.test(saved) && !/\/login\b/.test(saved) ? saved : '/jobs/admin/index.html';
         }
 
         // Admin pages send non-admins back here; without this check the two
