@@ -29,6 +29,30 @@ def _parse_workday_posted_on(text: str) -> Optional[datetime]:
         return None
 
 
+_WORKDAY_N_LOCATIONS = re.compile(r"^\s*(\d+)\s+locations?\s*$", re.IGNORECASE)
+
+
+def _workday_location(locations_text: str, external_path: str) -> str:
+    """
+    Workday's list API often omits locationsText (Accenture) or gives only
+    "3 Locations". The primary location is still in the job path
+    (/job/Madrid/<slug>_R123 -> "Madrid"), so use it: "Madrid", or
+    "Hyderabad (+2 more)" for multi-location postings.
+    """
+    text = (locations_text or "").strip()
+    many = _WORKDAY_N_LOCATIONS.match(text)
+    if text and not many:
+        return text
+    parts = [p for p in (external_path or "").split("/") if p]
+    primary = parts[1] if len(parts) >= 3 and parts[0] == "job" else ""
+    primary = re.sub(r"[-_]+", " ", primary).strip()
+    if not primary:
+        return text
+    if many and int(many.group(1)) > 1:
+        return f"{primary} (+{int(many.group(1)) - 1} more)"
+    return primary
+
+
 _EMPLOYMENT_WORDS = re.compile(
     r"\b(full[- ]?time|part[- ]?time|contract(or)?|contract[- ]to[- ]hire|temporary|temp|intern(ship)?|freelance|seasonal|fixed[- ]term)\b",
     re.IGNORECASE,
@@ -113,7 +137,7 @@ class WorkdayMixin:
             external_path = raw.get("externalPath", "")
             # bulletFields[0] is the requisition id; fall back to the path's _R123 suffix
             job_id = bullet[0] if bullet else external_path.rsplit("_", 1)[-1]
-            location = raw.get("locationsText", "")
+            location = _workday_location(raw.get("locationsText", ""), external_path)
             posted_date = _parse_workday_posted_on(raw.get("postedOn", ""))
             job_url = f"{self._workday_site_url()}{external_path}"
             emp_raw = raw.get("timeType") or next(

@@ -430,6 +430,60 @@ def sanitize_html(html: str) -> str:
     return html.strip()
 
 
+_WORKDAY_JOB_URL = re.compile(
+    r"^https?://(?P<host>(?P<tenant>[\w-]+)\.wd\d+\.myworkdayjobs\.com)"
+    r"(?:/[a-z]{2}-[A-Z]{2})?/(?P<site>[^/]+)(?P<path>/job/.+?)/?(?:[?#].*)?$"
+)
+
+
+def workday_detail_api_url(job_url: str) -> Optional[str]:
+    """
+    Public Workday job page -> its cxs detail endpoint:
+    https://acme.wd5.myworkdayjobs.com[/en-US]/Site/job/City/Title_R1
+    -> https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Site/job/City/Title_R1
+    """
+    m = _WORKDAY_JOB_URL.match(job_url or "")
+    if not m:
+        return None
+    return f"https://{m['host']}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
+
+
+def fetch_workday_posting_info(job_url: str) -> dict:
+    """
+    jobPostingInfo for a Workday job page URL (description HTML, location,
+    additionalLocations, country, ...), or {} when it isn't a Workday URL or
+    the request fails. Workday pages are rendered client-side, so scraping the
+    page HTML never finds the description; the cxs JSON API has it.
+    """
+    api_url = workday_detail_api_url(job_url)
+    if not api_url:
+        return {}
+    try:
+        request = urllib.request.Request(api_url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+        })
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            return json.loads(response.read().decode('utf-8')).get('jobPostingInfo') or {}
+    except Exception as e:
+        logger.debug(f"Workday detail fetch failed for {job_url}: {e}")
+        return {}
+
+
+def workday_posting_location(info: dict) -> str:
+    """'Madrid; Barcelona, Spain' from jobPostingInfo (all locations + country), or ''."""
+    locations = []
+    for loc in [info.get('location')] + list(info.get('additionalLocations') or []):
+        loc = (loc or '').strip()
+        if loc and loc not in locations:
+            locations.append(loc)
+    if not locations:
+        return ''
+    country = ((info.get('country') or {}).get('descriptor') or '').strip()
+    text = '; '.join(locations)
+    return f"{text}, {country}" if country and country.lower() not in text.lower() else text
+
+
 def fetch_job_description_from_url(job_url: str) -> str:
     """
     Fetch job description from any job URL by analyzing the page content.
@@ -438,6 +492,9 @@ def fetch_job_description_from_url(job_url: str) -> str:
     """
     if not job_url:
         return ''
+
+    if workday_detail_api_url(job_url):
+        return (fetch_workday_posting_info(job_url).get('jobDescription') or '').strip()
 
     try:
         request = urllib.request.Request(

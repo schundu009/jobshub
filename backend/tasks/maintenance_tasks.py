@@ -9,6 +9,7 @@ Tasks:
 """
 
 import logging
+import re
 import time
 from datetime import datetime, timedelta
 from sqlalchemy import or_
@@ -354,6 +355,21 @@ def _send_alert_email(to_email: str, subject: str, body: str):
         logger.error(f"Failed to send alert email: {e}")
 
 
+_VAGUE_LOCATION = re.compile(r"^\s*$|^\s*\d+\s+locations?\s*$|\(\+\d+ more\)", re.IGNORECASE)
+
+
+def _fill_workday_location(job, info: dict) -> None:
+    """Replace a missing / "3 Locations" / "City (+2 more)" location with Workday's full list, and re-tag countries."""
+    if not _VAGUE_LOCATION.search(job.location or ""):
+        return
+    location = ingestion_service.workday_posting_location(info)
+    if not location:
+        return
+    from services.job_location import job_countries, to_country_codes
+    job.location = location[:500]
+    job.country_codes = to_country_codes(job_countries(job.location, job.title))
+
+
 @celery_app.task
 def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5) -> dict:
     """
@@ -389,7 +405,10 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
                 Job.job_description == '',
                 Job.job_description == 'No description available.'
             )
-        ).limit(batch_size).all()
+        # Least recently touched first; failures below bump updated_at, so a job
+        # whose description can't be fetched rotates to the back instead of
+        # taking the same batch slot every run.
+        ).order_by(Job.updated_at.asc()).limit(batch_size).all()
 
         if not jobs_to_update:
             logger.info("No jobs with missing descriptions found")
@@ -411,7 +430,14 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
             try:
                 logger.debug(f"Fetching description for job {job.id}: {job.title} at {job.job_url}")
 
-                description = ingestion_service.fetch_job_description_from_url(job.job_url)
+                if ingestion_service.workday_detail_api_url(job.job_url):
+                    # Workday: one JSON call gives the description and the full
+                    # location list (the list API often has neither).
+                    info = ingestion_service.fetch_workday_posting_info(job.job_url)
+                    description = (info.get('jobDescription') or '').strip()
+                    _fill_workday_location(job, info)
+                else:
+                    description = ingestion_service.fetch_job_description_from_url(job.job_url)
 
                 if description and len(description) > 100:
                     job.job_description = description[:15000]
@@ -420,6 +446,8 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
                     updated_count += 1
                     logger.info(f"Updated description for job {job.id}: {job.title} ({len(description)} chars)")
                 else:
+                    job.updated_at = datetime.utcnow()  # rotate to the back of the queue
+                    db.commit()
                     failed_count += 1
                     failed_jobs.append({
                         "id": job.id,
