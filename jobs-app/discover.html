@@ -3831,6 +3831,10 @@
         // Grid
         // =====================================================================
         const noQuickFilter = () => '';
+        // Role and Description flex to fill the width; Posted, Type and Action are
+        // sized to their content (autoSizeContentColumns). Dragging a column edge
+        // only trades width with its neighbour (colResizeDefault: 'shift').
+        const CONTENT_SIZED_COLUMNS = ['posted_date', 'job_type', 'actions'];
         const columnDefs = [
             {
                 headerCheckboxSelection: true,
@@ -3850,7 +3854,6 @@
                 cellRenderer: roleCellRenderer,
                 flex: 1.35,
                 minWidth: 300,
-                maxWidth: 760,
                 sortable: true,
                 // Search covers title, company, location, department, tech stack
                 // and the plain-text description / AI summary.
@@ -3866,7 +3869,6 @@
                 cellRenderer: descriptionCellRenderer,
                 flex: 1.15,
                 minWidth: 280,
-                maxWidth: 680,
                 sortable: false,
                 getQuickFilterText: noQuickFilter,
                 tooltipValueGetter: (params) => {
@@ -3891,7 +3893,7 @@
             },
             {
                 headerName: 'Action', colId: 'actions', cellRenderer: actionsCellRenderer,
-                width: 272, minWidth: 256, sortable: false, filter: false, suppressSizeToFit: true,
+                width: 272, minWidth: 180, sortable: false, filter: false, suppressSizeToFit: true,
                 getQuickFilterText: noQuickFilter
             },
             // Hidden column so role-filtered results can be sorted by relevance.
@@ -3907,6 +3909,7 @@
                 wrapText: false,
                 autoHeight: false
             },
+            colResizeDefault: 'shift',
             animateRows: true,
             rowHeight: 64,
             headerHeight: 40,
@@ -3937,9 +3940,7 @@
                 gridApi = params.api;
                 gridApi.showLoadingOverlay();
                 loadJobs();
-                setTimeout(() => params.api.sizeColumnsToFit(), 100);
             },
-            onGridSizeChanged: (params) => params.api.sizeColumnsToFit(),
             onRowClicked: (params) => {
                 const target = params.event?.target;
                 const actionEl = target?.closest?.('[data-action]');
@@ -4163,6 +4164,13 @@
                 if (el && lastLoadedAt) el.textContent = formatRelativeTime(lastLoadedAt);
             }, 30000);
         });
+
+        // Fit Posted / Type / Action to their rendered content; Role and
+        // Description (flex) take the remaining width.
+        function autoSizeContentColumns() {
+            if (!gridApi) return;
+            requestAnimationFrame(() => gridApi.autoSizeColumns(CONTENT_SIZED_COLUMNS, false));
+        }
 
         function setViewModeButtons() {
             [['applied-toggle', 'applied'], ['hidden-toggle', 'hidden']].forEach(([id, m]) => {
@@ -4575,6 +4583,7 @@
                     });
                     applyFilters();
                     if (processedJobs.length === 0) gridApi.showNoRowsOverlay();
+                    else autoSizeContentColumns();
                 }
 
                 const badge = document.getElementById('freshness-badge');
