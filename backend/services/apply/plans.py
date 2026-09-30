@@ -4,7 +4,8 @@ Plan gating for Auto Apply.
 Paid status comes from capra-backend (services.subscription_service, the same
 source as GET /api/auth/subscription-status). ApplyPreference.plan_override
 ("pro"/"paid" or "free") takes precedence; it is ops-set only, for comp
-accounts and local development.
+accounts and local development. Admins (middleware.auth.ADMIN_ROLES) count
+as paid.
 """
 import asyncio
 from dataclasses import dataclass
@@ -41,6 +42,12 @@ def resolve_plan(user, override: Optional[str] = None) -> PlanInfo:
         return PlanInfo(True, value, PAID_DAILY_CAP_MAX)
     if value in FREE_OVERRIDES:
         return PlanInfo(False, "free", 0)
+
+    # Admins run the product; they aren't customers. (A "free" override above
+    # still wins, so the free experience can be tested from an admin account.)
+    from middleware.auth import is_admin
+    if is_admin(user):
+        return PlanInfo(True, "admin", PAID_DAILY_CAP_MAX)
 
     result = verify_subscription_sync(user.id) or {}
     if result.get("hasAccess"):
