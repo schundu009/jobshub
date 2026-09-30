@@ -10,30 +10,12 @@ from sqlalchemy import create_engine, text
 import main
 from migrations.document_ownership import migrate_document_ownership
 from models import Document, Job
-from routes import documents
 from utils.security import as_utc, create_access_token
 
 
 def headers(user):
     token, _ = create_access_token(user.id, user.email)
     return {"Authorization": f"Bearer {token}"}
-
-
-def test_standalone_document_is_private(client, users, db, tmp_path, monkeypatch):
-    monkeypatch.setattr(documents, "UPLOAD_DIR", str(tmp_path))
-    owner, stranger = users
-    response = client.post('/api/documents', headers=headers(owner),
-                           data={"name": "Resume", "doc_type": "resume"},
-                           files={"file": ("resume.txt", b"Private resume", "text/plain")})
-    assert response.status_code == 200
-    document_id = response.json()['id']
-    assert db.get(Document, document_id).user_id == owner.id
-    assert [d['id'] for d in client.get('/api/documents', headers=headers(owner)).json()] == [document_id]
-    assert client.get('/api/documents', headers=headers(stranger)).json() == []
-    assert client.delete(f'/api/documents/{document_id}', headers=headers(stranger)).status_code == 404
-    assert list(tmp_path.iterdir())
-    assert client.delete(f'/api/documents/{document_id}', headers=headers(owner)).status_code == 200
-    assert not list(tmp_path.iterdir())
 
 
 def test_job_documents_require_document_owner(client, users, db):
@@ -44,11 +26,8 @@ def test_job_documents_require_document_owner(client, users, db):
     db.add_all([Document(name="Owned", job_id=job.id, user_id=owner.id),
                 Document(name="Unowned", job_id=job.id)])
     db.commit()
-    response = client.get(f'/api/documents/job/{job.id}', headers=headers(owner))
-    assert [doc['name'] for doc in response.json()] == ['Owned']
     detail = client.get(f'/api/jobs/{job.id}', headers=headers(owner))
     assert [doc['name'] for doc in detail.json()['documents']] == ['Owned']
-    assert client.get(f'/api/documents/job/{job.id}', headers=headers(stranger)).status_code == 404
 
 
 def test_ownership_migration_preserves_existing_and_quarantines_unknown():
@@ -120,7 +99,7 @@ def test_lockout_after_database_roundtrip(client, users, db, expired):
     db.expire_all()
     assert user.locked_until.tzinfo is None
     auth_headers = headers(user)
-    response = client.get('/api/documents', headers=auth_headers)
+    response = client.get('/api/users/documents', headers=auth_headers)
     assert response.status_code == (200 if expired else 401)
     response = client.post('/auth/login', json={'email': user.email, 'password': 'Test-password-123'})
     assert response.status_code == (200 if expired else 401)

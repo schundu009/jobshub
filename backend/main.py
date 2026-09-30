@@ -30,7 +30,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from database import create_tables, get_db
-from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
+from routes import jobs, companies, interviews, notes, ai, analytics, ingest, settings, users, scrapers, auth, oauth, celery_management, apify, auto_heal
 # Legacy server-side auto_apply router removed; Cariara Auto Apply lives in routes/apply.py
 from routes import apply as apply_routes
 from routes import cariara_auth as cariara_auth_routes
@@ -960,17 +960,14 @@ app.include_router(auth.router)
 app.include_router(oauth.router)
 app.include_router(jobs.router)
 app.include_router(companies.router)
-app.include_router(contacts.router)
 app.include_router(interviews.router)
 app.include_router(notes.router)
-app.include_router(documents.router)
 app.include_router(ai.router)
 app.include_router(analytics.router)
 app.include_router(ingest.router)
 app.include_router(settings.router)
 app.include_router(users.router)
 app.include_router(scrapers.router)
-app.include_router(internal_auth.router)
 app.include_router(apply_routes.router)
 app.include_router(cariara_auth_routes.router)
 app.include_router(celery_management.router)
