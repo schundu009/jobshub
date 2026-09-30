@@ -616,6 +616,7 @@ def test_extension_finds_the_application_for_the_page(client, db, paid):
     from routes.apply import _posting_key
     assert _posting_key("https://job-boards.greenhouse.io/anthropic/jobs/4461450008?gh_src=x") == \
         _posting_key("https://boards.greenhouse.io/embed/job_app?for=anthropic&token=1&gh_jid=4461450008") == \
+        _posting_key("https://job-boards.greenhouse.io/embed/job_app?for=anthropic&token=4461450008") == \
         ("greenhouse", "4461450008")
     assert _posting_key("https://jobs.lever.co/acme/abc-123/apply") == _posting_key("https://jobs.lever.co/acme/abc-123")
 

@@ -536,7 +536,8 @@ def extension_next(current_user: User = Depends(get_current_user), db: Session =
     return {"application": detail}
 
 
-_GH_JOB_ID = re.compile(r"(?:[?&]gh_jid=|/jobs/)(\d{4,})")
+# /jobs/<id>, ?gh_jid=<id>, and the embed iframe's ?token=<id>
+_GH_JOB_ID = re.compile(r"(?:[?&](?:gh_jid|token)=|/jobs/)(\d{4,})")
 
 
 def _posting_key(url: Optional[str]) -> Optional[tuple]:
