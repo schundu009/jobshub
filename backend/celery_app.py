@@ -72,6 +72,12 @@ BEAT_SCHEDULE = {
         "schedule": crontab(minute="*/30"),
         "options": {"queue": "maintenance"},
     },
+    # IT/tech jobs only: retire non-IT rows (new ones are already skipped on save)
+    "deactivate-non-it-jobs": {
+        "task": "tasks.maintenance_tasks.deactivate_non_it_jobs",
+        "schedule": crontab(minute=15, hour=4),
+        "options": {"queue": "maintenance"},
+    },
     # Auto-heal broken ATS scrapers daily after health check runs
     "auto-heal-scrapers": {
         "task": "tasks.maintenance_tasks.auto_heal_scrapers",

@@ -59,8 +59,8 @@ def test_backfill_fills_workday_description_location_and_country(db, monkeypatch
 
 
 def test_backfill_rotates_jobs_it_cannot_fetch(db, monkeypatch):
-    a = Job(title="A", job_url="https://example.com/a", source="x", is_active=True)
-    b = Job(title="B", job_url="https://example.com/b", source="x", is_active=True)
+    a = Job(title="Data Engineer A", job_url="https://example.com/a", source="x", is_active=True)
+    b = Job(title="Data Engineer B", job_url="https://example.com/b", source="x", is_active=True)
     db.add_all([a, b])
     db.commit()
     monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)

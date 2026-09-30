@@ -82,7 +82,7 @@ def _save_summary(stats: dict) -> str:
     if stats.get("exception"):
         return f"save raised {stats['exception']}"
     parts = [f"{stats.get('new', 0)} new", f"{stats.get('updated', 0)} updated"]
-    for key in ("skipped_old", "skipped_invalid", "duplicates", "contracts", "errors"):
+    for key in ("skipped_old", "skipped_invalid", "skipped_non_it", "duplicates", "contracts", "errors"):
         if stats.get(key):
             parts.append(f"{stats[key]} {key}")
     if stats.get("first_error"):
@@ -136,7 +136,7 @@ def record_scraper_run(
     error_message = result.error_message
     if result.success and result.save_stats and not error_message:
         stats = result.save_stats
-        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "duplicates", "contracts", "errors")):
+        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "skipped_non_it", "duplicates", "contracts", "errors")):
             error_message = f"saved: {_save_summary(stats)}"[:1000]
 
     run = ScraperRun(

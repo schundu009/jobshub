@@ -20,6 +20,7 @@ from sqlalchemy.exc import DBAPIError, IntegrityError, OperationalError, Pending
 
 from models import Company, Job
 from scrapers.base import ScrapedJob
+from services.it_roles import is_it_role
 from services.job_location import job_countries, to_country_codes
 from services.job_freshness import (
     REPOST_WINDOW_DAYS, apply_freshness, effective_posted_at, evergreen_status, listed_days, normalize_title,
@@ -110,6 +111,7 @@ class SaveResult:
     updated: int = 0
     skipped_old: int = 0       # aggregator feeds only: posted_date older than the age cutoff
     skipped_invalid: int = 0   # no title
+    skipped_non_it: int = 0    # confidently not an IT/tech role (services.it_roles)
     duplicates: int = 0        # same id twice in one batch, or unique-index clash
     errors: int = 0            # rows the database rejected
     contracts: int = 0         # contract postings routed to contract_jobs (contracts package)
@@ -129,6 +131,7 @@ class SaveResult:
         return {
             "new": self.new, "updated": self.updated,
             "skipped_old": self.skipped_old, "skipped_invalid": self.skipped_invalid,
+            "skipped_non_it": self.skipped_non_it,
             "duplicates": self.duplicates, "errors": self.errors, "contracts": self.contracts,
             "first_error": self.first_error, "commit_error": self.commit_error,
         }
@@ -139,6 +142,8 @@ class SaveResult:
             parts.append(f"{self.skipped_old} skipped_old (posted > {self.max_age_days}d ago)")
         if self.skipped_invalid:
             parts.append(f"{self.skipped_invalid} skipped_invalid")
+        if self.skipped_non_it:
+            parts.append(f"{self.skipped_non_it} skipped_non_it")
         if self.duplicates:
             parts.append(f"{self.duplicates} duplicates")
         if self.contracts:
@@ -436,6 +441,7 @@ def save_scraped_jobs(
     contract_ids: list[str] = []
     detected: dict = {}
     contract_type_by_ext: dict[str, str] = {}
+    non_it_ids: list[str] = []
     seen: set[str] = set()
     for scraped_job in jobs:
         try:
@@ -455,6 +461,13 @@ def save_scraped_jobs(
                 contract_type_by_ext[external_id] = employment_type
                 contract_jobs.append(scraped_job)
                 contract_ids.append(external_id)
+                continue
+            # IT/tech roles only. A generic title ("Consultant", "Shift Lead")
+            # stays only when its department is tech; on 609 labelled titles
+            # this keeps recall at 1.0 and precision 0.99 (vs 0.93 keeping them).
+            if not is_it_role(title, department=scraped_job.department):
+                stats.skipped_non_it += 1
+                non_it_ids.append(external_id)
                 continue
             if aggregator and posted is not None and posted < cutoff_date:
                 stats.skipped_old += 1
@@ -478,7 +491,7 @@ def save_scraped_jobs(
 
     # 2. Existing rows in a few IN queries instead of one query per job.
     existing_by_id: dict[str, Job] = {}
-    ids = [ext for _, ext, _ in prepared] + contract_ids
+    ids = [ext for _, ext, _ in prepared] + contract_ids + non_it_ids
     for i in range(0, len(ids), 500):
         q = db.query(Job).filter(Job.external_job_id.in_(ids[i:i + 500]))
         q = q.filter(Job.source == company_slug) if aggregator else q.filter(Job.company_id == company_id)
@@ -491,6 +504,12 @@ def save_scraped_jobs(
         if row is not None and row.is_active:
             row.is_active = False
             row.employment_type = contract_type_by_ext.get(ext, "contract")
+
+    # Non-IT postings saved before the IT-only policy stop showing.
+    for ext in non_it_ids:
+        row = existing_by_id.get(ext)
+        if row is not None and row.is_active and row.user_id is None:
+            row.is_active = False
 
     # 3. Update existing rows, collect new ones.
     employer_cache: dict = {}

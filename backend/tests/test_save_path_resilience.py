@@ -108,7 +108,7 @@ def test_contract_postings_go_to_contract_jobs(db):
     result = save_scraped_jobs(db, "bigco", [
         job(1),
         job(2, title="Java Developer (Contract)", job_description="6 month contract, W2 only, $70/hr"),
-        job(3, title="Contract Manager", job_description="Manage vendor contracts."),  # a role, not terms
+        job(3, title="Contracts Systems Analyst", job_description="Manage vendor contracts."),  # a role, not terms
         job(4, title="Data Engineer", employment_type_raw="Contract to Hire"),
     ])
     assert (result.new, result.contracts) == (2, 2)
@@ -172,7 +172,7 @@ def test_reposted_under_new_id_becomes_evergreen(db):
 
 
 def test_talent_pool_posting_is_evergreen(db):
-    save_scraped_jobs(db, "bigco", [job(1, title="Join our Talent Community")])
+    save_scraped_jobs(db, "bigco", [job(1, title="Software Engineer - Talent Community")])
     row = db.query(Job).one()
     assert row.is_evergreen and row.evergreen_reason == "talent_pool"
 
@@ -191,10 +191,10 @@ def test_stale_task_uses_last_seen(db, monkeypatch):
     assert active == {"1": True, "2": False}
 
 
-def test_seasonal_retail_stays_in_jobs_but_staffing_temp_moves(db):
+def test_seasonal_direct_hire_stays_in_jobs_but_staffing_temp_moves(db):
     result = save_scraped_jobs(db, "bigco", [
-        job(1, title="Seasonal Stock & Fulfillment", job_description="Holiday season. $15.50/hr"),
-        job(2, title="Guest Services Representative (Seasonal - Fixed Term)", employment_type_raw="Seasonal - Fixed Term"),
+        job(1, title="Seasonal IT Support Technician", job_description="Holiday season. $25/hr"),
+        job(2, title="IT Help Desk Technician (Seasonal - Fixed Term)", employment_type_raw="Seasonal - Fixed Term"),
         job(3, title="Temporary Software Engineer", job_description="Temp via TEKsystems, W2 $70/hr"),
     ])
     assert (result.new, result.contracts) == (2, 1)
@@ -204,6 +204,6 @@ def test_seasonal_retail_stays_in_jobs_but_staffing_temp_moves(db):
 
 
 def test_temporary_jobs_are_listed_in_api(client, db):
-    save_scraped_jobs(db, "bigco", [job(1, title="Seasonal Sales Support")])
+    save_scraped_jobs(db, "bigco", [job(1, title="Seasonal IT Support Technician")])
     body = client.get("/api/jobs?all=true").json()
-    assert [(j["title"], j["employment_type"]) for j in body["jobs"]] == [("Seasonal Sales Support", "temporary")]
+    assert [(j["title"], j["employment_type"]) for j in body["jobs"]] == [("Seasonal IT Support Technician", "temporary")]

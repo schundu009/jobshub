@@ -1100,6 +1100,7 @@
         ];
         // Boards whose runs work but that have nothing active - not failures.
         const NO_JOBS_GROUPS = [
+            { key: 'non_it', label: 'No IT/tech roles on this board' },
             { key: 'all_old', label: 'Every posting is older than the age limit' },
             { key: 'empty', label: 'Last run found 0 jobs' },
             { key: 'no_jobs', label: 'Jobs found, none active' },
@@ -1107,13 +1108,14 @@
         const QUOTA_RE = /hard limit|usage limit|quota|limit exceeded|payment required|\b402\b/i;
 
         // "N jobs found, 0 saved: 0 new, 0 updated, 21 skipped_old" or the run note
-        // "saved: 0 new, 0 updated, 21 skipped_old": nothing saved only because
-        // every job was filtered out - no errors, nothing crashed.
-        function filteredOutCount(text) {
+        // "saved: 0 new, 0 updated, 40 skipped_non_it": nothing saved only because
+        // every job was filtered out (too old / not an IT role) - no errors.
+        function filteredOutCounts(text) {
             const t = String(text || '');
-            if (!/0 new, 0 updated/.test(t) || /error|failed|raised/i.test(t)) return 0;
-            const m = t.match(/(\d+) skipped_old/);
-            return m ? Number(m[1]) : 0;
+            if (!/0 new, 0 updated/.test(t) || /error|failed|raised/i.test(t)) return { old: 0, nonIt: 0, total: 0 };
+            const n = re => Number((t.match(re) || [])[1] || 0);
+            const old = n(/(\d+) skipped_old/), nonIt = n(/(\d+) skipped_non_it/);
+            return { old, nonIt, total: old + nonIt };
         }
 
         // {group, level, reasons} - group is an ATTENTION_GROUPS / NO_JOBS_GROUPS
@@ -1125,8 +1127,8 @@
             const lastRunFailed = !isNaN(lastFail) && (isNaN(lastOk) || lastFail > lastOk);
             const active = Number(s.active_jobs) || 0;
             // Older runs recorded "all jobs too old" as a save failure; it isn't one.
-            const oldOnly = filteredOutCount(lastRunFailed ? s.last_error : s.last_run_note);
-            const failing = lastRunFailed && !(s.last_error_type === 'save_failed' && oldOnly);
+            const filtered = filteredOutCounts(lastRunFailed ? s.last_error : s.last_run_note);
+            const failing = lastRunFailed && !(s.last_error_type === 'save_failed' && filtered.total);
             const reasons = [];
             const at = (group, level) => ({ group, level, reasons, lastRunFailed: failing });
 
@@ -1153,8 +1155,12 @@
                 return at('stale', 'warn');
             }
             if (!active) {
-                if (oldOnly) {
-                    reasons.push(`All ${oldOnly.toLocaleString()} jobs found are older than the age limit`);
+                if (filtered.nonIt && filtered.nonIt >= filtered.old) {
+                    reasons.push(`All ${filtered.total.toLocaleString()} jobs found are outside IT/tech`);
+                    return at('non_it', 'warn');
+                }
+                if (filtered.total) {
+                    reasons.push(`All ${filtered.total.toLocaleString()} jobs found are older than the age limit`);
                     return at('all_old', 'warn');
                 }
                 if (s.last_run_success && Number(s.last_run_jobs_found) === 0) {

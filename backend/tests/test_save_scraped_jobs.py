@@ -52,7 +52,7 @@ def test_skip_reasons_are_counted(db):
     ]
     result = save_scraped_jobs(db, "themuse", jobs)
     assert result.as_dict() == {
-        "new": 4, "updated": 0, "skipped_old": 1, "skipped_invalid": 1,
+        "new": 4, "updated": 0, "skipped_old": 1, "skipped_invalid": 1, "skipped_non_it": 0,
         "duplicates": 1, "errors": 0, "contracts": 0, "first_error": None, "commit_error": None,
     }
     saved = {j.external_job_id: j for j in db.query(Job).all()}

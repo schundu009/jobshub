@@ -18,6 +18,7 @@ from celery_app import celery_app
 from database import SessionLocal
 from models import ScraperRun, Job, ScraperConfigDB
 from services import ingestion_service
+from services.it_roles import is_it_role
 
 logger = logging.getLogger(__name__)
 
@@ -355,6 +356,56 @@ def _send_alert_email(to_email: str, subject: str, body: str):
         logger.error(f"Failed to send alert email: {e}")
 
 
+def deactivate_non_it_rows(db, apply: bool = False, batch: int = 2000) -> dict:
+    """
+    Mark active scraped jobs whose title is confidently not an IT/tech role
+    inactive. Jobs users added (user_id set, or source 'manual') are left alone;
+    ambiguous titles are kept. Returns counts and the most common dropped titles.
+    Commits per batch when apply=True. Idempotent.
+    """
+    from collections import Counter
+
+    checked = dropped = 0
+    titles: Counter = Counter()
+    last_id = 0
+    while True:
+        rows = db.query(Job.id, Job.title, Job.department).filter(
+            Job.is_active == True,  # noqa: E712
+            Job.user_id.is_(None),
+            Job.source != 'manual',
+            Job.id > last_id,
+        ).order_by(Job.id).limit(batch).all()
+        if not rows:
+            break
+        last_id = rows[-1].id
+        checked += len(rows)
+        ids = [r.id for r in rows if not is_it_role(r.title, department=r.department)]
+        for r in rows:
+            if r.id in ids:
+                titles[r.title] += 1
+        dropped += len(ids)
+        if apply and ids:
+            db.query(Job).filter(Job.id.in_(ids)).update({"is_active": False}, synchronize_session=False)
+            db.commit()
+    return {"checked": checked, "non_it": dropped, "applied": apply, "top_titles": titles.most_common(25)}
+
+
+@celery_app.task
+def deactivate_non_it_jobs() -> dict:
+    """Daily sweep: keep the job list IT/tech-only (see deactivate_non_it_rows)."""
+    db = get_db()
+    try:
+        result = deactivate_non_it_rows(db, apply=True)
+        logger.info(f"deactivate_non_it_jobs: {result['non_it']} of {result['checked']} active jobs deactivated")
+        return {k: v for k, v in result.items() if k != "top_titles"}
+    except Exception:
+        logger.exception("deactivate_non_it_jobs failed")
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 _VAGUE_LOCATION = re.compile(r"^\s*$|^\s*\d+\s+locations?\s*$|\(\+\d+ more\)", re.IGNORECASE)
 
 
@@ -429,6 +480,13 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
         for job in jobs_to_update:
             try:
                 logger.debug(f"Fetching description for job {job.id}: {job.title} at {job.job_url}")
+
+                if not is_it_role(job.title, department=job.department):
+                    # Non-IT jobs are being retired (deactivate_non_it_jobs); don't
+                    # spend a request on them. Bump updated_at so they rotate out.
+                    job.updated_at = datetime.utcnow()
+                    db.commit()
+                    continue
 
                 if ingestion_service.workday_detail_api_url(job.job_url):
                     # Workday: one JSON call gives the description and the full
