@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-grid.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/styles/ag-theme-alpine.css">
     <!-- Theme Toggle Support -->
-    <link rel="stylesheet" href="/css/theme.css?v=202609291457">
+    <link rel="stylesheet" href="/css/theme.css?v=202609291817">
     <!-- Shared Sidebar Styles -->
-    <link rel="stylesheet" href="/css/sidebar.css?v=202609291457">
+    <link rel="stylesheet" href="/css/sidebar.css?v=202609291817">
     <style>
         :root, [data-theme="light"] {
             /* Google-color theme - light */
@@ -2662,7 +2662,7 @@
     </style>
         <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291457">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
 </head>
 <body>
     <!-- Mobile Menu Button -->
@@ -2682,6 +2682,7 @@
         <div class="sidebar-nav">
             <div class="nav-section-title">Apply</div>
             <a href="discover.html" class="nav-link active" data-icon="search">Jobs</a>
+            <a href="autoapply.html" class="nav-link" data-icon="zap">Auto Apply</a>
 
             <div class="nav-section-title">You</div>
             <a href="documents.html" class="nav-link" data-icon="document">Resumes</a>
@@ -2974,6 +2975,7 @@
                     </div>
                     <div class="detail-actions">
                         <a class="btn btn-secondary" id="detail-view-btn" href="#" target="_blank" rel="noopener noreferrer">View posting</a>
+                        <button class="btn btn-secondary" id="detail-autoapply-btn" type="button" style="display:none">Auto apply</button>
                         <button class="btn btn-primary" id="detail-apply-btn">Smart Apply</button>
                     </div>
                 </div>
@@ -2986,11 +2988,12 @@
 
     <!-- AG Grid JS -->
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.0/dist/ag-grid-community.min.js"></script>
-    <script src="/js/app.js?v=202609291457"></script>
-    <script src="/js/skills.js?v=202609291457"></script>
+    <script src="/js/app.js?v=202609291817"></script>
+    <script src="/js/autoapply-entry.js?v=202609291817"></script>
+    <script src="/js/skills.js?v=202609291817"></script>
     <!-- Premium Icon Library -->
-    <script src="/js/icons.js?v=202609291457"></script>
-    <script src="/js/subscription-gate.js?v=202609291457"></script>
+    <script src="/js/icons.js?v=202609291817"></script>
+    <script src="/js/subscription-gate.js?v=202609291817"></script>
 
     <script>
         // Filter-section icons. Nav, theme, logout and mobile-menu icons are
@@ -3788,8 +3791,27 @@
             const apply = url
                 ? `<a class="btn btn-primary" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" data-action="apply" data-id="${id}" title="Open the application and mark it as applied">Apply</a>`
                 : `<button type="button" class="btn btn-primary" data-action="mark-applied" data-id="${id}">Mark applied</button>`;
+            const autoApply = (window.CariaraAutoApply && CariaraAutoApply.isSupported(job))
+                ? `<button type="button" class="row-icon-btn" data-action="autoapply" data-id="${id}" title="Prepare application with Auto Apply" aria-label="Prepare application with Auto Apply"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></svg></button>`
+                : '';
             const hide = `<button type="button" class="row-icon-btn" data-action="hide" data-id="${id}" title="Hide this job" aria-label="Hide this job"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>`;
-            return `<div class="row-actions">${view}${apply}${hide}</div>`;
+            return `<div class="row-actions">${view}${apply}${autoApply}${hide}</div>`;
+        }
+
+        // Auto Apply: create (or reopen) an application, then review it on autoapply.html.
+        async function startAutoApply(jobId, btn) {
+            if (!window.CariaraAutoApply) return;
+            const label = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = 'Preparing…'; }
+            showPageMessage('Preparing your application…', { type: 'success', timeout: 8000 });
+            await CariaraAutoApply.prepareAndOpen(jobId, (err) => {
+                if (btn) { btn.disabled = false; btn.textContent = label; }
+                if (err.upgrade) {
+                    showPageMessage(err.message, { type: 'error', actionLabel: 'See plans', onAction: () => window.open(CariaraAutoApply.PRICING_URL, '_blank', 'noopener') });
+                } else {
+                    showPageMessage(err.message, { type: 'error' });
+                }
+            });
         }
 
         function handleRowAction(action, jobId) {
@@ -3800,6 +3822,7 @@
                     setTimeout(() => setJobMark(jobId, 'applied', true), 250);
                     break;
                 case 'mark-applied': setJobMark(jobId, 'applied', true); break;
+                case 'autoapply': startAutoApply(jobId); break;
                 case 'unapply': setJobMark(jobId, 'applied', false); break;
                 case 'hide': setJobMark(jobId, 'hidden', true); break;
                 case 'unhide': setJobMark(jobId, 'hidden', false); break;
@@ -3870,7 +3893,7 @@
             },
             {
                 headerName: 'Action', colId: 'actions', cellRenderer: actionsCellRenderer,
-                width: 236, minWidth: 220, sortable: false, filter: false, suppressSizeToFit: true,
+                width: 272, minWidth: 256, sortable: false, filter: false, suppressSizeToFit: true,
                 getQuickFilterText: noQuickFilter
             },
             // Hidden column so role-filtered results can be sorted by relevance.
@@ -4728,6 +4751,17 @@
                 viewBtn.removeAttribute('href');
                 viewBtn.style.display = 'none';
             }
+            const autoBtn = document.getElementById('detail-autoapply-btn');
+            if (window.CariaraAutoApply && CariaraAutoApply.isSupported(job)) {
+                autoBtn.style.display = '';
+                autoBtn.disabled = false;
+                autoBtn.textContent = 'Auto apply';
+                autoBtn.title = 'Cariara prepares this application for you to review';
+                autoBtn.onclick = () => startAutoApply(job.id, autoBtn);
+            } else {
+                autoBtn.style.display = 'none';
+                autoBtn.onclick = null;
+            }
             document.getElementById('detail-apply-btn').onclick = () => {
                 window.location.href = `job_detail.html?id=${encodeURIComponent(job.id)}`;
             };
@@ -4796,6 +4830,6 @@
     </script>
 
     <!-- Shared Sidebar JavaScript -->
-    <script src="/js/sidebar.js?v=202609291457"></script>
+    <script src="/js/sidebar.js?v=202609291817"></script>
 </body>
 </html>

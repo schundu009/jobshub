@@ -31,18 +31,10 @@ class WorkdayApplicant(BaseApplicant):
     # Common Workday selectors
     SELECTORS = {
         # Login/Sign In
+        # Detection only: used to stop when an account is required.
         "sign_in_link": "[data-automation-id='signInLink'], a[href*='login'], button:has-text('Sign In')",
         "create_account_link": "[data-automation-id='createAccountLink'], a:has-text('Create Account')",
         "email_input": "[data-automation-id='email'], input[type='email'], #input-4",
-        "password_input": "[data-automation-id='password'], input[type='password'], #input-5",
-        "sign_in_button": "[data-automation-id='signInSubmitButton'], button[type='submit']:has-text('Sign In')",
-
-        # Create Account
-        "create_email": "[data-automation-id='createAccountEmail'], input[name='email']",
-        "create_password": "[data-automation-id='createAccountPassword'], input[name='password']",
-        "verify_password": "[data-automation-id='verifyPassword'], input[name='verifyPassword']",
-        "create_account_button": "[data-automation-id='createAccountSubmitButton'], button:has-text('Create Account')",
-        "agree_checkbox": "[data-automation-id='agreementCheckbox'], input[type='checkbox']",
 
         # Apply button
         "apply_button": "[data-automation-id='applyButton'], button:has-text('Apply'), a:has-text('Apply')",
@@ -108,10 +100,8 @@ class WorkdayApplicant(BaseApplicant):
         "error_message": "[data-automation-id='errorMessage'], .error-message, .validation-error",
     }
 
-    def __init__(self, browser_pool, workday_email: Optional[str] = None, workday_password: Optional[str] = None):
+    def __init__(self, browser_pool):
         super().__init__(browser_pool)
-        self.workday_email = workday_email
-        self.workday_password = workday_password
 
     async def submit_application(
         self,
@@ -147,20 +137,18 @@ class WorkdayApplicant(BaseApplicant):
 
             await asyncio.sleep(2)
 
-            # Handle login/create account if needed
+            # Cariara never signs in to or creates candidate accounts on
+            # employer sites. If Workday asks for an account, stop here and let
+            # the candidate apply manually.
             if await self._is_login_required(page):
-                login_success = await self._handle_authentication(page, profile)
-                if not login_success:
-                    screenshot_path = await self._take_screenshot(page, job_id, "login_failed")
-                    return ApplyResult(
-                        success=False,
-                        job_id=job_id,
-                        user_id=user_id,
-                        ats_type="workday",
-                        application_url=application_url,
-                        error_message="Failed to authenticate with Workday",
-                        screenshot_path=screenshot_path,
-                    )
+                return ApplyResult(
+                    success=False,
+                    job_id=job_id,
+                    user_id=user_id,
+                    ats_type="workday",
+                    application_url=application_url,
+                    error_message="Workday requires a candidate account; apply manually",
+                )
 
             # Fill application form (multi-step)
             form_success = await self._fill_application_form(page, profile, resume_path, cover_letter_text)
@@ -281,165 +269,6 @@ class WorkdayApplicant(BaseApplicant):
             return False
         except:
             return False
-
-    async def _handle_authentication(self, page: Page, profile: ApplicantProfile) -> bool:
-        """Handle Workday login or account creation."""
-        try:
-            # Use stored credentials or profile email
-            email = self.workday_email or profile.email
-            password = self.workday_password
-
-            # Check if we need to sign in or create account
-            sign_in_visible = False
-            create_account_visible = False
-
-            try:
-                sign_in_visible = await page.locator(self.SELECTORS["sign_in_link"]).is_visible(timeout=2000)
-            except:
-                pass
-
-            try:
-                create_account_visible = await page.locator(self.SELECTORS["create_account_link"]).is_visible(timeout=2000)
-            except:
-                pass
-
-            if sign_in_visible and password:
-                # Try to sign in with existing account
-                logger.info("Attempting to sign in to Workday")
-                return await self._sign_in(page, email, password)
-            elif create_account_visible:
-                # Create new account
-                logger.info("Creating new Workday account")
-                return await self._create_account(page, email, password or self._generate_temp_password())
-            else:
-                # Maybe already on application form or email-only sign in
-                email_input = page.locator(self.SELECTORS["email_input"]).first
-                if await email_input.is_visible(timeout=2000):
-                    await email_input.fill(email)
-
-                    # Look for continue/next button
-                    continue_btn = page.locator("button:has-text('Continue'), button:has-text('Next')").first
-                    if await continue_btn.is_visible(timeout=2000):
-                        await continue_btn.click()
-                        await asyncio.sleep(2)
-
-                        # Check if password is required
-                        password_input = page.locator(self.SELECTORS["password_input"]).first
-                        if await password_input.is_visible(timeout=2000) and password:
-                            await password_input.fill(password)
-                            await page.locator(self.SELECTORS["sign_in_button"]).click()
-                            await asyncio.sleep(2)
-
-                    return True
-
-            return False
-
-        except Exception as e:
-            logger.error(f"Authentication error: {e}")
-            return False
-
-    async def _sign_in(self, page: Page, email: str, password: str) -> bool:
-        """Sign in to existing Workday account."""
-        try:
-            # Click sign in link if visible
-            try:
-                sign_in_link = page.locator(self.SELECTORS["sign_in_link"]).first
-                if await sign_in_link.is_visible(timeout=2000):
-                    await sign_in_link.click()
-                    await asyncio.sleep(1)
-            except:
-                pass
-
-            # Fill email
-            email_input = page.locator(self.SELECTORS["email_input"]).first
-            await email_input.fill(email)
-
-            # Fill password
-            password_input = page.locator(self.SELECTORS["password_input"]).first
-            await password_input.fill(password)
-
-            # Click sign in
-            sign_in_btn = page.locator(self.SELECTORS["sign_in_button"]).first
-            await sign_in_btn.click()
-
-            await asyncio.sleep(3)
-
-            # Check for errors
-            try:
-                error = page.locator(self.SELECTORS["error_message"]).first
-                if await error.is_visible(timeout=2000):
-                    error_text = await error.text_content()
-                    logger.error(f"Sign in error: {error_text}")
-                    return False
-            except:
-                pass
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Sign in error: {e}")
-            return False
-
-    async def _create_account(self, page: Page, email: str, password: str) -> bool:
-        """Create new Workday account."""
-        try:
-            # Click create account link
-            try:
-                create_link = page.locator(self.SELECTORS["create_account_link"]).first
-                if await create_link.is_visible(timeout=2000):
-                    await create_link.click()
-                    await asyncio.sleep(1)
-            except:
-                pass
-
-            # Fill email
-            email_input = page.locator(self.SELECTORS["create_email"]).first
-            if not await email_input.is_visible(timeout=2000):
-                email_input = page.locator(self.SELECTORS["email_input"]).first
-            await email_input.fill(email)
-
-            # Fill password
-            password_input = page.locator(self.SELECTORS["create_password"]).first
-            if not await password_input.is_visible(timeout=2000):
-                password_input = page.locator(self.SELECTORS["password_input"]).first
-            await password_input.fill(password)
-
-            # Verify password if field exists
-            try:
-                verify_input = page.locator(self.SELECTORS["verify_password"]).first
-                if await verify_input.is_visible(timeout=1000):
-                    await verify_input.fill(password)
-            except:
-                pass
-
-            # Check agreement checkbox if exists
-            try:
-                checkbox = page.locator(self.SELECTORS["agree_checkbox"]).first
-                if await checkbox.is_visible(timeout=1000):
-                    await checkbox.check()
-            except:
-                pass
-
-            # Click create account
-            create_btn = page.locator(self.SELECTORS["create_account_button"]).first
-            if not await create_btn.is_visible(timeout=2000):
-                create_btn = page.locator("button:has-text('Create'), button[type='submit']").first
-            await create_btn.click()
-
-            await asyncio.sleep(3)
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Create account error: {e}")
-            return False
-
-    def _generate_temp_password(self) -> str:
-        """Generate a temporary password for account creation."""
-        import secrets
-        import string
-        alphabet = string.ascii_letters + string.digits + "!@#$%"
-        return ''.join(secrets.choice(alphabet) for _ in range(16))
 
     async def _fill_application_form(
         self,

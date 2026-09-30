@@ -285,11 +285,11 @@ class PlanetScaleScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="planetscale", company_name="PlanetScale", careers_url="https://planetscale.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/planetscale/jobs"
 
-# board dead as of 2026-09-29; new ATS unknown
+# Greenhouse board renamed pulumi -> pulumicorporation (verified 2026-09-29)
 @ScraperRegistry.register(category="custom")
 class PulumiScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="pulumi", company_name="Pulumi", careers_url="https://pulumi.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10, enabled=False, disabled_reason="board dead as of 2026-09-29; new ATS unknown")
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/pulumi/jobs"
+    config = ScraperConfig(company_slug="pulumi", company_name="Pulumi", careers_url="https://www.pulumi.com/careers/", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://boards-api.greenhouse.io/v1/boards/pulumicorporation/jobs"
 
 # Moved Greenhouse -> Ashby (verified 2026-09-29)
 @ScraperRegistry.register(category="custom")

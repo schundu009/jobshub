@@ -60,6 +60,7 @@ class ScraperStatus(BaseModel):
     last_success_at: Optional[str]
     last_failure_at: Optional[str]
     last_error: Optional[str] = None
+    last_error_type: Optional[str] = None  # save_failed, empty_result, timeout, ...
     active_jobs: int
     total_jobs: int
     # Scrapers switched off in code (ScraperConfig(enabled=False)) are listed
@@ -177,8 +178,7 @@ async def webhook_run_scrapers_sync(
 
     from database import SessionLocal
     from scrapers.rate_limiter import get_rate_limiter
-    from services.scraper_service import save_scraped_jobs
-    from tasks.scraper_tasks import record_scraper_run
+    from tasks.scraper_tasks import record_scraper_run, save_jobs_into_result
 
     all_scrapers = list_all_scrapers()
     http_scrapers = [
@@ -196,9 +196,7 @@ async def webhook_run_scrapers_sync(
         db = SessionLocal()
         try:
             if result.success and result.jobs:
-                jobs_new, jobs_updated = save_scraped_jobs(db, company_slug, result.jobs)
-                result.jobs_new = jobs_new
-                result.jobs_updated = jobs_updated
+                save_jobs_into_result(db, company_slug, result)
             record_scraper_run(db, company_slug, result)
         finally:
             db.close()
@@ -835,18 +833,13 @@ async def run_scraper_sync(
             return _response("queued", task_id=task.id)
 
         from scrapers.rate_limiter import get_rate_limiter
-        from services.scraper_service import save_scraped_jobs
-        from tasks.scraper_tasks import record_scraper_run
+        from tasks.scraper_tasks import record_scraper_run, save_jobs_into_result
 
         scraper = scraper_cls(rate_limiter=get_rate_limiter())
         result = await scraper.run()
 
         if result.success and result.jobs:
-            jobs_new, jobs_updated = await run_in_threadpool(
-                save_scraped_jobs, db, company_slug, result.jobs
-            )
-            result.jobs_new = jobs_new
-            result.jobs_updated = jobs_updated
+            await run_in_threadpool(save_jobs_into_result, db, company_slug, result)
 
         await run_in_threadpool(record_scraper_run, db, company_slug, result)
         redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)

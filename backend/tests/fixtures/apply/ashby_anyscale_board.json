@@ -1,0 +1,81 @@
+{
+ "apiVersion": "1",
+ "jobs": [
+  {
+   "id": "02698dc0-9416-425f-a13d-0938ffd229a8",
+   "title": "Enterprise Account Executive",
+   "department": "Sales",
+   "team": "Sales",
+   "employmentType": "FullTime",
+   "location": "San Francisco",
+   "shouldDisplayCompensationOnJobPostings": true,
+   "secondaryLocations": [
+    {
+     "location": "Bay Area or Remote",
+     "address": {
+      "postalAddress": {
+       "addressCountry": "United States"
+      }
+     }
+    }
+   ],
+   "publishedAt": "2026-07-08T18:49:30.240+00:00",
+   "isListed": true,
+   "isRemote": null,
+   "workplaceType": null,
+   "address": null,
+   "jobUrl": "https://jobs.ashbyhq.com/anyscale/02698dc0-9416-425f-a13d-0938ffd229a8",
+   "applyUrl": "https://jobs.ashbyhq.com/anyscale/02698dc0-9416-425f-a13d-0938ffd229a8/application",
+   "descriptionHtml": "<p style=\"min-height:1.5em\"></p><p style=\"min-height:1.5em\"><strong>About Anyscale:</strong></p><p style=\"min-height:1.5em\">At\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://www.anyscale.com/\">Anyscale</a>, we're on a mission to democratize distributed computing and make it accessible to software developers of all skill levels. We\u2019re commercializing\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://docs.ray.io/en/latest/\">Ray</a>, a popular open-source project that's creating an ecosystem of libraries for scalable machine learning. Companies like\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://thenewstack.io/how-ray-a-distributed-ai-framework-helps-power-chatgpt/\">OpenAI</a>,\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://www.uber.com/blog/horovod-ray/\">Uber</a>,\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://engineering.atspotify.com/2023/02/unleashing-ml-innovation-at-spotify-with-ray/\">Spotify</a>,\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://www.youtube.com/watch?v=3t26ucTy0Rs&amp;list=PLzTswPQNepXmLUiL4F_1VHrPcCz1OeILw&amp;index=23&amp;pp=iAQB\">Instacart</a>,\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://www.youtube.com/watch?v=gj0BqvfX_wI&amp;list=PLzTswPQNepXmLUiL4F_1VHrPcCz1OeILw&amp;index=46&amp;pp=iAQB\">Cruise</a>, and many more, have Ray in their tech stacks to accelerate the progress of AI applications out into the real world.</p><p style=\"min-height:1.5em\">With Anyscale, we\u2019re building the best place to run Ray, so that any developer or data scientist can scale an ML application from their laptop to the cluster without needing to be a distributed systems expert.</p><p style=\"min-height:1.5em\">Proud to be backed by\u00a0<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://www.wsj.com/articles/ai-startup-anyscale-adds-99-million-to-andressen-horowitz-led-funding-round-11661254200\">Andreessen Horowitz, NEA, and Addition</a> with $250+ million raised to date.</p><p style=\"min-height:1.5em\"></p><p style=\"min-height:1.5em\"><strong>About the role:</strong></p><p style=\"min-height:1.5em\">Anyscale is growing its Sales Team! We're looking for a Bay Area based <strong>Enterprise Account Executive</strong> to build out our enterprise-level client relationships. This is a Hunter role, so you will be prospecting, developing, and closing new business while focusing on the clients\u2019 requirements. The Enterprise AE\u2019s must have the confidence and ability to negotiate and close agreements with clients and support new customers.</p><p style=\"min-height:1.5em\">This role is a unique opportunity to contribute in a meaningful way to high visibility, high impact projects at a very exciting time for the company. Anyscale is an innovative, high-growth, customer-focused company in a large and growing market. If you are an energetic, self-managed professional with experience managing a complex sales process and possess excellent presentation and listening skills, organization and contact management capabilities, we\u2019d love to hear from you.</p><p style=\"min-height:1.5em\"></p><p style=\"min-height:1.5em\"><strong>As part of this role, you will:</strong></p><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">Achieve sales quotas for named accounts on a quarterly and annual basis by developing a sales strategy in the allocated territory with a target prospect list, and a regional sales plan</p></li><li><p style=\"min-height:1.5em\">Develop marketing plans with the marketing team to drive revenue growth</p></li><li><p style=\"min-height:1.5em\">Be the trusted advisor to the customer by understanding their existing and future roadmap to drive the Anyscale solution within the marketplace</p></li><li><p style=\"min-height:1.5em\">Prospect qualification and the development of new sales opportunities and ongoing revenue streams</p></li><li><p style=\"min-height:1.5em\">Arrange and conduct initial Executive and CxO discussions and positioning meetings</p></li><li><p style=\"min-height:1.5em\">Sales process management and opportunity closure</p></li><li><p style=\"min-height:1.5em\">Ongoing account management to ensure customer satisfaction and drive additional revenue streams.</p></li><li><p style=\"min-height:1.5em\">Be familiar with solution-based approach to selling, have experience managing a complex sales process and possess excellent presentation and listening skills, organization and contact management capabilities</p></li><li><p style=\"min-height:1.5em\">Some understanding of the data, compute, ML space and an ability to carry a technical conversation on these topics</p></li></ul><p style=\"min-height:1.5em\"></p><p style=\"min-height:1.5em\"><strong>We'd love to hear from you if you have:</strong></p><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">A track record of success in driving consistent activity, pipeline development and quota achievement</p></li><li><p style=\"min-height:1.5em\">5+ years of full cycle sales experience selling software or cloud based applications</p></li><li><p style=\"min-height:1.5em\">Emphasis on ML, Cloud, and Infrastructure solutions</p></li><li><p style=\"min-height:1.5em\">Ability to generate meetings, build your own pipeline while running strategy engagemehnts with prospects and potential customers</p></li><li><p style=\"min-height:1.5em\">Experience determining customer requirements and presenting appropriate solutions</p></li><li><p style=\"min-height:1.5em\">Proactive, independent thinker with high energy/positive attitude</p></li><li><p style=\"min-height:1.5em\">Excellent verbal and written communication, presentation, and relationship management skillsAbility to thrive in fast-paced startup environment</p></li></ul><p style=\"min-height:1.5em\"></p><h3><strong>Why Anyscale</strong></h3><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">We're on a mission to make scalable computing effortless. Ray is the AI Compute Engine at the center of some of the world's most powerful AI platforms</p></li><li><p style=\"min-height:1.5em\">Our tech is in production at companies like OpenAI, Uber, Spotify, Instacart, and Cruise</p></li><li><p style=\"min-height:1.5em\">We're backed by Andreessen Horowitz, NEA, and Addition, with $250M+ raised to date</p></li><li><p style=\"min-height:1.5em\">Recent partnerships with Azure, CoreWeave, and Google Cloud are putting AI-native compute directly into enterprise environments</p></li><li><p style=\"min-height:1.5em\">Competitive salary and equity, plus health/dental/vision coverage (many plans up to 99% employer-covered)</p></li><li><p style=\"min-height:1.5em\">We offer flexible time off, paid parental leave, and mental health support</p></li></ul><p style=\"min-height:1.5em\"><em>Anyscale Inc. is an Equal Opportunity Employer. Candidates are evaluated without regard to age, race, color, religion, sex, disability, national origin, sexual orientation, veteran status, or any other characteristic protected by federal or state law.</em></p><div style=\"min-height:1.2em;margin-top:0;margin-bottom:0\">\u00a0</div><p style=\"min-height:1.5em\"><em><strong>Anyscale Inc. is an E-Verify company and you may review the </strong></em><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://drive.google.com/file/d/1Kt2S6_k_SjxaEdGowH4rngVdg2ApAQV3/view?usp=sharing\"><em><strong>Notice of E-Verify Participation</strong></em></a><em><strong> and the </strong></em><a target=\"_blank\" rel=\"noopener noreferrer nofollow\" class=\"postings-link\" href=\"https://drive.google.com/file/d/1K3Nz72xgsU2hngnVUEu53wEeZjbAMbnZ/view?usp=sharing\"><em><strong>Right to Work posters in English and Spanish</strong></em></a></p>",
+   "descriptionPlain": "About Anyscale:\n\nAt\u00a0Anyscale https://www.anyscale.com/, we're on a mission to democratize distributed computing and make it accessible to software developers of all skill levels. We\u2019re commercializing\u00a0Ray https://docs.ray.io/en/latest/, a popular open-source project that's creating an ecosystem of libraries for scalable machine learning. Companies like\u00a0OpenAI https://thenewstack.io/how-ray-a-distributed-ai-framework-helps-power-chatgpt/,\u00a0Uber https://www.uber.com/blog/horovod-ray/,\u00a0Spotify https://engineering.atspotify.com/2023/02/unleashing-ml-innovation-at-spotify-with-ray/,\u00a0Instacart https://www.youtube.com/watch?v=3t26ucTy0Rs&list=PLzTswPQNepXmLUiL4F_1VHrPcCz1OeILw&index=23&pp=iAQB,\u00a0Cruise https://www.youtube.com/watch?v=gj0BqvfX_wI&list=PLzTswPQNepXmLUiL4F_1VHrPcCz1OeILw&index=46&pp=iAQB, and many more, have Ray in their tech stacks to accelerate the progress of AI applications out into the real world.\n\nWith Anyscale, we\u2019re building the best place to run Ray, so that any developer or data scientist can scale an ML application from their laptop to the cluster without needing to be a distributed systems expert.\n\nProud to be backed by\u00a0Andreessen Horowitz, NEA, and Addition https://www.wsj.com/articles/ai-startup-anyscale-adds-99-million-to-andressen-horowitz-led-funding-round-11661254200 with $250+ million raised to date.\n\n\n\nAbout the role:\n\nAnyscale is growing its Sales Team! We're looking for a Bay Area based Enterprise Account Executive to build out our enterprise-level client relationships. This is a Hunter role, so you will be prospecting, developing, and closing new business while focusing on the clients\u2019 requirements. The Enterprise AE\u2019s must have the confidence and ability to negotiate and close agreements with clients and support new customers.\n\nThis role is a unique opportunity to contribute in a meaningful way to high visibility, high impact projects at a very exciting time for the company. Anyscale is an innovative, high-growth, customer-focused company in a large and growing market. If you are an energetic, self-managed professional with experience managing a complex sales process and possess excellent presentation and listening skills, organization and contact management capabilities, we\u2019d love to hear from you.\n\n\n\nAs part of this role, you will:\n\n - Achieve sales quotas for named accounts on a quarterly and annual basis by developing a sales strategy in the allocated territory with a target prospect list, and a regional sales plan\n\n - Develop marketing plans with the marketing team to drive revenue growth\n\n - Be the trusted advisor to the customer by understanding their existing and future roadmap to drive the Anyscale solution within the marketplace\n\n - Prospect qualification and the development of new sales opportunities and ongoing revenue streams\n\n - Arrange and conduct initial Executive and CxO discussions and positioning meetings\n\n - Sales process management and opportunity closure\n\n - Ongoing account management to ensure customer satisfaction and drive additional revenue streams.\n\n - Be familiar with solution-based approach to selling, have experience managing a complex sales process and possess excellent presentation and listening skills, organization and contact management capabilities\n\n - Some understanding of the data, compute, ML space and an ability to carry a technical conversation on these topics\n\n\n\nWe'd love to hear from you if you have:\n\n - A track record of success in driving consistent activity, pipeline development and quota achievement\n\n - 5+ years of full cycle sales experience selling software or cloud based applications\n\n - Emphasis on ML, Cloud, and Infrastructure solutions\n\n - Ability to generate meetings, build your own pipeline while running strategy engagemehnts with prospects and potential customers\n\n - Experience determining customer requirements and presenting appropriate solutions\n\n - Proactive, independent thinker with high energy/positive attitude\n\n - Excellent verbal and written communication, presentation, and relationship management skillsAbility to thrive in fast-paced startup environment\n\n\n\n\nWHY ANYSCALE\n\n - We're on a mission to make scalable computing effortless. Ray is the AI Compute Engine at the center of some of the world's most powerful AI platforms\n\n - Our tech is in production at companies like OpenAI, Uber, Spotify, Instacart, and Cruise\n\n - We're backed by Andreessen Horowitz, NEA, and Addition, with $250M+ raised to date\n\n - Recent partnerships with Azure, CoreWeave, and Google Cloud are putting AI-native compute directly into enterprise environments\n\n - Competitive salary and equity, plus health/dental/vision coverage (many plans up to 99% employer-covered)\n\n - We offer flexible time off, paid parental leave, and mental health support\n\nAnyscale Inc. is an Equal Opportunity Employer. Candidates are evaluated without regard to age, race, color, religion, sex, disability, national origin, sexual orientation, veteran status, or any other characteristic protected by federal or state law.\n\n\u00a0\n\nAnyscale Inc. is an E-Verify company and you may review the Notice of E-Verify Participation https://drive.google.com/file/d/1Kt2S6_k_SjxaEdGowH4rngVdg2ApAQV3/view?usp=sharing and the Right to Work posters in English and Spanish https://drive.google.com/file/d/1K3Nz72xgsU2hngnVUEu53wEeZjbAMbnZ/view?usp=sharing",
+   "compensation": {
+    "compensationTierSummary": "$300K \u2013 $330K \u2022 Offers Commission",
+    "scrapeableCompensationSalarySummary": "$300K - $330K",
+    "compensationTiers": [
+     {
+      "id": "f41f29b8-8685-4fb4-8705-bc23f9ef4ca7",
+      "tierSummary": "$300K \u2013 $330K \u2022 Offers Commission",
+      "title": "Target salary for this role is $300,000 OTE, split evenly",
+      "additionalInformation": null,
+      "components": [
+       {
+        "id": "821b8d2c-bb16-45ba-acec-1e497bb05a42",
+        "summary": "Offers Commission",
+        "compensationType": "Commission",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": null,
+        "maxValue": null
+       },
+       {
+        "id": "ad58b96b-5cf7-4419-974b-939c97c9a5b4",
+        "summary": "$300K \u2013 $330K",
+        "compensationType": "Salary",
+        "interval": "1 YEAR",
+        "currencyCode": "USD",
+        "minValue": 300000,
+        "maxValue": 330000
+       }
+      ]
+     }
+    ],
+    "summaryComponents": [
+     {
+      "compensationType": "Commission",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": null,
+      "maxValue": null
+     },
+     {
+      "compensationType": "Salary",
+      "interval": "1 YEAR",
+      "currencyCode": "USD",
+      "minValue": 300000,
+      "maxValue": 330000
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -43,6 +43,7 @@ class ScraperErrorType(Enum):
     AUTH_ERROR = "auth_error"
     EMPTY_RESULT = "empty_result"  # 0 jobs from a board that previously had jobs
     UNEXPECTED_RESPONSE = "unexpected_response"  # wrong JSON shape / every posting unparseable
+    SAVE_FAILED = "save_failed"  # jobs were found but none reached the database
     UNKNOWN = "unknown"
 
 
@@ -153,6 +154,10 @@ class ScrapeResult:
     # Pagination info
     pages_scraped: int = 0
     total_pages: Optional[int] = None
+
+    # Set by the caller after save_scraped_jobs (SaveResult.as_dict(), or
+    # {"exception": "..."} when saving raised). None = saving wasn't attempted.
+    save_stats: Optional[dict] = None
 
     def __post_init__(self):
         if self.jobs:

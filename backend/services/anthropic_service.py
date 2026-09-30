@@ -538,3 +538,16 @@ Output the complete rewritten resume in a clean, professional format. Do not inc
     )
 
     return response.content[0].text
+
+
+def complete_text(system: str, prompt: str, max_tokens: int = 1000) -> str:
+    """Single-turn completion with the configured Claude model."""
+    anthropic_client = get_client()
+    message = _create_message(
+        anthropic_client,
+        model=get_claude_model(),
+        max_tokens=max_tokens,
+        system=system,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return "".join(getattr(block, "text", "") for block in message.content)

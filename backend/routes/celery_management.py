@@ -81,7 +81,7 @@ class ScheduleItem(BaseModel):
 
 class ScheduleUpdate(BaseModel):
     scraper_interval_hours: int = Field(ge=1, le=24, default=6)
-    auto_apply_enabled: bool = True
+    auto_apply_enabled: bool = False
     description_fetch_enabled: bool = True
 
 
@@ -411,7 +411,8 @@ def trigger_task(
     - cleanup_old_scraper_runs: Clean up old run records
     - mark_stale_jobs_inactive: Mark old jobs as inactive
     - fetch_missing_descriptions: Fetch job descriptions
-    - process_pending_applications: Process auto-apply queue
+    - apply_nightly_matching: Rebuild Auto Apply match queues for enabled users
+    - apply_prepare_auto: Prepare auto-mode applications (respects daily caps)
     """
     celery_app = get_celery_app()
 
@@ -422,8 +423,8 @@ def trigger_task(
         "cleanup_old_scraper_runs": "tasks.maintenance_tasks.cleanup_old_scraper_runs",
         "mark_stale_jobs_inactive": "tasks.maintenance_tasks.mark_stale_jobs_inactive",
         "fetch_missing_descriptions": "tasks.maintenance_tasks.fetch_missing_descriptions",
-        "process_pending_applications": "tasks.auto_apply_tasks.process_pending_applications",
-        "reset_daily_application_counts": "tasks.auto_apply_tasks.reset_daily_application_counts",
+        "apply_nightly_matching": "tasks.apply_tasks.nightly_matching",
+        "apply_prepare_auto": "tasks.apply_tasks.prepare_auto_applications",
     }
 
     task_path = task_map.get(request.task_name)

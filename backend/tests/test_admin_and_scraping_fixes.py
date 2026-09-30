@@ -303,14 +303,14 @@ def test_schedules_get_is_structured_and_put_applies(client, db, admin):
 
 
 def test_disabled_flags_short_circuit_tasks(db, monkeypatch):
-    from tasks import auto_apply_tasks, maintenance_tasks
-    db.add_all([AppSetting(key="description_fetch_enabled", value="false"),
-                AppSetting(key="auto_apply_enabled", value="false")])
+    from tasks import maintenance_tasks
+    db.add_all([AppSetting(key="description_fetch_enabled", value="false")])
     db.commit()
     monkeypatch.setattr(maintenance_tasks, "get_db", session_factory(db))
-    monkeypatch.setattr(auto_apply_tasks, "get_db", session_factory(db))
     assert maintenance_tasks.fetch_missing_descriptions.run()["status"] == "skipped"
-    assert auto_apply_tasks.process_pending_applications.run()["status"] == "skipped"
+    # The legacy server-side auto-apply processor is gone entirely.
+    import importlib.util
+    assert importlib.util.find_spec("tasks.auto_apply_tasks") is None
 
 
 def test_scrape_all_respects_interval(db, monkeypatch):

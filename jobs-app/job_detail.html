@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume optimizer · Cariara Jobs</title>
-    <link rel="stylesheet" href="/css/theme.css?v=202609291457">
-    <link rel="stylesheet" href="/css/sidebar.css?v=202609291457">
+    <link rel="stylesheet" href="/css/theme.css?v=202609291817">
+    <link rel="stylesheet" href="/css/sidebar.css?v=202609291817">
     <style>
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; background: var(--c-canvas, #fff); color: var(--c-ink, #1f1f1f); font-family: var(--c-font); }
@@ -183,7 +183,7 @@
     </style>
     <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="robots" content="noindex,follow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291457">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
 </head>
 <body>
     <!-- Mobile Menu Button -->
@@ -204,6 +204,7 @@
         <nav class="sidebar-nav">
             <div class="nav-section-title">Apply</div>
             <a href="discover.html" class="nav-link active" data-icon="search" id="nav-jobs">Jobs</a>
+            <a href="autoapply.html" class="nav-link" data-icon="zap">Auto Apply</a>
 
             <div class="nav-section-title">You</div>
             <a href="documents.html" class="nav-link" data-icon="document">Resumes</a>
@@ -237,6 +238,10 @@
                         Apply on company site
                         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     </a>
+                    <button type="button" class="btn-secondary" id="autoapply-btn" style="display:none" title="Cariara prepares this application for you to review">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></svg>
+                        Prepare application
+                    </button>
                 </div>
             </div>
         </section>
@@ -388,7 +393,8 @@
       </div>
     </main>
 
-    <script src="/js/app.js?v=202609291457"></script>
+    <script src="/js/app.js?v=202609291817"></script>
+    <script src="/js/autoapply-entry.js?v=202609291817"></script>
     <script>
     /* =================================================================
        CARIARA RESUME OPTIMIZER
@@ -603,6 +609,29 @@
             $('apply-link').style.display = '';
             $('refresh-desc-btn').style.display = '';
         }
+
+        const autoBtn = $('autoapply-btn');
+        if (window.CariaraAutoApply && CariaraAutoApply.isSupported(job)) {
+            autoBtn.style.display = '';
+            autoBtn.onclick = startAutoApply;
+        }
+    }
+
+    /* ── Auto Apply ──────────────────────────────────────────── */
+    async function startAutoApply() {
+        const btn = $('autoapply-btn');
+        const html = btn.innerHTML;
+        btn.disabled = true;
+        btn.textContent = 'Preparing…';
+        await CariaraAutoApply.prepareAndOpen(JOB_ID, (err) => {
+            btn.disabled = false;
+            btn.innerHTML = html;
+            if (err.upgrade) {
+                showMsg(esc(err.message) + ' <a href="' + CariaraAutoApply.PRICING_URL + '" target="_blank" rel="noopener noreferrer">See plans</a>', 'error', { html: true });
+            } else {
+                showMsg(err.message, 'error');
+            }
+        });
     }
 
     /* ── Resume loading ──────────────────────────────────────── */
@@ -968,8 +997,8 @@
     init();
     </script>
 
-    <script src="/js/icons.js?v=202609291457"></script>
-    <script src="/js/sidebar.js?v=202609291457"></script>
+    <script src="/js/icons.js?v=202609291817"></script>
+    <script src="/js/sidebar.js?v=202609291817"></script>
     <script>
         // sidebar.js highlights by filename; this page lives under "Jobs".
         document.addEventListener('DOMContentLoaded', () => {

@@ -3,7 +3,9 @@ Typed access to AppSetting rows shared by the API and the Celery tasks.
 
 Keys written by PUT /api/celery/schedules:
 - scraper_interval_hours (int, 1-24): minimum gap between orchestrated scrapes
-- auto_apply_enabled (bool): process_pending_applications runs only when true
+- auto_apply_enabled (bool, default False): legacy server-side auto-submit kill switch.
+  The legacy processor has been removed; Cariara Auto Apply (routes/apply.py)
+  never submits server-side, so this stays False.
 - description_fetch_enabled (bool): fetch_missing_descriptions runs only when true
 
 scraper_last_orchestrated_at (ISO datetime) is written by scrape_all_companies.
@@ -66,6 +68,6 @@ def schedule_settings(db: Session) -> dict:
 
     return {
         "scraper_interval_hours": get_int(db, SCRAPER_INTERVAL_KEY, settings.scraper_schedule_hours),
-        "auto_apply_enabled": get_bool(db, AUTO_APPLY_ENABLED_KEY, True),
+        "auto_apply_enabled": get_bool(db, AUTO_APPLY_ENABLED_KEY, False),
         "description_fetch_enabled": get_bool(db, DESCRIPTION_FETCH_ENABLED_KEY, True),
     }

@@ -1,67 +1,22 @@
-"""Postman job scraper - Greenhouse API."""
+"""Postman job scraper - Workday API."""
 
-from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
 from scrapers.registry import ScraperRegistry
-from typing import List, Optional
-from datetime import datetime
+from scrapers.custom.remaining_scrapers import WorkdayMixin
 
 
-# DISABLED: board dead as of 2026-09-29; new ATS unknown
+# Moved Greenhouse -> Workday (verified 2026-09-29)
 @ScraperRegistry.register(category="custom")
-class PostmanScraper(HTTPScraper):
-    """Scraper for Postman careers (Greenhouse)."""
+class PostmanScraper(WorkdayMixin, HTTPScraper):
+    """Scraper for Postman careers (Workday)."""
 
     config = ScraperConfig(
         company_slug="postman",
         company_name="Postman",
-        careers_url="https://www.postman.com/company/careers",
+        careers_url="https://www.postman.com/company/careers/open-positions/",
         scraper_type=ScraperType.HTTP,
-        enabled=False,
-        disabled_reason="board dead as of 2026-09-29; new ATS unknown",
         rate_limit=30,
         max_pages=10,
     )
 
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/postman/jobs"
-
-    async def scrape(self) -> ScrapeResult:
-        all_jobs: List[ScrapedJob] = []
-        params = {"content": "true"}
-        data = await self.fetch_json(self.API_URL, params=params)
-
-        if not data:
-            return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data returned")
-
-        jobs = data.get("jobs", [])
-        for job in jobs:
-            parsed = self.parse_job(job)
-            if parsed:
-                all_jobs.append(parsed)
-
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            title = raw.get("title", "")
-            job_id = str(raw.get("id", ""))
-            location_data = raw.get("location", {})
-            location = location_data.get("name", "") if isinstance(location_data, dict) else str(location_data)
-            updated_at = raw.get("updated_at", "")
-            posted_date = None
-            if updated_at:
-                try:
-                    posted_date = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
-                except:
-                    pass
-            job_url = raw.get("absolute_url", f"https://boards.greenhouse.io/postman/jobs/{job_id}")
-            description = raw.get("content", "")
-            departments = raw.get("departments", [])
-            department = departments[0].get("name", "") if departments else ""
-
-            return ScrapedJob(
-                title=title, location=location, job_url=job_url, external_job_id=job_id,
-                job_description=description, department=department, posted_date=posted_date,
-            )
-        except Exception as e:
-            self.logger.error(f"Error parsing job: {e}")
-            return None
+    API_URL = "https://postman.wd108.myworkdayjobs.com/wday/cxs/postman/careers/jobs"

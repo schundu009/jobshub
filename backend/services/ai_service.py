@@ -78,3 +78,9 @@ def generate_ats_tailored_resume(resume_text: str, job_title: str, job_descripti
     """Generate an ATS-optimized resume tailored to a specific job."""
     service = get_service()
     return service.generate_ats_tailored_resume(resume_text, job_title, job_description, company_name)
+
+
+def complete_text(system: str, prompt: str, max_tokens: int = 1000) -> str:
+    """Single-turn completion on the default provider (used by Auto Apply answer drafting)."""
+    service = get_service()
+    return service.complete_text(system, prompt, max_tokens)

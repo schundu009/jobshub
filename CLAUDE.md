@@ -137,14 +137,13 @@ class CompanyScraper(GreenhouseMixin, HTTPScraper):
 
 ## Auto-Apply Feature
 
-**Supported**: Greenhouse, Lever, Workday
-**NOT supported**: Ashby, iCIMS, Taleo, BrassRing, Jobvite, SmartRecruiters
+Customer-facing "Auto Apply" (paid plans only): `jobs-app/autoapply.html` + `js/autoapply.js`, API `routes/apply.py` (`/api/apply/*`), logic in `backend/services/apply/`, Celery tasks in `tasks/apply_tasks.py`.
 
-Key endpoints:
-- `POST /api/auto-apply/submit/{job_id}` - Submit application
-- `GET /api/auto-apply/preflight/{job_id}` - Check availability
-
-Implementation in `backend/services/auto_apply/` with ATS-specific classes.
+- **Form discovery (read-only)**: Greenhouse (`?questions=true`), Lever (apply page), Ashby (posting API). Other ATSs → `unsupported` (manual apply link).
+- **Answers**: factual fields (work authorization, sponsorship, salary, start date, EEO) come only from the user's Answers profile; AI drafts free-text only (marked `ai_draft`); legal attestations always need the user.
+- **Modes**: `review` (default, user approves each) or `auto` (auto-approves complete applications); daily cap per plan.
+- **Submission**: Phase 1 = hand-off (open employer form + prefill panel, user marks submitted). Phase 2 = Cariara browser extension (`/api/apply/extension/*`). Never CAPTCHA solving/evasion or job-site account creation.
+- `backend/services/auto_apply/` holds the old headless submitters — not wired to anything.
 
 ## Railway Services
 

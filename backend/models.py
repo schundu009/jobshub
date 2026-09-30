@@ -161,7 +161,7 @@ class User(Base):
     hybrid_ok = Column(Boolean, default=False)  # Open to hybrid/in-person
     drivers_license = Column(String(10), nullable=True)  # yes, no
     security_clearance = Column(String(10), nullable=True)  # yes, no
-    apply_mode = Column(String(20), default="hybrid")  # hybrid, auto, review
+    apply_mode = Column(String(20), default="hybrid")  # legacy settings-page field; Auto Apply uses ApplyPreference.mode
     excluded_companies = Column(JSON, default=list)  # Companies to exclude from auto-apply
 
     # Onboarding tracking
@@ -512,11 +512,11 @@ class AutoApplyConfig(Base):
     excluded_companies = Column(JSON, default=list)  # Company names/IDs to skip
 
     # ATS preferences
-    supported_ats = Column(JSON, default=lambda: ["greenhouse", "lever", "workday"])  # ATS types to auto-apply to
+    supported_ats = Column(JSON, default=lambda: ["greenhouse", "lever"])  # legacy; see ApplyPreference
 
-    # Workday credentials (stored encrypted)
-    workday_email = Column(String(255), nullable=True)
-    workday_password_encrypted = Column(Text, nullable=True)  # Encrypted password
+    # Workday credential columns (workday_email, workday_password_encrypted)
+    # were removed: Cariara never stores job-site passwords. run_migrations()
+    # scrubs any legacy values still in the table.
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
@@ -581,5 +581,152 @@ class AppSetting(Base):
     key = Column(String(100), unique=True, nullable=False, index=True)
     value = Column(String(500), nullable=False)
     description = Column(String(255), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+# ============== Cariara Auto Apply (Phase 1) ==============
+# Cariara prepares applications (form schema + answers) and the customer, or
+# the Cariara browser extension in Phase 2, submits them. Nothing in the
+# backend submits an application to an employer.
+
+class ApplyPreference(Base):
+    """Per-user Auto Apply settings (GET/PUT /api/apply/preferences)."""
+    __tablename__ = "apply_preferences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+
+    enabled = Column(Boolean, default=False, nullable=False)
+    mode = Column(String(20), default="review", nullable=False)  # review | auto
+    min_match_score = Column(Integer, default=70, nullable=False)
+    daily_cap = Column(Integer, default=10, nullable=False)
+
+    target_roles = Column(JSON, default=list)
+    locations = Column(JSON, default=list)
+    remote_ok = Column(Boolean, default=True)
+    salary_floor = Column(Integer, nullable=True)
+    excluded_companies = Column(JSON, default=list)
+    ats_allowlist = Column(JSON, default=lambda: ["greenhouse", "lever", "ashby"])
+
+    # Plan override for gating: "pro"/"paid" = paid, "free" = free, NULL = ask
+    # capra-backend. Ops/admin-set only (comp accounts, local dev); never
+    # writable through the user API.
+    plan_override = Column(String(20), nullable=True)
+
+    queue_generated_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class ApplyProfile(Base):
+    """
+    Answer-profile fields that the User model does not already hold.
+    Identity, links, work authorization and EEO values live on User.
+    """
+    __tablename__ = "apply_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+    salary_expectation = Column(String(100), nullable=True)
+    notice_period = Column(String(100), nullable=True)
+    eeo_opt_in = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class JobFormSchema(Base):
+    """Normalized application-form schema per job, cached for 24h."""
+    __tablename__ = "job_form_schemas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+    ats = Column(String(30), nullable=True)
+    apply_url = Column(Text, nullable=True)
+    supported = Column(Boolean, default=False, nullable=False)
+    questions = Column(JSON, default=list)
+    error = Column(Text, nullable=True)
+    fetched_at = Column(DateTime, nullable=False)
+
+
+class ApplyQueueItem(Base):
+    """A matched job suggested to a user (the Auto Apply queue)."""
+    __tablename__ = "apply_queue"
+    __table_args__ = (
+        Index("ux_apply_queue_user_job", "user_id", "job_id", unique=True),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
+    match_score = Column(Integer, nullable=False)
+    reasons = Column(JSON, default=list)
+    ats = Column(String(30), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+
+    job = relationship("Job")
+
+
+class Application(Base):
+    """One prepared application per (user, job)."""
+    __tablename__ = "applications"
+    __table_args__ = (
+        Index("ux_applications_user_job", "user_id", "job_id", unique=True),
+        Index("ix_applications_user_status", "user_id", "status"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    job_id = Column(Integer, ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(30), nullable=False, default="drafting", index=True)
+    ats = Column(String(30), nullable=True)
+    apply_url = Column(Text, nullable=True)
+    form_schema_snapshot = Column(JSON, default=list)
+    answers = Column(JSON, default=dict)  # {question_id: {value, source, confirmed, needs_user}}
+    resume_doc_id = Column(Integer, ForeignKey("user_documents.id", ondelete="SET NULL"), nullable=True)
+    cover_letter_text = Column(Text, nullable=True)
+    match_score = Column(Integer, nullable=True)
+    submitted_via = Column(String(30), nullable=True)  # manual | extension
+    confirmation = Column(String(500), nullable=True)
+    created_by = Column(String(20), default="user")  # user | auto
+    created_at = Column(DateTime, server_default=func.now(), index=True)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    approved_at = Column(DateTime, nullable=True)
+    submitted_at = Column(DateTime, nullable=True)
+
+    job = relationship("Job")
+    events = relationship(
+        "ApplicationEvent", back_populates="application",
+        cascade="all, delete-orphan", order_by="ApplicationEvent.id",
+    )
+
+
+class ApplicationEvent(Base):
+    """Append-only audit trail for an Application."""
+    __tablename__ = "application_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("applications.id", ondelete="CASCADE"), nullable=False, index=True)
+    type = Column(String(50), nullable=False)
+    message = Column(Text, nullable=True)
+    data = Column(JSON, default=dict)
+    created_at = Column(DateTime, server_default=func.now())
+
+    application = relationship("Application", back_populates="events")
+
+
+class AnswerBankEntry(Base):
+    """Reusable answers to custom questions, keyed by normalized label."""
+    __tablename__ = "answer_bank"
+    __table_args__ = (
+        Index("ux_answer_bank_user_key", "user_id", "question_key", unique=True),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    question_key = Column(String(500), nullable=False)
+    label = Column(Text, nullable=False)
+    value = Column(Text, nullable=True)
+    sensitive = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

@@ -252,12 +252,14 @@ function jsAttr(value) {
  * Mirrors the backend's run-warning rules:
  *   critical: 5+ consecutive failures (incl. auto-disabled by failures)
  *   warning:  2-4 failures, last success > 7 days ago, or never succeeded
- *   disabled: switched off manually (fewer than 5 failures)
+ *   disabled: switched off in code (disabled_reason set), or manually with fewer than 5 failures
  * Also accepts a pre-aggregated object {scrapers:[...], healthy, warning, critical}.
  */
 function classifyScraper(s) {
     const failures = Number(s.consecutive_failures || 0);
     const enabled = s.is_enabled !== false && s.enabled !== false;
+    // Disabled in code (board gone, no supported ATS) - its old failure streak isn't actionable
+    if (!enabled && s.disabled_reason) return 'disabled';
     if (failures >= 5) return 'critical';
     if (!enabled) return 'disabled';
     if (failures >= 2) return 'warning';

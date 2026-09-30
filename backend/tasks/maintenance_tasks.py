@@ -654,10 +654,11 @@ def auto_heal_scrapers() -> dict:
             last_error_type = db.query(ScraperRun.error_type).filter(
                 ScraperRun.company_slug == slug
             ).order_by(ScraperRun.run_at.desc(), ScraperRun.id.desc()).limit(1).scalar()
-            if cfg.consecutive_failures >= 10 and last_error_type == "empty_result":
-                # A board that answers with 0 jobs isn't disabled on that alone.
+            if cfg.consecutive_failures >= 10 and last_error_type in ("empty_result", "save_failed"):
+                # A board that answers with 0 jobs isn't disabled on that alone, and
+                # save_failed is our database side, not the board.
                 unresolved.append({"slug": slug, "failures": cfg.consecutive_failures,
-                                   "reason": "empty_result streak; not auto-disabled"})
+                                   "reason": f"{last_error_type} streak; not auto-disabled"})
             elif cfg.consecutive_failures >= 10:
                 cfg.config_overrides = {
                     **overrides,

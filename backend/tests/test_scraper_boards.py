@@ -134,7 +134,7 @@ def test_ashby_skips_unlisted_and_keeps_description():
 
 def test_disabled_scrapers_are_not_registered():
     disabled = ScraperRegistry.get_disabled()
-    for slug in ["pulumi", "aurora", "rippling", "ripplematch"]:
+    for slug in ["discover", "rippling", "ripplematch"]:
         assert slug in disabled and disabled[slug]["reason"].startswith("board dead as of")
         assert ScraperRegistry.get(slug) is None
     assert not set(disabled) & set(ScraperRegistry.list_slugs())
@@ -148,6 +148,8 @@ def test_disabled_scrapers_are_not_registered():
     ("sentinelone", "boards/sentinellabs/"),
     ("hubspot", "boards/hubspotjobs/"),
     ("zendesk", "zendesk.wd1.myworkdayjobs.com/wday/cxs/zendesk/zendesk/jobs"),
+    ("pulumi", "boards/pulumicorporation/"),
+    ("postman", "postman.wd108.myworkdayjobs.com/wday/cxs/postman/careers/jobs"),
 ])
 def test_moved_boards_point_at_new_ats(slug, fragment):
     assert fragment in ScraperRegistry.get(slug).API_URL

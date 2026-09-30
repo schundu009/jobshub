@@ -5,8 +5,8 @@
     <link rel="icon" href="/images/cariara-mark.svg" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jobs · Cariara Admin</title>
-    <link rel="stylesheet" href="/css/theme.css?v=202609291648">
-    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291648">
+    <link rel="stylesheet" href="/css/theme.css?v=202609291817">
+    <link rel="stylesheet" href="/css/admin-layout.css?v=202609291817">
     <style>
         /* Prevent horizontal overflow - aggressive fix */
         * {
@@ -129,74 +129,167 @@
             border: 1px solid var(--success);
         }
 
-        .tracked-companies {
-            background: var(--bg-elevated);
+        /* Tracked companies: registry scrapers only, from one GET /api/scrapers/status. */
+        .tracked {
+            background: var(--c-surface);
+            border: 1px solid var(--c-line);
             border-radius: 12px;
             padding: 16px 20px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border-default);
-            overflow: hidden;
+            margin-bottom: 24px;
             max-width: 100%;
+            min-width: 0;
         }
-        .tracked-companies h3 {
-            margin: 0 0 12px 0;
+        .tracked-head {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            color: var(--text-primary);
-            font-size: 16px;
-        }
-        .company-grid {
-            display: flex;
+            gap: 12px;
             flex-wrap: wrap;
-            gap: 8px;
-            max-width: 100%;
-            overflow: hidden;
+            margin-bottom: 12px;
         }
-        .company-chip {
+        .tracked-head h3 {
+            margin: 0;
+            font-family: var(--c-display);
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--c-ink);
+        }
+        .tracked-head .tracked-meta { font-size: 13px; color: var(--c-ink-3); }
+        .tracked-head .tracked-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .tracked-search { width: 240px; max-width: 100%; }
+        .tracked-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 4px 16px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .tracked-row {
+            display: grid;
+            grid-template-columns: 10px minmax(0, 1fr) auto auto auto;
+            align-items: center;
+            gap: 10px;
+            min-height: 40px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--c-ink);
+        }
+        .tracked-row:hover { background: var(--c-state); }
+        .tracked-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--c-ink);
+            font: inherit;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+        }
+        .tracked-name:hover { color: var(--c-blue); text-decoration: underline; }
+        .tracked-count { font-variant-numeric: tabular-nums; color: var(--c-ink); font-size: 13px; text-align: right; }
+        .tracked-count.zero { color: var(--c-ink-3); }
+        .tracked-age { font-size: 12px; color: var(--c-ink-3); white-space: nowrap; min-width: 52px; text-align: right; }
+        .health-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--c-green);
+        }
+        .health-dot.warn { background: var(--c-yellow); }
+        .health-dot.bad { background: var(--c-red); }
+        .health-dot.off { background: var(--c-outline); }
+        .run-btn {
+            height: 28px;
+            min-width: 44px;
+            padding: 0 10px;
+            border: 1px solid var(--c-line);
+            border-radius: 999px;
+            background: var(--c-surface);
+            color: var(--c-blue);
+            font: 500 12px var(--c-display);
+            cursor: pointer;
+        }
+        .run-btn:hover { background: var(--c-blue-tint); }
+        .run-btn:disabled { color: var(--c-ink-3); cursor: progress; background: var(--c-surface-2); }
+        .tracked-more { margin-top: 8px; }
+        .tracked-empty, .tracked-error { font-size: 14px; color: var(--c-ink-2); padding: 8px 0; }
+        .tracked-error { color: var(--c-red); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .tracked-fold {
+            margin-top: 12px;
+            border-top: 1px solid var(--c-line-soft);
+            padding-top: 8px;
+        }
+        .tracked-fold > summary {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 36px;
+            font-family: var(--c-display);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--c-ink);
+            list-style: none;
+        }
+        .tracked-fold > summary::-webkit-details-marker { display: none; }
+        .tracked-fold > summary::before {
+            content: "";
+            width: 0;
+            height: 0;
+            border-left: 5px solid var(--c-ink-2);
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            transition: transform .15s;
+        }
+        .tracked-fold[open] > summary::before { transform: rotate(90deg); }
+        .fold-count {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: var(--bg-subtle);
-            border-radius: 20px;
-            font-size: 13px;
-            text-decoration: none;
-            color: var(--text-primary);
-            border: 1px solid var(--border-light);
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .company-chip:hover {
-            background: var(--bg-hover);
-            border-color: var(--border-subtle);
-        }
-        .company-chip .name { font-weight: 500; }
-        .company-chip .count {
-            background: var(--bg-muted);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-        .company-chip .refresh-btn-mini {
-            background: none;
-            border: none;
-            padding: 2px 4px;
-            cursor: pointer;
+            height: 20px;
+            padding: 0 8px;
+            border-radius: 999px;
             font-size: 12px;
-            color: var(--text-muted);
-            border-radius: 4px;
-            transition: all 0.2s;
+            background: var(--c-surface-3);
+            color: var(--c-ink-2);
         }
-        .company-chip .refresh-btn-mini:hover {
-            background: var(--primary);
-            color: white;
+        .fold-count.warn { background: var(--c-yellow-tint); color: var(--c-yellow); }
+        .issue-list { list-style: none; margin: 4px 0 0; padding: 0; }
+        .issue-row {
+            display: grid;
+            grid-template-columns: 10px minmax(120px, 220px) minmax(0, 1fr) auto;
+            gap: 10px 12px;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--c-line-soft);
+            font-size: 13px;
         }
-        .company-chip .refresh-btn-mini:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .issue-row:last-child { border-bottom: 0; }
+        .issue-row .tracked-name { font-size: 14px; }
+        .issue-why { color: var(--c-ink-2); min-width: 0; overflow-wrap: anywhere; }
+        .issue-why .reason { color: var(--c-ink); font-weight: 500; }
+        .issue-why .err {
+            display: block;
+            margin-top: 2px;
+            color: var(--c-ink-3);
+            font-family: var(--c-mono);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+        @media (max-width: 720px) {
+            .tracked { padding: 12px; }
+            .tracked-search { width: 100%; }
+            .issue-row { grid-template-columns: 10px minmax(0, 1fr) auto; }
+            .issue-why { grid-column: 2 / -1; }
+        }
+        .stats-error { font-size: 13px; color: var(--c-ink-2); margin: -8px 0 16px; display: flex; gap: 8px; align-items: center; }
+        .stats-error[hidden] { display: none; }
 
         .time-filter {
             display: flex;
@@ -348,8 +441,8 @@
         }
     </style>
     <meta name="robots" content="noindex,nofollow">
-    <link rel="stylesheet" href="/css/cariara.css?v=202609291648">
-    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291648">
+    <link rel="stylesheet" href="/css/cariara.css?v=202609291817">
+    <link rel="stylesheet" href="/css/admin-cariara.css?v=202609291817">
 </head>
 <body>
     <main class="container">
@@ -386,36 +479,57 @@
             </div>
         </div>
 
-        <!-- Quick Stats -->
+        <!-- Quick Stats: /api/analytics/summary + the scraper status list -->
         <div class="stats-row">
             <div class="stat-mini">
                 <div class="number" id="stat-total">-</div>
-                <div class="label">Total Jobs</div>
+                <div class="label">Active jobs</div>
             </div>
             <div class="stat-mini">
                 <div class="number" id="stat-companies">-</div>
-                <div class="label">Companies Tracked</div>
+                <div class="label">Companies tracked</div>
             </div>
             <div class="stat-mini">
                 <div class="number" id="stat-wishlist">-</div>
-                <div class="label">Wishlist</div>
+                <div class="label">In wishlist</div>
             </div>
             <div class="stat-mini">
                 <div class="number" id="stat-applied">-</div>
                 <div class="label">Applied</div>
             </div>
         </div>
-
-        <!-- Tracked Companies -->
-        <div class="tracked-companies">
-            <h3>
-                <span>Tracked Companies (<span id="companies-count">0</span>)</span>
-                <button class="btn btn-secondary btn-small" onclick="refreshAllWithStatus(this)" id="refresh-btn">Refresh All</button>
-            </h3>
-            <div id="companies-grid" class="company-grid">
-                <div class="empty-companies">Loading...</div>
-            </div>
+        <div class="stats-error" id="stats-error" role="status" hidden>
+            <span id="stats-error-text">Couldn't load job counts.</span>
+            <button type="button" class="btn btn-secondary btn-small" onclick="loadStats()">Retry</button>
         </div>
+
+        <!-- Tracked Companies: one GET /api/scrapers/status, no per-company requests -->
+        <section class="tracked" aria-labelledby="tracked-title">
+            <div class="tracked-head">
+                <h3 id="tracked-title">Tracked companies</h3>
+                <span class="tracked-meta" id="tracked-meta"></span>
+                <div class="tracked-actions">
+                    <input type="search" id="tracked-search" class="tracked-search" placeholder="Filter tracked companies" aria-label="Filter tracked companies">
+                    <button type="button" class="btn btn-secondary btn-small" onclick="refreshAllWithStatus(this)" id="refresh-btn" title="Re-fetch companies added with Import (not the scrapers below)">Refresh imports</button>
+                </div>
+            </div>
+            <ul class="tracked-list" id="tracked-list" aria-live="polite">
+                <li class="tracked-empty">Loading…</li>
+            </ul>
+            <div class="tracked-more" id="tracked-more" hidden>
+                <button type="button" class="btn btn-secondary btn-small" id="tracked-toggle"></button>
+            </div>
+
+            <details class="tracked-fold" id="attention-fold">
+                <summary>Needs attention <span class="fold-count" id="attention-count">0</span></summary>
+                <ul class="issue-list" id="attention-list"></ul>
+            </details>
+
+            <details class="tracked-fold" id="disabled-fold">
+                <summary>Disabled boards <span class="fold-count" id="disabled-count">0</span></summary>
+                <ul class="issue-list" id="disabled-list"></ul>
+            </details>
+        </section>
 
         <!-- Jobs List -->
         <div class="admin-card">
@@ -490,8 +604,8 @@
         </div>
     </main>
 
-    <script src="/js/app.js?v=202609291648"></script>
-    <script src="/js/admin-sidebar.js?v=202609291648"></script>
+    <script src="/js/app.js?v=202609291817"></script>
+    <script src="/js/admin-sidebar.js?v=202609291817"></script>
     <script>
         // Server-side paging: GET /api/jobs?all=true supports limit/offset, status,
         // source, company_id, posted_within_hours and description_chars, and returns
@@ -505,7 +619,6 @@
         let currentPage = 0;
         let currentPageJobs = [];
         let serverTotal = 0;
-        let allSources = [];
         let allCompanies = [];
         let timeFilterDays = 0;
         let loadSeq = 0;
@@ -645,19 +758,23 @@
             }
         }
 
+        // Header counts from one cached aggregate (no job list). Companies
+        // tracked comes from the scraper status list (renderTracked).
         async function loadStats() {
+            const ids = ['stat-total', 'stat-wishlist', 'stat-applied'];
+            const errorBox = document.getElementById('stats-error');
+            errorBox.hidden = true;
+            ids.forEach(id => { document.getElementById(id).textContent = '…'; });
             try {
-                const summary = await apiRequest('/analytics/summary');
+                const summary = await apiRequest('/analytics/summary', 'GET', null, { timeout: 15000 });
                 const sc = summary.status_counts || {};
                 document.getElementById('stat-total').textContent = Number(summary.total_jobs || 0).toLocaleString();
                 document.getElementById('stat-wishlist').textContent = Number(sc.wishlist || 0).toLocaleString();
                 document.getElementById('stat-applied').textContent = Number(sc.applied || 0).toLocaleString();
             } catch (error) {
-                console.error('Failed to load stats:', error);
-                ['stat-total', 'stat-wishlist', 'stat-applied'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el && el.textContent === '-') el.textContent = '—';
-                });
+                ids.forEach(id => { document.getElementById(id).textContent = '—'; });
+                document.getElementById('stats-error-text').textContent = `Couldn't load job counts: ${error.message}`;
+                errorBox.hidden = false;
             }
         }
 
@@ -747,7 +864,7 @@
                 urlInput.value = '';
                 detectedBoardInfo = null;
                 addBtn.disabled = true;
-                loadSources();
+                loadScraperStatus();
                 loadJobs();
             } catch (error) {
                 resultDiv.innerHTML = `<div class="import-result error">Error: ${escapeHtml(error.message)}</div>`;
@@ -926,7 +1043,7 @@
                 resultDiv.innerHTML = `<div class="import-result success">${message}</div>`;
                 urlInput.value = '';
                 loadJobs();
-                loadSources();
+                loadScraperStatus();
             } catch (error) {
                 resultDiv.innerHTML = `<div class="import-result error">Error: ${escapeHtml(error.message)}</div>`;
             } finally {
@@ -935,86 +1052,173 @@
             }
         }
 
-        async function loadSources() {
-            const statCompanies = document.getElementById('stat-companies');
-            if (statCompanies) statCompanies.textContent = '...';
+        // ── Tracked companies ─────────────────────────────────────────────
+        // One GET /api/scrapers/status (cached 60s server-side) feeds the list,
+        // "Needs attention", "Disabled boards" and the Companies tracked stat.
+        const TRACKED_TOP = 25;
+        const STALE_MS = 48 * 3600 * 1000;
+        const ATTENTION_ERRORS = { save_failed: 'Jobs found but not saved', empty_result: 'Returned 0 jobs', timeout: 'Timed out' };
+        let scraperStatus = [];
+        let trackedShowAll = false;
+        let attentionShowAll = false;
+        let statusSeq = 0;
 
-            const [ingestRes, scraperRes] = await Promise.allSettled([
-                apiRequest('/ingest/sources'),
-                apiRequest('/scrapers/status')
-            ]);
-            if (ingestRes.status === 'rejected' && scraperRes.status === 'rejected') {
-                console.error('Failed to load sources:', ingestRes.reason, scraperRes.reason);
-                if (statCompanies) statCompanies.textContent = '—';
-                document.getElementById('companies-grid').innerHTML = `<div class="empty-companies" style="width: 100%;">Couldn't load tracked companies: ${escapeHtml(ingestRes.reason.message)}</div>`;
-                return;
-            }
-            const ingestSources = ingestRes.status === 'fulfilled' ? ingestRes.value : [];
-            const scraperStatus = scraperRes.status === 'fulfilled' ? scraperRes.value : [];
-
-            const sourceMap = new Map();
-            (Array.isArray(ingestSources) ? ingestSources : (ingestSources?.sources || [])).forEach(s => {
-                sourceMap.set(s.company_name?.toLowerCase(), {
-                    company_name: s.company_name,
-                    ats_type: s.ats_type,
-                    job_count: s.job_count || 0,
-                    career_page_url: s.career_page_url
-                });
-            });
-
-            (Array.isArray(scraperStatus) ? scraperStatus : (scraperStatus?.scrapers || [])).forEach(s => {
-                const key = s.company_name?.toLowerCase();
-                const existing = sourceMap.get(key);
-                const scraperJobs = s.active_jobs || 0;
-                if (!existing || scraperJobs > (existing.job_count || 0)) {
-                    sourceMap.set(key, {
-                        company_name: s.company_name,
-                        company_slug: s.company_slug || s.slug,
-                        ats_type: existing?.ats_type || 'scraper',
-                        job_count: scraperJobs,
-                        career_page_url: existing?.career_page_url || ''
-                    });
-                }
-            });
-
-            allSources = Array.from(sourceMap.values());
-            if (statCompanies) statCompanies.textContent = allSources.length.toLocaleString();
-            renderSources();
+        function parseUtc(value) {
+            if (!value) return NaN;
+            const v = String(value);
+            return Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(v) ? v : v + 'Z');
         }
 
-        function renderSources() {
-            const container = document.getElementById('companies-grid');
-            const countSpan = document.getElementById('companies-count');
-            if (!container) return;
+        function timeAgo(value) {
+            const t = parseUtc(value);
+            if (isNaN(t)) return 'never';
+            const s = Math.max(0, (Date.now() - t) / 1000);
+            if (s < 90) return 'just now';
+            if (s < 3600) return `${Math.round(s / 60)}m ago`;
+            if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+            return `${Math.round(s / 86400)}d ago`;
+        }
 
-            if (allSources.length === 0) {
-                container.innerHTML = '<div class="empty-companies" style="width: 100%;">No companies tracked yet.</div>';
-                if (countSpan) countSpan.textContent = '0';
-                return;
+        // Why a tracked scraper needs a look ([] = healthy) and its dot colour.
+        function assessScraper(s) {
+            const reasons = [];
+            const failures = Number(s.consecutive_failures || 0);
+            const lastOk = parseUtc(s.last_success_at);
+            const lastFail = parseUtc(s.last_failure_at);
+            const lastRunFailed = !isNaN(lastFail) && (isNaN(lastOk) || lastFail > lastOk);
+            let level = 'ok';
+            if (lastRunFailed && ATTENTION_ERRORS[s.last_error_type]) {
+                reasons.push(ATTENTION_ERRORS[s.last_error_type]);
+                level = 'bad';
             }
+            if (failures >= 2) {
+                reasons.push(`${failures} failed runs in a row`);
+                level = 'bad';
+            }
+            if (isNaN(lastOk)) {
+                reasons.push('Never succeeded');
+                if (level === 'ok') level = 'warn';
+            } else if (Date.now() - lastOk > STALE_MS) {
+                reasons.push(`Last success ${timeAgo(s.last_success_at)}`);
+                if (level === 'ok') level = 'warn';
+            }
+            if (!Number(s.active_jobs)) {
+                reasons.push('0 active jobs');
+                if (level === 'ok') level = 'warn';
+            }
+            return { reasons, level, lastRunFailed };
+        }
 
-            allSources.sort((a, b) => {
-                if ((b.job_count || 0) !== (a.job_count || 0)) return (b.job_count || 0) - (a.job_count || 0);
-                return (a.company_name || '').localeCompare(b.company_name || '');
-            });
+        function trackedScrapers() {
+            return scraperStatus.filter(s => s.is_enabled !== false && s.has_scraper !== false);
+        }
 
-            container.innerHTML = allSources.map(source => {
-                const hasJobs = (source.job_count || 0) > 0;
-                const companyName = source.company_name || 'Unknown';
-                const runBtn = source.company_slug
-                    ? `<button type="button" class="refresh-btn-mini" onclick="event.stopPropagation(); runScraper('${jsAttr(source.company_slug)}', this)" title="Run scraper" aria-label="Run ${escapeHtml(companyName)} scraper">↻</button>`
-                    : '';
-                return `
-                    <div class="company-chip"${hasJobs ? '' : ' style="opacity: 0.5;"'}>
-                        <span class="name" role="button" tabindex="0" onclick="filterByCompany('${jsAttr(companyName)}')">${escapeHtml(companyName)}</span>
-                        <span class="count">${Number(source.job_count || 0).toLocaleString()}</span>
-                        ${runBtn}
-                    </div>
-                `;
-            }).join('');
+        async function loadScraperStatus() {
+            const seq = ++statusSeq;
+            const list = document.getElementById('tracked-list');
+            const statCompanies = document.getElementById('stat-companies');
+            if (!scraperStatus.length) list.innerHTML = '<li class="tracked-empty">Loading…</li>';
+            try {
+                const data = await apiRequest('/scrapers/status', 'GET', null, { timeout: 20000 });
+                if (seq !== statusSeq) return;
+                scraperStatus = (Array.isArray(data) ? data : (data?.scrapers || []))
+                    .filter(s => s && (s.company_slug || s.slug))
+                    .map(s => ({ ...s, company_slug: s.company_slug || s.slug, company_name: s.company_name || s.company_slug || s.slug }));
+                renderTracked();
+            } catch (error) {
+                if (seq !== statusSeq) return;
+                statCompanies.textContent = '—';
+                document.getElementById('tracked-meta').textContent = '';
+                document.getElementById('tracked-more').hidden = true;
+                list.innerHTML = `<li class="tracked-error">Couldn't load tracked companies: ${escapeHtml(error.message)}
+                    <button type="button" class="btn btn-secondary btn-small" onclick="loadScraperStatus()">Retry</button></li>`;
+            }
+        }
 
-            const withJobs = allSources.filter(s => (s.job_count || 0) > 0).length;
-            if (countSpan) countSpan.textContent = `${withJobs}/${allSources.length}`;
+        function nameButton(s) {
+            return `<button type="button" class="tracked-name" onclick="filterByCompany('${jsAttr(s.company_name)}')" title="Show ${escapeHtml(s.company_name)} jobs (${escapeHtml(s.company_slug)})">${escapeHtml(s.company_name)}</button>`;
+        }
+
+        function runButton(s) {
+            return `<button type="button" class="run-btn" onclick="runScraper('${jsAttr(s.company_slug)}', this)" aria-label="Run the ${escapeHtml(s.company_name)} scraper">Run</button>`;
+        }
+
+        function renderTracked() {
+            const tracked = trackedScrapers().map(s => ({ ...s, _health: assessScraper(s) }));
+            tracked.sort((a, b) => (Number(b.active_jobs) || 0) - (Number(a.active_jobs) || 0)
+                || String(a.company_name).localeCompare(String(b.company_name)));
+            const disabled = scraperStatus.filter(s => s.is_enabled === false)
+                .sort((a, b) => String(a.company_name).localeCompare(String(b.company_name)));
+            const attention = tracked.filter(s => s._health.reasons.length)
+                .sort((a, b) => (a._health.level === 'bad' ? 0 : 1) - (b._health.level === 'bad' ? 0 : 1)
+                    || (Number(b.consecutive_failures) || 0) - (Number(a.consecutive_failures) || 0)
+                    || String(a.company_name).localeCompare(String(b.company_name)));
+            const withJobs = tracked.filter(s => Number(s.active_jobs) > 0).length;
+
+            document.getElementById('stat-companies').textContent = tracked.length.toLocaleString();
+            document.getElementById('tracked-meta').textContent = tracked.length
+                ? `${withJobs.toLocaleString()} of ${tracked.length.toLocaleString()} with active jobs`
+                : '';
+
+            // Main list: top N by active jobs, or every match of the filter.
+            const q = document.getElementById('tracked-search').value.trim().toLowerCase();
+            const matches = q ? tracked.filter(s => String(s.company_name).toLowerCase().includes(q) || s.company_slug.includes(q)) : tracked;
+            const shown = (q || trackedShowAll) ? matches : matches.slice(0, TRACKED_TOP);
+            const list = document.getElementById('tracked-list');
+            if (!tracked.length) {
+                list.innerHTML = '<li class="tracked-empty">No scrapers are enabled.</li>';
+            } else if (!shown.length) {
+                list.innerHTML = `<li class="tracked-empty">No tracked company matches “${escapeHtml(q)}”.</li>`;
+            } else {
+                list.innerHTML = shown.map(s => {
+                    const h = s._health;
+                    const title = h.reasons.length ? h.reasons.join(' · ') : 'Healthy';
+                    const jobs = Number(s.active_jobs) || 0;
+                    return `<li class="tracked-row">
+                        <span class="health-dot ${h.level === 'ok' ? '' : h.level}" role="img" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}"></span>
+                        ${nameButton(s)}
+                        <span class="tracked-count${jobs ? '' : ' zero'}" title="Active jobs">${jobs.toLocaleString()}</span>
+                        <span class="tracked-age" title="Last successful run">${escapeHtml(timeAgo(s.last_success_at))}</span>
+                        ${runButton(s)}
+                    </li>`;
+                }).join('');
+            }
+            const more = document.getElementById('tracked-more');
+            const toggle = document.getElementById('tracked-toggle');
+            more.hidden = !!q || tracked.length <= TRACKED_TOP;
+            toggle.textContent = trackedShowAll ? `Show top ${TRACKED_TOP}` : `Show all (${tracked.length.toLocaleString()})`;
+
+            // Needs attention
+            const attCount = document.getElementById('attention-count');
+            attCount.textContent = attention.length.toLocaleString();
+            attCount.classList.toggle('warn', attention.length > 0);
+            const attentionShown = attentionShowAll ? attention : attention.slice(0, TRACKED_TOP);
+            document.getElementById('attention-list').innerHTML = attention.length
+                ? attentionShown.map(s => {
+                    const h = s._health;
+                    const err = h.lastRunFailed && s.last_error ? `<span class="err" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</span>` : '';
+                    return `<li class="issue-row">
+                        <span class="health-dot ${h.level === 'ok' ? '' : h.level}" aria-hidden="true"></span>
+                        ${nameButton(s)}
+                        <span class="issue-why"><span class="reason">${escapeHtml(h.reasons.join(' · '))}</span>
+${Number(s.active_jobs) ? ` · ${Number(s.active_jobs).toLocaleString()} active` : ''}${s.last_success_at ? ` · last success ${escapeHtml(timeAgo(s.last_success_at))}` : ''}${err}</span>
+                        ${runButton(s)}
+                    </li>`;
+                }).join('') + (attention.length > TRACKED_TOP
+                    ? `<li class="tracked-more"><button type="button" class="btn btn-secondary btn-small" onclick="attentionShowAll = !attentionShowAll; renderTracked()">${attentionShowAll ? `Show first ${TRACKED_TOP}` : `Show all (${attention.length.toLocaleString()})`}</button></li>`
+                    : '')
+                : '<li class="tracked-empty">Every tracked scraper looks healthy.</li>';
+
+            // Disabled boards
+            document.getElementById('disabled-count').textContent = disabled.length.toLocaleString();
+            document.getElementById('disabled-list').innerHTML = disabled.length
+                ? disabled.map(s => `<li class="issue-row">
+                        <span class="health-dot off" aria-hidden="true"></span>
+                        <span class="tracked-name" style="cursor:default;text-decoration:none;color:var(--c-ink)">${escapeHtml(s.company_name)}</span>
+                        <span class="issue-why">${escapeHtml(s.disabled_reason || 'Disabled')}${s.last_error ? `<span class="err" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</span>` : ''}</span>
+                        <span></span>
+                    </li>`).join('')
+                : '<li class="tracked-empty">No disabled boards.</li>';
         }
 
         async function refreshAllWithStatus(btn = document.getElementById('refresh-btn')) {
@@ -1025,7 +1229,7 @@
                 const response = await apiRequest('/ingest/refresh', 'POST', null, { timeout: 120000 });
                 showAlert(`Refreshed ${Number(response.sources_refreshed || 0).toLocaleString()} companies. Added ${Number(response.total_jobs_added || 0).toLocaleString()} new jobs.`);
                 loadJobs();
-                loadSources();
+                loadScraperStatus();
             } catch (error) {
                 showAlert('Error: ' + error.message, 'error');
             } finally {
@@ -1036,23 +1240,23 @@
 
         async function runScraper(slug, btn) {
             const originalText = btn ? btn.textContent : '';
-            if (btn) { btn.disabled = true; btn.textContent = '...'; }
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
 
             try {
-                const response = await apiRequest(`/scrapers/${encodeURIComponent(slug)}/run-sync`, 'POST', null, { timeout: 120000 });
+                const response = await apiRequest(`/scrapers/${encodeURIComponent(slug)}/run-sync`, 'POST', null, { timeout: 180000 });
                 if (response.status === 'success') {
-                    showAlert(`${slug}: Found ${response.jobs_found} jobs (${response.jobs_new} new, ${response.jobs_updated} updated)`);
+                    showToast(`${slug}: found ${Number(response.jobs_found || 0).toLocaleString()} jobs (${Number(response.jobs_new || 0).toLocaleString()} new, ${Number(response.jobs_updated || 0).toLocaleString()} updated)`);
                     loadJobs();
-                    loadSources();
                 } else if (response.status === 'queued') {
-                    showAlert(`${slug}: queued on the worker — results appear when the run finishes`);
+                    showToast(`${slug}: queued on the worker — results appear when the run finishes`, 'info');
                 } else {
-                    showAlert(`${slug} failed: ${response.error || response.status || 'unknown error'}`, 'error');
+                    showToast(`${slug} failed: ${response.error || response.status || 'unknown error'}`, 'error');
                 }
+                loadScraperStatus();
             } catch (error) {
-                showAlert(`Error running ${slug}: ${error.message}`, 'error');
+                showToast(`Error running ${slug}: ${error.message}`, 'error');
             } finally {
-                if (btn) { btn.disabled = false; btn.textContent = originalText; }
+                if (btn && btn.isConnected) { btn.disabled = false; btn.textContent = originalText; }
             }
         }
 
@@ -1075,24 +1279,29 @@
             document.getElementById('career-url').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') ingestJobs();
             });
-            document.getElementById('companies-grid').addEventListener('keydown', (e) => {
-                if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.company-chip .name')) {
-                    e.preventDefault();
-                    e.target.click();
-                }
+            let trackedTimer = null;
+            document.getElementById('tracked-search').addEventListener('input', () => {
+                clearTimeout(trackedTimer);
+                trackedTimer = setTimeout(renderTracked, 120);
+            });
+            document.getElementById('tracked-toggle').addEventListener('click', () => {
+                trackedShowAll = !trackedShowAll;
+                renderTracked();
             });
 
             applyUrlFilters();
 
-            // First paint: at most 4 parallel requests (jobs, companies, 2x sources).
-            // ?company=<name> needs the company list before the first jobs query.
-            const firstJobs = pendingCompanyParam
-                ? loadCompanies().then(() => loadJobs())
-                : Promise.all([loadJobs(), loadCompanies()]);
-            await Promise.allSettled([firstJobs, loadSources()]);
-            // Second wave: global counts.
-            loadJobTypeCounts();
-            loadStats();
+            // First paint: 3 parallel requests — the jobs page, the scraper status
+            // list and the summary counts. The company dropdown and job-type counts
+            // follow. ?company=<name> needs the company list before the jobs query.
+            if (pendingCompanyParam) {
+                await Promise.allSettled([loadCompanies().then(() => loadJobs()), loadScraperStatus(), loadStats()]);
+                loadJobTypeCounts();
+            } else {
+                await Promise.allSettled([loadJobs(), loadScraperStatus(), loadStats()]);
+                loadCompanies();
+                loadJobTypeCounts();
+            }
         });
     </script>
 </body>

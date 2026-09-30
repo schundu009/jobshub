@@ -31,7 +31,8 @@ from sqlalchemy.orm import Session
 
 from database import create_tables, get_db
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
-# auto_apply routes disabled - users now apply manually with downloaded CV/CL
+# Legacy server-side auto_apply router removed; Cariara Auto Apply lives in routes/apply.py
+from routes import apply as apply_routes
 from config import settings as app_settings
 from services.redis_service import redis_service
 
@@ -629,8 +630,6 @@ def run_migrations():
                     min_relevance_score FLOAT DEFAULT 50.0,
                     excluded_companies TEXT,
                     supported_ats TEXT,
-                    workday_email VARCHAR(255),
-                    workday_password_encrypted TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -640,20 +639,17 @@ def run_migrations():
         except Exception as e:
             logger.warning(f"Could not create auto_apply_configs table: {e}")
 
-        # Add workday columns if missing (for existing tables)
+        # Cariara never stores job-site passwords: scrub legacy Workday
+        # credentials (they were encrypted with a hardcoded fallback key).
+        conn.commit()
         try:
-            result = conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name = 'auto_apply_configs'"))
-            auto_apply_columns = {row[0] for row in result}
-
-            if 'workday_email' not in auto_apply_columns:
-                conn.execute(text("ALTER TABLE auto_apply_configs ADD COLUMN workday_email VARCHAR(255)"))
-                logger.info("Added workday_email column to auto_apply_configs")
-
-            if 'workday_password_encrypted' not in auto_apply_columns:
-                conn.execute(text("ALTER TABLE auto_apply_configs ADD COLUMN workday_password_encrypted TEXT"))
-                logger.info("Added workday_password_encrypted column to auto_apply_configs")
-        except Exception as e:
-            logger.warning(f"Could not add workday columns: {e}")
+            conn.execute(text(
+                "UPDATE auto_apply_configs SET workday_password_encrypted = NULL "
+                "WHERE workday_password_encrypted IS NOT NULL"
+            ))
+            conn.commit()
+        except Exception:
+            conn.rollback()  # column absent on fresh databases
 
         # Application submissions table
         try:
@@ -942,7 +938,7 @@ app.include_router(settings.router)
 app.include_router(users.router)
 app.include_router(scrapers.router)
 app.include_router(internal_auth.router)
-# app.include_router(auto_apply.router)  # Disabled - users now apply manually
+app.include_router(apply_routes.router)
 app.include_router(celery_management.router)
 app.include_router(apify.router)
 app.include_router(auto_heal.router)

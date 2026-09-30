@@ -32,6 +32,56 @@ def get_db() -> Session:
     return SessionLocal()
 
 
+def save_jobs_into_result(db: Session, company_slug: str, result: ScrapeResult) -> None:
+    """
+    Save result.jobs and copy the outcome onto the result (jobs_new/updated and
+    save_stats) so record_scraper_run can flag found-but-not-saved runs.
+    Never raises.
+    """
+    from services.scraper_service import save_scraped_jobs
+    try:
+        stats = save_scraped_jobs(db, company_slug, result.jobs)
+        result.jobs_new, result.jobs_updated = stats.new, stats.updated
+        result.save_stats = stats.as_dict()
+    except Exception as save_err:
+        logger.exception(f"Error saving jobs for {company_slug}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        result.save_stats = {"exception": f"{type(save_err).__name__}: {save_err}"[:300]}
+
+
+def _save_summary(stats: dict) -> str:
+    if stats.get("exception"):
+        return f"save raised {stats['exception']}"
+    parts = [f"{stats.get('new', 0)} new", f"{stats.get('updated', 0)} updated"]
+    for key in ("skipped_old", "skipped_invalid", "duplicates", "errors"):
+        if stats.get(key):
+            parts.append(f"{stats[key]} {key}")
+    if stats.get("first_error"):
+        parts.append(f"first error: {stats['first_error']}")
+    if stats.get("commit_error"):
+        parts.append(f"commit failed: {stats['commit_error']}")
+    return ", ".join(parts)
+
+
+def _flag_save_failure(result: ScrapeResult) -> None:
+    """
+    Jobs were found but none were saved (new + updated == 0): record the run as
+    failed with error_type=save_failed so it shows in scraper health instead of
+    looking like a healthy run. Runs where saving wasn't attempted are left alone.
+    """
+    stats = result.save_stats
+    if not stats or not result.success or not (result.jobs_found or 0) > 0:
+        return
+    if (result.jobs_new or 0) + (result.jobs_updated or 0) > 0:
+        return
+    result.success = False
+    result.error_type = ScraperErrorType.SAVE_FAILED
+    result.error_message = f"{result.jobs_found} jobs found, 0 saved: {_save_summary(stats)}"[:1000]
+
+
 def record_scraper_run(
     db: Session,
     company_slug: str,
@@ -48,6 +98,15 @@ def record_scraper_run(
         task_id: Celery task ID
     """
     _flag_suspicious_empty_result(db, company_slug, result)
+    _flag_save_failure(result)
+
+    # Keep the per-reason save breakdown on successful runs too (there is no
+    # JSON column on scraper_runs; error_message is only surfaced for failures).
+    error_message = result.error_message
+    if result.success and result.save_stats and not error_message:
+        stats = result.save_stats
+        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "duplicates", "errors")):
+            error_message = f"saved: {_save_summary(stats)}"[:1000]
 
     run = ScraperRun(
         company_slug=company_slug,
@@ -59,7 +118,7 @@ def record_scraper_run(
         started_at=result.started_at,
         completed_at=result.completed_at,
         pages_scraped=result.pages_scraped,
-        error_message=result.error_message,
+        error_message=error_message,
         error_type=getattr(result.error_type, "value", result.error_type) or None,
         celery_task_id=task_id,
     )
@@ -210,12 +269,7 @@ def scrape_company_http(self, company_slug: str) -> dict:
         if result.success and result.jobs:
             save_db = get_db()
             try:
-                from services.scraper_service import save_scraped_jobs
-                jobs_new, jobs_updated = save_scraped_jobs(save_db, company_slug, result.jobs)
-                result.jobs_new = jobs_new
-                result.jobs_updated = jobs_updated
-            except Exception as save_err:
-                logger.error(f"Error saving jobs for {company_slug}: {save_err}")
+                save_jobs_into_result(save_db, company_slug, result)
             finally:
                 save_db.close()
 
@@ -341,12 +395,7 @@ def scrape_company_browser(self, company_slug: str) -> dict:
         if result.success and result.jobs:
             save_db = get_db()
             try:
-                from services.scraper_service import save_scraped_jobs
-                jobs_new, jobs_updated = save_scraped_jobs(save_db, company_slug, result.jobs)
-                result.jobs_new = jobs_new
-                result.jobs_updated = jobs_updated
-            except Exception as save_err:
-                logger.error(f"Error saving jobs for {company_slug}: {save_err}")
+                save_jobs_into_result(save_db, company_slug, result)
             finally:
                 save_db.close()
 

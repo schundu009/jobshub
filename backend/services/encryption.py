@@ -1,7 +1,10 @@
 """
 Encryption utilities for sensitive data storage.
 
-Uses Fernet symmetric encryption with a key derived from environment variable.
+Uses Fernet symmetric encryption with a key derived from the ENCRYPTION_KEY
+environment variable. There is deliberately no fallback key: if ENCRYPTION_KEY
+is unset, every encrypt/decrypt call raises EncryptionNotConfigured (fail
+closed) instead of silently using a well-known default.
 """
 
 import os
@@ -11,12 +14,21 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
-def _get_fernet() -> Fernet:
-    """Get Fernet instance using encryption key from environment."""
-    # Get encryption key from environment or use a default for development
-    key_source = os.getenv("ENCRYPTION_KEY", "jobtrails-dev-encryption-key-change-in-prod")
+class EncryptionNotConfigured(RuntimeError):
+    """Raised when ENCRYPTION_KEY is missing or too short."""
 
-    # Derive a proper Fernet key from the source
+
+MIN_KEY_LENGTH = 16
+
+
+def _get_fernet() -> Fernet:
+    """Get a Fernet instance for ENCRYPTION_KEY; raise if it is not configured."""
+    key_source = (os.getenv("ENCRYPTION_KEY") or "").strip()
+    if len(key_source) < MIN_KEY_LENGTH:
+        raise EncryptionNotConfigured(
+            "ENCRYPTION_KEY is not set (or shorter than 16 characters); refusing to encrypt/decrypt."
+        )
+
     salt = b"jobtrails_salt_v1"  # Fixed salt for consistent key derivation
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -25,41 +37,23 @@ def _get_fernet() -> Fernet:
         iterations=100000,
     )
     key = base64.urlsafe_b64encode(kdf.derive(key_source.encode()))
-
     return Fernet(key)
 
 
-def encrypt_password(password: str) -> str:
-    """
-    Encrypt a password for storage.
-
-    Args:
-        password: Plain text password
-
-    Returns:
-        Encrypted password as base64 string
-    """
-    if not password:
+def encrypt_value(value: str) -> str:
+    """Encrypt a secret for storage. Empty input returns ""."""
+    if not value:
         return ""
-
-    fernet = _get_fernet()
-    encrypted = fernet.encrypt(password.encode())
-    return encrypted.decode()
+    return _get_fernet().encrypt(value.encode()).decode()
 
 
-def decrypt_password(encrypted_password: str) -> str:
-    """
-    Decrypt a stored password.
-
-    Args:
-        encrypted_password: Encrypted password from storage
-
-    Returns:
-        Plain text password
-    """
-    if not encrypted_password:
+def decrypt_value(encrypted: str) -> str:
+    """Decrypt a stored secret. Empty input returns ""."""
+    if not encrypted:
         return ""
+    return _get_fernet().decrypt(encrypted.encode()).decode()
 
-    fernet = _get_fernet()
-    decrypted = fernet.decrypt(encrypted_password.encode())
-    return decrypted.decode()
+
+# Backwards-compatible names
+encrypt_password = encrypt_value
+decrypt_password = decrypt_value

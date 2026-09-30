@@ -1,0 +1,268 @@
+{
+ "data": {
+  "jobPosting": {
+   "id": "02698dc0-9416-425f-a13d-0938ffd229a8",
+   "title": "Enterprise Account Executive",
+   "surveyForms": [],
+   "applicationForm": {
+    "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe",
+    "sections": [
+     {
+      "title": null,
+      "fieldEntries": [
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe__systemfield_name",
+        "field": {
+         "id": "65d92cc8-c08a-4b93-af74-10704dfb8361",
+         "path": "_systemfield_name",
+         "humanReadablePath": "Name",
+         "title": "Name",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": true,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe__systemfield_email",
+        "field": {
+         "id": "3546242e-f2af-4691-aa55-5b29666adbaf",
+         "path": "_systemfield_email",
+         "humanReadablePath": "Email",
+         "title": "Email",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "Email",
+         "__autoSerializationID": "EmailField"
+        },
+        "isRequired": true,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_2953e314-ca27-4d2b-8c40-a8197a325a49",
+        "field": {
+         "id": "cd69a9e4-ae6a-46fe-a529-d16ebfc1c080",
+         "path": "2953e314-ca27-4d2b-8c40-a8197a325a49",
+         "humanReadablePath": "",
+         "title": "Current location",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": true,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_5ff4daaf-8e44-44a7-a6db-f7d02a7cdd38",
+        "field": {
+         "id": "e0e1d8f4-24d9-4605-bbd3-8fdbb2fb8782",
+         "path": "5ff4daaf-8e44-44a7-a6db-f7d02a7cdd38",
+         "humanReadablePath": "",
+         "title": "Current company",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_e49092dd-c589-4165-8cb1-4f348dd7b940",
+        "field": {
+         "id": "c6bf83f7-b69a-4fb8-b19c-f2fbd1c7f1d7",
+         "path": "e49092dd-c589-4165-8cb1-4f348dd7b940",
+         "humanReadablePath": "",
+         "title": "Phone number",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "Phone",
+         "__autoSerializationID": "PhoneField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe__systemfield_resume",
+        "field": {
+         "id": "cd5cddc2-da16-490f-b2e5-3ad0f07177a5",
+         "path": "_systemfield_resume",
+         "humanReadablePath": "Resume",
+         "title": "Resume",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "File",
+         "__autoSerializationID": "FileField"
+        },
+        "isRequired": true,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_ddac0ffd-7778-4451-9932-519c9dfe77ea",
+        "field": {
+         "id": "e745a32f-dce8-44db-9685-2ed03e029f65",
+         "path": "ddac0ffd-7778-4451-9932-519c9dfe77ea",
+         "humanReadablePath": "",
+         "title": "Additional information",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "LongText",
+         "__autoSerializationID": "LongTextField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_74a9bab8-ba3a-42e8-ab40-876aff50a3ed",
+        "field": {
+         "id": "3df206f7-0360-4c9a-a330-00b8cd5183fb",
+         "path": "74a9bab8-ba3a-42e8-ab40-876aff50a3ed",
+         "humanReadablePath": "",
+         "title": "LinkedIn",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_9336f244-1024-4b8f-a58d-d0af7b472d4b",
+        "field": {
+         "id": "129d1061-fdcb-4a1a-8e09-ffbd1cb5019a",
+         "path": "9336f244-1024-4b8f-a58d-d0af7b472d4b",
+         "humanReadablePath": "",
+         "title": "Twitter",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_def8cf92-0f00-44d7-9987-57821eb9676c",
+        "field": {
+         "id": "d267e463-e798-4bdb-b38f-9c57b0f6052c",
+         "path": "def8cf92-0f00-44d7-9987-57821eb9676c",
+         "humanReadablePath": "",
+         "title": "GitHub",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_32178e06-7bfc-41d2-a9d0-96fb5bf6551a",
+        "field": {
+         "id": "d1ad5de8-2888-41cb-85f1-c1d9be269650",
+         "path": "32178e06-7bfc-41d2-a9d0-96fb5bf6551a",
+         "humanReadablePath": "",
+         "title": "Portfolio",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       },
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_810f3d6b-7e59-4b6a-aab6-a012a8de6bfe",
+        "field": {
+         "id": "69b62fb5-3093-430e-9ccc-a198f4a50dfc",
+         "path": "810f3d6b-7e59-4b6a-aab6-a012a8de6bfe",
+         "humanReadablePath": "",
+         "title": "Other",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "String",
+         "__autoSerializationID": "StringField"
+        },
+        "isRequired": false,
+        "descriptionHtml": null
+       }
+      ]
+     },
+     {
+      "title": "Work Authorization",
+      "fieldEntries": [
+       {
+        "id": "a464a9f2-57d0-45b9-9f86-a18a6b24febe_942ecf24-8aad-4a65-8a58-327c21ca6164",
+        "field": {
+         "id": "aa6ad829-9eb8-4bd7-b910-d2ca7e7e0b81",
+         "path": "942ecf24-8aad-4a65-8a58-327c21ca6164",
+         "humanReadablePath": "",
+         "title": "Would you require visa sponsorship to work in the country in which this position is based?",
+         "isNullable": false,
+         "isPrivate": false,
+         "isDeactivated": false,
+         "isMany": false,
+         "metadata": {},
+         "type": "ValueSelect",
+         "selectableValues": [
+          {
+           "label": "Yes",
+           "value": "Yes"
+          },
+          {
+           "label": "No",
+           "value": "No"
+          }
+         ],
+         "__autoSerializationID": "ValueSelectField"
+        },
+        "isRequired": true,
+        "descriptionHtml": null
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

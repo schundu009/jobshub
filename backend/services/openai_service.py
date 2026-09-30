@@ -503,3 +503,15 @@ Output the complete rewritten resume in a clean, professional format. Do not inc
     )
 
     return response.choices[0].message.content
+
+
+def complete_text(system: str, prompt: str, max_tokens: int = 1000) -> str:
+    """Single-turn completion with the configured model."""
+    openai_client = get_client()
+    response = openai_client.chat.completions.create(
+        model=get_ai_model(),
+        messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=max_tokens,
+    )
+    return response.choices[0].message.content or ""

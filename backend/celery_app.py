@@ -30,7 +30,7 @@ celery_app = Celery(
     include=[
         "tasks.scraper_tasks",
         "tasks.maintenance_tasks",
-        "tasks.auto_apply_tasks",
+        "tasks.apply_tasks",
         "tasks.apify_tasks",
     ],
 )
@@ -82,9 +82,19 @@ BEAT_SCHEDULE = {
         "schedule": crontab(minute=30, hour=3),
         "options": {"queue": "scrapers_orchestrator"},
     },
-    # Auto-apply beat entries (process-pending-applications every 15 min,
-    # reset-daily-application-counts at midnight) are removed while the
-    # auto-apply router is disabled in main.py. Re-add them with the router.
+    # Cariara Auto Apply (routes/apply.py). Nothing here submits applications:
+    # matching rebuilds each enabled user's queue; preparation drafts
+    # auto-mode applications up to the user's daily cap.
+    "apply-nightly-matching": {
+        "task": "tasks.apply_tasks.nightly_matching",
+        "schedule": crontab(minute=0, hour=13),
+        "options": {"queue": "default"},
+    },
+    "apply-prepare-auto": {
+        "task": "tasks.apply_tasks.prepare_auto_applications",
+        "schedule": crontab(minute=20),
+        "options": {"queue": "default"},
+    },
 }
 
 # Celery configuration
@@ -113,9 +123,7 @@ celery_app.conf.update(
         "tasks.scraper_tasks.scrape_company_browser": {"queue": "scrapers_browser"},
         "tasks.scraper_tasks.scrape_all_companies": {"queue": "scrapers_orchestrator"},
         "tasks.maintenance_tasks.*": {"queue": "maintenance"},
-        "tasks.auto_apply_tasks.submit_application": {"queue": "scrapers_browser"},
-        "tasks.auto_apply_tasks.process_pending_applications": {"queue": "maintenance"},
-        "tasks.auto_apply_tasks.reset_daily_application_counts": {"queue": "maintenance"},
+        "tasks.apply_tasks.*": {"queue": "default"},
         "tasks.apify_tasks.scrape_apify_indeed": {"queue": "scrapers_http"},
         "tasks.apify_tasks.scrape_apify_linkedin": {"queue": "scrapers_http"},
         "tasks.apify_tasks.scrape_all_apify": {"queue": "scrapers_orchestrator"},
@@ -168,6 +176,22 @@ celery_app.conf.update(
         "tasks.maintenance_tasks.auto_heal_scrapers": {
             "soft_time_limit": 1500,
             "time_limit": 1800,
+            "reject_on_worker_lost": False,
+        },
+        # Auto Apply orchestration loops over users; drafting calls ATS + AI.
+        "tasks.apply_tasks.nightly_matching": {
+            "soft_time_limit": 1500,
+            "time_limit": 1800,
+            "reject_on_worker_lost": False,
+        },
+        "tasks.apply_tasks.prepare_auto_applications": {
+            "soft_time_limit": 1500,
+            "time_limit": 1800,
+            "reject_on_worker_lost": False,
+        },
+        "tasks.apply_tasks.prepare_for_user": {
+            "soft_time_limit": 600,
+            "time_limit": 660,
             "reject_on_worker_lost": False,
         },
         # Apify actors can take 10+ minutes — give them ample time
