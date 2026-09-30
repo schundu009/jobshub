@@ -2773,10 +2773,8 @@
                 <input type="text" id="search-input" aria-label="Search jobs by title, company, or keywords" placeholder="Search jobs by title, company, or keywords...">
             </div>
             <select class="filter-select" id="location-filter" aria-label="Location">
-                <option value="" selected>Any location</option>
-                <optgroup label="Countries &amp; regions">
-                    <option value="united states">United States (incl. US remote)</option>
-                    <option value="remote">Remote (any country)</option>
+                <optgroup label="Country">
+                    <option value="united states" selected>United States (incl. US remote)</option>
                     <option value="canada">Canada</option>
                     <option value="uk">United Kingdom</option>
                     <option value="europe">Europe (incl. UK)</option>
@@ -4047,8 +4045,7 @@
 
             let locationFromUrl = false;
             if (params.has('loc')) {
-                locationFromUrl = setSelectValue(document.getElementById('location-filter'), params.get('loc').toLowerCase())
-                    || params.get('loc') === '';
+                locationFromUrl = params.get('loc').toLowerCase();
             }
             const wt = (params.get('wt') || '').split(',').filter(Boolean);
             document.querySelectorAll('.work-type-checkbox').forEach(cb => { cb.checked = wt.includes(cb.value); });
@@ -4068,16 +4065,45 @@
             return locationFromUrl;
         }
 
-        function applyInitialLocation(locationFromUrl) {
-            if (locationFromUrl) return;
+        // Users only see jobs in their own country: the Location menu offers the
+        // home country (and, for the US, its metro areas) - never other countries
+        // or "anywhere". Home = profile country, else browser time zone, else US.
+        const HOME_LOCATION_OPTIONS = {
+            'united states': ['united states', 'san francisco', 'new york', 'seattle', 'los angeles', 'austin', 'boston', 'chicago', 'denver'],
+            'canada': ['canada'],
+            'uk': ['uk'],
+            'europe': ['europe'],
+            'india': ['india'],
+        };
+        let homeLocation = 'united states';
+        let profileCountry = '';
+
+        function homeFromCountryName(name) {
+            const v = String(name || '').trim().toLowerCase();
+            if (!v) return '';
+            if (/^(us|usa|u\.s\.a?\.?|united states( of america)?|america)$/.test(v)) return 'united states';
+            if (/^(ca|can|canada)$/.test(v)) return 'canada';
+            if (/^(in|ind|india)$/.test(v)) return 'india';
+            if (/^(gb|uk|u\.k\.|united kingdom|great britain|england|scotland|wales|northern ireland)$/.test(v)) return 'uk';
+            if (classifyLocation(v).has('europe')) return 'europe';
+            return '';
+        }
+
+        function applyHomeLocation() {
+            homeLocation = homeFromCountryName(profileCountry) || detectLocationFromTimezone() || 'united states';
+            const allowed = new Set(HOME_LOCATION_OPTIONS[homeLocation]);
             const select = document.getElementById('location-filter');
+            [...select.querySelectorAll('option')].forEach(o => { if (!allowed.has(o.value)) o.remove(); });
+            [...select.querySelectorAll('optgroup')].forEach(g => { if (!g.children.length) g.remove(); });
+            select.value = homeLocation;
+        }
+
+        function applyInitialLocation(locationFromUrl) {
+            applyHomeLocation();
+            const select = document.getElementById('location-filter');
+            if (locationFromUrl && setSelectValue(select, locationFromUrl)) return;
             const stored = getStoredLocationChoice();
-            if (stored !== null) {
-                if (!setSelectValue(select, stored)) select.value = '';
-                return;
-            }
-            const detected = detectLocationFromTimezone();
-            if (detected) setSelectValue(select, detected);
+            if (!stored || !setSelectValue(select, stored)) select.value = homeLocation;
         }
 
         // =====================================================================
@@ -4092,6 +4118,7 @@
             // Use the saved resume as the source for the Skill match score.
             try {
                 const userSettings = await apiRequest('/users/settings');
+                profileCountry = userSettings.country || userSettings.address_country || '';
                 let resume = null;
                 if (userSettings.base_resume_id) {
                     try {
@@ -4236,10 +4263,10 @@
             const selectText = el => el.options[el.selectedIndex]?.text || el.value;
 
             const locationFilter = document.getElementById('location-filter');
-            if (locationFilter.value) {
-                tags.push({ text: `Location: ${selectText(locationFilter)}`, clear: () => { locationFilter.value = ''; rememberLocationChoice(''); onClientFilterChange(); } });
+            if (locationFilter.value && locationFilter.value !== homeLocation) {
+                tags.push({ text: `Location: ${selectText(locationFilter)}`, clear: () => { locationFilter.value = homeLocation; rememberLocationChoice(''); onClientFilterChange(); } });
             }
-            locationFilter.classList.toggle('active', !!locationFilter.value);
+            locationFilter.classList.toggle('active', !!locationFilter.value && locationFilter.value !== homeLocation);
 
             const workTypeChecked = Array.from(document.querySelectorAll('.work-type-checkbox:checked'));
             const workTypeDropdownEl = document.getElementById('work-type-dropdown');
@@ -4317,8 +4344,8 @@
         }
 
         function clearAllFilters() {
-            // An explicit clear is a location choice too: do not re-run auto-detect.
-            document.getElementById('location-filter').value = '';
+            // Clearing goes back to the home country (never "anywhere").
+            document.getElementById('location-filter').value = homeLocation;
             rememberLocationChoice('');
             document.querySelectorAll('.work-type-checkbox').forEach(c => c.checked = false);
             updateWorkTypeLabel();
