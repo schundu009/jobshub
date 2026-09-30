@@ -2604,6 +2604,8 @@
 
         .role-cell { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; width: 100%; min-width: 0; overflow: hidden; }
         .role-cell .role-title { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
+        .role-cell .role-title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .role-cell .role-title .row-mark { flex: none; }
         .role-cell .role-meta { color: var(--c-ink-3); font-size: 12px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .row-mark {
             flex: none; display: inline-flex; align-items: center; height: 20px; padding: 0 8px;
@@ -2633,6 +2635,7 @@
             display: inline-flex; align-items: center; height: 24px; padding: 0 8px;
             border-radius: 6px; background: var(--c-green-tint); color: var(--c-green) !important; font-weight: 500;
         }
+        .listed-days { display: block; font-size: 11px; line-height: 14px; color: var(--c-ink-3); white-space: nowrap; }
         .work-type-chip {
             display: inline-flex; align-items: center; height: 24px; padding: 0 8px;
             border-radius: 6px; font-size: 12px; font-weight: 500; line-height: 1;
@@ -2648,6 +2651,7 @@
             background: transparent; color: var(--c-ink-3); cursor: pointer; flex: none;
         }
         .row-icon-btn:hover { background: var(--c-surface-2); color: var(--c-ink); }
+        .row-icon-slot { width: 32px; height: 32px; flex: none; }
         html body .ag-theme-alpine .row-actions a.btn-primary,
         html body .ag-theme-alpine .row-actions a.btn-primary:hover { color: var(--c-on-blue) !important; }
         .row-icon-btn:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 1px; }
@@ -2880,6 +2884,14 @@
                     <label class="exclude-option">
                         <input type="checkbox" id="exclude-no-desc">
                         <span>No Description</span>
+                    </label>
+                    <label class="exclude-option" title="Hide jobs whose location doesn't name a country (e.g. just &quot;Remote&quot; or &quot;3 Locations&quot;)">
+                        <input type="checkbox" id="exclude-unknown-country">
+                        <span>Location not confirmed</span>
+                    </label>
+                    <label class="exclude-option" title="Postings listed for a long time, reposted, or talent-pool ads">
+                        <input type="checkbox" id="exclude-evergreen" checked>
+                        <span>Long-listed / reposted</span>
                     </label>
                 </div>
             </div>
@@ -3737,7 +3749,7 @@
                 isHidden(job) ? '<span class="row-mark">Hidden</span>' : ''
             ].join('');
             return `<div class="role-cell">
-                <div class="role-title">${escapeHtml(job.title || 'Untitled role')}${badges}</div>
+                <div class="role-title"><span class="role-title-text">${escapeHtml(job.title || 'Untitled role')}</span>${badges}</div>
                 <div class="role-meta">${escapeHtml(metaParts.join(' • '))}</div>
             </div>`;
         }
@@ -3766,7 +3778,12 @@
 
         function postedCellRenderer(params) {
             const posted = getPostedText(params.value);
-            return `<span class="posted-date-label${posted.fresh ? ' posted-fresh' : ''}" title="${escapeHtml(posted.title)}">${escapeHtml(posted.text)}</span>`;
+            const listedDays = Number(params.data?.listed_days);
+            // Long-running postings: how long the job has actually been listed.
+            const listed = listedDays >= 30
+                ? `<span class="listed-days" title="First seen ${listedDays} days ago">Listed ${listedDays}d</span>`
+                : '';
+            return `<span class="posted-date-label${posted.fresh ? ' posted-fresh' : ''}" title="${escapeHtml(posted.title)}">${escapeHtml(posted.text)}</span>${listed}`;
         }
 
         function typeCellRenderer(params) {
@@ -3791,7 +3808,7 @@
                 : `<button type="button" class="btn btn-primary" data-action="mark-applied" data-id="${id}">Mark applied</button>`;
             const autoApply = (window.CariaraAutoApply && CariaraAutoApply.isSupported(job))
                 ? `<button type="button" class="row-icon-btn" data-action="autoapply" data-id="${id}" title="Prepare application with Auto Apply" aria-label="Prepare application with Auto Apply"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></svg></button>`
-                : '';
+                : '<span class="row-icon-slot" aria-hidden="true"></span>'; // keeps ✕ aligned across rows
             const hide = `<button type="button" class="row-icon-btn" data-action="hide" data-id="${id}" title="Hide this job" aria-label="Hide this job"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg></button>`;
             return `<div class="row-actions">${view}${apply}${autoApply}${hide}</div>`;
         }
@@ -3852,8 +3869,8 @@
                 headerName: 'Role',
                 field: 'title',
                 cellRenderer: roleCellRenderer,
-                flex: 1.35,
-                minWidth: 300,
+                flex: 1,
+                minWidth: 280,
                 sortable: true,
                 // Search covers title, company, location, department, tech stack
                 // and the plain-text description / AI summary.
@@ -3867,8 +3884,8 @@
                 headerName: 'Description',
                 field: 'job_description',
                 cellRenderer: descriptionCellRenderer,
-                flex: 1.15,
-                minWidth: 280,
+                flex: 1.6,
+                minWidth: 320,
                 sortable: false,
                 getQuickFilterText: noQuickFilter,
                 tooltipValueGetter: (params) => {
@@ -3882,6 +3899,8 @@
             },
             {
                 headerName: 'Posted', field: 'posted_date', cellRenderer: postedCellRenderer,
+                // No ATS posting date: fall back to when we first saw the listing.
+                valueGetter: (params) => params.data?.posted_date || params.data?.listed_since || null,
                 width: 118, minWidth: 112, sortable: true, sort: 'desc', suppressSizeToFit: true,
                 getQuickFilterText: noQuickFilter,
                 comparator: (a, b) => (parseApiDate(a)?.getTime() ?? 0) - (parseApiDate(b)?.getTime() ?? 0)
@@ -4032,6 +4051,8 @@
             if (s.excludeGovt) params.set('xgov', '1');
             if (s.excludeCitizenship) params.set('xcit', '1');
             if (s.excludeNoDesc) params.set('xdesc', '1');
+            if (document.getElementById('exclude-unknown-country').checked) params.set('xunk', '1');
+            if (!document.getElementById('exclude-evergreen').checked) params.set('old', '1');
             const qs = params.toString();
             const url = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`;
             try { history.replaceState(null, '', url); } catch (e) {}
@@ -4063,6 +4084,8 @@
             document.getElementById('exclude-govt').checked = params.get('xgov') === '1';
             document.getElementById('exclude-citizenship').checked = params.get('xcit') === '1';
             document.getElementById('exclude-no-desc').checked = params.get('xdesc') === '1';
+            document.getElementById('exclude-unknown-country').checked = params.get('xunk') === '1';
+            document.getElementById('exclude-evergreen').checked = params.get('old') !== '1';
             return locationFromUrl;
         }
 
@@ -4076,6 +4099,8 @@
             'europe': ['europe'],
             'india': ['india'],
         };
+        // ISO-2 sent as ?country= (Europe spans many countries: let the backend use the profile country).
+        const HOME_COUNTRY_CODES = { 'united states': 'US', 'canada': 'CA', 'uk': 'GB', 'india': 'IN' };
         let homeLocation = 'united states';
         let profileCountry = '';
 
@@ -4256,6 +4281,9 @@
             document.getElementById('exclude-govt').addEventListener('change', onClientFilterChange);
             document.getElementById('exclude-citizenship').addEventListener('change', onClientFilterChange);
             document.getElementById('exclude-no-desc').addEventListener('change', onClientFilterChange);
+            // Country confirmation and long-listed postings are filtered by the API.
+            document.getElementById('exclude-unknown-country').addEventListener('change', onServerFilterChange);
+            document.getElementById('exclude-evergreen').addEventListener('change', onServerFilterChange);
 
             document.getElementById('applied-toggle').addEventListener('click', () => setViewMode(viewMode === 'applied' ? 'normal' : 'applied'));
             document.getElementById('hidden-toggle').addEventListener('click', () => setViewMode(viewMode === 'hidden' ? 'normal' : 'hidden'));
@@ -4327,6 +4355,12 @@
             if (document.getElementById('exclude-no-desc').checked) {
                 tags.push({ text: 'Excluding no description', clear: () => { document.getElementById('exclude-no-desc').checked = false; onClientFilterChange(); } });
             }
+            if (document.getElementById('exclude-unknown-country').checked) {
+                tags.push({ text: 'Location confirmed only', clear: () => { document.getElementById('exclude-unknown-country').checked = false; onServerFilterChange(); } });
+            }
+            if (!document.getElementById('exclude-evergreen').checked) {
+                tags.push({ text: 'Including long-listed postings', clear: () => { document.getElementById('exclude-evergreen').checked = true; onServerFilterChange(); } });
+            }
 
             if (selectedCompanies.size > 0) {
                 const label = selectedCompanies.size === 1 ? `Company: ${[...selectedCompanies][0]}` : `${selectedCompanies.size} companies`;
@@ -4365,6 +4399,8 @@
             document.getElementById('exclude-govt').checked = false;
             document.getElementById('exclude-citizenship').checked = false;
             document.getElementById('exclude-no-desc').checked = false;
+            document.getElementById('exclude-unknown-country').checked = false;
+            document.getElementById('exclude-evergreen').checked = true;
             selectedCompanies.clear();
             syncCompanyButtons();
             currentRole = '';
@@ -4552,6 +4588,12 @@
                     posted_within_hours: String(timeRangeHours),
                     description_chars: '20000'
                 });
+                // Only jobs in the viewer's country (the backend falls back to the
+                // profile country, then US, when this is omitted).
+                if (HOME_COUNTRY_CODES[homeLocation]) query.set('country', HOME_COUNTRY_CODES[homeLocation]);
+                if (document.getElementById('exclude-unknown-country').checked) query.set('confirmed_only', 'true');
+                // Always explicit: the API's default differs for admins (shown) and users (hidden).
+                query.set('include_evergreen', document.getElementById('exclude-evergreen').checked ? 'false' : 'true');
                 if (currentRole) {
                     query.set('role', currentRole);
                     query.set('min_score', String(minimumScore));
