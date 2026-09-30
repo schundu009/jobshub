@@ -5,7 +5,7 @@ from scrapers.custom.remaining_scrapers import GreenhouseMixin
 from scrapers.registry import ScraperRegistry
 
 
-# DISABLED: board dead as of 2026-09-29; new ATS unknown
+# DISABLED: no public job board (verified 2026-09-29)
 @ScraperRegistry.register(category="other")
 class ContextualAIScraper(GreenhouseMixin, HTTPScraper):
     """Scraper for ContextualAI careers (Greenhouse)."""
@@ -16,7 +16,10 @@ class ContextualAIScraper(GreenhouseMixin, HTTPScraper):
         careers_url="https://contextual.ai/careers/",
         scraper_type=ScraperType.HTTP,
         enabled=False,
-        disabled_reason="board dead as of 2026-09-29; new ATS unknown",
+        disabled_reason=(
+            "No public job board as of 2026-09-29: contextual.ai/careers#open-roles lists no "
+            "roles and references no ATS; Greenhouse/Ashby (incl. GraphQL)/Lever boards all 404"
+        ),
         rate_limit=30,
         max_pages=10,
     )

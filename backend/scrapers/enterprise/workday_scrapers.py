@@ -18,13 +18,6 @@ from scrapers.custom.remaining_scrapers import SmartRecruitersMixin, WorkdayMixi
 # Retail
 # ---------------------------------------------------------------------------
 
-# DISABLED: board dead as of 2026-09-29; Workday tenant gone; careers.walmart.com is a custom site - no mixin
-@ScraperRegistry.register(category="enterprise")
-class WalmartWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="walmart", company_name="Walmart", careers_url="https://walmart.wd5.myworkdayjobs.com/WalmartExternal", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; Workday tenant gone; careers.walmart.com is a custom site - no mixin")
-    API_URL = "https://walmart.wd5.myworkdayjobs.com/wday/cxs/walmart/walmartexternal/jobs"
-
-
 @ScraperRegistry.register(category="enterprise")
 class TargetWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="target", company_name="Target", careers_url="https://target.wd5.myworkdayjobs.com/targetcareers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
@@ -58,20 +51,6 @@ class GapWorkdayScraper(WorkdayMixin, HTTPScraper):
     API_URL = "https://gapinc.wd1.myworkdayjobs.com/wday/cxs/gapinc/GAPINC/jobs"
 
 
-# DISABLED: board dead as of 2026-09-29; moved to Avature - no mixin
-@ScraperRegistry.register(category="enterprise")
-class LululemonWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="lululemon", company_name="Lululemon", careers_url="https://lululemon.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to Avature - no mixin")
-    API_URL = "https://lululemon.wd1.myworkdayjobs.com/wday/cxs/lululemon/external/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; Radancy/Paradox site, no Workday board - no mixin
-@ScraperRegistry.register(category="enterprise")
-class ChipotleWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="chipotle", company_name="Chipotle", careers_url="https://chipotle.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; Radancy/Paradox site, no Workday board - no mixin")
-    API_URL = "https://chipotle.wd1.myworkdayjobs.com/wday/cxs/chipotle/external/jobs"
-
-
 # ---------------------------------------------------------------------------
 # Tech & Media
 # ---------------------------------------------------------------------------
@@ -86,13 +65,6 @@ class AdobeWorkdayScraper(WorkdayMixin, HTTPScraper):
 class BroadcomWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="broadcom", company_name="Broadcom", careers_url="https://broadcom.wd1.myworkdayjobs.com/External_Career", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/external_career/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; moved to Eightfold (explore.jobs.netflix.net) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class NetflixWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="netflix", company_name="Netflix", careers_url="https://netflix.wd1.myworkdayjobs.com/Netflix", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to Eightfold (explore.jobs.netflix.net) - no mixin")
-    API_URL = "https://netflix.wd1.myworkdayjobs.com/wday/cxs/netflix/netflix/jobs"
 
 
 @ScraperRegistry.register(category="enterprise")
@@ -156,20 +128,6 @@ class PwCWorkdayScraper(WorkdayMixin, HTTPScraper):
 class DeloitteWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="deloitte", company_name="Deloitte", careers_url="https://deloitteie.wd3.myworkdayjobs.com/Experienced_Professionals", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://deloitteie.wd3.myworkdayjobs.com/wday/cxs/deloitteie/experienced_professionals/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; new ATS unknown
-@ScraperRegistry.register(category="enterprise")
-class CognizantWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="cognizant", company_name="Cognizant", careers_url="https://cognizant.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; new ATS unknown")
-    API_URL = "https://cognizant.wd1.myworkdayjobs.com/wday/cxs/cognizant/external/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; own job API (cg-jobstream-api) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class CapgeminiWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="capgemini", company_name="Capgemini", careers_url="https://capgemini.wd3.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; own job API (cg-jobstream-api) - no mixin")
-    API_URL = "https://capgemini.wd3.myworkdayjobs.com/wday/cxs/capgemini/external/jobs"
 
 
 # Site name fixed (verified 2026-09-29)
@@ -239,13 +197,6 @@ class PNCWorkdayScraper(WorkdayMixin, HTTPScraper):
     API_URL = "https://pnc.wd5.myworkdayjobs.com/wday/cxs/pnc/external/jobs"
 
 
-# DISABLED: board dead as of 2026-09-29; moved to iCIMS (career-schwab.icims.com) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class SchwabWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="schwab", company_name="Charles Schwab", careers_url="https://schwab.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to iCIMS (career-schwab.icims.com) - no mixin")
-    API_URL = "https://schwab.wd1.myworkdayjobs.com/wday/cxs/schwab/external/jobs"
-
-
 # DISABLED: board dead as of 2026-09-29; Discover merged into Capital One (see capitalone scraper)
 @ScraperRegistry.register(category="enterprise")
 class DiscoverWorkdayScraper(WorkdayMixin, HTTPScraper):
@@ -258,13 +209,6 @@ class DiscoverWorkdayScraper(WorkdayMixin, HTTPScraper):
 class FifthThirdWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="fifththird", company_name="Fifth Third Bank", careers_url="https://fifththird.wd5.myworkdayjobs.com/53careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://fifththird.wd5.myworkdayjobs.com/wday/cxs/fifththird/53careers/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; Workday tenant key.wd5 exists but public site name unknown
-@ScraperRegistry.register(category="enterprise")
-class KeyBankWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="keybank", company_name="KeyBank", careers_url="https://keybank.wd5.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; Workday tenant key.wd5 exists but public site name unknown")
-    API_URL = "https://keybank.wd5.myworkdayjobs.com/wday/cxs/keybank/external/jobs"
 
 
 # Site name fixed (verified 2026-09-29)
@@ -293,13 +237,6 @@ class HuntingtonWorkdayScraper(WorkdayMixin, HTTPScraper):
 class FiservWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="fiserv", company_name="Fiserv", careers_url="https://fiserv.wd5.myworkdayjobs.com/EXT", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://fiserv.wd5.myworkdayjobs.com/wday/cxs/fiserv/EXT/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; new ATS unknown
-@ScraperRegistry.register(category="enterprise")
-class FranklinTempletonWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="franklintempleton", company_name="Franklin Templeton", careers_url="https://franklintempleton.wd5.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; new ATS unknown")
-    API_URL = "https://franklintempleton.wd5.myworkdayjobs.com/wday/cxs/franklintempleton/external/jobs"
 
 
 # Site name fixed (verified 2026-09-29)
@@ -420,20 +357,6 @@ class DaVitaWorkdayScraper(WorkdayMixin, HTTPScraper):
     API_URL = "https://davita.wd1.myworkdayjobs.com/wday/cxs/davita/DKC_External/jobs"
 
 
-# DISABLED: board dead as of 2026-09-29; moved to Taleo (uhg.taleo.net) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class OptumWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="optum", company_name="Optum", careers_url="https://optum.wd5.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to Taleo (uhg.taleo.net) - no mixin")
-    API_URL = "https://optum.wd5.myworkdayjobs.com/wday/cxs/optum/external/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; moved to BrassRing - no mixin
-@ScraperRegistry.register(category="enterprise")
-class WalgreensWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="walgreens", company_name="Walgreens", careers_url="https://walgreens.wd5.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to BrassRing - no mixin")
-    API_URL = "https://walgreens.wd5.myworkdayjobs.com/wday/cxs/walgreens/external/jobs"
-
-
 # ---------------------------------------------------------------------------
 # Defense & Aerospace
 # ---------------------------------------------------------------------------
@@ -456,13 +379,6 @@ class LeidosWorkdayScraper(WorkdayMixin, HTTPScraper):
     API_URL = "https://leidos.wd5.myworkdayjobs.com/wday/cxs/leidos/external/jobs"
 
 
-# DISABLED: board dead as of 2026-09-29; moved to BrassRing/Phenom (jobs.baesystems.com) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class BAEWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="bae", company_name="BAE Systems", careers_url="https://bae.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to BrassRing/Phenom (jobs.baesystems.com) - no mixin")
-    API_URL = "https://bae.wd1.myworkdayjobs.com/wday/cxs/bae/external/jobs"
-
-
 # ---------------------------------------------------------------------------
 # Energy & Industrial
 # ---------------------------------------------------------------------------
@@ -471,13 +387,6 @@ class BAEWorkdayScraper(WorkdayMixin, HTTPScraper):
 class ChevronWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="chevron", company_name="Chevron", careers_url="https://chevron.wd5.myworkdayjobs.com/jobs", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://chevron.wd5.myworkdayjobs.com/wday/cxs/chevron/jobs/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; moved to SuccessFactors (jobs.exxonmobil.com) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class ExxonMobilWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="exxonmobil", company_name="ExxonMobil", careers_url="https://exxonmobil.wd5.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to SuccessFactors (jobs.exxonmobil.com) - no mixin")
-    API_URL = "https://exxonmobil.wd5.myworkdayjobs.com/wday/cxs/exxonmobil/external/jobs"
 
 
 # Site name fixed (verified 2026-09-29)
@@ -622,43 +531,15 @@ class ATTWorkdayScraper(WorkdayMixin, HTTPScraper):
 # Real Estate & Construction
 # ---------------------------------------------------------------------------
 
-# DISABLED: board dead as of 2026-09-29; only internal Workday (myworkday.com/lennar); new ATS unknown
-@ScraperRegistry.register(category="enterprise")
-class LennarWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="lennar", company_name="Lennar Homes", careers_url="https://lennar.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; only internal Workday (myworkday.com/lennar); new ATS unknown")
-    API_URL = "https://lennar.wd1.myworkdayjobs.com/wday/cxs/lennar/external/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; Workday search requires auth (401); new ATS unknown
-@ScraperRegistry.register(category="enterprise")
-class TollBrothersWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="tollbrothers", company_name="Toll Brothers", careers_url="https://tollbrothers.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; Workday search requires auth (401); new ATS unknown")
-    API_URL = "https://tollbrothers.wd1.myworkdayjobs.com/wday/cxs/tollbrothers/external/jobs"
-
-
 # ---------------------------------------------------------------------------
 # European / Global
 # ---------------------------------------------------------------------------
-
-# DISABLED: board dead as of 2026-09-29; moved to Eightfold (jobs.vodafone.com) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class VodafoneWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="vodafone", company_name="Vodafone", careers_url="https://vodafone.wd3.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to Eightfold (jobs.vodafone.com) - no mixin")
-    API_URL = "https://vodafone.wd3.myworkdayjobs.com/wday/cxs/vodafone/external/jobs"
-
 
 # Site name fixed (verified 2026-09-29)
 @ScraperRegistry.register(category="enterprise")
 class UnileverWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="unilever", company_name="Unilever", careers_url="https://unilever.wd3.myworkdayjobs.com/Unilever_Experienced_Professionals", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://unilever.wd3.myworkdayjobs.com/wday/cxs/unilever/Unilever_Experienced_Professionals/jobs"
-
-
-# DISABLED: board dead as of 2026-09-29; moved to Avature (jobs.siemens.com) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class SiemensWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="siemens", company_name="Siemens", careers_url="https://siemens.wd1.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to Avature (jobs.siemens.com) - no mixin")
-    API_URL = "https://siemens.wd1.myworkdayjobs.com/wday/cxs/siemens/external/jobs"
 
 
 # Not Workday: moved to SmartRecruiters 'BoschGroup' (verified 2026-09-29)
@@ -689,9 +570,3 @@ class BPWorkdayScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="bp", company_name="BP", careers_url="https://bpinternational.wd3.myworkdayjobs.com/bpCareers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20)
     API_URL = "https://bpinternational.wd3.myworkdayjobs.com/wday/cxs/bpinternational/bpCareers/jobs"
 
-
-# DISABLED: board dead as of 2026-09-29; moved to Avature/Phenom (dpdhlgroup.avature.net) - no mixin
-@ScraperRegistry.register(category="enterprise")
-class DHLWorkdayScraper(WorkdayMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="dhl", company_name="DHL", careers_url="https://dhl.wd3.myworkdayjobs.com/External", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=20, enabled=False, disabled_reason="board dead as of 2026-09-29; moved to Avature/Phenom (dpdhlgroup.avature.net) - no mixin")
-    API_URL = "https://dhl.wd3.myworkdayjobs.com/wday/cxs/dhl/external/jobs"

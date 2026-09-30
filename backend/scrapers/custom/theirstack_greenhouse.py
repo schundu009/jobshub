@@ -1,7 +1,7 @@
 """IT company scrapers discovered via TheirStack API - Greenhouse."""
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
 from scrapers.registry import ScraperRegistry
-from scrapers.custom.remaining_scrapers import GreenhouseMixin
+from scrapers.custom.remaining_scrapers import GreenhouseMixin, WorkdayMixin
 
 
 # GreenhouseMixin is shared with remaining_scrapers.py; it honors the
@@ -63,11 +63,11 @@ class CelonisScraper(GreenhouseMixin, HTTPScraper):
     config = ScraperConfig(company_slug="celonis", company_name="Celonis", careers_url="https://celonis.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://boards-api.greenhouse.io/v1/boards/celonis/jobs"
 
-# board dead as of 2026-09-29; new ATS unknown
+# Moved to Workday (unitytech.wd1 / Unity) (verified 2026-09-29)
 @ScraperRegistry.register(category="custom")
-class UnityTechnologiesScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="unity3d", company_name="Unity Technologies", careers_url="https://unity3d.com/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10, enabled=False, disabled_reason="board dead as of 2026-09-29; new ATS unknown")
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/unity3d/jobs"
+class UnityTechnologiesScraper(WorkdayMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="unity3d", company_name="Unity Technologies", careers_url="https://unitytech.wd1.myworkdayjobs.com/Unity", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://unitytech.wd1.myworkdayjobs.com/wday/cxs/unitytech/Unity/jobs"
 
 @ScraperRegistry.register(category="custom")
 class PureStorageScraper(GreenhouseMixin, HTTPScraper):

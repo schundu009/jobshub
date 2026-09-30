@@ -344,11 +344,11 @@ class KLAScraper(WorkdayMixin, HTTPScraper):
     config = ScraperConfig(company_slug="kla", company_name="KLA", careers_url="https://kla.wd1.myworkdayjobs.com/Search", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
     API_URL = "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs"
 
-# board dead as of 2026-09-29; new ATS unknown
+# Moved to Ashby (aurora-operations-inc) (verified 2026-09-29)
 @ScraperRegistry.register(category="custom")
-class AuroraScraper(GreenhouseMixin, HTTPScraper):
-    config = ScraperConfig(company_slug="aurora", company_name="Aurora", careers_url="https://aurora.tech/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10, enabled=False, disabled_reason="board dead as of 2026-09-29; new ATS unknown")
-    API_URL = "https://boards-api.greenhouse.io/v1/boards/auroradriver/jobs"
+class AuroraScraper(AshbyMixin, HTTPScraper):
+    config = ScraperConfig(company_slug="aurora", company_name="Aurora", careers_url="https://aurora.tech/careers", scraper_type=ScraperType.HTTP, rate_limit=30, max_pages=10)
+    API_URL = "https://api.ashbyhq.com/posting-api/job-board/aurora-operations-inc"
 
 @ScraperRegistry.register(category="custom")
 class ZscalerScraper(GreenhouseMixin, HTTPScraper):
