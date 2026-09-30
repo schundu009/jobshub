@@ -10,11 +10,19 @@ Overrides:
 - ?all=true → return all jobs (no relevance filtering)
 - ?role=backend → preview relevance for a specific role
 - ?min_score=40 → filter by minimum relevance score
+
+Full-time jobs page (cariara.com/jobs/firm):
+- q / location / work_type / salary_min+salary_max / company / employment_type are
+  applied in SQL and named in the response's applied_filters
+- sort=match|recent, skills, seniority, min_match switch scoring to
+  services.firm_matching (match_score + match_reasons per job, title and tech stack
+  only); the scored list is cached so paging does not re-score
+- GET /api/jobs/facets: filter counts
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_, and_, not_, func
+from sqlalchemy.orm import Session, joinedload, load_only
+from sqlalchemy import or_, and_, not_, func, select, cast, String
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 from typing import Optional, List
 import re
@@ -29,6 +37,7 @@ from collections import defaultdict, deque
 from database import get_db
 from models import Job, Company, User, RoleProfile, JobRelevanceScore
 from services.job_location import country_filter, from_country_codes, normalize_country
+from services import firm_matching as fm
 
 # Contract roles live in contract_jobs and are served by /api/contracts. Direct-hire
 # temporary/seasonal roles stay in jobs (employment_type "temporary") and are shown.
@@ -62,6 +71,7 @@ except Exception:
 
 MAX_SCORING_CANDIDATES = 3000  # most recent title-matched jobs scored per request
 CACHE_TTL_JOBS = 300  # Cache job lists for 5 minutes (scoring is expensive)
+MIN_ANNUAL_SALARY = 10000  # salary filters ignore pay figures below this (hourly / monthly)
 
 
 def _apply_title_filter(query, role_profiles: List[dict]):
@@ -367,7 +377,7 @@ def _effective_cutoff_filter(cutoff: datetime):
 
 def job_to_response(
     job: Job,
-    relevance: Optional[RelevanceResult] = None,
+    relevance=None,  # RelevanceResult or its response dict
     include_description: bool = False,
     description_chars: Optional[int] = None,
 ) -> dict:
@@ -398,6 +408,7 @@ def job_to_response(
         "job_url": job.job_url,
         "ai_summary": job.ai_summary,
         "ai_tech_stack": job.ai_tech_stack,
+        "work_type": job.work_type,
         **freshness_fields(job),
     }
 
@@ -409,18 +420,198 @@ def job_to_response(
             result["job_description"] = decode_job_description(job.job_description)
 
     if relevance:
-        result["relevance"] = {
-            "score": relevance.relevance_score,
-            "is_relevant": relevance.is_relevant,
-            "title_matches": relevance.matched_title_patterns[:3],
-            "keyword_matches": relevance.matched_keywords[:5],
-            "explanation": relevance.explanation
-        }
+        result["relevance"] = relevance if isinstance(relevance, dict) else _relevance_dict(relevance)
 
     return result
 
 
+def _relevance_dict(relevance: RelevanceResult) -> dict:
+    return {
+        "score": relevance.relevance_score,
+        "is_relevant": relevance.is_relevant,
+        "title_matches": relevance.matched_title_patterns[:3],
+        "keyword_matches": relevance.matched_keywords[:5],
+        "explanation": relevance.explanation
+    }
+
+
 # ============== Endpoints ==============
+
+def _csv(value: Optional[str], limit: int = 50) -> List[str]:
+    out: List[str] = []
+    for part in (value or "").split(","):
+        part = part.strip()
+        if part and part not in out:
+            out.append(part)
+    return out[:limit]
+
+
+def _like_pattern(token: str) -> str:
+    esc = token.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{esc}%"
+
+
+def _contains_ci(column, token: str):
+    return func.lower(column).like(_like_pattern(token), escape="\\")
+
+
+def _matches_term(column, token: str, whole_word: bool):
+    if whole_word:
+        return func.lower(column).regexp_match(fm.word_regex(token))
+    return _contains_ci(column, token)
+
+
+def _company_ids_where(condition):
+    return Job.company_id.in_(select(Company.id).where(condition))
+
+
+def _search_condition(q: str, include_description: bool):
+    """Every word of q in title / company / department / tech stack (/ description)."""
+    per_term = []
+    for token, whole in fm.search_terms(q):
+        fields = [
+            _matches_term(Job.title, token, whole),
+            _matches_term(Job.department, token, whole),
+            _matches_term(cast(Job.ai_tech_stack, String), token, whole),
+            _company_ids_where(_matches_term(Company.name, token, whole)),
+        ]
+        if include_description:
+            fields.append(_matches_term(Job.job_description, token, whole))
+        per_term.append(or_(*fields))
+    return and_(*per_term) if per_term else None
+
+
+def _firm_filter_conditions(
+    q: Optional[str], q_description: bool, location: Optional[str], work_type: Optional[str],
+    salary_min: Optional[int], salary_max: Optional[int], company: Optional[str], employment_type: Optional[str],
+):
+    """SQL conditions for the full-time page's filters, and the names of the ones applied."""
+    conds, applied = [], []
+    if q and q.strip():
+        cond = _search_condition(q, q_description)
+        if cond is not None:
+            conds.append(cond)
+            applied.append("q")
+    if location and location.strip():
+        aliases = fm.resolve_location(location)
+        if aliases:
+            conds.append(or_(*[_contains_ci(Job.location, a) for a in aliases]))
+        else:
+            conds.append(_contains_ci(Job.location, location.strip()))
+        applied.append("location")
+    types = [t for t in (x.lower() for x in _csv(work_type)) if t in fm.WORK_TYPES]
+    if types:
+        conds.append(Job.work_type.in_(types))
+        applied.append("work_type")
+    if salary_min or salary_max:
+        lo = func.coalesce(Job.salary_min, Job.salary_max)
+        hi = func.coalesce(Job.salary_max, Job.salary_min)
+        # a job without pay is out once a salary filter is on; values under 10k are not annual
+        conds.append(and_(hi.isnot(None), hi >= MIN_ANNUAL_SALARY))
+        if salary_min:
+            conds.append(hi >= salary_min)
+        if salary_max:
+            conds.append(lo <= salary_max)
+        applied.append("salary")
+    names = [n.lower() for n in _csv(company)]
+    if names:
+        conds.append(_company_ids_where(func.lower(Company.name).in_(names)))
+        applied.append("company")
+    emp = [t for t in (fm.normalize_employment(x) for x in _csv(employment_type)) if t in fm.EMPLOYMENT_ALIASES]
+    if emp:
+        raw = sorted({v for t in emp for v in fm.EMPLOYMENT_ALIASES[t]})
+        cond = Job.employment_type.in_(raw)
+        if "full_time" in emp:  # unlabelled postings count as full-time
+            cond = or_(cond, Job.employment_type.is_(None), Job.employment_type == "")
+        conds.append(cond)
+        applied.append("employment_type")
+    return conds, applied
+
+
+def _base_conditions(
+    current_user: Optional[User], *, status=None, source=None, active_only=True, company_id=None,
+    include_evergreen=False, viewer_country=None, confirmed_only=False, posted_within_hours=None,
+):
+    conds = []
+    if current_user:
+        conds.append(or_(Job.user_id == None, Job.user_id == current_user.id))  # noqa: E711
+    else:
+        conds.append(Job.user_id == None)  # noqa: E711
+    if status:
+        conds.append(Job.status == status)
+    if source:
+        conds.append(Job.source == source)
+    if active_only:
+        conds.append(Job.is_active == True)  # noqa: E712
+    if company_id:
+        conds.append(Job.company_id == company_id)
+    conds.append(_not_contract())
+    if not include_evergreen:
+        conds.append(_not_evergreen())
+    visibility = _country_visibility(viewer_country, confirmed_only, current_user)
+    if visibility is not None:
+        conds.append(visibility)
+    if posted_within_hours:
+        conds.append(_effective_cutoff_filter(datetime.utcnow() - timedelta(hours=posted_within_hours)))
+    return conds
+
+
+def _recent_order():
+    return (Job.effective_posted_at.desc().nullslast(), Job.posted_date.desc().nullslast(),
+            Job.created_at.desc(), Job.id.desc())
+
+
+def _title_prefilter(word_sets):
+    """Title contains every word of at least one set (superset of what the matcher scores)."""
+    return or_(*[and_(*[_contains_ci(Job.title, w) for w in ws]) for ws in word_sets])
+
+
+def _skills_prefilter(skills: List[str]):
+    spellings = sorted({sp for s in skills for sp in fm.skill_spellings(s)})
+    stack = cast(Job.ai_tech_stack, String)
+    return or_(*[or_(_contains_ci(Job.title, sp), _contains_ci(stack, sp)) for sp in spellings])
+
+
+def _stack_list(value) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (ValueError, TypeError):
+            return [s.strip() for s in value.split(",") if s.strip()]
+    if isinstance(value, dict):
+        value = [v for vs in value.values() for v in (vs if isinstance(vs, list) else [vs])]
+    if isinstance(value, list):
+        return [str(v) for v in value if isinstance(v, (str, int, float))]
+    return []
+
+
+def _ranked_get(key: str):
+    hit = fm.ttl_cache.get(key)
+    if hit is not None:
+        return hit
+    hit = _cache_get(key)
+    if hit is not None:
+        fm.ttl_cache.set(key, hit)
+    return hit
+
+
+def _ranked_set(key: str, value) -> None:
+    fm.ttl_cache.set(key, value, CACHE_TTL_JOBS)
+    _cache_set(key, value, CACHE_TTL_JOBS)
+
+
+def _page(items: list, offset: int, limit: Optional[int]) -> list:
+    return items[offset:offset + limit] if limit else items[offset:]
+
+
+def _jobs_by_ids(db: Session, ids: List[int]) -> dict:
+    if not ids:
+        return {}
+    rows = db.query(Job).options(joinedload(Job.company)).filter(Job.id.in_(ids)).all()
+    return {j.id: j for j in rows}
+
 
 @router.get("")
 def get_jobs(
@@ -434,11 +625,27 @@ def get_jobs(
     country: Optional[str] = Query(None, description="Viewer country ISO-2 (ALL = every country). Default: your profile country, else US; admins: all"),
     confirmed_only: bool = Query(False, description="Exclude jobs whose location country is unknown"),
 
+    # Full-time page filters (named in the response's applied_filters when used)
+    q: Optional[str] = Query(None, max_length=200, description="Search: every word must match title, company, department or tech stack (words of 3 letters or fewer match whole words)"),
+    q_description: bool = Query(False, description="Also search the job description with q"),
+    location: Optional[str] = Query(None, max_length=200, description="US metro label or key (e.g. 'San Francisco Bay Area', 'sf') matched by its cities, else a location substring"),
+    work_type: Optional[str] = Query(None, description="Comma-separated: remote,hybrid,onsite"),
+    salary_min: Optional[int] = Query(None, ge=0, description="Annual USD: keep jobs whose pay range reaches at least this"),
+    salary_max: Optional[int] = Query(None, ge=0, description="Annual USD: keep jobs whose pay range starts at or below this"),
+    company: Optional[str] = Query(None, max_length=2000, description="Comma-separated company names (case-insensitive exact)"),
+    employment_type: Optional[str] = Query(None, description="Comma-separated: full_time,part_time,internship,temporary (unlabelled = full_time)"),
+
     # Role-aware filtering (THE KEY FEATURE)
     role: Optional[str] = Query(None, description="Single role profile slug (devops, backend, frontend, etc.)"),
     roles: Optional[str] = Query(None, description="Comma-separated role slugs for multi-role filtering (e.g., 'devops,sre,backend')"),
     all: bool = Query(False, description="Return ALL jobs without relevance filtering"),
-    min_score: Optional[float] = Query(None, description="Minimum relevance score (0-100)"),
+    min_score: Optional[float] = Query(None, description="Minimum relevance score (0-100); with sort/skills/seniority: minimum match_score"),
+
+    # Skills-based matching (match_score / match_reasons); any of these switches the list to it
+    skills: Optional[str] = Query(None, max_length=2000, description="Comma-separated candidate skills"),
+    seniority: Optional[str] = Query(None, max_length=40, description="junior | mid | senior | lead | principal"),
+    sort: Optional[str] = Query(None, description="match (best match first) | recent (newest first)"),
+    min_match: Optional[int] = Query(None, ge=0, le=100, description="Minimum match_score (overrides min_score)"),
 
     # Pagination
     limit: Optional[int] = Query(None, ge=1, description="Maximum results to return (no limit if not specified)"),
@@ -463,44 +670,59 @@ def get_jobs(
     DEFAULT BEHAVIOR:
     - Returns only jobs relevant to the current user's role
     - Sorted by relevance score (highest first)
-    - Limited to top 50 jobs
 
     PARAMETERS:
-    - role: Override role profile for relevance scoring (e.g., "devops", "backend")
+    - role/roles: role profiles for relevance scoring (e.g., "devops", "backend")
     - all: Set to true to return ALL jobs without relevance filtering
     - min_score: Filter to jobs with at least this relevance score
-    - no_cache: Bypass Redis cache
+    - no_cache: Bypass cache
+    - q, location, work_type, salary_min/salary_max, company, employment_type: server-side filters,
+      listed in the response's applied_filters
+    - sort=match|recent, skills, seniority, min_match: skills-based matching; each job then carries
+      match_score (0-100) and match_reasons instead of the description-keyword relevance
 
     EXAMPLE QUERIES:
-    - GET /api/jobs → Top 50 relevant jobs for user's role
-    - GET /api/jobs?role=devops → Preview relevance for DevOps role
-    - GET /api/jobs?all=true → All jobs without filtering
-    - GET /api/jobs?min_score=50 → Only highly relevant jobs
+    - GET /api/jobs?all=true&sort=recent&work_type=remote → newest remote jobs
+    - GET /api/jobs?roles=backend&skills=go,k8s&sort=match&min_match=60 → strong matches first
+    - GET /api/jobs?role=devops → legacy description-keyword relevance for DevOps
     """
+    if sort is not None:
+        sort = sort.strip().lower() or None
+        if sort not in (None, "match", "recent"):
+            raise HTTPException(status_code=400, detail="sort must be 'match' or 'recent'")
     viewer_country = resolve_viewer_country(country, current_user)
     if include_evergreen is None:
         include_evergreen = bool(current_user and current_user_is_admin(current_user))
 
-    # Generate cache key for this query
+    role_slugs = _csv(roles) if roles else ([role.strip()] if role and role.strip() else [])
+    # sort / skills / seniority / min_match = the full-time page's skills-based matching
+    firm_mode = bool(sort or (skills and skills.strip()) or (seniority and seniority.strip()) or min_match is not None)
+
+    filter_conds, applied_filters = _firm_filter_conditions(
+        q, q_description, location, work_type, salary_min, salary_max, company, employment_type)
+
+    # Everything that decides which jobs match and how they rank (not the page window)
     user_role = roles or role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
     score_preferences = None
-    if current_user and not all:
+    if current_user and not all and not firm_mode:
         score_preferences = hashlib.sha256(json.dumps({
             "user_id": current_user.id,
             "custom_preferences": current_user.custom_preferences or {},
             "target_seniority": current_user.target_seniority,
         }, sort_keys=True, default=str).encode()).hexdigest()[:16]
-    cache_key = _get_cache_key(
-        "jobs",
+    selection = dict(
         status=status, source=source, active_only=active_only, company_id=company_id,
         posted_within_hours=posted_within_hours, role=user_role, all_jobs=all,
-        include_evergreen=include_evergreen, v="fresh2",
+        include_evergreen=include_evergreen, v="firm1",
         country=viewer_country or "ALL", confirmed_only=confirmed_only,
-        score_preferences=score_preferences,
-        min_score=min_score, limit=limit, offset=offset,
+        score_preferences=score_preferences, min_score=min_score,
         viewer=current_user.id if current_user else None,
-        description_chars=description_chars,
+        q=q, q_description=q_description, location=location, work_type=work_type,
+        salary_min=salary_min, salary_max=salary_max, company=company, employment_type=employment_type,
+        skills=skills, seniority=seniority, sort=sort, min_match=min_match, firm=firm_mode,
     )
+    cache_key = _get_cache_key("jobs", limit=limit, offset=offset, description_chars=description_chars, **selection)
+    ranked_key = _get_cache_key("jobs_ranked", **selection)
 
     # Try cache first (unless no_cache is set)
     if not no_cache:
@@ -508,60 +730,88 @@ def get_jobs(
         if cached:
             return cached
 
-    # Build base query with eager loading for company (avoids N+1)
-    query = db.query(Job).options(joinedload(Job.company))
+    conds = _base_conditions(
+        current_user, status=status, source=source, active_only=active_only, company_id=company_id,
+        include_evergreen=include_evergreen, viewer_country=viewer_country, confirmed_only=confirmed_only,
+        posted_within_hours=posted_within_hours,
+    ) + filter_conds
 
-    # Visibility: shared jobs (user_id IS NULL) plus the current user's own private jobs
-    if current_user:
-        query = query.filter(or_(Job.user_id == None, Job.user_id == current_user.id))
-    else:
-        query = query.filter(Job.user_id == None)
-
-    if status:
-        query = query.filter(Job.status == status)
-    if source:
-        query = query.filter(Job.source == source)
-    if active_only:
-        query = query.filter(Job.is_active == True)
-    if company_id:
-        query = query.filter(Job.company_id == company_id)
-    query = query.filter(_not_contract())
-    if not include_evergreen:
-        query = query.filter(_not_evergreen())
-    visibility = _country_visibility(viewer_country, confirmed_only, current_user)
-    if visibility is not None:
-        query = query.filter(visibility)
-
-    # Filter by listed-since date (only if posted_within_hours is specified)
-    if posted_within_hours:
-        cutoff_date = datetime.utcnow() - timedelta(hours=posted_within_hours)
-        query = query.filter(_effective_cutoff_filter(cutoff_date))
-
-    # If all=true, return without relevance scoring
-    if all:
+    def recent_listing(extra: Optional[dict] = None) -> dict:
+        query = db.query(Job).options(joinedload(Job.company)).filter(*conds)
         total = query.count()
-        q = query.order_by(Job.effective_posted_at.desc().nullslast(), Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
+        q_ = query.order_by(*_recent_order()).offset(offset)
         if limit:
-            q = q.limit(limit)
-        jobs = q.all()
+            q_ = q_.limit(limit)
         result = {
-            "jobs": [job_to_response(job, include_description=True, description_chars=description_chars) for job in jobs],
+            "jobs": [job_to_response(job, include_description=True, description_chars=description_chars) for job in q_.all()],
             "total": total,
             "relevance_filtering": False,
             "role": None,
-            "_api_version": "v2.1_with_descriptions"
+            "applied_filters": applied_filters,
+            **(extra or {}),
         }
         _cache_set(cache_key, result)
         return result
 
-    # Handle multiple roles (comma-separated) or single role
-    role_slugs = []
-    if roles:
-        role_slugs = [r.strip() for r in roles.split(',') if r.strip()]
-    elif role:
-        role_slugs = [role]
+    # If all=true, return without relevance scoring
+    if all:
+        return recent_listing({"_api_version": "v2.1_with_descriptions", "sort": "recent"} if firm_mode
+                              else {"_api_version": "v2.1_with_descriptions"})
 
-    # Get role profiles for all specified roles
+    if firm_mode:
+        profile = fm.build_profile(",".join(role_slugs), skills, seniority)
+        if not profile.active:
+            return recent_listing({"sort": "recent",
+                                   "message": "No roles or skills to match. Showing the newest jobs."})
+        threshold = float(min_match if min_match is not None else (min_score if min_score is not None else 0))
+        ranked = None if no_cache else _ranked_get(ranked_key)
+        if ranked is None:
+            cand = db.query(Job.id, Job.title, Job.ai_tech_stack).filter(*conds)
+            if profile.roles:
+                cand = cand.filter(_title_prefilter(fm.role_title_word_sets(profile.roles)))
+            elif threshold > fm.max_score_without_skills(profile):
+                cand = cand.filter(_skills_prefilter(profile.skills))
+            try:
+                rows = cand.order_by(*_recent_order()).limit(MAX_SCORING_CANDIDATES).all()
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
+            ranked = []
+            for job_id, title, stack in rows:
+                score, reasons = fm.score_job(title or "", _stack_list(stack), profile)
+                if score is not None and score >= threshold:
+                    ranked.append([job_id, score, reasons or []])
+            if sort != "recent":
+                ranked.sort(key=lambda r: -r[1])  # stable: newest first among equal scores
+            _ranked_set(ranked_key, ranked)
+        window = _page(ranked, offset, limit)
+        by_id = _jobs_by_ids(db, [r[0] for r in window])
+        out = []
+        for job_id, score, reasons in window:
+            job = by_id.get(job_id)
+            if job is None:
+                continue
+            item = job_to_response(job, include_description=True, description_chars=description_chars)
+            item["match_score"] = score
+            item["match_reasons"] = reasons
+            out.append(item)
+        result = {
+            "jobs": out,
+            "total": len(ranked),
+            "relevance_filtering": True,
+            "role": ",".join(role_slugs) or None,
+            "threshold": threshold,
+            "sort": sort or "match",
+            "applied_filters": applied_filters,
+            "match": {
+                "roles": [r.label for r in profile.roles],
+                "skills": [profile.skill_labels.get(s, s) for s in profile.skills],
+                "seniority": profile.seniority,
+            },
+        }
+        _cache_set(cache_key, result)
+        return result
+
+    # ---- Legacy description-keyword relevance (jobs-app discover) ----
     role_profiles = []
     for slug in role_slugs:
         profile = get_role_profile_for_scoring(db, slug, None)  # Get by slug, not user
@@ -576,89 +826,108 @@ def get_jobs(
 
     # If no role profile available, fall back to showing all jobs
     if not role_profiles:
-        total = query.count()
-        q = query.order_by(Job.effective_posted_at.desc().nullslast(), Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
-        if limit:
-            q = q.limit(limit)
-        jobs = q.all()
-        result = {
-            "jobs": [job_to_response(job, include_description=True, description_chars=description_chars) for job in jobs],
-            "total": total,
-            "relevance_filtering": False,
-            "role": None,
-            "message": "No role profile set. Showing all jobs. Set a role with ?role=devops or ?roles=devops,sre"
-        }
-        _cache_set(cache_key, result)
-        return result
-
-    # Apply database-level title filtering based on role patterns
-    # This dramatically reduces the number of jobs to score
-    query = _apply_title_filter(query, role_profiles)
-
-    # After title filtering, score only the most recent candidates. Scoring
-    # needs title + description, so descriptions are loaded, but capping the
-    # candidate set bounds memory/latency on broad role filters.
-    try:
-        all_jobs = query.order_by(
-            Job.effective_posted_at.desc().nullslast(),
-            Job.posted_date.desc().nullslast(),
-            Job.created_at.desc()
-        ).limit(MAX_SCORING_CANDIDATES).all()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
-
-    # Get user preferences for scoring
-    user_prefs = None
-    if current_user and current_user.custom_preferences:
-        user_prefs = {
-            **current_user.custom_preferences,
-            "target_seniority": current_user.target_seniority
-        }
+        return recent_listing({
+            "message": "No role profile set. Showing all jobs. Set a role with ?role=devops or ?roles=devops,sre"})
 
     # Get threshold - use min_score if provided, otherwise default to 70 for quality filtering
     effective_min_score = min_score if min_score is not None else 70.0
-    threshold = effective_min_score
 
-    # Score and filter jobs - use BEST score across all selected roles
-    scored_jobs = []
-    try:
-        for job in all_jobs:
-            best_result = None
-            best_score = -1
-            # Score against each role profile and keep the best
-            for role_profile in role_profiles:
-                result = compute_job_relevance(job, role_profile, user_prefs)
-                if result.relevance_score > best_score:
-                    best_score = result.relevance_score
-                    best_result = result
+    # Scored (id, relevance) list for every page of this query: paging does not re-score.
+    ranked = None if no_cache else _ranked_get(ranked_key)
+    if ranked is None:
+        user_prefs = None
+        if current_user and current_user.custom_preferences:
+            user_prefs = {
+                **current_user.custom_preferences,
+                "target_seniority": current_user.target_seniority
+            }
+        # SQL title pre-filter, then only the most recent candidates, with just the scored columns
+        cand = _apply_title_filter(db.query(Job).filter(*conds), role_profiles).options(
+            load_only(Job.id, Job.title, Job.job_description))
+        try:
+            candidates = cand.order_by(*_recent_order()).limit(MAX_SCORING_CANDIDATES).all()
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
+        ranked = []
+        try:
+            for job in candidates:
+                best_result = None
+                # Score against each role profile and keep the best
+                for role_profile in role_profiles:
+                    res = compute_job_relevance(job, role_profile, user_prefs)
+                    if best_result is None or res.relevance_score > best_result.relevance_score:
+                        best_result = res
+                if best_result and best_result.relevance_score >= effective_min_score:
+                    ranked.append([job.id, _relevance_dict(best_result)])
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Relevance scoring failed: {str(e)}")
+        finally:
+            for job in candidates:  # partial objects: never reuse them for the page
+                db.expunge(job)
+        ranked.sort(key=lambda r: r[1]["score"], reverse=True)
+        _ranked_set(ranked_key, ranked)
 
-            if best_result and best_result.relevance_score >= effective_min_score:
-                scored_jobs.append((job, best_result))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Relevance scoring failed: {str(e)}")
-
-    # Sort by relevance score descending
-    scored_jobs.sort(key=lambda x: x[1].relevance_score, reverse=True)
-
-    # Apply pagination
-    total_relevant = len(scored_jobs)
-    if limit:
-        scored_jobs = scored_jobs[offset:offset + limit]
-    elif offset:
-        scored_jobs = scored_jobs[offset:]
-
-    # Build response
-    role_name = roles or role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
-
+    window = _page(ranked, offset, limit)
+    by_id = _jobs_by_ids(db, [r[0] for r in window])
     response = {
-        "jobs": [job_to_response(job, rel, include_description=True, description_chars=description_chars) for job, rel in scored_jobs],
-        "total": total_relevant,
+        "jobs": [job_to_response(by_id[job_id], rel, include_description=True, description_chars=description_chars)
+                 for job_id, rel in window if job_id in by_id],
+        "total": len(ranked),
         "relevance_filtering": True,
-        "role": role_name,
-        "threshold": threshold
+        "role": user_role,
+        "threshold": effective_min_score,
+        "applied_filters": applied_filters,
     }
     _cache_set(cache_key, response)
     return response
+
+
+@router.get("/facets")
+def job_facets(
+    country: Optional[str] = Query(None, description="Viewer country ISO-2 (ALL = every country); default US"),
+    confirmed_only: bool = Query(False, description="Exclude jobs whose location country is unknown"),
+    include_evergreen: bool = Query(False, description="Count evergreen / long-listed postings too"),
+    db: Session = Depends(get_db),
+):
+    """Filter counts for the full-time jobs page over active shared jobs (cached 5 minutes)."""
+    viewer_country = resolve_viewer_country(country, None)
+    key = _get_cache_key("jobs_facets", country=viewer_country or "ALL", confirmed_only=confirmed_only,
+                         include_evergreen=include_evergreen, v=1)
+    cached = _ranked_get(key)
+    if cached is not None:
+        return cached
+    conds = _base_conditions(None, include_evergreen=include_evergreen, viewer_country=viewer_country,
+                             confirmed_only=confirmed_only)
+    total = db.query(func.count(Job.id)).filter(*conds).scalar() or 0
+    companies = (
+        db.query(Company.name, func.count(Job.id).label("n"))
+        .select_from(Job)
+        .join(Company, Job.company_id == Company.id)
+        .filter(*conds)
+        .group_by(Company.name)
+        .order_by(func.count(Job.id).desc(), Company.name)
+        .limit(50)
+        .all()
+    )
+    work_types = {t: 0 for t in fm.WORK_TYPES}
+    for value, n in db.query(Job.work_type, func.count(Job.id)).filter(*conds).group_by(Job.work_type).all():
+        if value in work_types:
+            work_types[value] += int(n)
+    employment = {t: 0 for t in fm.EMPLOYMENT_TYPES}
+    for value, n in db.query(Job.employment_type, func.count(Job.id)).filter(*conds).group_by(Job.employment_type).all():
+        k = fm.normalize_employment(value)
+        employment[k] = employment.get(k, 0) + int(n)
+    with_salary = db.query(func.count(Job.id)).filter(
+        *conds, or_(Job.salary_min.isnot(None), Job.salary_max.isnot(None))).scalar() or 0
+    result = {
+        "total": int(total),
+        "companies": [{"name": name, "count": int(n)} for name, n in companies if name],
+        "work_type": work_types,
+        "employment_type": employment,
+        "with_salary": int(with_salary),
+    }
+    _ranked_set(key, result)
+    return result
 
 
 @router.get("/countries")
@@ -882,14 +1151,16 @@ def list_available_roles(db: Session = Depends(get_db)):
 def get_job(
     job_id: int,
     role: Optional[str] = Query(None, description="Role to compute relevance for"),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
-    """Get a single job by ID with optional relevance scoring."""
-    job = db.query(Job).filter(
-        Job.id == job_id,
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    ).first()
+    """Get a single job by ID with optional relevance scoring.
+
+    Public for shared jobs (user_id NULL); a private job only for its owner.
+    """
+    visible = (or_(Job.user_id == current_user.id, Job.user_id == None) if current_user  # noqa: E711
+               else Job.user_id == None)  # noqa: E711
+    job = db.query(Job).filter(Job.id == job_id, visible).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
@@ -923,6 +1194,7 @@ def get_job(
         "department": job.department,
         "ai_summary": job.ai_summary,
         "ai_tech_stack": job.ai_tech_stack,
+        "work_type": job.work_type,
         **freshness_fields(job),
         "reposted_count": job.reposted_count or 0,
         "first_seen_at": job.first_seen_at,
@@ -933,7 +1205,7 @@ def get_job(
                 "interview_date": i.interview_date,
                 "interview_type": i.interview_type,
                 "outcome": i.outcome
-            } for i in job.interviews
+            } for i in (job.interviews if current_user is not None else [])
         ],
         "notes": [
             {
@@ -941,14 +1213,14 @@ def get_job(
                 "content": n.content,
                 "note_type": n.note_type,
                 "created_at": n.created_at
-            } for n in job.notes
+            } for n in (job.notes if current_user is not None else [])
         ],
         "documents": [
             {
                 "id": d.id,
                 "name": d.name,
                 "doc_type": d.doc_type
-            } for d in job.documents if d.user_id == current_user.id
+            } for d in job.documents if current_user is not None and d.user_id == current_user.id
         ]
     }
 

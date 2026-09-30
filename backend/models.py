@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Boolean, Float, JSON, Index, text
+from sqlalchemy import event, inspect as sa_inspect
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -279,6 +280,7 @@ class Job(Base):
         Index('ix_jobs_employment_type', 'employment_type'),
         Index('ix_jobs_active_effective_posted', 'is_active', 'effective_posted_at'),
         Index('ix_jobs_country_codes', 'country_codes'),
+        Index('ix_jobs_work_type', 'work_type'),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -320,6 +322,8 @@ class Job(Base):
     evergreen_reason = Column(String(40), nullable=True)  # talent_pool | long_listed | reposted
     effective_posted_at = Column(DateTime, nullable=True)  # earlier of posted_date / first_seen_at ("listed since")
     country_codes = Column(String(200), nullable=True)  # ",US,GB," (services.job_location); NULL = unknown
+    # remote | hybrid | onsite (services.firm_matching.derive_work_type, set on save); NULL = unknown
+    work_type = Column(String(10), nullable=True)
 
     owner = relationship("User", back_populates="jobs")
     company = relationship("Company", back_populates="jobs")
@@ -757,3 +761,21 @@ class AnswerBankEntry(Base):
     sensitive = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+@event.listens_for(Job, "before_insert")
+@event.listens_for(Job, "before_update")
+def _job_work_type_on_save(mapper, connection, target):
+    """Keep jobs.work_type in step with title / location / description."""
+    state = sa_inspect(target)
+    loaded = state.dict
+    if state.persistent:
+        changed = any(state.attrs[a].history.has_changes() for a in ("title", "location", "job_description"))
+        # nothing relevant changed, or the description is not loaded (never lazy-load inside a flush)
+        if not changed or "job_description" not in loaded:
+            return
+    try:
+        from services.firm_matching import derive_work_type
+        target.work_type = derive_work_type(loaded.get("title"), loaded.get("location"), loaded.get("job_description"))
+    except Exception:  # never block a save over a label
+        pass

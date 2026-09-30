@@ -758,6 +758,15 @@ def run_migrations():
             logger.warning(f"Could not add job classification columns: {e}")
             conn.rollback()
 
+        # jobs.work_type (remote / hybrid / onsite) for the full-time jobs filters
+        try:
+            from migrations.job_work_type import migrate_job_work_type
+            migrate_job_work_type(conn, commit_batches=True)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Could not add/backfill jobs.work_type: {e}")
+            conn.rollback()
+
         # Add new ingestion sources
         try:
             new_sources = [

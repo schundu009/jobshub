@@ -22,6 +22,15 @@ from services.redis_service import redis_service
 from utils.security import hash_password
 
 
+@pytest.fixture(autouse=True)
+def _clear_jobs_ranking_cache():
+    """/api/jobs keeps scored lists in an in-process cache; never let one test see another's."""
+    from services.firm_matching import clear_caches
+    clear_caches()
+    yield
+    clear_caches()
+
+
 @pytest.fixture
 def db():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
