@@ -44,9 +44,14 @@ SORTS = ("recent", "rate", "duration")
 
 # ------------------------------------------------------------------ helpers
 
+_CACHE_VERSION = 2
+
+
 def _cache_key(prefix: str, **params) -> str:
     raw = "&".join(f"{k}={v}" for k, v in sorted(params.items()) if v is not None)
-    return f"contracts:{prefix}:{hashlib.md5(raw.encode()).hexdigest()[:16]}"
+    # Bump _CACHE_VERSION whenever a response shape changes, so entries written
+    # by older code are never served.
+    return f"contracts:v{_CACHE_VERSION}:{prefix}:{hashlib.md5(raw.encode()).hexdigest()[:16]}"
 
 
 def _cache_get(key: str):

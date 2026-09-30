@@ -285,3 +285,23 @@ def test_classifier_never_raises_on_odd_input():
 ])
 def test_contract_routing(title, description, raw, staffing, expected):
     assert contract_routing(title, description, raw, staffing=staffing) == expected
+
+
+# Years of experience must never be read as a contract term.
+import pytest as _pytest
+from contracts.classifier import parse_duration_months as _dur
+
+
+@_pytest.mark.parametrize("text,known,expected", [
+    ("Requirements: 5+ years in Python and AWS", True, None),
+    ("5+ years with Kubernetes; 12 month contract", True, 12),
+    ("Duration: 1 year", True, 12),
+    ("This is a 2 year contract W2", True, 24),
+    ("1-year assignment with possible extension", True, 12),
+    ("6-12 months contract", True, 6),
+    ("Contract length: 18 months", False, 18),
+    ("Must have 10 years building distributed systems", True, None),
+    ("3+ years' experience", True, None),
+])
+def test_years_of_experience_are_not_durations(text, known, expected):
+    assert _dur(text, known) == expected

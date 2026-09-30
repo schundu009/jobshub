@@ -505,6 +505,13 @@ def parse_duration_months(text: str, contract_known: bool = False) -> Optional[i
             months = _unit_months(n, unit)
             if not (1 <= months <= 60):
                 continue
+            # "5+ years in Python" is experience, not term: years only count
+            # next to explicit contract wording ("Duration: 1 year",
+            # "2 year contract", "1-year assignment"), never on context alone.
+            if unit.lower().startswith("y") and not field and not re.match(
+                    r"\s*(long\s*)?(w-?2\s*|c2c\s*|1099\s*)?(contract|assignment|engagement|term|project|extension)\b", after, I) \
+                    and not re.search(r"\b(contract|assignment|engagement|duration|term)\s*(length|duration|of|for|is|:)?\s*(up\s+to\s+|approximately\s+|about\s+)?$", before[-30:], I):
+                continue
             if field or re.match(r"\s*(long\s*)?(w-?2\s*|c2c\s*)?(contract|assignment|engagement|contract[- ]to[- ]hire)\b", after, I):
                 prio = 0  # "Duration: 6 months", "18 month contract"
             elif re.search(r"\b(contract|assignment|engagement|duration)\b", before[-35:] + after[:25], I):
