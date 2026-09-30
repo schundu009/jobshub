@@ -440,15 +440,27 @@ class BaseScraper(ABC):
         return text if text else None
 
     def clean_html(self, html: Optional[str]) -> Optional[str]:
-        """Convert HTML to plain text."""
+        """Convert description HTML to plain text that keeps its structure:
+        headings and paragraphs on their own lines, list items as "- item".
+        (Collapsing it to one line lost every section the job page shows.)"""
         if not html:
             return None
         soup = BeautifulSoup(html, 'html.parser')
-        # Remove script and style elements
         for element in soup(['script', 'style']):
             element.decompose()
-        text = soup.get_text(separator=' ')
-        return self.clean_text(text)
+        for br in soup.find_all('br'):
+            br.replace_with('\n')
+        for li in soup.find_all('li'):
+            li.insert_before('\n- ')
+            li.insert_after('\n')
+        for block in soup.find_all(['p', 'div', 'section', 'ul', 'ol', 'tr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+            block.insert_before('\n\n')
+            block.insert_after('\n\n')
+        lines = [re.sub(r'[ \t\r\f\v\xa0]+', ' ', line).strip() for line in soup.get_text().split('\n')]
+        text = re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).strip()
+        # Consecutive list items stay on consecutive lines.
+        text = re.sub(r'(^- .*)\n\n(?=- )', r'\1\n', text, flags=re.MULTILINE)
+        return text or None
 
     def parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
         """Parse various date formats into datetime."""

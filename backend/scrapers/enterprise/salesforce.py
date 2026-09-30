@@ -172,9 +172,10 @@ class SalesforceScraper(HTTPScraper):
 
             job_info = detail.get("jobPostingInfo", {})
 
-            # Get description
+            # Keep the description HTML (like the Workday backfill and Greenhouse):
+            # flattening it lost every heading and bullet the job page shows.
             description_html = job_info.get("jobDescription", "")
-            description = html_to_text(description_html)
+            description = description_html.strip() or None
 
             # Get posted date
             posted_text = job_info.get("postedOn", "") or list_data.get("postedOn", "")
