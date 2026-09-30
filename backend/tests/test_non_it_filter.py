@@ -83,3 +83,25 @@ def test_description_backfill_skips_non_it(db, monkeypatch):
     monkeypatch.setattr(maintenance_tasks.ingestion_service, "fetch_job_description_from_url",
                         lambda u: pytest.fail("non-IT jobs must not be fetched"))
     maintenance_tasks.fetch_missing_descriptions(batch_size=5, delay_between=0)
+
+
+def test_reactivate_revives_only_recent_save_filter_false_negatives(db):
+    from scripts.reactivate_it_jobs import reactivate
+
+    since = datetime(2026, 9, 30, 4, 15)
+    after, seen = since + timedelta(hours=2), since - timedelta(hours=6)
+    rows = {
+        "fn": Job(title="Senior R&D Software Engineer, Fivetran AI", source="fivetran", is_active=False, updated_at=after, last_seen_at=seen),
+        "retail": Job(title="Store Associate", source="kohls", is_active=False, updated_at=after, last_seen_at=seen),
+        "gone": Job(title="Data Engineer", source="acme", is_active=False, updated_at=after, last_seen_at=since - timedelta(days=10)),
+        "contract": Job(title="Java Developer", source="acme", is_active=False, updated_at=after, last_seen_at=seen, employment_type="contract"),
+        "mine": Job(title="Software Engineer", source="manual", is_active=False, updated_at=after, last_seen_at=seen),
+        "before": Job(title="Platform Engineer", source="acme", is_active=False, updated_at=since - timedelta(hours=1), last_seen_at=seen),
+    }
+    db.add_all(rows.values())
+    db.commit()
+
+    assert reactivate(db, since)["reactivated"] == 1  # dry run
+    assert db.query(Job).filter(Job.is_active == True).count() == 0  # noqa: E712
+    assert reactivate(db, since, apply=True)["reactivated"] == 1
+    assert [j.title for j in db.query(Job).filter(Job.is_active == True)] == [rows["fn"].title]  # noqa: E712

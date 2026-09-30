@@ -632,3 +632,21 @@ OUT	Educator	curated
 OUT	Guest Experience Lead	curated
 OUT	Visual Merchandiser	curated
 OUT	Product Operations Educator	curated
+# 2026-09-30: false negatives found in the prod dry-run (tech head noun lost to a non-IT word elsewhere)
+IN	Senior R&D Software Engineer, Fivetran AI	prod
+IN	Staff R&D Software Engineer, Fivetran AI	prod
+IN	Software Development Engineer , Leo Commerce, Leo Commerce	prod
+IN	Application Developer-Real Estate & Facilities	prod
+IN	Staff Product Manager, Developer Experience	prod
+IN	Package Consultant-SAP NextGen Manufacturing	prod
+IN	Package Consultant-SAP IS Utilities	prod
+IN	Warehouse Mgmt. Systems (WMS) Analyst II	prod
+IN	Senior IC Validation Engineer	prod
+IN	Customer Support Engineer	prod
+IN	Senior Solution Sales Engineer - Confluent	prod
+IN	Technical Intern	prod
+OUT	KYC Analyst	curated
+OUT	Building Engineer	curated
+OUT	Cloud Account Executive	curated
+OUT	Account Manager - Salesforce	curated
+OUT	Sales Intern	curated

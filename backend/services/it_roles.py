@@ -370,6 +370,46 @@ _RULES_SRC: list[tuple[str, Optional[str], Optional[bool], str]] = [
 _RULES = [(verdict, cat, lean, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])"))
           for verdict, cat, lean, src in _RULES_SRC]
 
+# Unmistakable tech head nouns. Checked first, on the title's main segment: they
+# win over non-IT words elsewhere ("Senior R&D Software Engineer", "Application
+# Developer-Real Estate & Facilities", "Customer Support Engineer").
+_STRONG_IN_SRC: list[tuple[str, str]] = [
+    ("software", r"software (?:development )?(?:engineer|developer|programmer|architect)s?|software engineering (?:manager|lead|director)s?|"
+                 r"sdes?|sdets?|swes?|member of (?:the )?technical staff|"
+                 r"(?:application|applications|web|mobile|ios|android|full stack|fullstack|front end|frontend|back end|backend|"
+                 r"api|game|" + _LANG + r") (?:software )?(?:engineer|developer|programmer)s?"),
+    ("software", r"(?:consultant|developer|analyst|architect|administrator|admin|engineer|lead|specialist)s? (?:\w+ ){0,1}"
+                 r"(?:sap|salesforce|sfdc|servicenow|workday|netsuite|peoplesoft|oracle (?:ebs|fusion|cloud|erp)|dynamics 365|d365)"),
+    ("software", r"(?:wms|tms|mes|plm|warehouse (?:management|mgmt) systems?(?: wms)?|manufacturing execution systems?)"
+                 r"(?: \w+)? (?:analyst|developer|engineer|consultant|administrator|architect|specialist|lead)s?"),
+    ("devops_sre_cloud", r"(?:devops|cloud|platform|site reliability|infrastructure) engineers?"),
+    ("data", r"(?:data|analytics|big data|etl|bi) (?:engineer|developer|architect|scientist)s?"),
+    ("ml_ai", r"(?:machine learning|ml|ai|deep learning|computer vision|nlp) (?:engineer|developer|scientist|researcher|architect)s?"),
+    ("security", r"(?:cyber ?security|information security|application security|cloud security|network security) (?:engineer|analyst|architect)s?"),
+    ("embedded_hw", r"(?:firmware|embedded|fpga|asic|rtl) (?:software )?(?:engineer|developer|designer)s?|"
+                    r"(?:ic|asic|soc|chip|silicon|pre silicon|post silicon) (?:\w+ )?(?:validation|verification|design|test) engineers?"),
+    ("it_support", r"(?:customer|technical|product|application|production|it|software|cloud|platform) support engineers?"),
+    ("software", r"(?:solutions?|technical|cloud|software|saas|security|data|network|platform) sales engineers?|"
+                 r"(?:technical|technology|software|it|data|cyber ?security|developer) interns?|"
+                 r"(?:technical|software|it|data|engineering) (?:co op|coop|internship)s?"),
+    ("product_program", r"(?:product|program|project) managers? (?:\w+ ){0,1}(?:developer|developers|api|apis|platform|sdk|data|ai|ml|cloud|infrastructure|devops)"
+                        r"(?: (?:experience|tools|platform|products?))?"),
+]
+_STRONG_IN = [(cat, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])")) for cat, src in _STRONG_IN_SRC]
+# Patterns whose qualifier often sits in a later segment ("Product Manager,
+# Developer Experience", "Warehouse Mgmt. Systems (WMS) Analyst") also run on the full title.
+_STRONG_IN_FULL = [_STRONG_IN[2], _STRONG_IN[-1]]
+
+
+def _strong_in(primary: str, full: str) -> Optional[str]:
+    for cat, rx in _STRONG_IN:
+        if rx.search(primary):
+            return cat
+    for cat, rx in _STRONG_IN_FULL:
+        if rx.search(full):
+            return cat
+    return None
+
 # Qualifiers that settle an ambiguous role word, with a category hint for the IT ones.
 _IT_QUALIFIERS: list[tuple[str, re.Pattern]] = [(cat, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])")) for cat, src in (
     ("software", r"martech|plm|ats|software|sw|application|applications|app|apps|web|mobile|ios|android|api|apis|saas|digital|"
@@ -525,6 +565,9 @@ def _decide_title(title: str) -> tuple[Optional[bool], Optional[str], str, Optio
     if not full.strip():
         return None, None, "no_match", None
     primary = _norm(_SEGMENT_SPLIT.split(str(title), maxsplit=1)[0])
+    strong = _strong_in(primary if primary.strip() else full, full)
+    if strong:
+        return True, strong, "title", None
     for text in ((primary, full) if primary.strip() and primary != full else (full,)):
         hit = _best(text)
         if hit is None:
