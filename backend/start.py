@@ -21,7 +21,7 @@ if __name__ == "__main__":
             "celery", "-A", "celery_app", "worker",
             "--loglevel=info",
             "--concurrency=2",
-            "-Q", "default,scrapers_http,scrapers_orchestrator,maintenance"
+            "-Q", "default,scrapers_http,scrapers_orchestrator,maintenance,contracts"
         ]
     elif PROCESS_TYPE == "beat":
         print("Starting Celery beat scheduler...")

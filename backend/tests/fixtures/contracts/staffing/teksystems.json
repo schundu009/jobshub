@@ -1,0 +1,1416 @@
+{
+ "responses": [
+  "phApp.ddo = {\"siteConfig\":{}}; phApp.x = 1;\n\"refNum\":\"TESYUS\",\"locale\":\"en_us\",\"country\":\"us\",\"pageId\":\"page10\"",
+  {
+   "refineSearch": {
+    "status": 200,
+    "hits": 40,
+    "totalHits": 20,
+    "data": {
+     "jobs": [
+      {
+       "subCategory": "Developer",
+       "ml_skills": [
+        "production ai agent development",
+        "application development",
+        "llm development",
+        "python",
+        "java",
+        "go",
+        "typescript",
+        "c#",
+        "agent architecture",
+        "prompt engineering",
+        "context engineering",
+        "ai application design",
+        "agent orchestration",
+        "model context protocol",
+        "system design",
+        "software architecture",
+        "technical problem solving",
+        "stakeholder management",
+        "mcp",
+        "skills tools",
+        "agent frameworks",
+        "workflow orchestration",
+        "intelligent automation",
+        "business problem decomposition",
+        "rapid prototyping",
+        "api integration",
+        "database integration",
+        "solution demonstration",
+        "technical leadership",
+        "cloud platforms"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are expanding our team: As a Senior AI Engineer / Forward Deployed Engineer, you will drive the development of production AI applications and collaborate with business stakeholders to deliver impactful solutions. This role suits experienced engineers with strong software and AI expertise, ready to shape enterprise AI adoption and deliver measurable business outcomes.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006263464",
+       "city": "Sunnyvale",
+       "latitude": "37.36883",
+       "industry": "Administrative",
+       "multi_location": [
+        "Sunnyvale,CA,94085,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=bPGgzQ00JlYaz8OmX%2BmUQdL6qkMKjDlyZcSJQFTZjXy94XRiM5nca7XkKimiHNnSWkeAJbQOAHZ3zcynEkHhNf7hLwQoIXsF3YoOIz2h%2ByBW3yP59DUUjUTZcy8yKNn8&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are expanding our team: As a Senior AI Engineer / Forward Deployed Engineer, you will drive the development of production AI applications and collaborate with business stakeholders to deliver impactful solutions. This role suits experienced engineers with strong software and AI expertise, ready to shape enterprise AI adoption and deliver measurable business outcomes.",
+        "descriptionTeaser_first200": "Senior AI Engineer / Forward Deployed Engineer. (No Sponsorship Available / Cannot Support C2C). Location: Hybrid in Sunnyvale, CA (Tuesday-Thursday onsite) . Compensation: $80-$85/hr W2 + Benefits...",
+        "descriptionTeaser_keyword": "Senior AI Engineer / Forward Deployed Engineer. ( No Sponsorship Available / Cannot Support C2C). Location: Hybrid in Sunnyvale, CA (Tuesday-Thursday onsite). Compensation: $80-$85/hr W2 + Benefits. D...",
+        "descriptionTeaser_ats": "Senior AI Engineer / Forward Deployed Engineer(No Sponsorship Available / Cannot Support C2C)Location .  Hybrid in Sunnyvale, CA (Tuesday-Thursday onsite) Compensation .  $80-$85/hr W2 + BenefitsDuration . "
+       },
+       "externalApply": true,
+       "cityState": "Sunnyvale, California",
+       "country": "USA",
+       "longitude": "-122.03635",
+       "jobId": "JP-006263464",
+       "locale": "en_US",
+       "title": "Senior AI Engineer / Forward Deployed Engineer",
+       "jobSeqNo": "TESYUSJP006263464ENUS",
+       "postedDate": "2026-09-02T22:30:29.561+0000",
+       "dateCreated": "2026-09-02T22:30:30.468+0000",
+       "cityStateCountry": "Sunnyvale, California, USA",
+       "location": "Sunnyvale, California, USA",
+       "category": "Developer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03635,
+          "lat": 37.36883
+         },
+         "location": "Sunnyvale,CA,94085,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Systems Administrator/Engineer",
+       "ml_skills": [
+        "ai engineering",
+        "ai application deployment",
+        "large language models",
+        "python",
+        "ai agent development",
+        "agent architectures",
+        "prompt engineering",
+        "context engineering",
+        "agent orchestration frameworks",
+        "software engineering",
+        "systems design",
+        "solution architecture",
+        "business stakeholder engagement",
+        "retrieval-augmented generation",
+        "vector databases",
+        "agent orchestration platforms",
+        "ai-powered workflow automation",
+        "cloud platforms",
+        "aws",
+        "azure",
+        "gcp",
+        "product mindset",
+        "presentation skills",
+        "mcps",
+        "harnesses"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Become part of our team as a Forward Deployed Engineer, building AI-powered solutions that address real business challenges. Collaborate with stakeholders to design and deploy scalable AI applications, leveraging LLMs and modern frameworks. Ideal for candidates with hands-on AI engineering experience and a strong product mindset.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006314286",
+       "city": "Sunnyvale",
+       "latitude": "37.36883",
+       "industry": "Administrative",
+       "multi_location": [
+        "Sunnyvale,CA,94085,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=EqwBz31HZcpKAQ3LpArRZDr8eQSOQ4gOpoeifJgdwgm80V0i2EjUX9m%2Bzu%2Btg2CfxfwYj4DP21Tp8aGkymleOhduF0Z42pwoHdsrvUqVR4PHMjC0MGcp%2F9SnZbCNyGhe&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Become part of our team as a Forward Deployed Engineer, building AI-powered solutions that address real business challenges. Collaborate with stakeholders to design and deploy scalable AI applications, leveraging LLMs and modern frameworks. Ideal for candidates with hands-on AI engineering experience and a strong product mindset.",
+        "descriptionTeaser_first200": "AI Engineer / Forward Deployed Engineer. Hybrid | 12-Month Contract | Executive-Sponsored AI Transformation Initiative. Build AI Solutions That Actually Reach Production. Join a newly formed AI Tra...",
+        "descriptionTeaser_keyword": "AI Engineer / Forward Deployed Engineer. Hybrid | 12-Month Contract | Executive-Sponsored AI Transformation Initiative. Build AI Solutions That Actually Reach Production. Join a newly formed AI Transf...",
+        "descriptionTeaser_ats": "AI Engineer / Forward Deployed EngineerHybrid | 12-Month Contract | Executive-Sponsored AI Transformation InitiativeBuild AI Solutions That Actually Reach ProductionJoin a newly formed AI Transformati"
+       },
+       "externalApply": true,
+       "cityState": "Sunnyvale, California",
+       "country": "USA",
+       "longitude": "-122.03635",
+       "jobId": "JP-006314286",
+       "locale": "en_US",
+       "title": "Forward Deployed Engineer",
+       "jobSeqNo": "TESYUSJP006314286ENUS",
+       "postedDate": "2026-09-28T17:15:15.631+0000",
+       "dateCreated": "2026-09-28T17:15:15.631+0000",
+       "cityStateCountry": "Sunnyvale, California, USA",
+       "location": "Sunnyvale, California, USA",
+       "category": "Systems Administrator/Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03635,
+          "lat": 37.36883
+         },
+         "location": "Sunnyvale,CA,94085,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Other",
+       "ml_skills": [
+        "teleoperation",
+        "data collection",
+        "robotics laboratory operations",
+        "umi",
+        "computer vision",
+        "mechanical fabrication",
+        "electrical prototyping",
+        "ros 2",
+        "linux",
+        "camera calibration",
+        "sensor synchronization",
+        "coordinate frames",
+        "stereo camera systems",
+        "rgb-d data",
+        "cad",
+        "python",
+        "bash",
+        "git",
+        "software deployment",
+        "sop execution",
+        "data validation",
+        "system evaluation",
+        "robotics training datasets",
+        "systemic policy evaluation",
+        "results analysis",
+        "inventory management",
+        "facilities coordination",
+        "documentation management"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are recruiting a Lab Technician to support robotics teams in hardware configuration, teleoperation, and data validation. The role involves hands-on work with robotics, data collection, and laboratory operations. Ideal for candidates with experience in robotics, data capture, and laboratory environments.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006293727",
+       "city": "Mountain View",
+       "latitude": "37.38605",
+       "industry": "Administrative",
+       "multi_location": [
+        "Mountain View,CA,94035,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=ZkxwfpGvW46mG89msIfNQZBVTOD8wTqfRAwv5vwGL9dgkFvpihe2TVoYjPwR6ETjeryPppU6wVnGBGaCYC10PaPlUHTQ%2FDXRO8fLqRVj7SA6jtSv0eIbMWDOUwSODXDA&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are recruiting a Lab Technician to support robotics teams in hardware configuration, teleoperation, and data validation. The role involves hands-on work with robotics, data collection, and laboratory operations. Ideal for candidates with experience in robotics, data capture, and laboratory environments.",
+        "descriptionTeaser_first200": "Description. Can sit in Warren, MI or Mountain View, California - 5 days a week onsite. Professional Summary Robotics Engineer with hands-on experience in teleoperation, robotic manipulation, mecha...",
+        "descriptionTeaser_keyword": "Description. Can sit in Warren, MI or Mountain View, California - 5 days a week onsite. Professional Summary Robotics Engineer with hands-on experience in teleoperation, robotic manipulation, mechanic...",
+        "descriptionTeaser_ats": "Description Can sit in Warren, MI or Mountain View, California - 5 days a week onsite. Professional Summary Robotics Engineer with hands-on experience in teleoperation, robotic manipulation, mechanica"
+       },
+       "externalApply": true,
+       "cityState": "Mountain View, California",
+       "country": "USA",
+       "longitude": "-122.08385",
+       "jobId": "JP-006293727",
+       "locale": "en_US",
+       "title": "Lab Technician",
+       "jobSeqNo": "TESYUSJP006293727ENUS",
+       "postedDate": "2026-09-17T22:15:36.224+0000",
+       "dateCreated": "2026-09-17T22:15:36.224+0000",
+       "cityStateCountry": "Mountain View, California, USA",
+       "location": "Mountain View, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.08385,
+          "lat": 37.38605
+         },
+         "location": "Mountain View,CA,94035,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Administrative Healthcare",
+       "ml_skills": [
+        "medicare enrollment",
+        "credentialing",
+        "provider outreach",
+        "application processing",
+        "data entry",
+        "google workspace",
+        "microsoft excel",
+        "written communication",
+        "problem solving",
+        "process adherence",
+        "pecos",
+        "caqh",
+        "macbook",
+        "template email response",
+        "documentation management",
+        "high-volume processing",
+        "follow-up management"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a detail-oriented Medicaid Provider Enrollment Specialist to manage end-to-end Medicare enrolment processes and support provider credentialing. Key responsibilities include reviewing application approvals, tracking enrolment statuses, and handling a high volume of requests. Ideal for candidates with at least one year of Medicare enrolment experience and strong organizational skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006274618",
+       "city": "Mountain View",
+       "latitude": "37.38605",
+       "industry": "Administrative",
+       "multi_location": [
+        "Mountain View,CA,94035,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=Rck%2FYJhXqi4dg56V%2FRb4apqRURzQQM69o0nmgQ%2BiwPOqdm9IViPovI4%2BtERNgsdZBrj4qq%2FtnpliY1BER34DtZ4hHe0Dv3ZLHhWLuPBeltnEt7ETfUpPhFn9iVRTLp%2FZ&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a detail-oriented Medicaid Provider Enrollment Specialist to manage end-to-end Medicare enrolment processes and support provider credentialing. Key responsibilities include reviewing application approvals, tracking enrolment statuses, and handling a high volume of requests. Ideal for candidates with at least one year of Medicare enrolment experience and strong organizational skills.",
+        "descriptionTeaser_first200": "Description. BetterHelp is seeking three detail-oriented and driven Medicare Enrollment Specialists to support high-volume provider enrollment and credentialing operations. This role is ideal for i...",
+        "descriptionTeaser_keyword": "Description. BetterHelp is seeking three detail-oriented and driven Medicare Enrollment Specialists to support high-volume provider enrollment and credentialing operations. This role is ideal for indi...",
+        "descriptionTeaser_ats": "DescriptionBetterHelp is seeking three detail-oriented and driven Medicare Enrollment Specialists to support high-volume provider enrollment and credentialing operations. This role is ideal for indivi"
+       },
+       "externalApply": true,
+       "cityState": "Mountain View, California",
+       "country": "USA",
+       "longitude": "-122.08385",
+       "jobId": "JP-006274618",
+       "locale": "en_US",
+       "title": "Medicaid Provider Enrollment Specialist (Credentialing)",
+       "jobSeqNo": "TESYUSJP006274618ENUS",
+       "postedDate": "2026-09-09T18:01:37.379+0000",
+       "dateCreated": "2026-09-09T18:01:38.382+0000",
+       "cityStateCountry": "Mountain View, California, USA",
+       "location": "Mountain View, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.08385,
+          "lat": 37.38605
+         },
+         "location": "Mountain View,CA,94035,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Developer",
+       "ml_skills": [
+        "embedded firmware development",
+        "c++",
+        "arm processors",
+        "firmware development for rtos",
+        "embedded linux",
+        "bare metal firmware",
+        "jtag",
+        "logic analyzer",
+        "oscilloscope",
+        "spectrum analyzer",
+        "wireless technology support",
+        "cross-functional collaboration",
+        "debugging",
+        "hardware bring-up",
+        "parallel processing",
+        "multi-threaded software development",
+        "firmware for cellular devices",
+        "firmware for 5g devices",
+        "firmware for wifi devices",
+        "firmware for bluetooth devices",
+        "firmware for mmwave devices",
+        "firmware for uwb devices",
+        "firmware for nfc devices"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Join us as a Firmware Developer to design and develop embedded firmware for next-generation wireless communication products. Collaborate with cross-functional teams to create embedded software for precision RF and analog test equipment. Ideal for candidates with expert-level experience in C/C++ and ARM processors.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006271373",
+       "city": "Cupertino",
+       "latitude": "37.323",
+       "industry": "Administrative",
+       "multi_location": [
+        "Cupertino,CA,95014,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=Nn20Nj1bwE%2BNO5fqPArnCvIWW%2BCb%2FB4WqLWLmz%2FaUmZCdnot7k6TFL0qK%2BvU7CDSiv0VXp5sid0wXgntheIZ%2BE%2FYDuTToM4k5TilE9iZOyTySswaMwHvylZeKwk1U1mw&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Join us as a Firmware Developer to design and develop embedded firmware for next-generation wireless communication products. Collaborate with cross-functional teams to create embedded software for precision RF and analog test equipment. Ideal for candidates with expert-level experience in C/C++ and ARM processors.",
+        "descriptionTeaser_first200": "Description. Within Instrument Engineering, this team focuses on designing and producing precision RF and Analog Test Equipment. This equipment is used for calibrating and testing various wireless ...",
+        "descriptionTeaser_keyword": "Description. Within Instrument Engineering, this team focuses on designing and producing precision RF and Analog Test Equipment. This equipment is used for calibrating and testing various wireless tec...",
+        "descriptionTeaser_ats": "DescriptionWithin Instrument Engineering, this team focuses on designing and producing precision RF and Analog Test Equipment. This equipment is used for calibrating and testing various wireless techn"
+       },
+       "externalApply": true,
+       "cityState": "Cupertino, California",
+       "country": "USA",
+       "longitude": "-122.03218",
+       "jobId": "JP-006271373",
+       "locale": "en_US",
+       "title": "Firmware Developer",
+       "jobSeqNo": "TESYUSJP006271373ENUS",
+       "postedDate": "2026-09-08T16:20:20.648+0000",
+       "dateCreated": "2026-09-08T16:20:21.538+0000",
+       "cityStateCountry": "Cupertino, California, USA",
+       "location": "Cupertino, California, USA",
+       "category": "Developer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03218,
+          "lat": 37.323
+         },
+         "location": "Cupertino,CA,95014,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Developer",
+       "ml_skills": [
+        "adobe creative suite",
+        "photoshop",
+        "illustrator",
+        "visual design",
+        "typography",
+        "brand guidelines",
+        "design systems",
+        "visual hierarchy",
+        "composition",
+        "digital content creation",
+        "ai-assisted design",
+        "mockup creation",
+        "website design",
+        "email campaigns",
+        "newsletter design",
+        "presentation design",
+        "collaboration",
+        "project management",
+        "marketing materials design",
+        "logo design",
+        "iconography",
+        "stakeholder management",
+        "macos"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are expanding our team: As a Visual Designer, you will create engaging digital experiences and communications for internal audiences, including employees and leaders. You will design digital content and collaborate with cross-functional teams. Ideal candidates have strong visual design expertise and experience with AI-assisted design workflows.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006293443",
+       "city": "Cupertino",
+       "latitude": "37.323",
+       "industry": "Administrative",
+       "multi_location": [
+        "Cupertino,CA,95014,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=ezbmgctN8Uhx1%2B0YIQjPElxy4Sxj1mMir2K5dthTu2d6vV14ygOPJNIOFCjYf7MPaDFVxYn7P0wDLzaujCqEX59E1qJg4iepMI6ssxn1E01DlV7uVztBMSynbh4C%2B%2FOY&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are expanding our team: As a Visual Designer, you will create engaging digital experiences and communications for internal audiences, including employees and leaders. You will design digital content and collaborate with cross-functional teams. Ideal candidates have strong visual design expertise and experience with AI-assisted design workflows.",
+        "descriptionTeaser_first200": "Our client is seeking a talented Visual Designer to create polished digital experiences and communications for internal audiences, including employees, managers, and leadership. The ideal candidate...",
+        "descriptionTeaser_keyword": "Our client is seeking a talented Visual Designer to create polished digital experiences and communications for internal audiences, including employees, managers, and leadership. The ideal candidate ha...",
+        "descriptionTeaser_ats": "Our client is seeking a talented Visual Designer to create polished digital experiences and communications for internal audiences, including employees, managers, and leadership.The ideal candidate has"
+       },
+       "externalApply": true,
+       "cityState": "Cupertino, California",
+       "country": "USA",
+       "longitude": "-122.03218",
+       "jobId": "JP-006293443",
+       "locale": "en_US",
+       "title": "Visual Designer - Cupertino",
+       "jobSeqNo": "TESYUSJP006293443ENUS",
+       "postedDate": "2026-09-17T20:38:47.642+0000",
+       "dateCreated": "2026-09-17T20:38:47.642+0000",
+       "cityStateCountry": "Cupertino, California, USA",
+       "location": "Cupertino, California, USA",
+       "category": "Developer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03218,
+          "lat": 37.323
+         },
+         "location": "Cupertino,CA,95014,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Other",
+       "ml_skills": [
+        "calendar management",
+        "event planning",
+        "project coordination",
+        "project management",
+        "travel support",
+        "meeting coordination",
+        "process development",
+        "supply management",
+        "hardware management",
+        "space management",
+        "comms distribution",
+        "cross-functional collaboration",
+        "stakeholder management",
+        "written communication",
+        "verbal communication",
+        "confidentiality management",
+        "ios",
+        "organizational skills"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Join our team as an Executive Administrative Assistant, providing strategic calendar and team support to up to two leaders. Oversee high-impact meetings, travel, and liaise with internal and external guests. Ideal for candidates with significant executive administrative experience and strong organizational and communication skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006295381",
+       "city": "Cupertino",
+       "latitude": "37.323",
+       "industry": "Administrative",
+       "multi_location": [
+        "Cupertino,CA,95014,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=7ppdlU8E%2Fpj05P2uvQeQwoNUy7Eyc%2FkOD11TBfQkoi4yLNAjWJfnVxV%2FlYxztKO9VihiSAkV0lTXUrN%2FMTJ3mAJKBAhZZLubu%2FsMNdWVqbFDOcHzbSAvKoefytlgcKqE&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Join our team as an Executive Administrative Assistant, providing strategic calendar and team support to up to two leaders. Oversee high-impact meetings, travel, and liaise with internal and external guests. Ideal for candidates with significant executive administrative experience and strong organizational and communication skills.",
+        "descriptionTeaser_first200": "Description. Executive Admin - Calendar Support + Team Support. Required Tasks. Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interacti...",
+        "descriptionTeaser_keyword": "Description. Executive Admin - Calendar Support + Team Support. Required Tasks. Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactions...",
+        "descriptionTeaser_ats": "DescriptionExecutive Admin - Calendar Support + Team SupportRequired Tasks .  Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactions .  th"
+       },
+       "externalApply": true,
+       "cityState": "Cupertino, California",
+       "country": "USA",
+       "longitude": "-122.03218",
+       "jobId": "JP-006295381",
+       "locale": "en_US",
+       "title": "Executive Administrative Assistant",
+       "jobSeqNo": "TESYUSJP006295381ENUS",
+       "postedDate": "2026-09-18T17:37:41.310+0000",
+       "dateCreated": "2026-09-18T17:37:41.310+0000",
+       "cityStateCountry": "Cupertino, California, USA",
+       "location": "Cupertino, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03218,
+          "lat": 37.323
+         },
+         "location": "Cupertino,CA,95014,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Other",
+       "ml_skills": [
+        "calendar management",
+        "meeting coordination",
+        "travel support",
+        "event planning",
+        "process development",
+        "supply management",
+        "team support",
+        "cross-functional collaboration",
+        "apple products (calendar, numbers)",
+        "confidential information handling",
+        "written communication",
+        "verbal communication",
+        "space management",
+        "hardware management",
+        "stakeholder management",
+        "organizational skills",
+        "customer service",
+        "strategic planning",
+        "problem solving"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Become part of our team as an Executive Administrative Assistant, providing strategic calendar and team support to leaders with demanding schedules. Oversee high-touch calendar management, meet coordination, and travel support. Ideal for candidates with significant executive administrative experience and strong organizational and communication skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006300332",
+       "city": "Cupertino",
+       "latitude": "37.323",
+       "industry": "Administrative",
+       "multi_location": [
+        "Cupertino,CA,95014,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=ObrZVuaPOZVhvxxDZPTYo56%2Fi%2FN9Ky2hGiVsh7Si1T497PzxGf8hKM6BsE8Oav3AfSGlwfEXplQR23Bcre9NhB87FOl45hmm4th2CPbFMKuJ9RzXP%2ByW1%2FNAoZJLkmVD&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Become part of our team as an Executive Administrative Assistant, providing strategic calendar and team support to leaders with demanding schedules. Oversee high-touch calendar management, meet coordination, and travel support. Ideal for candidates with significant executive administrative experience and strong organizational and communication skills.",
+        "descriptionTeaser_first200": "Description. Executive Admin - Calendar Support + Team Suport. Required Tasks. Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactio...",
+        "descriptionTeaser_keyword": "Description. Executive Admin - Calendar Support + Team Suport. Required Tasks. Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactions;...",
+        "descriptionTeaser_ats": "DescriptionExecutive Admin - Calendar Support + Team SuportRequired Tasks .  Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactions .  thi"
+       },
+       "externalApply": true,
+       "cityState": "Cupertino, California",
+       "country": "USA",
+       "longitude": "-122.03218",
+       "jobId": "JP-006300332",
+       "locale": "en_US",
+       "title": "Executive Administrative Assistant",
+       "jobSeqNo": "TESYUSJP006300332ENUS",
+       "postedDate": "2026-09-21T19:37:32.613+0000",
+       "dateCreated": "2026-09-21T19:37:32.613+0000",
+       "cityStateCountry": "Cupertino, California, USA",
+       "location": "Cupertino, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03218,
+          "lat": 37.323
+         },
+         "location": "Cupertino,CA,95014,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Other",
+       "ml_skills": [
+        "hardware inventory management",
+        "asset management",
+        "troubleshooting",
+        "consumer hardware",
+        "hardware asset tracking systems",
+        "supply chain operations",
+        "warehouse operations",
+        "logistics management",
+        "inventory management software",
+        "asset tracking platforms",
+        "hardware development",
+        "test lab support",
+        "r&d environment support",
+        "stakeholder coordination",
+        "process orientation",
+        "organizational skills"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Join us as a Hardware Asset Manager, supporting the allocation, distribution, and lifecycle management of hardware devices for development and testing environments. Coordinate inventory, fulfill hardware requests, and maintain accurate asset tracking. Ideal for candidates with strong organizational skills and experience in hardware asset management.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006260847",
+       "city": "Cupertino",
+       "latitude": "37.323",
+       "industry": "Administrative",
+       "multi_location": [
+        "Cupertino,CA,95014,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=0k5lyNJM8IKIKknYwPTej1ppLlCkDLC4a8yaRLDRFF9egCApzXbOM%2BHChdqd9HvqQAycx7OR7qpB1yNGrtBsxDoK0NAKroiRTzbkU%2FD58hrNvwbMJT7iUiWXfhxzqN6U&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Join us as a Hardware Asset Manager, supporting the allocation, distribution, and lifecycle management of hardware devices for development and testing environments. Coordinate inventory, fulfill hardware requests, and maintain accurate asset tracking. Ideal for candidates with strong organizational skills and experience in hardware asset management.",
+        "descriptionTeaser_first200": "Description. The Hardware Asset Management Specialist will support the allocation, distribution, tracking, and lifecycle management of hardware devices used across the client's development and test...",
+        "descriptionTeaser_keyword": "Description. The Hardware Asset Management Specialist will support the allocation, distribution, tracking, and lifecycle management of hardware devices used across the client's development and testing...",
+        "descriptionTeaser_ats": "DescriptionThe Hardware Asset Management Specialist will support the allocation, distribution, tracking, and lifecycle management of hardware devices used across the client's development and testing e"
+       },
+       "externalApply": true,
+       "cityState": "Cupertino, California",
+       "country": "USA",
+       "longitude": "-122.03218",
+       "jobId": "JP-006260847",
+       "locale": "en_US",
+       "title": "Hardware Asset Manager",
+       "jobSeqNo": "TESYUSJP006260847ENUS",
+       "postedDate": "2026-09-01T22:39:24.842+0000",
+       "dateCreated": "2026-09-01T22:39:25.602+0000",
+       "cityStateCountry": "Cupertino, California, USA",
+       "location": "Cupertino, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03218,
+          "lat": 37.323
+         },
+         "location": "Cupertino,CA,95014,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Other",
+       "ml_skills": [
+        "calendar management",
+        "meeting coordination",
+        "travel support",
+        "event planning",
+        "process development",
+        "supply management",
+        "team support",
+        "cross-functional collaboration",
+        "apple products (calendar, numbers)",
+        "confidential information handling",
+        "written communication",
+        "verbal communication",
+        "space management",
+        "hardware management",
+        "process improvement",
+        "organizational skills",
+        "customer service",
+        "strategic planning",
+        "problem solving"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Take on the role of Executive Administrative Assistant, providing strategic calendar and team support to up to two leaders. Manage high-impact schedules, coordinate meetings, and support travel and office operations. Ideal for candidates with significant executive administrative experience and strong organizational and communication skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006286074",
+       "city": "Cupertino",
+       "latitude": "37.323",
+       "industry": "Administrative",
+       "multi_location": [
+        "Cupertino,CA,95014,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=SAgRYiYr%2FHBLwjqf5V3nJOesWjIBAfm2mZWZ72JpnrxYiXsdlywb8gGjTuMTGxgmn5KeCyGEIXyVNp9zspGpasxVZrOng1faMoSi3FQvOTrT5OuCaV7NswAYO6%2Bx3Xb7&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Take on the role of Executive Administrative Assistant, providing strategic calendar and team support to up to two leaders. Manage high-impact schedules, coordinate meetings, and support travel and office operations. Ideal for candidates with significant executive administrative experience and strong organizational and communication skills.",
+        "descriptionTeaser_first200": "Description. Executive Admin - Calendar Support + Team Suport. Required Tasks. Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactio...",
+        "descriptionTeaser_keyword": "Description. Executive Admin - Calendar Support + Team Suport. Required Tasks. Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactions;...",
+        "descriptionTeaser_ats": "DescriptionExecutive Admin - Calendar Support + Team SuportRequired Tasks .  Provide strategic support for up to 2 leaders with demanding schedules and high impact and globally visible interactions .  thi"
+       },
+       "externalApply": true,
+       "cityState": "Cupertino, California",
+       "country": "USA",
+       "longitude": "-122.03218",
+       "jobId": "JP-006286074",
+       "locale": "en_US",
+       "title": "Executive Administrative Assistant",
+       "jobSeqNo": "TESYUSJP006286074ENUS",
+       "postedDate": "2026-09-15T00:57:52.997+0000",
+       "dateCreated": "2026-09-15T00:57:52.997+0000",
+       "cityStateCountry": "Cupertino, California, USA",
+       "location": "Cupertino, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.03218,
+          "lat": 37.323
+         },
+         "location": "Cupertino,CA,95014,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Network Engineer",
+       "ml_skills": [
+        "low voltage cabling installation",
+        "network architecture",
+        "construction document preparation",
+        "asset management database",
+        "autocad",
+        "revit",
+        "project management",
+        "stakeholder management",
+        "bluebeam studio",
+        "smart pdu/ups configuration",
+        "network room auditing",
+        "process improvement",
+        "team collaboration",
+        "budget planning",
+        "routing and cabling equipment",
+        "warranty documentation",
+        "it environment auditing",
+        "network room capacity tracking",
+        "fiber plant tracking",
+        "pdu outlet tracking",
+        "smart pdu/ups monitoring"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Join us as an It Infrastructure Engineer supporting new office and lab builds, focusing on low voltage cabling and network infrastructure. Lead construction projects, document requirements, and collaborate with stakeholders. Ideal for candidates with over 5 years' experience in telecommunications or construction project management, strong technical aptitude, and on-site presence.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006256708",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=NCwujoTsUgAp35pBzTUQrLAySLuYvGgvGQdTdgDuOZhRvBMjAsfP4KshxjjY05eUq3oqq8NdwB9uUeWJgimMi0bme1aAKve9v9c2GTbcp3pugvw0qyOUhdYYI9hECCne&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Join us as an It Infrastructure Engineer supporting new office and lab builds, focusing on low voltage cabling and network infrastructure. Lead construction projects, document requirements, and collaborate with stakeholders. Ideal for candidates with over 5 years' experience in telecommunications or construction project management, strong technical aptitude, and on-site presence.",
+        "descriptionTeaser_first200": "Description. This person will be supporting our clients IT team based out of Santa Clara. The team is supporting new office and lab builds across the as our client continues to scale. This team is ...",
+        "descriptionTeaser_keyword": "Description. This person will be supporting our clients IT team based out of Santa Clara. The team is supporting new office and lab builds across the as our client continues to scale. This team is res...",
+        "descriptionTeaser_ats": "DescriptionThis person will be supporting our clients IT team based out of Santa Clara. The team is supporting new office and lab builds across the as our client continues to scale. This team is respo"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006256708",
+       "locale": "en_US",
+       "title": "It Infrastructure Engineer",
+       "jobSeqNo": "TESYUSJP006256708ENUS",
+       "postedDate": "2026-08-31T16:56:41.340+0000",
+       "dateCreated": "2026-08-31T16:56:42.219+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Network Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Systems Administrator/Engineer",
+       "ml_skills": [
+        "linux systems administration",
+        "hardware validation",
+        "system diagnostics",
+        "root cause analysis",
+        "bios configuration",
+        "python",
+        "bash",
+        "automation testing frameworks",
+        "system bring-up",
+        "system validation",
+        "hpc infrastructure",
+        "ai infrastructure",
+        "system qualification",
+        "regression testing",
+        "firmware installation",
+        "hypervisor configuration",
+        "distributed computing",
+        "gpu-based systems",
+        "datacenter infrastructure",
+        "platform qualification",
+        "cross-functional collaboration",
+        "rack-scale deployments",
+        "engineering design automation",
+        "platform architecture",
+        "vendor management"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are seeking a Lab Operations Engineer to support the bring-up, validation, and operational readiness of next-generation HPC and AI infrastructure. Key responsibilities include hardware diagnostics and system validation. Ideal candidates will have hands-on lab experience and strong Linux systems administration skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006258185",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=%2F5IWMkMGuKJEZThvP3%2FIk%2F1J1AbkQ0o3iSsCu6EqCmBtFLPhQXiFGisFGC%2BV2ijm1CeYSpNYEIGG7wyE7iqGhnS21Qk%2FWb%2FlN%2FnGi3U3vm%2FPfLk8NfK79s0NPdl1mxG4&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are seeking a Lab Operations Engineer to support the bring-up, validation, and operational readiness of next-generation HPC and AI infrastructure. Key responsibilities include hardware diagnostics and system validation. Ideal candidates will have hands-on lab experience and strong Linux systems administration skills.",
+        "descriptionTeaser_first200": "Description. We are seeking a Lab Operations Engineer to support the bring-up, validation, diagnostics, and operational readiness of next-generation high-performance computing (HPC) and AI infrastr...",
+        "descriptionTeaser_keyword": "Description. We are seeking a Lab Operations Engineer to support the bring-up, validation, diagnostics, and operational readiness of next-generation high-performance computing (HPC) and AI infrastruct...",
+        "descriptionTeaser_ats": "DescriptionWe are seeking a Lab Operations Engineer to support the bring-up, validation, diagnostics, and operational readiness of next-generation high-performance computing (HPC) and AI infrastructur"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006258185",
+       "locale": "en_US",
+       "title": "Lab Operations Engineer",
+       "jobSeqNo": "TESYUSJP006258185ENUS",
+       "postedDate": "2026-09-01T00:07:30.070+0000",
+       "dateCreated": "2026-09-01T00:07:30.965+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Systems Administrator/Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Project Manager",
+       "ml_skills": [
+        "program management",
+        "project management",
+        "data center hardware",
+        "risk management",
+        "agile",
+        "change management",
+        "stakeholder management",
+        "performance measurement",
+        "procurement",
+        "resource allocation",
+        "logistics coordination",
+        "technical standards compliance",
+        "continuous improvement",
+        "cross-functional communication",
+        "problem solving",
+        "leadership"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are currently hiring a Technical Program Manager to lead end-to-end project management for new hardware cluster build-outs. Oversee planning, execution, and delivery, collaborating with cross-functional teams. Ideal for candidates with proven experience in software deployment projects and strong project management skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006276587",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=K9yHqvdN%2F86k5xVnd84Ph8LnEVvk1u%2BC7h%2B4VO%2BxRk%2BOLreMi18vApQnWSbeeWQxC7oEEA%2FxMQT3WaZzLxNYOwZgOTOkXKZhP1djDzFkR1SQprbFLwrons6dkTmALLEY&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are currently hiring a Technical Program Manager to lead end-to-end project management for new hardware cluster build-outs. Oversee planning, execution, and delivery, collaborating with cross-functional teams. Ideal for candidates with proven experience in software deployment projects and strong project management skills.",
+        "descriptionTeaser_first200": "Description. Top Skills' Details. Lead end-to-end project management for new hardware cluster build-outs, from planning through execution and delivery. Collaborate with hardware engineers, data cen...",
+        "descriptionTeaser_keyword": "Description. Top Skills' Details. Lead end-to-end project management for new hardware cluster build-outs, from planning through execution and delivery. Collaborate with hardware engineers, data center...",
+        "descriptionTeaser_ats": "DescriptionTop Skills' Details• Lead end-to-end project management for new hardware cluster build-outs, from planning through execution and delivery.• Collaborate with hardware engineers, data center"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006276587",
+       "locale": "en_US",
+       "title": "Technical Program Manager",
+       "jobSeqNo": "TESYUSJP006276587ENUS",
+       "postedDate": "2026-09-10T14:43:05.781+0000",
+       "dateCreated": "2026-09-10T14:43:05.781+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Project Manager",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Systems Administrator/Engineer",
+       "ml_skills": [
+        "linux systems administration",
+        "hardware validation",
+        "system diagnostics",
+        "root cause analysis",
+        "bios configuration",
+        "python",
+        "bash",
+        "automation testing frameworks",
+        "system bring-up",
+        "system validation",
+        "hpc infrastructure",
+        "ai infrastructure",
+        "distributed computing",
+        "hpc cluster environments",
+        "gpu-based systems",
+        "system qualification",
+        "regression testing",
+        "firmware installation",
+        "hypervisor configuration",
+        "kernel tuning",
+        "performance optimization",
+        "datacenter infrastructure",
+        "rack-scale deployments",
+        "eda",
+        "ai/ml workloads",
+        "cross-functional collaboration"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Seeking a Lab Operations Engineer to support the bring-up, validation, and operational readiness of next-generation HPC and AI infrastructure. Key responsibilities include hardware diagnostics, system validation, and collaboration with engineering teams. Ideal for candidates with hands-on lab experience and strong Linux systems administration skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006277076",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=ny%2Bi8hLeSETUwQhFLhjfzNgeqGUgDM70YMtWD3XGvpr%2BiV0hTqaggMqXCKRGvKASx0rYOz0TueVS2x%2FCzxyCfY7zZtetYA%2BgLht%2FLYPx7IZRdvI8kn4BHkNC9fHfYM6s&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Seeking a Lab Operations Engineer to support the bring-up, validation, and operational readiness of next-generation HPC and AI infrastructure. Key responsibilities include hardware diagnostics, system validation, and collaboration with engineering teams. Ideal for candidates with hands-on lab experience and strong Linux systems administration skills.",
+        "descriptionTeaser_first200": "Description. We are seeking a Lab Operations Engineer to support the bring-up, validation, diagnostics, and operational readiness of next-generation high-performance computing (HPC) and AI infrastr...",
+        "descriptionTeaser_keyword": "Description. We are seeking a Lab Operations Engineer to support the bring-up, validation, diagnostics, and operational readiness of next-generation high-performance computing (HPC) and AI infrastruct...",
+        "descriptionTeaser_ats": "DescriptionWe are seeking a Lab Operations Engineer to support the bring-up, validation, diagnostics, and operational readiness of next-generation high-performance computing (HPC) and AI infrastructur"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006277076",
+       "locale": "en_US",
+       "title": "Lab Operations Engineer",
+       "jobSeqNo": "TESYUSJP006277076ENUS",
+       "postedDate": "2026-09-10T16:51:47.506+0000",
+       "dateCreated": "2026-09-10T16:51:47.506+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Systems Administrator/Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Other",
+       "ml_skills": [
+        "data center operations",
+        "cabling",
+        "rack and stack",
+        "server installation",
+        "troubleshooting",
+        "linux",
+        "cat6",
+        "firmware updates",
+        "ip address configuration",
+        "network administration support",
+        "hardware replacement",
+        "vendor management",
+        "remote configuration",
+        "network optimization",
+        "team collaboration"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are currently hiring a Datacenter Technician to support the build-out and ongoing operations of our datacentre. Key responsibilities include server troubleshooting, installation, and firmware updates. Ideal candidates will have hands-on experience in datacentre environments and strong technical skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006295094",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=P5FvUgrztp808bgXOLFFiC4HcSTOD1nrpsqiSCgAf8RNokwqSv%2ByuaDyo4sdevx7lo7N5BB61d8UIeDslyJN1Cwo7zGeNn31M4fvLiid4D5mhBiJIat7tOWnwyhtJRcL&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are currently hiring a Datacenter Technician to support the build-out and ongoing operations of our datacentre. Key responsibilities include server troubleshooting, installation, and firmware updates. Ideal candidates will have hands-on experience in datacentre environments and strong technical skills.",
+        "descriptionTeaser_first200": "Skills. Data center, Cabling, Rack and stack, Install, Troubleshooting, Hardware, Linux, Cat6. Top Skills Details. Data center,Cabling,Rack and stack,Install,Troubleshooting. Additional Skills & Qu...",
+        "descriptionTeaser_keyword": "Skills. Data center, Cabling, Rack and stack, Install, Troubleshooting, Hardware, Linux, Cat6. Top Skills Details. Data center,Cabling,Rack and stack,Install,Troubleshooting. Additional Skills & Quali...",
+        "descriptionTeaser_ats": "SkillsData center, Cabling, Rack and stack, Install, Troubleshooting, Hardware, Linux, Cat6Top Skills DetailsData center,Cabling,Rack and stack,Install,TroubleshootingAdditional Skills & Qualifica"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006295094",
+       "locale": "en_US",
+       "title": "Datacenter Technician",
+       "jobSeqNo": "TESYUSJP006295094ENUS",
+       "postedDate": "2026-09-18T16:18:47.617+0000",
+       "dateCreated": "2026-09-18T16:18:47.617+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Other",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Systems Administrator/Engineer",
+       "ml_skills": [
+        "log analysis",
+        "infrastructure validation",
+        "validation testing",
+        "system analysis",
+        "root cause analysis",
+        "technical documentation review",
+        "troubleshooting",
+        "linux environments",
+        "ai-assisted tools",
+        "automation frameworks",
+        "validation harnesses",
+        "process improvement",
+        "data interpretation",
+        "cluster validation",
+        "deployment readiness",
+        "technical documentation",
+        "analytical problem-solving",
+        "written communication",
+        "verbal communication",
+        "dgx systems",
+        "gpu infrastructure",
+        "high-performance computing",
+        "cloud infrastructure",
+        "data center deployments",
+        "automation scripting tools",
+        "nvidia technologies",
+        "cloud partner ecosystems",
+        "validation testing methodologies",
+        "operational readiness reviews"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Validation Engineer to review and validate large-scale infrastructure and cluster logs, ensuring DGX Cloud deployments meet requirements. You will analyze validation data, document findings, and support deployment readiness. Ideal candidates have strong analytical skills and experience in systems validation or infrastructure engineering.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006302358",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=T0kw5jt27JYHgwN%2BLOvC4Bd0fd9jvv02uM4BLutpAqFJ4lSSYkDjRXqGEPNrJxB4QoleP6qf7Jz4Rmboz1yveQufi6kP1An%2F%2BJg3qJBZjSaK1wlWFoIoqP6cRWxt2ZLF&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Validation Engineer to review and validate large-scale infrastructure and cluster logs, ensuring DGX Cloud deployments meet requirements. You will analyze validation data, document findings, and support deployment readiness. Ideal candidates have strong analytical skills and experience in systems validation or infrastructure engineering.",
+        "descriptionTeaser_first200": "Top Skills' Details. Log analysis and troubleshooting. Infrastructure validation and testing. Data interpretation and root cause analysis. Technical documentation review. Description. Duration is i...",
+        "descriptionTeaser_keyword": "Top Skills' Details. Log analysis and troubleshooting. Infrastructure validation and testing. Data interpretation and root cause analysis. Technical documentation review. Description. Duration is init...",
+        "descriptionTeaser_ats": "Top Skills' Details . • Log analysis and troubleshooting• Infrastructure validation and testing• Data interpretation and root cause analysis• Technical documentation reviewDescriptionDuration is initial"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006302358",
+       "locale": "en_US",
+       "title": "Validation Engineer",
+       "jobSeqNo": "TESYUSJP006302358ENUS",
+       "postedDate": "2026-09-22T17:06:04.666+0000",
+       "dateCreated": "2026-09-22T17:06:04.666+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Systems Administrator/Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Telecom Technician",
+       "ml_skills": [
+        "server hardware troubleshooting",
+        "firmware upgrades",
+        "network equipment configuration",
+        "hardware replacement",
+        "server deployment",
+        "rack and stack activities",
+        "cabling standards",
+        "technical support",
+        "data center operations",
+        "problem solving",
+        "remote configuration",
+        "vendor warranty processes",
+        "collaboration",
+        "independent work",
+        "communication skills"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Seeking a Data Center Technician to diagnose and resolve server hardware issues during overnight shifts. Key responsibilities include advanced troubleshooting, firmware updates, and supporting network infrastructure. Ideal for candidates with strong data center operations experience and the ability to work independently in a mission-critical environment.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006301156",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=T8gzHVP39qiqnV88DeRNuQ1UOEYjeY62ZrkUkNuN9jhfzxmbcesFKLcHt%2FPNEaIp04gXEG82mmt%2BbjBud4yyGfSZAROPTrrmIWcfzjx0RXRHIgjlwx2i4Fw8FVNC1HGP&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Seeking a Data Center Technician to diagnose and resolve server hardware issues during overnight shifts. Key responsibilities include advanced troubleshooting, firmware updates, and supporting network infrastructure. Ideal for candidates with strong data center operations experience and the ability to work independently in a mission-critical environment.",
+        "descriptionTeaser_first200": "Data Center Technician II (Overnight Shift) . This is an active opportunity. 🚨 This is a NIGHT SHIFT position. Candidates must be comfortable working overnight hours on a regular basis. The ideal c...",
+        "descriptionTeaser_keyword": "Data Center Technician II (Overnight Shift). This is an active opportunity. 🚨 This is a NIGHT SHIFT position. Candidates must be comfortable working overnight hours on a regular basis. The ideal candi...",
+        "descriptionTeaser_ats": "Data Center Technician II (Overnight Shift) This is an active opportunity🚨 This is a NIGHT SHIFT position. Candidates must be comfortable working overnight hours on a regular basis. The ideal candida"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006301156",
+       "locale": "en_US",
+       "title": "Data Center Technician",
+       "jobSeqNo": "TESYUSJP006301156ENUS",
+       "postedDate": "2026-09-22T01:40:48.746+0000",
+       "dateCreated": "2026-09-22T01:40:48.746+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Telecom Technician",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Network Engineer",
+       "ml_skills": [
+        "data center operations",
+        "hardware troubleshooting",
+        "cable management",
+        "rack and stack",
+        "firmware updates",
+        "ip address configuration",
+        "network administration",
+        "linux",
+        "monitoring tools",
+        "trouble ticketing",
+        "server installation",
+        "server configuration",
+        "cabling",
+        "vendor management",
+        "network troubleshooting",
+        "remote configuration",
+        "team support",
+        "communication skills"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Seeking a Data Center Technician to support and maintain a NVIDIA datacentre. Key responsibilities include troubleshooting servers, performing break/fix work, and assisting with installation and deployment. Ideal for candidates with intermediate experience in data center operations and strong technical skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006304829",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=NSwWsUqjNHDSvkQF%2BakEYBLZt8382TpPGGmQ%2FVfHIW0wCR%2B12f4FOfdg%2FjhWPlnFzLQge8wh0YidydS1L7JUVIgdpcSz0d0XJCKD3RV3St8JP5v5LwXJlwT5Czn6RpGM&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Seeking a Data Center Technician to support and maintain a NVIDIA datacentre. Key responsibilities include troubleshooting servers, performing break/fix work, and assisting with installation and deployment. Ideal for candidates with intermediate experience in data center operations and strong technical skills.",
+        "descriptionTeaser_ats": "Description All Submittals MUST be on TGS letterhead and have two references completed and documented in Connected. SJC - 14 L2 roles OVERNIGHT 4x10 Shift Schedule; Wed-Sat, Sun-Wed (8PM - 7 AM) - 7 r",
+        "descriptionTeaser_keyword": "Description. All Submittals MUST be on TGS letterhead and have two references completed and documented in Connected. SJC - 14 L2 roles OVERNIGHT 4x10 Shift Schedule; Wed-Sat, Sun-Wed (8PM - 7 AM) - 7...",
+        "descriptionTeaser_first200": "Description. All Submittals MUST be on TGS letterhead and have two references completed and documented in Connected. SJC - 14 L2 roles OVERNIGHT 4x10 Shift Schedule; Wed-Sat, Sun-Wed (8PM - 7 AM) -..."
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006304829",
+       "locale": "en_US",
+       "title": "Data Center Technician",
+       "jobSeqNo": "TESYUSJP006304829ENUS",
+       "postedDate": "2026-09-23T16:58:53.145+0000",
+       "dateCreated": "2026-09-23T16:58:53.145+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Network Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Network Engineer",
+       "ml_skills": [
+        "data center operations",
+        "hardware troubleshooting",
+        "cable management",
+        "rack and stack",
+        "firmware updates",
+        "ip address configuration",
+        "network administration",
+        "linux",
+        "monitoring tools",
+        "trouble ticketing",
+        "server installation",
+        "server configuration",
+        "cabling",
+        "vendor management",
+        "network troubleshooting",
+        "remote configuration",
+        "team support",
+        "communication skills"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Seeking a Data Center Technician to support and maintain a NVIDIA datacentre. Key responsibilities include troubleshooting servers, performing break/fix work, and assisting with installation and deployment. Ideal for candidates with intermediate experience in data center operations and strong technical skills.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006300731",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=Z3f%2FmSMmhXiS1DiBtGkG4LmJhx9vupp%2F2MFyO7eVlyGo9XXaUl9B1VvQsNb55PEKGOQZsz3o7R%2FSPY0xDzYohOiIN9MTlVafvAg67jc5%2BRwgfDYRG7nGjR7dK39u36Jg&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Seeking a Data Center Technician to support and maintain a NVIDIA datacentre. Key responsibilities include troubleshooting servers, performing break/fix work, and assisting with installation and deployment. Ideal for candidates with intermediate experience in data center operations and strong technical skills.",
+        "descriptionTeaser_first200": "Description. All Submittals MUST be on TGS letterhead and have two references completed and documented in Connected. SJC - 14 L2 roles OVERNIGHT 4x10 Shift Schedule; Wed-Sat, Sun-Wed (8PM - 7 AM) -...",
+        "descriptionTeaser_keyword": "Description. All Submittals MUST be on TGS letterhead and have two references completed and documented in Connected. SJC - 14 L2 roles OVERNIGHT 4x10 Shift Schedule; Wed-Sat, Sun-Wed (8PM - 7 AM) - 7...",
+        "descriptionTeaser_ats": "Description All Submittals MUST be on TGS letterhead and have two references completed and documented in Connected. SJC - 14 L2 roles OVERNIGHT 4x10 Shift Schedule .  Wed-Sat, Sun-Wed (8PM - 7 AM) - 7 r"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006300731",
+       "locale": "en_US",
+       "title": "Data Center Technician",
+       "jobSeqNo": "TESYUSJP006300731ENUS",
+       "postedDate": "2026-09-21T21:02:19.828+0000",
+       "dateCreated": "2026-09-21T21:02:19.828+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Network Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Network Engineer",
+       "ml_skills": [
+        "network administration",
+        "server administration",
+        "data center networking",
+        "ansible",
+        "linux systems",
+        "infrastructure provisioning",
+        "hardware troubleshooting",
+        "python",
+        "bmc",
+        "ilo",
+        "idrac",
+        "pxe booting",
+        "automation",
+        "ccna",
+        "ccnp",
+        "rhcsa",
+        "rhce",
+        "comptia network+",
+        "red hat ansible automation certification",
+        "azure administrator associate",
+        "aws sysops administrator",
+        "infrastructure documentation"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "Exciting opportunity for a Network Automation Engineer to support data center deployments, hardware troubleshooting, and automation in a large-scale environment. Key responsibilities include managing network infrastructure and server provisioning. Ideal for candidates with strong networking expertise and hands-on server experience.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006302419",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "industry": "Administrative",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.teksystems.com/v1/s?opco=TEK&params=7Y3NyV%2F5dWECVy9tioCmKDVVTUxXddxspbunC54LeYDfuBEEqK2IezZ4rQMfj%2FdMTO1A5DtGUbHCuFKGE93Xxkw2YgQaUhVUz8Zf5kS4ojDxPjx96pVuZR4GCSZoQRRS&s_id=108&jdg=false",
+       "ml_job_parser": {
+        "descriptionTeaser": "Exciting opportunity for a Network Automation Engineer to support data center deployments, hardware troubleshooting, and automation in a large-scale environment. Key responsibilities include managing network infrastructure and server provisioning. Ideal for candidates with strong networking expertise and hands-on server experience.",
+        "descriptionTeaser_first200": "PLEASE NOTE: WE CANNOT ACCOMMODATE C2C AND/OR VISA SPONSORSHIP FOR THIS POSITION. This posting is for an existing vacancy. Description. Ideal Candidate: A networking-focused engineer with enough se...",
+        "descriptionTeaser_keyword": "PLEASE NOTE: WE CANNOT ACCOMMODATE C2C AND/OR VISA SPONSORSHIP FOR THIS POSITION. This posting is for an existing vacancy. Description. Ideal Candidate: A networking-focused engineer with enough serve...",
+        "descriptionTeaser_ats": "PLEASE NOTE .  WE CANNOT ACCOMMODATE C2C AND/OR VISA SPONSORSHIP FOR THIS POSITIONThis posting is for an existing vacancy.DescriptionIdeal Candidate .  A networking-focused engineer with enough server adm"
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006302419",
+       "locale": "en_US",
+       "title": "Network Automation Engineer",
+       "jobSeqNo": "TESYUSJP006302419ENUS",
+       "postedDate": "2026-09-22T17:27:38.633+0000",
+       "dateCreated": "2026-09-22T17:27:38.633+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Network Engineer",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      }
+     ],
+     "SEARCH_CONFIG": {
+      "contextualSearch": false,
+      "isSuggestionsEnabled": true
+     },
+     "suggestions": {},
+     "ui_skills_selection": null,
+     "locationData": {}
+    },
+    "eid": {
+     "trialIndex": -1,
+     "eid": "6abc738de09a4c64ae2a4544",
+     "searchType": "allJobs",
+     "isMultiLingualVectorApplied": false,
+     "query": "",
+     "variant": 0,
+     "banditId": "",
+     "keywordLanguage": "en"
+    }
+   }
+  }
+ ]
+}

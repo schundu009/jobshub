@@ -33,6 +33,7 @@ from database import create_tables, get_db
 from routes import jobs, companies, contacts, interviews, notes, documents, ai, analytics, ingest, settings, users, scrapers, auth, oauth, internal_auth, celery_management, apify, auto_heal
 # Legacy server-side auto_apply router removed; Cariara Auto Apply lives in routes/apply.py
 from routes import apply as apply_routes
+from contracts import routes as contracts_routes
 from config import settings as app_settings
 from services.redis_service import redis_service
 
@@ -737,6 +738,15 @@ def run_migrations():
 
         conn.commit()
 
+        # Contract classification + freshness columns on jobs
+        try:
+            from migrations.job_classification import migrate_job_classification
+            migrate_job_classification(conn)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Could not add job classification columns: {e}")
+            conn.rollback()
+
         # Add new ingestion sources
         try:
             new_sources = [
@@ -942,6 +952,7 @@ app.include_router(apply_routes.router)
 app.include_router(celery_management.router)
 app.include_router(apify.router)
 app.include_router(auto_heal.router)
+app.include_router(contracts_routes.router)
 
 # Static files for frontend
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

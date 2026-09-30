@@ -109,6 +109,15 @@ class ScrapedJob:
     employment_type: Optional[str] = None  # full-time, part-time, contract
     remote_type: Optional[str] = None  # remote, hybrid, on-site
 
+    # Structured work terms when the ATS/board provides them (contracts.classifier
+    # prefers these over text parsing). employment_type_raw is the board's own
+    # label ("Contract", "FullTime", "Contract to Hire", ...).
+    employment_type_raw: Optional[str] = None
+    pay_rate_min: Optional[float] = None
+    pay_rate_max: Optional[float] = None
+    pay_period: Optional[str] = None  # hour | day | week | month | year
+    extra: dict = field(default_factory=dict)  # e.g. agency_name, end_client, skills, tax_terms text
+
     # Metadata
     scraped_at: datetime = field(default_factory=datetime.utcnow)
     raw_data: Optional[dict] = None  # Original data for debugging

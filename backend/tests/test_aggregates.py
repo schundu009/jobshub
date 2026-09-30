@@ -161,6 +161,8 @@ def test_scraper_status_bulk_matches_per_scraper_stats(client, dataset, db, monk
 
     acme = body[0]
     assert acme["is_enabled"] is False and acme["total_runs"] == 7
+    assert acme["last_run_success"] is True and acme["last_run_note"] is None
+    assert body[2]["last_run_success"] is None and body[2]["last_run_jobs_found"] is None
     assert acme["last_error"] == "timeout"
     assert acme["active_jobs"] == 2 and acme["total_jobs"] == 3
     assert body[1]["last_error"] is None

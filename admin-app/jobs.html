@@ -269,6 +269,11 @@
             font-size: 13px;
         }
         .issue-row:last-child { border-bottom: 0; }
+        .issue-group {
+            padding: 12px 0 4px; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+            text-transform: uppercase; color: var(--c-ink-2);
+        }
+        .issue-group span { font-family: var(--font-mono); font-weight: 500; margin-left: 4px; }
         .issue-row .tracked-name { font-size: 14px; }
         .issue-why { color: var(--c-ink-2); min-width: 0; overflow-wrap: anywhere; }
         .issue-why .reason { color: var(--c-ink); font-weight: 500; }
@@ -523,6 +528,11 @@
             <details class="tracked-fold" id="attention-fold">
                 <summary>Needs attention <span class="fold-count" id="attention-count">0</span></summary>
                 <ul class="issue-list" id="attention-list"></ul>
+            </details>
+
+            <details class="tracked-fold" id="nojobs-fold">
+                <summary>No active jobs <span class="fold-count" id="nojobs-count">0</span></summary>
+                <ul class="issue-list" id="nojobs-list"></ul>
             </details>
 
             <details class="tracked-fold" id="disabled-fold">
@@ -1060,7 +1070,8 @@
         const ATTENTION_ERRORS = { save_failed: 'Jobs found but not saved', empty_result: 'Returned 0 jobs', timeout: 'Timed out' };
         let scraperStatus = [];
         let trackedShowAll = false;
-        let attentionShowAll = false;
+        var attentionShowAll = false;
+        var noJobsShowAll = false;
         let statusSeq = 0;
 
         function parseUtc(value) {
@@ -1079,34 +1090,81 @@
             return `${Math.round(s / 86400)}d ago`;
         }
 
-        // Why a tracked scraper needs a look ([] = healthy) and its dot colour.
+        // Needs-attention groups, most severe first. A board is in exactly one.
+        const ATTENTION_GROUPS = [
+            { key: 'save_error', label: 'Save failed (database error)' },
+            { key: 'quota', label: 'Usage limit reached' },
+            { key: 'failing', label: 'Failing runs' },
+            { key: 'never', label: 'Never succeeded' },
+            { key: 'stale', label: 'No successful run in 48h' },
+        ];
+        // Boards whose runs work but that have nothing active - not failures.
+        const NO_JOBS_GROUPS = [
+            { key: 'all_old', label: 'Every posting is older than the age limit' },
+            { key: 'empty', label: 'Last run found 0 jobs' },
+            { key: 'no_jobs', label: 'Jobs found, none active' },
+        ];
+        const QUOTA_RE = /hard limit|usage limit|quota|limit exceeded|payment required|\b402\b/i;
+
+        // "N jobs found, 0 saved: 0 new, 0 updated, 21 skipped_old" or the run note
+        // "saved: 0 new, 0 updated, 21 skipped_old": nothing saved only because
+        // every job was filtered out - no errors, nothing crashed.
+        function filteredOutCount(text) {
+            const t = String(text || '');
+            if (!/0 new, 0 updated/.test(t) || /error|failed|raised/i.test(t)) return 0;
+            const m = t.match(/(\d+) skipped_old/);
+            return m ? Number(m[1]) : 0;
+        }
+
+        // {group, level, reasons} - group is an ATTENTION_GROUPS / NO_JOBS_GROUPS
+        // key, or null when healthy; level drives the dot colour.
         function assessScraper(s) {
-            const reasons = [];
             const failures = Number(s.consecutive_failures || 0);
             const lastOk = parseUtc(s.last_success_at);
             const lastFail = parseUtc(s.last_failure_at);
             const lastRunFailed = !isNaN(lastFail) && (isNaN(lastOk) || lastFail > lastOk);
-            let level = 'ok';
-            if (lastRunFailed && ATTENTION_ERRORS[s.last_error_type]) {
-                reasons.push(ATTENTION_ERRORS[s.last_error_type]);
-                level = 'bad';
+            const active = Number(s.active_jobs) || 0;
+            // Older runs recorded "all jobs too old" as a save failure; it isn't one.
+            const oldOnly = filteredOutCount(lastRunFailed ? s.last_error : s.last_run_note);
+            const failing = lastRunFailed && !(s.last_error_type === 'save_failed' && oldOnly);
+            const reasons = [];
+            const at = (group, level) => ({ group, level, reasons, lastRunFailed: failing });
+
+            if (failing && s.last_error_type === 'save_failed') {
+                reasons.push('Jobs found but not saved');
+                if (failures >= 2) reasons.push(`${failures} failed runs in a row`);
+                return at('save_error', 'bad');
             }
-            if (failures >= 2) {
-                reasons.push(`${failures} failed runs in a row`);
-                level = 'bad';
+            if (failing && QUOTA_RE.test(s.last_error || '')) {
+                reasons.push(`Usage limit reached · ${failures} failed runs in a row`);
+                return at('quota', 'bad');
+            }
+            if (failing && (failures >= 2 || ATTENTION_ERRORS[s.last_error_type])) {
+                if (ATTENTION_ERRORS[s.last_error_type]) reasons.push(ATTENTION_ERRORS[s.last_error_type]);
+                reasons.push(failures === 1 ? 'Last run failed' : `${failures} failed runs in a row`);
+                return at('failing', 'bad');
             }
             if (isNaN(lastOk)) {
                 reasons.push('Never succeeded');
-                if (level === 'ok') level = 'warn';
-            } else if (Date.now() - lastOk > STALE_MS) {
+                return at('never', 'warn');
+            }
+            if (Date.now() - lastOk > STALE_MS) {
                 reasons.push(`Last success ${timeAgo(s.last_success_at)}`);
-                if (level === 'ok') level = 'warn';
+                return at('stale', 'warn');
             }
-            if (!Number(s.active_jobs)) {
-                reasons.push('0 active jobs');
-                if (level === 'ok') level = 'warn';
+            if (!active) {
+                if (oldOnly) {
+                    reasons.push(`All ${oldOnly.toLocaleString()} jobs found are older than the age limit`);
+                    return at('all_old', 'warn');
+                }
+                if (s.last_run_success && Number(s.last_run_jobs_found) === 0) {
+                    reasons.push('Last run found 0 jobs');
+                    return at('empty', 'warn');
+                }
+                reasons.push(s.last_run_jobs_found ? `Last run found ${Number(s.last_run_jobs_found).toLocaleString()} jobs, 0 active` : '0 active jobs');
+                return at('no_jobs', 'warn');
             }
-            return { reasons, level, lastRunFailed };
+            return at(null, 'ok');
         }
 
         function trackedScrapers() {
@@ -1143,16 +1201,62 @@
             return `<button type="button" class="run-btn" onclick="runScraper('${jsAttr(s.company_slug)}', this)" aria-label="Run the ${escapeHtml(s.company_name)} scraper">Run</button>`;
         }
 
+        function issueRow(s) {
+            const h = s._health;
+            const err = h.lastRunFailed && s.last_error ? `<span class="err" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</span>` : '';
+            const active = Number(s.active_jobs) || 0;
+            const meta = [active ? `${active.toLocaleString()} active` : (h.group in NO_JOBS_KEYS ? '' : '0 active jobs'),
+                          s.last_success_at ? `last success ${timeAgo(s.last_success_at)}` : ''].filter(Boolean);
+            return `<li class="issue-row">
+                <span class="health-dot ${h.level === 'ok' ? '' : h.level}" aria-hidden="true"></span>
+                ${nameButton(s)}
+                <span class="issue-why"><span class="reason">${escapeHtml(h.reasons.join(' · '))}</span>${meta.length ? ' · ' + escapeHtml(meta.join(' · ')) : ''}${err}</span>
+                ${runButton(s)}
+            </li>`;
+        }
+
+        const NO_JOBS_KEYS = Object.fromEntries(NO_JOBS_GROUPS.map(g => [g.key, true]));
+
+        // One fold: rows grouped under a heading per group (in `groups` order),
+        // first TRACKED_TOP rows unless expanded.
+        function renderIssueFold(id, rows, groups, emptyText, showAllVar) {
+            const count = document.getElementById(`${id}-count`);
+            count.textContent = rows.length.toLocaleString();
+            count.classList.toggle('warn', id === 'attention' && rows.length > 0);
+            const showAll = window[showAllVar];
+            const shown = showAll ? rows : rows.slice(0, TRACKED_TOP);
+            const html = [];
+            let current = null;
+            for (const s of shown) {
+                if (s._health.group !== current) {
+                    current = s._health.group;
+                    const g = groups.find(x => x.key === current);
+                    const n = rows.filter(r => r._health.group === current).length;
+                    html.push(`<li class="issue-group">${escapeHtml(g.label)} <span>${n.toLocaleString()}</span></li>`);
+                }
+                html.push(issueRow(s));
+            }
+            if (rows.length > TRACKED_TOP) {
+                html.push(`<li class="tracked-more"><button type="button" class="btn btn-secondary btn-small" onclick="${showAllVar} = !${showAllVar}; renderTracked()">${showAll ? `Show first ${TRACKED_TOP}` : `Show all (${rows.length.toLocaleString()})`}</button></li>`);
+            }
+            document.getElementById(`${id}-list`).innerHTML = rows.length ? html.join('') : `<li class="tracked-empty">${escapeHtml(emptyText)}</li>`;
+        }
+
         function renderTracked() {
             const tracked = trackedScrapers().map(s => ({ ...s, _health: assessScraper(s) }));
             tracked.sort((a, b) => (Number(b.active_jobs) || 0) - (Number(a.active_jobs) || 0)
                 || String(a.company_name).localeCompare(String(b.company_name)));
             const disabled = scraperStatus.filter(s => s.is_enabled === false)
                 .sort((a, b) => String(a.company_name).localeCompare(String(b.company_name)));
-            const attention = tracked.filter(s => s._health.reasons.length)
-                .sort((a, b) => (a._health.level === 'bad' ? 0 : 1) - (b._health.level === 'bad' ? 0 : 1)
-                    || (Number(b.consecutive_failures) || 0) - (Number(a.consecutive_failures) || 0)
-                    || String(a.company_name).localeCompare(String(b.company_name)));
+            const byGroup = groups => {
+                const order = Object.fromEntries(groups.map((g, i) => [g.key, i]));
+                return tracked.filter(s => s._health.group in order)
+                    .sort((a, b) => order[a._health.group] - order[b._health.group]
+                        || (Number(b.consecutive_failures) || 0) - (Number(a.consecutive_failures) || 0)
+                        || String(a.company_name).localeCompare(String(b.company_name)));
+            };
+            const attention = byGroup(ATTENTION_GROUPS);
+            const noJobs = byGroup(NO_JOBS_GROUPS);
             const withJobs = tracked.filter(s => Number(s.active_jobs) > 0).length;
 
             document.getElementById('stat-companies').textContent = tracked.length.toLocaleString();
@@ -1188,36 +1292,26 @@
             more.hidden = !!q || tracked.length <= TRACKED_TOP;
             toggle.textContent = trackedShowAll ? `Show top ${TRACKED_TOP}` : `Show all (${tracked.length.toLocaleString()})`;
 
-            // Needs attention
-            const attCount = document.getElementById('attention-count');
-            attCount.textContent = attention.length.toLocaleString();
-            attCount.classList.toggle('warn', attention.length > 0);
-            const attentionShown = attentionShowAll ? attention : attention.slice(0, TRACKED_TOP);
-            document.getElementById('attention-list').innerHTML = attention.length
-                ? attentionShown.map(s => {
-                    const h = s._health;
-                    const err = h.lastRunFailed && s.last_error ? `<span class="err" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</span>` : '';
-                    return `<li class="issue-row">
-                        <span class="health-dot ${h.level === 'ok' ? '' : h.level}" aria-hidden="true"></span>
-                        ${nameButton(s)}
-                        <span class="issue-why"><span class="reason">${escapeHtml(h.reasons.join(' · '))}</span>
-${Number(s.active_jobs) ? ` · ${Number(s.active_jobs).toLocaleString()} active` : ''}${s.last_success_at ? ` · last success ${escapeHtml(timeAgo(s.last_success_at))}` : ''}${err}</span>
-                        ${runButton(s)}
-                    </li>`;
-                }).join('') + (attention.length > TRACKED_TOP
-                    ? `<li class="tracked-more"><button type="button" class="btn btn-secondary btn-small" onclick="attentionShowAll = !attentionShowAll; renderTracked()">${attentionShowAll ? `Show first ${TRACKED_TOP}` : `Show all (${attention.length.toLocaleString()})`}</button></li>`
-                    : '')
-                : '<li class="tracked-empty">Every tracked scraper looks healthy.</li>';
+            // Needs attention (failures) and No active jobs (working boards with nothing active)
+            renderIssueFold('attention', attention, ATTENTION_GROUPS, 'Every tracked scraper is running fine.', 'attentionShowAll');
+            renderIssueFold('nojobs', noJobs, NO_JOBS_GROUPS, 'Every tracked company has active jobs.', 'noJobsShowAll');
 
-            // Disabled boards
+            // Disabled boards: switched off in code (disabled_reason; needs a code fix)
+            // or switched off in settings / by auto-heal (can be re-enabled here).
             document.getElementById('disabled-count').textContent = disabled.length.toLocaleString();
-            document.getElementById('disabled-list').innerHTML = disabled.length
-                ? disabled.map(s => `<li class="issue-row">
+            const inSettings = disabled.filter(s => !s.disabled_reason);
+            const disabledRow = s => `<li class="issue-row">
                         <span class="health-dot off" aria-hidden="true"></span>
                         <span class="tracked-name" style="cursor:default;text-decoration:none;color:var(--c-ink)">${escapeHtml(s.company_name)}</span>
-                        <span class="issue-why">${escapeHtml(s.disabled_reason || 'Disabled')}${s.last_error ? `<span class="err" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</span>` : ''}</span>
-                        <span></span>
-                    </li>`).join('')
+                        <span class="issue-why">${escapeHtml(s.disabled_reason || 'Switched off in settings (auto-disabled after repeated failures)')}${s.last_error ? `<span class="err" title="${escapeHtml(s.last_error)}">${escapeHtml(s.last_error)}</span>` : ''}</span>
+                        ${s.disabled_reason ? '<span></span>' : `<button type="button" class="run-btn" onclick="enableScrapers(['${jsAttr(s.company_slug)}'], this)" aria-label="Enable the ${escapeHtml(s.company_name)} scraper">Enable</button>`}
+                    </li>`;
+            const inCode = disabled.filter(s => s.disabled_reason);
+            document.getElementById('disabled-list').innerHTML = disabled.length
+                ? (inSettings.length ? `<li class="issue-group">Switched off in settings <span>${inSettings.length}</span>
+                        <button type="button" class="btn btn-secondary btn-small" style="margin-left:8px" onclick="enableScrapers(${escapeHtml(JSON.stringify(inSettings.map(s => s.company_slug)))}, this)">Enable all</button></li>`
+                        + inSettings.map(disabledRow).join('') : '')
+                  + (inCode.length ? `<li class="issue-group">No working board (needs a code fix) <span>${inCode.length}</span></li>` + inCode.map(disabledRow).join('') : '')
                 : '<li class="tracked-empty">No disabled boards.</li>';
         }
 
@@ -1236,6 +1330,25 @@ ${Number(s.active_jobs) ? ` · ${Number(s.active_jobs).toLocaleString()} active`
                 btn.disabled = false;
                 btn.textContent = 'Refresh All';
             }
+        }
+
+        // POST /scrapers/{slug}/enable (also resets the failure streak), then reload.
+        async function enableScrapers(slugs, btn) {
+            const originalText = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+            let ok = 0;
+            const failed = [];
+            for (const slug of slugs) {
+                try {
+                    await apiRequest(`/scrapers/${encodeURIComponent(slug)}/enable`, 'POST');
+                    ok++;
+                } catch (e) {
+                    failed.push(`${slug}: ${e.message}`);
+                }
+            }
+            if (btn) { btn.disabled = false; btn.textContent = originalText; }
+            showAlert(failed.length ? `Enabled ${ok}; failed: ${failed.join('; ')}` : `Enabled ${ok} scraper${ok === 1 ? '' : 's'} — they run on the next schedule, or click Run`, failed.length ? 'error' : 'success');
+            loadScraperStatus();
         }
 
         async function runScraper(slug, btn) {

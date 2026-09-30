@@ -359,6 +359,13 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
                 Job.external_job_id == external_id
             ).first()
 
+            # Contract roles live in contract_jobs (contracts package)
+            from services.scraper_service import route_contract_job_data
+            if route_contract_job_data(db, source.ats_type, job_data, company.id, source_type="company_board"):
+                if existing_job is not None and existing_job.is_active:
+                    existing_job.is_active = False
+                continue
+
             # Extract salary from description
             salary_min, salary_max = extract_salary(job_data['job_description'])
 
@@ -374,6 +381,8 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
                     existing_job.salary_min = salary_min
                 if salary_max:
                     existing_job.salary_max = salary_max
+                from services.job_freshness import touch_seen
+                touch_seen(existing_job)
                 result["jobs_updated"] += 1
             else:
                 new_job = Job(
@@ -393,6 +402,8 @@ def ingest_from_source(source: IngestionSource, db: Session, _is_retry: bool = F
                     salary_min=salary_min,
                     salary_max=salary_max
                 )
+                from services.job_freshness import touch_seen
+                touch_seen(new_job, is_new=True)
                 db.add(new_job)
                 result["jobs_added"] += 1
 

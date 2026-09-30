@@ -1,0 +1,1246 @@
+{
+ "responses": [
+  "phApp.ddo = {\"siteConfig\":{}}; phApp.x = 1;\n\"refNum\":\"ALGRUS\",\"locale\":\"en_us\",\"country\":\"us\",\"pageId\":\"page13\"",
+  {
+   "refineSearch": {
+    "status": 200,
+    "hits": 40,
+    "totalHits": 20,
+    "data": {
+     "jobs": [
+      {
+       "country": "USA",
+       "cityState": "Sunnyvale, California",
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "ml_skills": [
+        "cad software",
+        "3d printing",
+        "mechanical prototyping",
+        "laser cutting",
+        "shop equipment operation",
+        "post-processing",
+        "part assembly",
+        "sanding and finishing",
+        "creo",
+        "rhino",
+        "fusion",
+        "cross-functional collaboration",
+        "model making",
+        "manufacturing",
+        "vendor management",
+        "design",
+        "written communication",
+        "multi-tasking",
+        "continuous learning"
+       ],
+       "type": "Contract",
+       "descriptionTeaser": "Join our team as a CAD Technician and bring innovative prototypes to life using advanced CAD software and 3D printing technologies. Collaborate in a dynamic, hands-on lab environment, working with cutting-edge tools to support new device development. If you thrive on learning and problem-solving, this is your opportunity to make an impact!",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-122.0183914",
+       "reqId": "JP-005236464",
+       "jobId": "JP-005236464",
+       "city": "Sunnyvale",
+       "latitude": "37.3895297",
+       "industry": null,
+       "title": "CAD Technician",
+       "locale": "en_US",
+       "multi_location": [
+        "Sunnyvale,CA,94085,USA"
+       ],
+       "postedDate": "2025-05-01T17:04:23.533+0000",
+       "jobSeqNo": "ALGRUSJP005236464ENUS",
+       "dateCreated": "2025-04-25T20:35:53.872+0000",
+       "cityStateCountry": "Sunnyvale, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=HqAoXJ1khusbpxSe%2BwyJe2pAmEYm2xuOp2i0e9yNNDOcWKGJQ2XRSxTZgxCRM7RmqPSNYVOYucXtWoGngADMGVnrdOqtGyzCjR4ypnBpaEE%2B%2BwFEmKmaz6I3m8bsQTZc&s_id=903&jdg=true",
+       "location": "Sunnyvale, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "ml_job_parser": {
+        "descriptionTeaser": "Join our team as a CAD Technician and bring innovative prototypes to life using advanced CAD software and 3D printing technologies. Collaborate in a dynamic, hands-on lab environment, working with cutting-edge tools to support new device development. If you thrive on learning and problem-solving, this is your opportunity to make an impact!",
+        "descriptionTeaser_first200": "Job Title: CAD Technician. Job Description. As a Prototyping Lab Technician, you will utilize various prototyping tools such as 3D printers and laser cutters to build and deliver mechanical prototypes...",
+        "descriptionTeaser_keyword": "Job Title: CAD Technician. Job Description. As a Prototyping Lab Technician, you will utilize various prototyping tools such as 3D printers and laser cutters to build and deliver mechanical prototypes...",
+        "descriptionTeaser_ats": "As a Prototyping Lab Technician, you will utilize various prototyping tools such as 3D printers and laser cutters to build and deliver mechanical prototypes and industrial design models in a fast-pace..."
+       },
+       "externalApply": true,
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -122.0183914,
+          "lat": 37.3895297
+         },
+         "location": "Sunnyvale,CA,94085,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "ml_skills": [
+        "electrical engineering",
+        "schematic capture",
+        "pcb layout",
+        "altium designer",
+        "analog circuit design",
+        "digital circuit design",
+        "fpga design",
+        "c programming",
+        "power supply design",
+        "medical device development",
+        "communication skills",
+        "project management",
+        "troubleshooting",
+        "team leadership",
+        "problem solving"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Staff R&D Electrical Engineer to lead the development of innovative electronic systems for medical devices. This role involves working on cross-functional teams, developing proof of concept designs, and ensuring compliance with medical device standards. Join us to make a significant impact in the healthcare industry!",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006288741",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=%2F6YNtki%2FcIpV%2FnJaA%2F9ApSUatBFQ7mwgtBHyWDV%2BoQ2ho35dXNs99H9J02OoxhDBLVZwbwleUq0%2BJnIDJJK8sIau1b2K52j6o9Vmf6JYToo3xtoKsC8SOzfInya5%2F%2F6X&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Staff R&D Electrical Engineer to lead the development of innovative electronic systems for medical devices. This role involves working on cross-functional teams, developing proof of concept designs, and ensuring compliance with medical device standards. Join us to make a significant impact in the healthcare industry!",
+        "descriptionTeaser_ats": "Position OverviewThe Staff R&D Electrical Engineer will lead technical development of innovative electronic systems to treat peripheral and heart valve diseases, will participate on multiple cross",
+        "descriptionTeaser_keyword": "Position Overview. The Staff R&D Electrical Engineer will lead technical development of innovative electronic systems to treat peripheral and heart valve diseases, will participate on multiple cross-f...",
+        "descriptionTeaser_first200": "Position Overview. The Staff R&D Electrical Engineer will lead technical development of innovative electronic systems to treat peripheral and heart valve diseases, will participate on multiple cros..."
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006288741",
+       "locale": "en_US",
+       "title": "Staff Electrical Engineer",
+       "jobSeqNo": "ALGRUSJP006288741ENUS",
+       "postedDate": "2026-09-15T23:25:20.492+0000",
+       "dateCreated": "2026-09-15T23:25:20.492+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for an R&D Engineering Technician to support catheter assembly and testing. This role involves hands-on experience with precision tools and mechanical testing in a clean room environment. Join us to contribute to innovative electromechanical catheter products and collaborate with engineering teams.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.95524",
+       "reqId": "JP-006292812",
+       "jobId": "JP-006292812",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "locale": "en_US",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "title": "R&d Engineering Technician",
+       "jobSeqNo": "ALGRUSJP006292812ENUS",
+       "postedDate": "2026-09-17T17:51:12.054+0000",
+       "dateCreated": "2026-09-17T17:51:12.054+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "applyUrl": "https://www.ats.com?jobId=123",
+       "location": "Santa Clara, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "externalApply": false,
+       "ml_skills": [
+        "catheter assembly",
+        "mechanical testing",
+        "precision hand tools",
+        "microscope operation",
+        "soldering",
+        "clean room procedures",
+        "tactile skills",
+        "troubleshooting",
+        "documentation",
+        "collaboration",
+        "attention to detail",
+        "problem solving"
+       ],
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for an R&D Engineering Technician to support catheter assembly and testing. This role involves hands-on experience with precision tools and mechanical testing in a clean room environment. Join us to contribute to innovative electromechanical catheter products and collaborate with engineering teams.",
+        "descriptionTeaser_keyword": "Job Title: R&D Engineering Technician – Catheter Assembly and TestingJob Description. This role supports research and development activities focused on testing, inspecting, troubleshooting, and assemb...",
+        "descriptionTeaser_ats": "Job Title .  R&D Engineering Technician – Catheter Assembly and TestingJob DescriptionThis role supports research and development activities focused on testing, inspecting, troubleshooting, and asse",
+        "descriptionTeaser_first200": "Job Title: R&D Engineering Technician – Catheter Assembly and TestingJob Description. This role supports research and development activities focused on testing, inspecting, troubleshooting, and ass..."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "ml_skills": [
+        "quality engineering",
+        "cgmp",
+        "iso 9001",
+        "root cause analysis",
+        "capa",
+        "risk management",
+        "supplier quality",
+        "statistical analysis",
+        "project management",
+        "team leadership"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Quality Engineer III to provide manufacturing and project quality support for engineered-to-order bioprocessing equipment and automation systems. This role ensures quality requirements are met throughout build, integration, FAT, and release while driving continuous improvement through data-driven quality metrics.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006308480",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=4zJsJmnDtnHmEzveKn2lhKoTFcyaiCxlx%2Fd6OFw8LknXVdc2429ShbN9bBpSYsqm8od07S5a2mBZkCezBBgNtdUIcTyk0ehEmnCGYnxg7lp6aKWIXzrXJQ6TQB8dDYKP&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Quality Engineer III to provide manufacturing and project quality support for engineered-to-order bioprocessing equipment and automation systems. This role ensures quality requirements are met throughout build, integration, FAT, and release while driving continuous improvement through data-driven quality metrics.",
+        "descriptionTeaser_ats": "Job Title .  Quality Engineer IIIJob DescriptionThe Quality Engineer III provides manufacturing and project quality support for engineered-to-order bioprocessing equipment and automation systems. This r",
+        "descriptionTeaser_keyword": "Job Title: Quality Engineer IIIJob Description. The Quality Engineer III provides manufacturing and project quality support for engineered-to-order bioprocessing equipment and automation systems. This...",
+        "descriptionTeaser_first200": "Job Title: Quality Engineer IIIJob Description. The Quality Engineer III provides manufacturing and project quality support for engineered-to-order bioprocessing equipment and automation systems. T..."
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006308480",
+       "locale": "en_US",
+       "title": "Quality Engineer III",
+       "jobSeqNo": "ALGRUSJP006308480ENUS",
+       "postedDate": "2026-09-24T23:53:05.743+0000",
+       "dateCreated": "2026-09-24T23:53:05.743+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "industry": null,
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Systems & Software",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Hardware Systems Engineer to lead system design and validation for advanced computing systems. This role offers the chance to work on innovative hardware platforms at the forefront of technology, contributing to advancements in silicon and optics. Join us in shaping the future of the digital world!",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006293901",
+       "jobId": "JP-006293901",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Hardware Systems Engineer",
+       "jobSeqNo": "ALGRUSJP006293901ENUS",
+       "postedDate": "2026-09-18T00:57:56.697+0000",
+       "dateCreated": "2026-09-18T00:57:56.697+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=MUiqekBeMY5Rb2HE5d3vZEwpe1Abdztq2X5Ku8wEDFsnH11h9NlrIg3UxJmZdU5L%2BNEA%2BpjP%2Bft6Pp%2FV2lUh3qD%2BR%2F%2FNcfc%2BHvFQtWp0OAY9qqxJf4DDYmTS98H%2Fk8M0&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Systems & Software",
+       "externalApply": true,
+       "ml_skills": [
+        "system design",
+        "hardware validation",
+        "root cause analysis",
+        "high-speed design",
+        "x86 systems",
+        "arm systems",
+        "troubleshooting",
+        "signal integrity",
+        "oscilloscopes",
+        "logic analyzers",
+        "pcb design",
+        "documentation",
+        "collaboration",
+        "problem solving"
+       ],
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Hardware Systems Engineer to lead system design and validation for advanced computing systems. This role offers the chance to work on innovative hardware platforms at the forefront of technology, contributing to advancements in silicon and optics. Join us in shaping the future of the digital world!",
+        "descriptionTeaser_keyword": "Job Title: Hardware Systems Engineer. Job Description. As a Hardware Systems Engineer, you will lead system design and validation for advanced computing system products that power cutting-edge switchi...",
+        "descriptionTeaser_ats": "Job Title .  Hardware Systems EngineerJob DescriptionAs a Hardware Systems Engineer, you will lead system design and validation for advanced computing system products that power cutting-edge switching s",
+        "descriptionTeaser_first200": "Job Title: Hardware Systems Engineer. Job Description. As a Hardware Systems Engineer, you will lead system design and validation for advanced computing system products that power cutting-edge swit..."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Hardware Systems Engineer to lead system design and validation for advanced computing systems. Join us in shaping the future of technology with innovative hardware platforms at the center of the AI era.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006294062",
+       "jobId": "JP-006294062",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Hardware Systems Engineer",
+       "jobSeqNo": "ALGRUSJP006294062ENUS",
+       "postedDate": "2026-09-18T12:23:52.802+0000",
+       "dateCreated": "2026-09-18T12:23:52.802+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=9M1idQDZuCj4rOd71LD6xQVBuGjD3XpWOpp870AVhVlc9c23JrD%2BlaMmG1ICTCXt5J9aqEMhCTsLiuy1NOP6zAFZke71NEqHhlgmY8BkiH7zlL0QhJXKiUMe5Un01ct2&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "externalApply": true,
+       "ml_skills": [
+        "oscilloscopes",
+        "logic analyzers",
+        "root cause analysis",
+        "system testing",
+        "high-speed design",
+        "x86 processor design",
+        "arm processor design",
+        "system bring-up",
+        "signal integrity",
+        "pcb design",
+        "documentation",
+        "analytical skills",
+        "team collaboration"
+       ],
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Hardware Systems Engineer to lead system design and validation for advanced computing systems. Join us in shaping the future of technology with innovative hardware platforms at the center of the AI era.",
+        "descriptionTeaser_keyword": "Job Title: Hardware Systems Engineer. Job Description. As a Hardware Systems Engineer, you will lead system design and validation for advanced computing system products that power cutting-edge switchi...",
+        "descriptionTeaser_ats": "Job Title .  Hardware Systems EngineerJob DescriptionAs a Hardware Systems Engineer, you will lead system design and validation for advanced computing system products that power cutting-edge switching s",
+        "descriptionTeaser_first200": "Job Title: Hardware Systems Engineer. Job Description. As a Hardware Systems Engineer, you will lead system design and validation for advanced computing system products that power cutting-edge swit..."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Architecture, Environmental, & Civil",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Senior QA/QC Inspector to lead quality inspections and ensure compliance with industry standards in semiconductor construction projects. This role requires a strong background in QA/QC processes, welding inspections, and high-purity systems. Join us to make a significant impact in a fast-paced environment.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006301096",
+       "jobId": "JP-006301096",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "QC Manager",
+       "jobSeqNo": "ALGRUSJP006301096ENUS",
+       "postedDate": "2026-09-21T23:58:41.875+0000",
+       "dateCreated": "2026-09-21T23:58:41.875+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=GprBCjLynZz27iBkeJcv0RNcViYun0vZL3I8vK%2B8ol%2BI25ucDsZcoZ4AP%2FPGdQCIZfK4L2WmpduPJpGZA%2FNRmHUnx%2F6%2BdhqpoZB8MEfjBM8ig4T44K3s2aTMAgyHOFEn&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Architecture, Environmental, & Civil",
+       "externalApply": true,
+       "ml_skills": [
+        "qa/qc inspection",
+        "welding inspection",
+        "mechanical systems",
+        "high-purity systems",
+        "cleanroom construction",
+        "documentation",
+        "collaboration",
+        "client acceptance support",
+        "mechanical completion",
+        "field walkdowns",
+        "quality oversight",
+        "tig welding",
+        "asnt level ii certification",
+        "certified welding inspector"
+       ],
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Senior QA/QC Inspector to lead quality inspections and ensure compliance with industry standards in semiconductor construction projects. This role requires a strong background in QA/QC processes, welding inspections, and high-purity systems. Join us to make a significant impact in a fast-paced environment.",
+        "descriptionTeaser_keyword": "Job Title: Senior QA/QC Inspector – Semiconductor ConstructionJob Description. The Senior QA/QC Inspector supports complex semiconductor construction projects by leading quality inspections, welding i...",
+        "descriptionTeaser_ats": "Job Title .  Senior QA/QC Inspector – Semiconductor ConstructionJob DescriptionThe Senior QA/QC Inspector supports complex semiconductor construction projects by leading quality inspections, welding ins",
+        "descriptionTeaser_first200": "Job Title: Senior QA/QC Inspector – Semiconductor ConstructionJob Description. The Senior QA/QC Inspector supports complex semiconductor construction projects by leading quality inspections, weldin..."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Architecture, Environmental, & Civil",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Senior QA/QC Inspector to lead quality inspections and ensure compliance in semiconductor construction projects. This role requires a strong background in QA/QC processes, welding inspections, and collaboration with project teams to deliver high-quality results. Join us in maintaining industry standards and driving project success.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006307288",
+       "jobId": "JP-006307288",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "QA/QC Welding Inspector",
+       "jobSeqNo": "ALGRUSJP006307288ENUS",
+       "postedDate": "2026-09-24T16:36:21.680+0000",
+       "dateCreated": "2026-09-24T16:36:21.680+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=c8WryX%2FBSZIppO8IVr4GuCdPclAPX2ATEXO0U8NFTvrsw6pxcA6d3K9SUQ07N5P%2FSZkYk8cOjBCCegq143NhtmPvB5wxJa%2BLx6YHO6a8t8ZBfrQDB%2Fw%2FoqdKVo1qpe2b&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Architecture, Environmental, & Civil",
+       "externalApply": true,
+       "ml_skills": [
+        "qa/qc inspection",
+        "welding inspection",
+        "mechanical systems",
+        "high-purity systems",
+        "documentation",
+        "orbital welding",
+        "cleanroom construction",
+        "client acceptance",
+        "collaboration",
+        "quality control",
+        "mechanical completion",
+        "inspection reporting"
+       ],
+       "industry": null,
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Senior QA/QC Inspector to lead quality inspections and ensure compliance in semiconductor construction projects. This role requires a strong background in QA/QC processes, welding inspections, and collaboration with project teams to deliver high-quality results. Join us in maintaining industry standards and driving project success.",
+        "descriptionTeaser_first200": "Job Title: Senior QA/QC Inspector – Semiconductor ConstructionJob Description. The Senior QA/QC Inspector supports complex semiconductor construction projects by leading quality inspections, weldin...",
+        "descriptionTeaser_keyword": "Job Title: Senior QA/QC Inspector – Semiconductor ConstructionJob Description. The Senior QA/QC Inspector supports complex semiconductor construction projects by leading quality inspections, welding i...",
+        "descriptionTeaser_ats": "Job Title .  Senior QA/QC Inspector – Semiconductor ConstructionJob DescriptionThe Senior QA/QC Inspector supports complex semiconductor construction projects by leading quality inspections, welding ins"
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Architecture, Environmental, & Civil",
+       "type": "Full-time",
+       "descriptionTeaser": "We are looking for an experienced Estimator to support preconstruction and estimating efforts for wood framing and rough carpentry projects. This hybrid role involves reviewing plans, performing quantity takeoffs, and developing competitive cost estimates for community-focused projects. Join us to contribute to impactful developments!",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006308466",
+       "jobId": "JP-006308466",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Estimator",
+       "jobSeqNo": "ALGRUSJP006308466ENUS",
+       "postedDate": "2026-09-24T23:41:01.994+0000",
+       "dateCreated": "2026-09-24T23:41:01.994+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=%2BaYJvsADUv8ZpT7BClaj0tqKDB0OJx83vW685ayXwWqqCIvc6WXb%2BiOFnU%2BUO3sIIpLcgEsb8anY4f20PL3%2FGryjKVitSeuEmJDlFSwnPNxNdJDwf2PZzjSMXQvIO4L2&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Architecture, Environmental, & Civil",
+       "externalApply": true,
+       "ml_skills": [
+        "estimating",
+        "wood framing",
+        "digital takeoff software",
+        "quantity takeoffs",
+        "cost estimation",
+        "construction drawings interpretation",
+        "project management",
+        "risk analysis",
+        "communication skills",
+        "pricing strategies",
+        "collaboration",
+        "community-focused projects"
+       ],
+       "industry": null,
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for an experienced Estimator to support preconstruction and estimating efforts for wood framing and rough carpentry projects. This hybrid role involves reviewing plans, performing quantity takeoffs, and developing competitive cost estimates for community-focused projects. Join us to contribute to impactful developments!",
+        "descriptionTeaser_first200": "Job Title: Estimator Wood Framing & Rough CarpentryJob Description. This hybrid Estimator role focuses on supporting preconstruction and estimating efforts for wood framing and rough carpentry scop...",
+        "descriptionTeaser_keyword": "Job Title: Estimator Wood Framing & Rough CarpentryJob Description. This hybrid Estimator role focuses on supporting preconstruction and estimating efforts for wood framing and rough carpentry scopes...",
+        "descriptionTeaser_ats": "Job Title .  Estimator Wood Framing & Rough CarpentryJob DescriptionThis hybrid Estimator role focuses on supporting preconstruction and estimating efforts for wood framing and rough carpentry scope"
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Architecture, Environmental, & Civil",
+       "ml_skills": [
+        "gas leak identification",
+        "hvac systems knowledge",
+        "pipeline maintenance",
+        "gas valve repair",
+        "safety compliance",
+        "pressure testing",
+        "gas analysis",
+        "scada systems familiarity",
+        "methane calibration devices",
+        "gem 500 experience",
+        "data entry software",
+        "environmental testing",
+        "team collaboration",
+        "outdoor work"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Landfill Gas Technician to join our team in San Jose, CA. In this role, you will monitor and maintain gas extraction systems, ensuring compliance with environmental regulations and safety protocols. If you have experience in gas systems and a passion for environmental protection, we want to hear from you!",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006317087",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=WlrbV%2F97tTGOqXqh9So142qJrO0kbJIxm7vH3wbNExnUVG99fqQ9ozRzojuwbcHrn7uPDzmXQ2xAn8EJhPhOPhbQR9O4uZwbrVhFxlZ17gTDdwwBaN3Soyy36qbDT%2Fsp&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Landfill Gas Technician to join our team in San Jose, CA. In this role, you will monitor and maintain gas extraction systems, ensuring compliance with environmental regulations and safety protocols. If you have experience in gas systems and a passion for environmental protection, we want to hear from you!",
+        "descriptionTeaser_ats": "Job Title .  Landfill Gas TechnicianJob DescriptionAs a Landfill Gas Technician, you will work on projects related to landfill gas collection and control systems. Your role will involve monitoring and m",
+        "descriptionTeaser_keyword": "Job Title: Landfill Gas TechnicianJob Description. As a Landfill Gas Technician, you will work on projects related to landfill gas collection and control systems. Your role will involve monitoring and...",
+        "descriptionTeaser_first200": "Job Title: Landfill Gas TechnicianJob Description. As a Landfill Gas Technician, you will work on projects related to landfill gas collection and control systems. Your role will involve monitoring ..."
+       },
+       "externalApply": true,
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "longitude": "-121.97524",
+       "jobId": "JP-006317087",
+       "locale": "en_US",
+       "title": "Landfill Gas Technician",
+       "jobSeqNo": "ALGRUSJP006317087ENUS",
+       "postedDate": "2026-09-29T16:31:45.693+0000",
+       "dateCreated": "2026-09-29T16:31:45.693+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "location": "San Jose, California, USA",
+       "category": "Architecture, Environmental, & Civil",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "ml_skills": [
+        "technical training development",
+        "curriculum design",
+        "semiconductor manufacturing",
+        "instructional design",
+        "training needs analysis",
+        "technical communication",
+        "competency mapping",
+        "learning path design",
+        "content creation",
+        "evaluation techniques",
+        "digital content development",
+        "project management"
+       ],
+       "type": "Full-time",
+       "descriptionTeaser": "We are looking for a Technical Lead to drive the design and development of technical training curricula in semiconductor environments. This role focuses on creating structured learning programs that enhance workforce capability and support career development. Join us to make a significant impact in a dynamic technical landscape.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006290725",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=9qZJH4kvfM7Vyk6QsStm67JhOvdRAg9T1sYNd9TpGcDaUiBvV0yoHc4LFteOEsW3H4s2rMo1%2F4zDy6Gq2wPhVtHevyOsjmrgee8xdIAP5pHkje3AgtRG8HwYdmv2SeVe&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Technical Lead to drive the design and development of technical training curricula in semiconductor environments. This role focuses on creating structured learning programs that enhance workforce capability and support career development. Join us to make a significant impact in a dynamic technical landscape.",
+        "descriptionTeaser_ats": "Job Title .  Technical LeadJob DescriptionThe Technical Design Lead drives the end-to-end design and development of technical training curricula that strengthen workforce capability in complex manufactu",
+        "descriptionTeaser_keyword": "Job Title: Technical Lead. Job Description. The Technical Design Lead drives the end-to-end design and development of technical training curricula that strengthen workforce capability in complex manuf...",
+        "descriptionTeaser_first200": "Job Title: Technical Lead. Job Description. The Technical Design Lead drives the end-to-end design and development of technical training curricula that strengthen workforce capability in complex ma..."
+       },
+       "externalApply": true,
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "longitude": "-121.97524",
+       "jobId": "JP-006290725",
+       "locale": "en_US",
+       "title": "Technical Lead",
+       "jobSeqNo": "ALGRUSJP006290725ENUS",
+       "postedDate": "2026-09-16T19:41:00.515+0000",
+       "dateCreated": "2026-09-16T19:41:00.515+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "location": "San Jose, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "ml_skills": [
+        "warehouse management",
+        "material management",
+        "logistics coordination",
+        "inventory management",
+        "forklift operation",
+        "communication skills",
+        "organizational skills",
+        "problem-solving",
+        "team collaboration",
+        "attention to detail",
+        "safety awareness"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Project Engineer to support material management and logistics coordination for a large-scale construction project. This hands-on role involves daily warehouse management and project coordination, ensuring efficient operations and timely material delivery. Join us to make a significant impact in a dynamic environment!",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006292818",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=oU2eXnLFoIAgdUMOtjMxJyO3t2dn73lZomLdNJub4%2BrNEd6FHnKjgt8pA6Y9%2B3VlnBPpdl12XTswrTT0Jx8JSaUYnhh3xcSmnclpq1LXQiJb%2BZ0TS2NQaGw3dOMcX%2Buv&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Project Engineer to support material management and logistics coordination for a large-scale construction project. This hands-on role involves daily warehouse management and project coordination, ensuring efficient operations and timely material delivery. Join us to make a significant impact in a dynamic environment!",
+        "descriptionTeaser_ats": "Job Title .  Warehouse & Project Operations Coordinator / Project EngineerJob DescriptionThe Warehouse & Project Operations Coordinator / Project Engineer plays a key role in supporting material",
+        "descriptionTeaser_keyword": "Job Title: Warehouse & Project Operations Coordinator / Project EngineerJob Description. The Warehouse & Project Operations Coordinator / Project Engineer plays a key role in supporting material manag...",
+        "descriptionTeaser_first200": "Job Title: Warehouse & Project Operations Coordinator / Project EngineerJob Description. The Warehouse & Project Operations Coordinator / Project Engineer plays a key role in supporting material ma..."
+       },
+       "externalApply": true,
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "longitude": "-121.97524",
+       "jobId": "JP-006292818",
+       "locale": "en_US",
+       "title": "Project Engineer",
+       "jobSeqNo": "ALGRUSJP006292818ENUS",
+       "postedDate": "2026-09-17T17:53:44.251+0000",
+       "dateCreated": "2026-09-17T17:53:44.251+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "location": "San Jose, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Manufacturing, Mechanical, & Electrical",
+       "ml_skills": [
+        "assembly",
+        "troubleshooting",
+        "electrical safety",
+        "mechanical drawings",
+        "electrical schematics",
+        "precision measurement tools",
+        "ms word",
+        "ms excel",
+        "communication skills",
+        "problem solving",
+        "safety standards",
+        "technical engineering"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a skilled Manufacturing Technician 3 to join our team on the swing shift. This role involves integrating subassemblies into complex systems and ensuring high safety standards while preparing for functional testing.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006318372",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=%2FijOd4VeX4cfuL4uKf9DdTnKTXVxu53ctsO2G9cpxsslj2idC7tELSLIrRvuUHz12mRzD68Md1CNBPU1NXOvllGOeD8jmtQuhA1DOWfnWOKzMhYdHkfoTcQ%2FhyPZ0GSb&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a skilled Manufacturing Technician 3 to join our team on the swing shift. This role involves integrating subassemblies into complex systems and ensuring high safety standards while preparing for functional testing.",
+        "descriptionTeaser_ats": "Job Title .  Manufacturing Technician 3 (Swing Shift)Job DescriptionWe are seeking a skilled Manufacturing Technician 3 to join our team on the swing shift. The role involves integrating subassemblies a",
+        "descriptionTeaser_keyword": "Job Title: Manufacturing Technician 3 (Swing Shift). Job Description. We are seeking a skilled Manufacturing Technician 3 to join our team on the swing shift. The role involves integrating subassembli...",
+        "descriptionTeaser_first200": "Job Title: Manufacturing Technician 3 (Swing Shift). Job Description. We are seeking a skilled Manufacturing Technician 3 to join our team on the swing shift. The role involves integrating subassem..."
+       },
+       "externalApply": true,
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "longitude": "-121.97524",
+       "jobId": "JP-006318372",
+       "locale": "en_US",
+       "title": "Manufacturing Technician 3 (Swing Shift)",
+       "jobSeqNo": "ALGRUSJP006318372ENUS",
+       "postedDate": "2026-09-29T21:53:59.216+0000",
+       "dateCreated": "2026-09-29T21:53:59.216+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "location": "San Jose, California, USA",
+       "category": "Manufacturing, Mechanical, & Electrical",
+       "industry": null,
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "Campbell, California",
+       "country": "USA",
+       "subCategory": "Systems & Software",
+       "type": "Contractor",
+       "descriptionTeaser": "We are seeking a seasoned Power Electronics Controls and Firmware Engineer with extensive experience in embedded power control firmware development. Join us to innovate next-generation fast-charging products and work with advanced technologies in a fast-paced environment.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.94996",
+       "reqId": "JP-006317461",
+       "jobId": "JP-006317461",
+       "city": "Campbell",
+       "latitude": "37.28717",
+       "locale": "en_US",
+       "multi_location": [
+        "Campbell,CA,95008,USA"
+       ],
+       "title": "Firmware Engineer",
+       "jobSeqNo": "ALGRUSJP006317461ENUS",
+       "postedDate": "2026-09-29T18:21:39.777+0000",
+       "dateCreated": "2026-09-29T18:21:39.777+0000",
+       "cityStateCountry": "Campbell, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=x2ZcYGpfrV09JSe%2Fd%2F5%2FdMqaAy%2FUqX4G960VHy1kLdLdrFs2bXq5DJ7vyGLw2o4ol%2FjDO6HwAhCm0HdLIDYH3ev2wlcJbTOiURaGVsKSyst9DcrqCJKKAPfwqis4CZM8&s_id=903&jdg=true",
+       "location": "Campbell, California, USA",
+       "category": "Systems & Software",
+       "externalApply": true,
+       "ml_skills": [
+        "power electronics",
+        "embedded firmware development",
+        "control engineering",
+        "hil testing",
+        "c2000 processors",
+        "debugging firmware issues",
+        "device drivers",
+        "digital control",
+        "simulation",
+        "debugging hardware issues",
+        "secure bootloaders",
+        "oscilloscopes",
+        "logic analyzers",
+        "git",
+        "svn",
+        "pwm",
+        "adc",
+        "uart",
+        "i2c",
+        "spi",
+        "can",
+        "ethernet"
+       ],
+       "industry": null,
+       "ml_job_parser": {
+        "descriptionTeaser": "We are seeking a seasoned Power Electronics Controls and Firmware Engineer with extensive experience in embedded power control firmware development. Join us to innovate next-generation fast-charging products and work with advanced technologies in a fast-paced environment.",
+        "descriptionTeaser_first200": "Firmware Engineer- Power Electronics. Job Description. We are seeking a seasoned Power Electronics Controls and Firmware Engineer with extensive experience in embedded power control firmware develo...",
+        "descriptionTeaser_keyword": "Firmware Engineer- Power Electronics. Job Description. We are seeking a seasoned Power Electronics Controls and Firmware Engineer with extensive experience in embedded power control firmware developme...",
+        "descriptionTeaser_ats": "Firmware Engineer- Power ElectronicsJob DescriptionWe are seeking a seasoned Power Electronics Controls and Firmware Engineer with extensive experience in embedded power control firmware development."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.94996,
+          "lat": 37.28717
+         },
+         "location": "Campbell,CA,95008,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Clinical",
+       "ml_skills": [
+        "clinical monitoring",
+        "ich-gcp guidelines",
+        "remote monitoring",
+        "site management",
+        "data integrity",
+        "critical thinking",
+        "problem solving",
+        "documentation skills",
+        "clinical trial management systems",
+        "interpersonal skills",
+        "organizational skills",
+        "presentation skills"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Senior Clinical Research Associate II to coordinate clinical monitoring and site management across diverse studies. This role involves conducting remote and on-site monitoring visits, ensuring compliance with ICH-GCP guidelines, and maintaining data integrity while building strong relationships with investigational sites.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006318379",
+       "city": "Santa Clara",
+       "latitude": "37.35411",
+       "multi_location": [
+        "Santa Clara,CA,95050,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=OUtQh99%2FRVOKVXg02z0QSW7eVBmc%2Bz8jV0MEkw1cMmkQRJ8h91%2BzutAkD2RD0Z1XeFLQeZyzgDQshhzcMLTT%2Fc3wl8H%2FYzsmk440wjotaRwzZ6WKVAfzQlSfqsXRUNzA&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Senior Clinical Research Associate II to coordinate clinical monitoring and site management across diverse studies. This role involves conducting remote and on-site monitoring visits, ensuring compliance with ICH-GCP guidelines, and maintaining data integrity while building strong relationships with investigational sites.",
+        "descriptionTeaser_ats": "w2 contract role (6-month renewable)ALL TRAVEL HOURS PAID (door to door)benefits providedJob Title .  Senior Clinical Research Associate II (Sr CRA II)Job DescriptionThis Senior Clinical Research Associ",
+        "descriptionTeaser_keyword": "W2 contract role (6-month renewable). ALL TRAVEL HOURS PAID (door to door). benefits provided. Job Title: Senior Clinical Research Associate II (Sr CRA II). Job Description. This Senior Clinical Resea...",
+        "descriptionTeaser_first200": "w2 contract role (6-month renewable). ALL TRAVEL HOURS PAID (door to door). benefits provided. Job Title: Senior Clinical Research Associate II (Sr CRA II). Job Description. This Senior Clinical Re..."
+       },
+       "externalApply": true,
+       "cityState": "Santa Clara, California",
+       "country": "USA",
+       "longitude": "-121.95524",
+       "jobId": "JP-006318379",
+       "locale": "en_US",
+       "title": "Sr CRA II",
+       "jobSeqNo": "ALGRUSJP006318379ENUS",
+       "postedDate": "2026-09-29T21:55:13.252+0000",
+       "dateCreated": "2026-09-29T21:55:13.252+0000",
+       "cityStateCountry": "Santa Clara, California, USA",
+       "location": "Santa Clara, California, USA",
+       "category": "Clinical",
+       "industry": null,
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.95524,
+          "lat": 37.35411
+         },
+         "location": "Santa Clara,CA,95050,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Laboratory & Sciences",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Quality Control Laboratory Technician to perform a variety of chemical, physical, and instrumental tests on materials and products. This role is essential for ensuring quality standards and involves managing laboratory data and supporting cross-functional teams. Join us to contribute to continuous improvement in testing processes.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006289790",
+       "jobId": "JP-006289790",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Lab Technician",
+       "jobSeqNo": "ALGRUSJP006289790ENUS",
+       "postedDate": "2026-09-16T15:28:05.536+0000",
+       "dateCreated": "2026-09-16T15:28:05.536+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=abU1QWp39XVrx6xRDBSNJQVWaWkEu%2FqDJkn%2BDKJ3gBek8RUgojfaNaC8pBKyT7ql4JneFglwR8ZMsVrfMWxO1%2FUfkmC6OFeh1ywxaUl8swhZ9gl2%2FD4wg1GGjiytp4aW&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Laboratory & Sciences",
+       "externalApply": true,
+       "ml_skills": [
+        "quality control",
+        "analytical testing",
+        "chemical testing",
+        "physical testing",
+        "volumetric analysis",
+        "gravimetric analysis",
+        "ph measurement",
+        "ftir",
+        "specific gravity measurement",
+        "refractive index measurement",
+        "laboratory information management systems",
+        "team collaboration",
+        "attention to detail",
+        "time management",
+        "problem solving"
+       ],
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Quality Control Laboratory Technician to perform a variety of chemical, physical, and instrumental tests on materials and products. This role is essential for ensuring quality standards and involves managing laboratory data and supporting cross-functional teams. Join us to contribute to continuous improvement in testing processes.",
+        "descriptionTeaser_keyword": "Job Title: Quality Control Laboratory TechnicianJob Description. The Quality Control Laboratory Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-proc...",
+        "descriptionTeaser_ats": "Job Title .  Quality Control Laboratory TechnicianJob DescriptionThe Quality Control Laboratory Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-proces",
+        "descriptionTeaser_first200": "Job Title: Quality Control Laboratory TechnicianJob Description. The Quality Control Laboratory Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-p..."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Health & Medical",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a skilled Lab Technician to perform chemical and physical testing on various materials. Join our team to ensure product quality through precise analysis and effective communication with cross-functional teams.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006315756",
+       "jobId": "JP-006315756",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Lab Technician",
+       "jobSeqNo": "ALGRUSJP006315756ENUS",
+       "postedDate": "2026-09-28T23:10:09.910+0000",
+       "dateCreated": "2026-09-28T23:10:09.910+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=iRGu1DlY1HSLdLuI5rHlWcgOpCTrPQoObbpzd%2FUqB9yEgOji1W0Z5fsa6cTxR67iU8BAFn1cK%2BmCVbO50neXWWxvb5e7GZA5F%2FdXNueWb6FiWFtZdYTuAQ%2F%2BqZwyI74d&s_id=903&jdg=false",
+       "location": "San Jose, California, USA",
+       "category": "Health & Medical",
+       "externalApply": true,
+       "ml_skills": [
+        "chemistry",
+        "detail oriented",
+        "microsoft word",
+        "microsoft powerpoint",
+        "process control",
+        "documentation",
+        "troubleshooting",
+        "statistical analysis",
+        "team collaboration",
+        "time management"
+       ],
+       "industry": null,
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a skilled Lab Technician to perform chemical and physical testing on various materials. Join our team to ensure product quality through precise analysis and effective communication with cross-functional teams.",
+        "descriptionTeaser_first200": "Description. Perform chemical, physical, and instrumental testing on raw materials, in-process, finished, and customer product samples, including volumetric and gravimetric analyses, pH measurement...",
+        "descriptionTeaser_keyword": "Description. Perform chemical, physical, and instrumental testing on raw materials, in-process, finished, and customer product samples, including volumetric and gravimetric analyses, pH measurement, F...",
+        "descriptionTeaser_ats": "Description Perform chemical, physical, and instrumental testing on raw materials, in-process, finished, and customer product samples, including volumetric and gravimetric analyses, pH measurement, FT"
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Laboratory & Sciences",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Quality Control Laboratory Technician to perform a variety of chemical, physical, and instrumental tests on materials and products. This role ensures compliance with quality standards and supports cross-functional teams with accurate test results. Join us to contribute to continuous improvement in a dynamic laboratory environment.",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006295059",
+       "jobId": "JP-006295059",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Lab Technician",
+       "jobSeqNo": "ALGRUSJP006295059ENUS",
+       "postedDate": "2026-09-18T16:08:50.413+0000",
+       "dateCreated": "2026-09-18T16:08:50.413+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=FYaUucHVz6MMTwUGDoqnDxCBCcHw%2FwEci6oSEJ131K6Xzwtvu20BKOE9lS%2Bl2hyThWyvPV7BhDaxUHjfnCpiOdvj2tJAAr0Pnyd6MvftKAZXnEMD6H90uVi27oYNa2QO&s_id=903&jdg=true",
+       "location": "San Jose, California, USA",
+       "category": "Laboratory & Sciences",
+       "externalApply": true,
+       "ml_skills": [
+        "quality control",
+        "analytical testing",
+        "chemical testing",
+        "physical testing",
+        "volumetric analysis",
+        "gravimetric analysis",
+        "ph measurement",
+        "ftir",
+        "specific gravity",
+        "refractive index",
+        "laboratory information management systems",
+        "communication skills",
+        "time management",
+        "problem solving"
+       ],
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Quality Control Laboratory Technician to perform a variety of chemical, physical, and instrumental tests on materials and products. This role ensures compliance with quality standards and supports cross-functional teams with accurate test results. Join us to contribute to continuous improvement in a dynamic laboratory environment.",
+        "descriptionTeaser_keyword": "Job Title: Quality Control Laboratory Technician. Job Description. The Quality Control Laboratory Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-pr...",
+        "descriptionTeaser_ats": "Job Title .  Quality Control Laboratory TechnicianJob DescriptionThe Quality Control Laboratory Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-proces",
+        "descriptionTeaser_first200": "Job Title: Quality Control Laboratory Technician. Job Description. The Quality Control Laboratory Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in..."
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "subCategory": "Health & Medical",
+       "ml_skills": [
+        "chemical analysis",
+        "physical analysis",
+        "volumetric testing",
+        "gravimetric testing",
+        "ftir",
+        "data management",
+        "team collaboration",
+        "attention to detail",
+        "time management",
+        "communication skills",
+        "statistical analysis"
+       ],
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Lab Technician to perform a variety of chemical, physical, and instrumental tests to ensure product quality. This role involves collaboration with Quality, Production, and R&D teams while adhering to safety protocols in a laboratory environment.",
+       "state": "California",
+       "siteType": "external",
+       "reqId": "JP-006295889",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "applyUrl": "https://apply.actalentservices.com/v1/s/?opco=ENS&params=QOxkyttcZT4szREgLx2v%2Baj%2Fp66Z8HEpq5Iba0eC2HQEmxhngrNFvzNXBwjo20nobBcF3aszFybws0JrNdU7luDaZ6w6snimLTeZLZh%2FHh4G%2Fm4nvcj6dyutOXLJlAFf&s_id=903&jdg=true",
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Lab Technician to perform a variety of chemical, physical, and instrumental tests to ensure product quality. This role involves collaboration with Quality, Production, and R&D teams while adhering to safety protocols in a laboratory environment.",
+        "descriptionTeaser_ats": "Job Title .  Lab TechnicianJob DescriptionThe Lab Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-process samples, finished products, and customer sam",
+        "descriptionTeaser_keyword": "Job Title: Lab Technician. Job Description. The Lab Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-process samples, finished products, and customer...",
+        "descriptionTeaser_first200": "Job Title: Lab Technician. Job Description. The Lab Technician performs a wide range of chemical, physical, and instrumental tests on raw materials, in-process samples, finished products, and custo..."
+       },
+       "externalApply": true,
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "longitude": "-121.97524",
+       "jobId": "JP-006295889",
+       "locale": "en_US",
+       "title": "Lab Technician",
+       "jobSeqNo": "ALGRUSJP006295889ENUS",
+       "postedDate": "2026-09-18T18:50:16.060+0000",
+       "dateCreated": "2026-09-18T18:50:16.060+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "location": "San Jose, California, USA",
+       "category": "Health & Medical",
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      },
+      {
+       "cityState": "San Jose, California",
+       "country": "USA",
+       "subCategory": "Health & Medical",
+       "type": "Contractor",
+       "descriptionTeaser": "We are looking for a Clinical Pharmacist to join our remote team, focusing on specialty medications and oncology. This role involves clinical reviews, prior authorizations, and collaboration with healthcare providers. If you have a PharmD and 5+ years of pharmacy experience, apply now!",
+       "state": "California",
+       "siteType": "external",
+       "longitude": "-121.97524",
+       "reqId": "JP-006313386",
+       "jobId": "JP-006313386",
+       "city": "San Jose",
+       "latitude": "37.42605",
+       "locale": "en_US",
+       "multi_location": [
+        "San Jose,CA,95002,USA"
+       ],
+       "title": "Pharmacist (100% Remote)",
+       "jobSeqNo": "ALGRUSJP006313386ENUS",
+       "postedDate": "2026-09-28T14:08:02.070+0000",
+       "dateCreated": "2026-09-28T14:08:02.070+0000",
+       "cityStateCountry": "San Jose, California, USA",
+       "applyUrl": "https://www.ats.com?jobId=123",
+       "location": "San Jose, California, USA",
+       "category": "Health & Medical",
+       "externalApply": false,
+       "ml_skills": [
+        "clinical review",
+        "utilization management",
+        "oncology",
+        "prior authorization",
+        "formulary exceptions",
+        "clinical judgment",
+        "communication skills",
+        "team collaboration",
+        "data management",
+        "problem solving"
+       ],
+       "industry": null,
+       "ml_job_parser": {
+        "descriptionTeaser": "We are looking for a Clinical Pharmacist to join our remote team, focusing on specialty medications and oncology. This role involves clinical reviews, prior authorizations, and collaboration with healthcare providers. If you have a PharmD and 5+ years of pharmacy experience, apply now!",
+        "descriptionTeaser_first200": "Clinical Pharmacist. 100% Remote | Specialty Medications | Offers Benefits. Job Description. This fully remote Clinical Pharmacist role focuses on utilization management for specialty medications, ...",
+        "descriptionTeaser_keyword": "Clinical Pharmacist. 100% Remote | Specialty Medications | Offers Benefits. Job Description. This fully remote Clinical Pharmacist role focuses on utilization management for specialty medications, wit...",
+        "descriptionTeaser_ats": "Clinical Pharmacist100% Remote | Specialty Medications | Offers BenefitsJob DescriptionThis fully remote Clinical Pharmacist role focuses on utilization management for specialty medications, with a st"
+       },
+       "isMultiLocation": false,
+       "multi_location_array": [
+        {
+         "latlong": {
+          "lon": -121.97524,
+          "lat": 37.42605
+         },
+         "location": "San Jose,CA,95002,USA"
+        }
+       ],
+       "isMultiCategory": false,
+       "badge": ""
+      }
+     ],
+     "SEARCH_CONFIG": {
+      "contextualSearch": false,
+      "isSuggestionsEnabled": true
+     },
+     "suggestions": {},
+     "ui_skills_selection": null,
+     "locationData": {}
+    },
+    "eid": {
+     "trialIndex": -1,
+     "eid": "6abc738f074f05808bc95660",
+     "searchType": "allJobs",
+     "isMultiLingualVectorApplied": false,
+     "query": "",
+     "variant": 0,
+     "banditId": "",
+     "keywordLanguage": "en"
+    }
+   }
+  }
+ ]
+}

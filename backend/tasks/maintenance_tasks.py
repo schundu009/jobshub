@@ -98,11 +98,15 @@ def mark_stale_jobs_inactive(days: int = 14) -> dict:
 
         # Find jobs from scrapers (source is the company slug, not 'manual')
         # that haven't been updated and are still marked active
+        # last_seen_at is when a scrape last listed the job (updated_at only
+        # moves when the content changes); older rows fall back to updated_at.
+        from sqlalchemy import and_, or_
         count = db.query(Job).filter(
             Job.source != "manual",
             Job.is_active == True,
-            Job.updated_at < cutoff,
-        ).update({"is_active": False})
+            or_(Job.last_seen_at < cutoff,
+                and_(Job.last_seen_at.is_(None), Job.updated_at < cutoff)),
+        ).update({"is_active": False}, synchronize_session=False)
 
         db.commit()
 

@@ -17,6 +17,7 @@ Usage:
 
 from celery import Celery
 from celery.schedules import crontab
+from celery.signals import worker_process_init
 from kombu import Queue
 
 from config import settings
@@ -32,6 +33,7 @@ celery_app = Celery(
         "tasks.maintenance_tasks",
         "tasks.apply_tasks",
         "tasks.apify_tasks",
+        "contracts.tasks",
     ],
 )
 
@@ -90,6 +92,19 @@ BEAT_SCHEDULE = {
         "schedule": crontab(minute=0, hour=13),
         "options": {"queue": "default"},
     },
+    # Contract roles (contracts package, queue "contracts"): scrape staffing
+    # boards every 6h at :15 past (offset from the full-time :00 cycle) and
+    # expire roles past contract_max_age_days daily.
+    "contracts-scrape-all": {
+        "task": "contracts.tasks.scrape_all_contracts",
+        "schedule": crontab(minute=15, hour="*/6"),
+        "options": {"queue": "contracts"},
+    },
+    "contracts-expire": {
+        "task": "contracts.tasks.expire_contract_jobs",
+        "schedule": crontab(minute=10, hour=4),
+        "options": {"queue": "contracts"},
+    },
     "apply-prepare-auto": {
         "task": "tasks.apply_tasks.prepare_auto_applications",
         "schedule": crontab(minute=20),
@@ -127,6 +142,7 @@ celery_app.conf.update(
         "tasks.apify_tasks.scrape_apify_indeed": {"queue": "scrapers_http"},
         "tasks.apify_tasks.scrape_apify_linkedin": {"queue": "scrapers_http"},
         "tasks.apify_tasks.scrape_all_apify": {"queue": "scrapers_orchestrator"},
+        "contracts.tasks.*": {"queue": "contracts"},
     },
 
     # Define queues
@@ -136,6 +152,7 @@ celery_app.conf.update(
         Queue("scrapers_browser", routing_key="scrapers.browser"),
         Queue("scrapers_orchestrator", routing_key="scrapers.orchestrator"),
         Queue("maintenance", routing_key="maintenance"),
+        Queue("contracts", routing_key="contracts"),
     ),
 
     # Default queue
@@ -149,6 +166,16 @@ celery_app.conf.update(
 
     # Rate limits and per-task overrides
     task_annotations={
+        "contracts.tasks.scrape_contract_source": {
+            "rate_limit": "10/m",
+            "soft_time_limit": 300,
+            "time_limit": 360,
+        },
+        "contracts.tasks.expire_contract_jobs": {
+            "soft_time_limit": 600,
+            "time_limit": 660,
+            "reject_on_worker_lost": False,
+        },
         "tasks.scraper_tasks.scrape_company_http": {
             "rate_limit": "10/m",
             "soft_time_limit": 120,  # HTTP scrapers: 2 min soft
@@ -223,6 +250,20 @@ celery_app.conf.update(
     # Beat schedule for periodic tasks
     beat_schedule=BEAT_SCHEDULE,
 )
+
+
+@worker_process_init.connect
+def _reset_db_pool_after_fork(**_):
+    """
+    database.py connects at import (startup migrations), so the prefork parent
+    holds pooled Postgres sockets that every child inherits. Two children
+    talking over one socket corrupts the protocol ("lost synchronization with
+    server", then PendingRollbackError on every retry). Drop the inherited
+    pool in each child without closing the parent's sockets.
+    """
+    from database import engine
+    if engine is not None:
+        engine.dispose(close=False)
 
 
 # Optional: Configure Sentry for error tracking

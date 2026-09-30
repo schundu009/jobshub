@@ -555,6 +555,7 @@ def get_user_settings(
         "phone": current_user.phone,
         "date_of_birth": str(current_user.date_of_birth) if current_user.date_of_birth else None,
         "country": current_user.country,
+        "country_code": current_user.country_code,
 
         # Address
         "address_line1": current_user.address_line1,
@@ -631,6 +632,10 @@ def update_user_settings(
     user = db.query(User).filter(User.id == current_user.id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if "country" in update_fields:
+        # ISO-2 alongside the free-text value: which country's jobs this user sees
+        from services.job_location import normalize_country
+        user.country_code = normalize_country(update_fields.get("country"))
 
     # Field name mapping (frontend name -> database column name)
     field_mapping = {

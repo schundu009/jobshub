@@ -61,6 +61,9 @@ class ScraperStatus(BaseModel):
     last_failure_at: Optional[str]
     last_error: Optional[str] = None
     last_error_type: Optional[str] = None  # save_failed, empty_result, timeout, ...
+    last_run_success: Optional[bool] = None
+    last_run_jobs_found: Optional[int] = None
+    last_run_note: Optional[str] = None  # latest run's message, e.g. "saved: 0 new, 0 updated, 21 skipped_old"
     active_jobs: int
     total_jobs: int
     # Scrapers switched off in code (ScraperConfig(enabled=False)) are listed
@@ -573,6 +576,14 @@ def update_scraper_config(
         db.add(config)
 
     if update.is_enabled is not None:
+        if update.is_enabled and not config.is_enabled:
+            # Fresh start: otherwise the old streak makes auto_heal switch it
+            # straight back off (it disables at 10+ consecutive failures).
+            config.consecutive_failures = 0
+            overrides = dict(config.config_overrides or {})
+            overrides.pop("auto_disabled", None)
+            overrides.pop("auto_disabled_reason", None)
+            config.config_overrides = overrides
         config.is_enabled = update.is_enabled
 
     if update.config_overrides is not None:

@@ -141,6 +141,7 @@ def _run_early_migrations_locked():
         ("excluded_companies", "JSON"),
         ("onboarding_completed", "BOOLEAN DEFAULT FALSE"),
         ("onboarding_completed_at", "TIMESTAMP"),
+        ("country_code", "VARCHAR(2)"),
     ]
 
     try:
@@ -168,6 +169,23 @@ def _run_early_migrations_locked():
                         print(f"Could not add {col_name}: {e}")
 
             conn.commit()
+
+            # New nullable jobs columns must exist before the ORM selects them
+            # (the full migration incl. backfills runs later, in the background).
+            try:
+                from migrations.job_classification import JOB_CLASSIFICATION_COLUMNS
+                job_cols = {row[0] for row in conn.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'jobs'"
+                ))}
+                if job_cols:
+                    for col_name, pg_type, _sqlite_type in JOB_CLASSIFICATION_COLUMNS:
+                        if col_name not in job_cols:
+                            conn.execute(text(f"ALTER TABLE jobs ADD COLUMN IF NOT EXISTS {col_name} {pg_type}"))
+                            print(f"Added jobs column: {col_name}")
+                    conn.commit()
+            except Exception as e:
+                conn.rollback()
+                print(f"Could not add jobs columns early: {e}")
 
             # One-time migration: Set onboarding_completed for users with resumes
             try:
@@ -255,6 +273,10 @@ def create_tables():
             IngestionSource, RoleProfile, User, JobRelevanceScore,
             ScraperRun, ScraperConfigDB, UserDocument
         )
+    try:
+        import contracts.models  # noqa: F401  (contract_jobs table)
+    except Exception as e:  # pragma: no cover
+        print(f"WARNING: could not load contracts.models: {e}")
     Base.metadata.create_all(bind=engine)
 
 

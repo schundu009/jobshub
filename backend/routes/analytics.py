@@ -53,6 +53,14 @@ def get_summary(db: Session = Depends(get_db)):
         status_counts = {st: int(row[i + 1]) for i, st in enumerate(STATUSES)}
 
         total_companies = db.query(func.count(Company.id)).scalar() or 0
+        try:
+            from contracts.models import ContractJob
+            contract_jobs_active = db.query(func.count(ContractJob.id)).filter(
+                ContractJob.is_active == True  # noqa: E712
+            ).scalar() or 0
+        except Exception:
+            db.rollback()
+            contract_jobs_active = 0
         total_contacts = db.query(func.count(Contact.id)).scalar() or 0
 
         now = datetime.now()
@@ -83,6 +91,7 @@ def get_summary(db: Session = Depends(get_db)):
         return {
             "total_jobs": total_jobs,
             "total_companies": total_companies,
+            "contract_jobs_active": int(contract_jobs_active),
             "total_contacts": total_contacts,
             "status_counts": status_counts,
             "upcoming_interviews": upcoming_interviews,

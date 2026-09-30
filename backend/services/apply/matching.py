@@ -13,7 +13,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, true
 from sqlalchemy.orm import Session, joinedload
 
 from services.apply.ats import detect_ats
@@ -195,16 +195,44 @@ def score_job(job, ctx: MatchContext) -> Optional[Tuple[int, List[str], Optional
     return max(0, min(100, score)), reasons, ref.ats
 
 
-def candidate_jobs(db: Session, limit: int = 5000):
-    from models import Job
+MAX_LISTED_DAYS = 45  # listed_since older than this is too stale to apply to automatically
 
-    since = datetime.utcnow() - timedelta(days=MATCH_LOOKBACK_DAYS)
+
+def is_stale_for_apply(job, now: Optional[datetime] = None) -> bool:
+    """Evergreen/ghost posting, or listed for more than MAX_LISTED_DAYS."""
+    if getattr(job, "is_evergreen", False):
+        return True
+    listed = getattr(job, "effective_posted_at", None)
+    return bool(listed and ((now or datetime.utcnow()) - listed.replace(tzinfo=None)).days > MAX_LISTED_DAYS)
+
+
+def user_country(user) -> str:
+    """The user's country (ISO-2) for job visibility; US when unknown."""
+    from services.job_location import normalize_country
+    return (getattr(user, "country_code", None) or normalize_country(getattr(user, "country", None))
+            or normalize_country(getattr(user, "address_country", None)) or "US")
+
+
+def candidate_jobs(db: Session, limit: int = 5000, country: Optional[str] = None):
+    from models import Job
+    from services.job_location import country_filter
+
+    now = datetime.utcnow()
+    since = now - timedelta(days=MATCH_LOOKBACK_DAYS)
+    listed_cutoff = now - timedelta(days=MAX_LISTED_DAYS)
     return (db.query(Job)
             .options(joinedload(Job.company))
             .filter(Job.is_active == True)  # noqa: E712
             .filter(Job.user_id.is_(None))  # shared scraped jobs, not users' manual entries
             .filter(or_(Job.posted_date >= since,
                         and_(Job.posted_date.is_(None), Job.created_at >= since)))
+            # Never auto-apply to evergreen/ghost postings or ones listed > 45 days
+            .filter(or_(Job.is_evergreen.is_(None), Job.is_evergreen == False))  # noqa: E712
+            .filter(or_(Job.effective_posted_at >= listed_cutoff, Job.effective_posted_at.is_(None)))
+            # Contract roles are not in jobs; skip any unrouted stragglers too.
+            .filter(or_(Job.employment_type.is_(None),
+                        Job.employment_type.notin_(("contract", "contract_to_hire", "freelance"))))
+            .filter(country_filter(Job.country_codes, country) if country else true())
             .order_by(Job.posted_date.desc().nullslast(), Job.id.desc())
             .limit(limit)
             .all())
@@ -217,7 +245,7 @@ def build_queue(db: Session, user, prefs, resume_text: str = "") -> int:
     ctx = MatchContext(user, prefs, resume_text)
     applied = {row[0] for row in db.query(Application.job_id).filter(Application.user_id == user.id).all()}
     scored = []
-    for job in candidate_jobs(db):
+    for job in candidate_jobs(db, country=user_country(user)):
         if job.id in applied:
             continue
         result = score_job(job, ctx)

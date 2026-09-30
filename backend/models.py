@@ -104,6 +104,7 @@ class User(Base):
     preferred_name = Column(String(100), nullable=True)
     phone = Column(String(50), nullable=True)
     country = Column(String(50), nullable=True)
+    country_code = Column(String(2), nullable=True)  # ISO-2 of `country` (services.job_location.normalize_country)
 
     # Address fields
     address_line1 = Column(String(255), nullable=True)
@@ -265,6 +266,9 @@ class Job(Base):
         # Prevent duplicate jobs from same company with same external_job_id
         Index('ix_jobs_company_external_unique', 'company_id', 'external_job_id',
               unique=True, postgresql_where=text("external_job_id IS NOT NULL")),
+        Index('ix_jobs_employment_type', 'employment_type'),
+        Index('ix_jobs_active_effective_posted', 'is_active', 'effective_posted_at'),
+        Index('ix_jobs_country_codes', 'country_codes'),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -293,6 +297,19 @@ class Job(Base):
     # AI-generated summary
     ai_summary = Column(Text, nullable=True)  # Short AI-generated role description
     ai_tech_stack = Column(JSON, nullable=True)  # AI-extracted technologies/tools list
+
+    # What kind of role this is (contracts.classifier.detect_employment_type). Contract
+    # roles live in contract_jobs; /api/jobs only serves non-contract rows.
+    employment_type = Column(String(20), nullable=True)  # full_time, part_time, internship, ... (None = unknown)
+
+    # Freshness: our own sightings are ground truth (boards re-date postings)
+    first_seen_at = Column(DateTime, nullable=True)  # set once, on insert
+    last_seen_at = Column(DateTime, nullable=True)  # every scrape that still lists it
+    reposted_count = Column(Integer, default=0, nullable=True)
+    is_evergreen = Column(Boolean, default=False, nullable=True)
+    evergreen_reason = Column(String(40), nullable=True)  # talent_pool | long_listed | reposted
+    effective_posted_at = Column(DateTime, nullable=True)  # earlier of posted_date / first_seen_at ("listed since")
+    country_codes = Column(String(200), nullable=True)  # ",US,GB," (services.job_location); NULL = unknown
 
     owner = relationship("User", back_populates="jobs")
     company = relationship("Company", back_populates="jobs")

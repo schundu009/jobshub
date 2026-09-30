@@ -1,0 +1,222 @@
+{
+ "responses": [
+  {
+   "numFound": 4,
+   "solrMainRequest": "",
+   "jobs": [
+    {
+     "Id": "947699",
+     "jobId": "JR12-1996674",
+     "jobOrderId": 1982174,
+     "jobTitle": "Sr. Digital Systems Engineer",
+     "JobTitleThirdParty": "Sr. Digital Systems Engineer",
+     "TagIds": [
+      463010,
+      36654,
+      81058,
+      463983,
+      868204,
+      463823,
+      462864,
+      463630,
+      464469,
+      462735
+     ],
+     "tags": [
+      "Systems Engineer",
+      "Digital",
+      "microprocessor",
+      "Secret Clearance",
+      "digital systems engineer",
+      "LabView",
+      "ARM",
+      "Analog",
+      "C++",
+      "FPGA"
+     ],
+     "JobURL": "sr-digital-systems-engineer-job-947699",
+     "SalaryType": "Hourly",
+     "DatePost": "2026-09-09T00:05:25.783Z",
+     "City": [
+      "Clearwater"
+     ],
+     "StateCode": [
+      "FL"
+     ],
+     "Locations": [
+      "27.905350,-82.713890"
+     ],
+     "TaxTerm": "CONT",
+     "RecruiterName": "REDACTED",
+     "ShortDescription": "Title: Remote Senior Digital Systems Engineer (Contract) Location: REMOTE but need to be able to travel 25% to Clearwater, FL and Clarksburg, MD Hourly: $60 - $80 / Hour + Overtime Founded in 2004, we are a specialized defense communications company employing approximately 200 people, with facilities in Clearwater, Florida and Maryland. The organization designs and manufactures advanced satellite ",
+     "AuthWorkUSA": true,
+     "WorkLocationTypeId": 1,
+     "BusinessUnitId": 1,
+     "Distance": 0,
+     "CompanyName": "Tampa Microwave, LLC",
+     "HourlyMin": 60,
+     "HourlyMax": 80,
+     "PositionTypeId": 1,
+     "IsCorporateJob": false,
+     "score": 1
+    },
+    {
+     "Id": "945557",
+     "jobId": "KC14-1994486",
+     "jobOrderId": 1979887,
+     "jobTitle": "Tax Senior",
+     "JobTitleThirdParty": "Tax Senior, 1500 Billable hours",
+     "TagIds": [
+      127323,
+      111676,
+      142975
+     ],
+     "tags": [
+      "Tax Review",
+      "S-Corp",
+      "Family Office"
+     ],
+     "JobURL": "tax-senior-job-945557",
+     "SalaryMin": 90000,
+     "SalaryMax": 110000,
+     "SalaryType": "Annually",
+     "DatePost": "2026-08-12T13:18:17.153Z",
+     "City": [
+      "Arlington",
+      "Addison"
+     ],
+     "StateCode": [
+      "TX",
+      "TX"
+     ],
+     "Locations": [
+      "32.700708,-97.124691",
+      "32.963744,-96.833805"
+     ],
+     "TaxTerm": "CONT",
+     "RecruiterName": "REDACTED",
+     "ShortDescription": "We are a local full service CPA with two locations in the Dallas area and have been in business for over 30 years. We are here to help make our clients lives a little easier and we are looking for candidates who share our mission to serve our clients! What You Will Be Doing Works with the tax team to prepare and continue learning to review complex tax returns Handles routine client tax questions, ",
+     "AuthWorkUSA": true,
+     "WorkLocationTypeId": 1,
+     "BusinessUnitId": 1,
+     "Distance": 0,
+     "CompanyName": "Lawrence J Beardsley CPA",
+     "HourlyMin": 48,
+     "HourlyMax": 54,
+     "PositionTypeId": 3,
+     "IsCorporateJob": false,
+     "score": 1
+    },
+    {
+     "Id": "937966",
+     "jobId": "RK3-1986751",
+     "jobOrderId": 1971913,
+     "jobTitle": "Senior Network Engineer",
+     "JobTitleThirdParty": "Senior Network Engineer - long term contract",
+     "TagIds": [
+      464206,
+      463978,
+      93863,
+      169369,
+      464495,
+      464620,
+      125994,
+      462607,
+      444796,
+      463457
+     ],
+     "tags": [
+      "WAN",
+      "LAN",
+      "Palo Alto",
+      "Meraki",
+      "Azure",
+      "Network",
+      "Switch",
+      "TCP/IP",
+      "SD-WAN",
+      "MPLS"
+     ],
+     "JobURL": "senior-network-engineer-job-937966",
+     "SalaryType": "Hourly",
+     "DatePost": "2026-05-12T20:03:20.493Z",
+     "City": [
+      "Bethlehem"
+     ],
+     "StateCode": [
+      "PA"
+     ],
+     "Locations": [
+      "40.660690,-75.387390"
+     ],
+     "TaxTerm": "CONT",
+     "RecruiterName": "REDACTED",
+     "ShortDescription": "Position: Senior Network Engineer - Long term contract Location: Bethlehem, PA, Onsite 5 days a week, local candidates only please, but they would consider a small relocation for the right candidate Up to $80 an hour We are seeking a highly skilled Senior Network Engineer to help design, implement, and support a complex global network environment. This role is ideal for someone who thrives in a ha",
+     "AuthWorkUSA": true,
+     "WorkLocationTypeId": 1,
+     "BusinessUnitId": 1,
+     "Distance": 0,
+     "CompanyName": "Minerals Technologies Inc",
+     "HourlyMin": 60,
+     "HourlyMax": 80,
+     "PositionTypeId": 1,
+     "IsCorporateJob": false,
+     "score": 1
+    },
+    {
+     "Id": "786299",
+     "jobId": "MO10-1833838",
+     "jobOrderId": 1816002,
+     "jobTitle": "Associate Attorney - Trust & Estates",
+     "JobTitleThirdParty": "Associate Attorney - Trust & Estates",
+     "TagIds": [
+      45243,
+      69154,
+      464291,
+      132315,
+      45256,
+      157250,
+      101153,
+      45246,
+      152348
+     ],
+     "tags": [
+      "Estate Administration",
+      "Juris Doctor",
+      "Attorney",
+      "trust",
+      "Estates",
+      "Trust Administration",
+      "probate",
+      "Estate Planning",
+      "Wills"
+     ],
+     "JobURL": "associate-attorney-trust-estates-job-786299",
+     "SalaryType": "Hourly",
+     "DatePost": "2024-12-18T18:52:28.770Z",
+     "City": [
+      "New York"
+     ],
+     "StateCode": [
+      "NY"
+     ],
+     "Locations": [
+      "40.758560,-73.967870"
+     ],
+     "TaxTerm": "CONT",
+     "RecruiterName": "REDACTED",
+     "ShortDescription": "An established law firm in New York City seeks an Associate Attorney with 2+ years of experience in trust and estate planning, administration, and litigation. This role offers an opportunity to work on a diverse range of sophisticated trust and estate matters while collaborating with a highly experienced team. In Return, We Offer: Competitive Compensation Contingent On Experience Benefits (Health,",
+     "AuthWorkUSA": true,
+     "WorkLocationTypeId": 1,
+     "BusinessUnitId": 1,
+     "Distance": 0,
+     "CompanyName": "Schwartz Sladkus Reich Greenberg Atlas LLP",
+     "PositionTypeId": 1,
+     "IsCorporateJob": false,
+     "score": 1
+    }
+   ],
+   "maxScore": 1
+  }
+ ]
+}

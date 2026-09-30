@@ -38,25 +38,51 @@ def save_jobs_into_result(db: Session, company_slug: str, result: ScrapeResult) 
     save_stats) so record_scraper_run can flag found-but-not-saved runs.
     Never raises.
     """
-    from services.scraper_service import save_scraped_jobs
-    try:
-        stats = save_scraped_jobs(db, company_slug, result.jobs)
-        result.jobs_new, result.jobs_updated = stats.new, stats.updated
-        result.save_stats = stats.as_dict()
-    except Exception as save_err:
-        logger.exception(f"Error saving jobs for {company_slug}")
+    from services.scraper_service import is_connection_error, save_scraped_jobs
+
+    def _connection_failed(stats) -> bool:
+        err = f"{stats.commit_error or ''} {stats.first_error or ''}"
+        return stats.saved == 0 and any(k in err for k in ("OperationalError", "PendingRollbackError"))
+
+    # One retry on a fresh connection when the DB connection broke mid-save
+    # (dropped socket / corrupted protocol), rather than recording 0 saved.
+    for attempt in (1, 2):
         try:
-            db.rollback()
-        except Exception:
-            pass
-        result.save_stats = {"exception": f"{type(save_err).__name__}: {save_err}"[:300]}
+            stats = save_scraped_jobs(db, company_slug, result.jobs)
+            if attempt == 1 and _connection_failed(stats):
+                logger.warning(f"DB connection failed saving {company_slug}; retrying once")
+                _reset_session(db)
+                continue
+            result.jobs_new, result.jobs_updated = stats.new, stats.updated
+            result.save_stats = stats.as_dict()
+            return
+        except Exception as save_err:
+            _reset_session(db)
+            if attempt == 1 and is_connection_error(save_err):
+                logger.warning(f"DB connection failed saving {company_slug} ({type(save_err).__name__}); retrying once")
+                continue
+            logger.exception(f"Error saving jobs for {company_slug}")
+            result.save_stats = {"exception": f"{type(save_err).__name__}: {save_err}"[:300]}
+            return
+
+
+def _reset_session(db: Session) -> None:
+    """Roll back and drop the session's connection so the next use checks out a fresh one."""
+    try:
+        db.rollback()
+    except Exception:
+        pass
+    try:
+        db.close()  # returns (or discards, if invalidated) the connection; the session stays usable
+    except Exception:
+        pass
 
 
 def _save_summary(stats: dict) -> str:
     if stats.get("exception"):
         return f"save raised {stats['exception']}"
     parts = [f"{stats.get('new', 0)} new", f"{stats.get('updated', 0)} updated"]
-    for key in ("skipped_old", "skipped_invalid", "duplicates", "errors"):
+    for key in ("skipped_old", "skipped_invalid", "duplicates", "contracts", "errors"):
         if stats.get(key):
             parts.append(f"{stats[key]} {key}")
     if stats.get("first_error"):
@@ -76,6 +102,11 @@ def _flag_save_failure(result: ScrapeResult) -> None:
     if not stats or not result.success or not (result.jobs_found or 0) > 0:
         return
     if (result.jobs_new or 0) + (result.jobs_updated or 0) > 0:
+        return
+    if not (stats.get("exception") or stats.get("errors") or stats.get("commit_error")):
+        # Nothing saved only because every job was filtered out (older than the
+        # age limit / invalid / duplicate). Not a failure; the run records a
+        # "saved: ..." note and the board shows under "No active jobs".
         return
     result.success = False
     result.error_type = ScraperErrorType.SAVE_FAILED
@@ -105,7 +136,7 @@ def record_scraper_run(
     error_message = result.error_message
     if result.success and result.save_stats and not error_message:
         stats = result.save_stats
-        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "duplicates", "errors")):
+        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "duplicates", "contracts", "errors")):
             error_message = f"saved: {_save_summary(stats)}"[:1000]
 
     run = ScraperRun(
@@ -200,6 +231,10 @@ def _record_failure(company_slug: str, message: str, error_type, task_id: Option
             pass
     finally:
         fail_db.close()
+
+
+def _is_staffing(slug: str) -> bool:
+    return (ScraperRegistry.get_metadata(slug) or {}).get("category") == "staffing"
 
 
 def is_scraper_enabled(db: Session, company_slug: str) -> bool:
@@ -519,6 +554,10 @@ def scrape_all_companies(force: bool = False) -> dict:
             browser_tasks = []
 
             for slug, scraper_cls in all_scrapers.items():
+                # Staffing-agency scrapers belong to the contracts pipeline
+                # (contracts.tasks.scrape_all_contracts), not the full-time run.
+                if _is_staffing(slug):
+                    continue
                 # Check if enabled - don't let one bad check stop the whole run
                 try:
                     if not is_scraper_enabled(db, slug):
@@ -578,7 +617,7 @@ def scrape_by_category(category: str) -> dict:
         browser_tasks = []
 
         for slug, scraper_cls in scrapers.items():
-            if not is_scraper_enabled(db, slug):
+            if _is_staffing(slug) or not is_scraper_enabled(db, slug):
                 continue
 
             if scraper_cls.config.scraper_type == ScraperType.HTTP:

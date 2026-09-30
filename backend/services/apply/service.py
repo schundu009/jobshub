@@ -18,6 +18,7 @@ from services.apply import form_schema
 from services.apply.constants import (
     ALLOWED_TRANSITIONS, DEFAULT_DAILY_CAP, DEFAULT_MIN_MATCH_SCORE, SUPPORTED_ATS,
 )
+from services.apply.matching import is_stale_for_apply
 from services.apply.plans import PlanInfo, resolve_plan
 from services.apply.resolver import (
     AnswerResolver, JobContext, ProfileView, normalize_question_key,
@@ -573,7 +574,7 @@ def prepare_auto_for_user(db: Session, user: User, ai_drafter=None) -> Dict[str,
     created = []
     for item in items:
         job = db.query(Job).filter(Job.id == item.job_id).first()
-        if not job or not job.is_active:
+        if not job or not job.is_active or is_stale_for_apply(job):
             continue
         try:
             app = create_application(db, user, job, created_by="auto", match_score=item.match_score,

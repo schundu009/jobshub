@@ -19,7 +19,7 @@ while [ $restart_count -lt $MAX_RESTARTS ]; do
         --concurrency=4 \
         --max-tasks-per-child=50 \
         --max-memory-per-child=512000 \
-        -Q default,scrapers_http,scrapers_browser,scrapers_orchestrator,maintenance \
+        -Q default,scrapers_http,scrapers_browser,scrapers_orchestrator,maintenance,contracts \
         || true
 
     exit_code=$?

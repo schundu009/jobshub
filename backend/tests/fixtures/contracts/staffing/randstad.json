@@ -1,0 +1,1595 @@
+{
+ "responses": [
+  {
+   "searchResults": {
+    "totalSize": 20,
+    "hits": [
+     {
+      "id": "6abc59fa153b8b20727c9747",
+      "title": "Project Control Specialist",
+      "description": "job summary:  Randstad is seeking a highly detailed and organized Project Control Specialist for a prominent client in the Washington, D.C. area. In this role, you will drive project delivery excellence across nationwide technology deployments by managing project controls, tracking financial metrics, and facilitating seamless cross-functional communication. Acting as a core liaison between leadership, project teams, and external vendors, you will oversee p",
+      "summary": "Randstad is seeking a highly detailed and organized Project Control Specialist for a prominent client in the Washington, D.C. area. In this role, you will drive project delivery excellence across nationwide technology deployments by managing project controls, tracking financial metrics, and facilitating seamless cross-functional communication. Acting as a core liaison between leadership, project teams, and external vendors, you will oversee project schedules, risk registers, and operational governance to ensure complex ADA assistive technology installations remain on time, within budget, and fully aligned with organizational standards.",
+      "type": "Contract",
+      "createdDate": 1790728698588,
+      "opCoName": "Randstad Digital",
+      "lobId": 4,
+      "lobName": "Randstad Digital",
+      "lobAcronym": "rd",
+      "atsReference": "1361779",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1790654400000,
+      "expireDate": 1793246400000,
+      "salary": {
+       "type": "per hour",
+       "currency": "USD",
+       "min": 45,
+       "max": 52,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Washington",
+       "state": "District of Columbia",
+       "stateAbbreviation": "DC",
+       "postalCode": "20002",
+       "latitude": 38.899101,
+       "longitude": -77.028999,
+       "contactName": "REDACTED",
+       "contactPhone": "REDACTED",
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/4/1361779/project-control-specialist_washington/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/4/1361779/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "Deployment Experience: Proven track record supporting large-scale, multi-site, or nationwide technology deployment projects.\r\n\r\nProject Controls Expertise: Strong skills in project coordination, financial/variance reporting, risk tracking, and stakeholder management.\r\n\r\nVendor Management: Background in managing external vendor relationships and facilitating inter-team communications.\r\n\r\nTechnical & Analytical Proficiency: Advanced skills in Microsoft 365 (Excel, PowerPoint) and standard project management tracking software.\r\n\r\nCommunication Skills: Outstanding written and verbal communication abilities with experience presenting complex data and forecasts to leadership."
+      ],
+      "responsibilities": [
+       "<p><strong>Project Tracking &amp; Execution:</strong> Maintain project schedules, trackers, action logs, risk registers, and status reporting artifacts to oversee the nationwide deployment and installation of ADA assistive technology solutions.</p><p><strong>Financial &amp; Performance Analysis:</strong> Support program management activities, including financial tracking, accrual management, budget monitoring, resource utilization, and project forecasting.</p><p><strong>Executive Reporting:</strong> Prepare weekly project status reports, executive summaries, variance reporting, and data analytics to evaluate project performance and recommend delivery improvements.</p><p><strong>Stakeholder &amp; Vendor Liaison:</strong> Facilitate communication between internal stakeholders, external vendors, and project teams; draft and distribute meeting summaries, action items, and project updates.</p><p><strong>Risk &amp; Governance Management:</strong> Monitor project milestones, identify dependencies, and proactively escalate risks and issues to ensure strict program governance.</p><p><strong>Continuous Improvement:</strong> Support ongoing process improvement initiatives and assist in developing project management best practices, documentation, and presentation materials.</p>"
+      ],
+      "workHours": [
+       "9am to 5pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 38.899101,
+       "lon": -77.028999
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc5293153b8b20727c9742",
+      "title": "Maintenance Manager",
+      "description": "job summary:  Industry leading manufacturer is looking for a Maintenance Manager in the Calmet City, Illinois area.     This role comes with a very competitive base salary ranging (commensurate with experience) from &#x24;140k to &#x24;150k plus 20% annual bonus opportunity.  Relocation assistance is also available.     The ideal candidate will be a hands on maintenance leader who possesses an electrical and mechanical aptitude, experience with preventativ",
+      "summary": "Industry leading manufacturer is looking for a Maintenance Manager in the Calmet City, Illinois area.  <br>\n<br>\nThis role comes with a very competitive base salary ranging (commensurate with experience) from $140k to $150k plus 20% annual bonus opportunity.  Relocation assistance is also available.  <br>\n<br>\nThe ideal candidate will be a hands on maintenance leader who possesses an electrical and mechanical aptitude, experience with preventative/predictive maintenance, PM's, managing maintenance budgets with a focus on safety. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S. ",
+      "type": "Permanent",
+      "createdDate": 1790726803996,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360972",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1790308800000,
+      "expireDate": 1792900800000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 140000,
+       "max": 150000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Calumet City",
+       "state": "Illinois",
+       "stateAbbreviation": "IL",
+       "postalCode": "60409",
+       "latitude": 41.61552,
+       "longitude": -87.53109,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360972/maintenance-manager_calumet-city/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360972/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "high school"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Manager<li>Minimum 5 years of experience<li>Education: High School (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Direct and develop salaried and hourly maintenance teams to ensure, safe, reliable and cost effective plant operations</p>  <p>-Implement and optimize preventative and predictive maintenance  programs to reduced downtime and improve equipment performance</p>  <p>-Champion a great safety culture; ensure compliance with OSHA, enviromental and company standards through audits and daily leadership</p>  <p>-Partner with operations, engineering, contractors and vendors to prioritize work, coordinate outages and meet production schedules</p>  <p>-Manage maintenance budgets, control repair costs and optimize use of labor, materials and spare parts </p>  <p>Minimum Qualifications:</p>  <p>-Bachelor&#39;s degree or equivalent relevant experience</p>  <p>-5+ years of experience in maintenance, reliability or engineering within a heavy industrial or manufacturing environment</p>  <p>-3+ years of leadership/supervisory experience managing large maintenance or technical teams</p>  <p>-Knowledge of electrical, mechanical and industrial systems</p>  <p>-Demonstrated ability to troubleshoot complex equipment issues and implement solutions</p>  <p>-Proficient with CMMS tools </p>  <p>-Preventative/predictive maintenance systems </p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 41.61552,
+       "lon": -87.53109
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc5273153b8b20727c9741",
+      "title": "Director Project Controls",
+      "description": "job summary:  Large and established manufacturing organization is seeking a Director of Project Controls.    This role comes with an excellent compensation package with a base salary going up to &#x24;300k plus a 22% annual bonus.    The ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management.    All candidates",
+      "summary": "Large and established manufacturing organization is seeking a Director of Project Controls. <br>\n<br>\nThis role comes with an excellent compensation package with a base salary going up to $300k plus a 22% annual bonus. <br>\n<br>\nThe ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.  ",
+      "type": "Permanent",
+      "createdDate": 1790726771525,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360868",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Phoenix",
+       "state": "Arizona",
+       "stateAbbreviation": "AZ",
+       "postalCode": "85040",
+       "latitude": 33.448261,
+       "longitude": -112.075768,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360868/director-project-controls_phoenix/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360868/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 5 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Director of Project Controls will be accountable of the leadership, integration and delivery of all project controls activities across a major capital program of approximately $2B.  The role provides end to end oversight of cost, planning, risk, change and performance management, ensuring that the program is delivered with robust control, transparency and predictability</p>  <p>-Accountable for alignment between the busines objectives and project controls on large capital projects utilizing a supply chain delivery model</p>  <p>-Implement a project controls framework that protectgs the $2B investment both with near term performance information and long term detailed analysis/projections over a 10 year project deliver timescale</p>  <p>-Accountable for the project standards framework specific to the U.S. in alignment with the global function</p>  <p>-Contribution to the direction in the development and evolution of standards strategies to deliver against company objectives across the portfolio of projects globally</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree and possess project management or project controls qualification/accreditation such as: APM, PMI, AACE or equivalent</p>  <p>-Minimum 5 years of managing and leading a project controls function</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 33.448261,
+       "lon": -112.075768
+      },
+      "employmentType": "Full-time",
+      "modifiedDate": 1790728322079,
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc525fc4b3e152ac03b8b6",
+      "title": "Director Project Controls",
+      "description": "job summary:  Large and established manufacturing organization is seeking a Director of Project Controls.    This role comes with an excellent compensation package with a base salary going up to &#x24;300k plus a 22% annual bonus.    The ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management.    All candidates",
+      "summary": "Large and established manufacturing organization is seeking a Director of Project Controls. <br>\n<br>\nThis role comes with an excellent compensation package with a base salary going up to $300k plus a 22% annual bonus. <br>\n<br>\nThe ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.  ",
+      "type": "Permanent",
+      "createdDate": 1790726751609,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360867",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Houston",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "77024",
+       "latitude": 29.76045,
+       "longitude": -95.369781,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360867/director-project-controls_houston/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360867/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 5 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Director of Project Controls will be accountable of the leadership, integration and delivery of all project controls activities across a major capital program of approximately $2B.  The role provides end to end oversight of cost, planning, risk, change and performance management, ensuring that the program is delivered with robust control, transparency and predictability</p>  <p>-Accountable for alignment between the busines objectives and project controls on large capital projects utilizing a supply chain delivery model</p>  <p>-Implement a project controls framework that protectgs the $2B investment both with near term performance information and long term detailed analysis/projections over a 10 year project deliver timescale</p>  <p>-Accountable for the project standards framework specific to the U.S. in alignment with the global function</p>  <p>-Contribution to the direction in the development and evolution of standards strategies to deliver against company objectives across the portfolio of projects globally</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree and possess project management or project controls qualification/accreditation such as: APM, PMI, AACE or equivalent</p>  <p>-Minimum 5 years of managing and leading a project controls function</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 29.76045,
+       "lon": -95.369781
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc525f2abc7e001a0b2b3f",
+      "title": "Drone Flight Service Operator",
+      "description": "job summary:  We are seeking a safety-focused and dependable Flight Service Operator (FSO) - Tier 1 to support innovative commercial drone delivery operations across in Montgomery, TX. A current FAA Part 107 Remote Pilot Certificate is required for this position. This is a hands-on, field-based position supporting the safe and efficient operation of unmanned aircraft systems (UAS). The Flight Service Operator will perform aircraft and ground equipment insp",
+      "summary": "We are seeking a safety-focused and dependable Flight Service Operator (FSO) - Tier 1 to support innovative commercial drone delivery operations across in Montgomery, TX.\r\nA current FAA Part 107 Remote Pilot Certificate is required for this position.\r\n\r\nThis is a hands-on, field-based position supporting the safe and efficient operation of unmanned aircraft systems (UAS). The Flight Service Operator will perform aircraft and ground equipment inspections, assist with daily flight operation activities, participate in crew briefings, and maintain communication with the Pilot-in-Command.",
+      "type": "Contract",
+      "createdDate": 1790726751420,
+      "opCoName": "Randstad Digital",
+      "lobId": 4,
+      "lobName": "Randstad Digital",
+      "lobAcronym": "rd",
+      "atsReference": "1361473",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1790654400000,
+      "expireDate": 1793246400000,
+      "salary": {
+       "type": "per hour",
+       "currency": "USD",
+       "min": 26,
+       "max": 28,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Montgomery",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "77356",
+       "latitude": 30.412229,
+       "longitude": -95.6529,
+       "contactName": "REDACTED",
+       "contactPhone": "REDACTED",
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/4/1361473/drone-flight-service-operator_montgomery/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/4/1361473/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "no requirements"
+      ],
+      "qualifications": [
+       "Current FAA Part 107 Remote Pilot Certificate required.\r\n\r\nValid driver's license and current automobile insurance.\r\n\r\nAbility to successfully complete required background and motor vehicle record checks.\r\n\r\nStrong attention to detail and commitment to safety.\r\n\r\nAbility to follow detailed procedures and operational protocols.\r\n\r\nStrong communication skills and ability to work effectively as part of a flight operations team.\r\n\r\nAbility to maintain consistent mental and visual alertness throughout the shift.\r\n\r\nFlexibility to work within operational hours between 8:00 AM and 9:30 PM CT, Monday through Sunday, based on assigned schedule and business needs.\r\nLift and carry up to 35 pounds from ground level.\r\n\r\nCarry multiple items simultaneously when required.\r\n\r\nCrouch and pick up or place objects weighing up to 20 pounds at ground level.\r\n\r\nPush or pull a wheeled cart weighing up to 200 pounds on level ground.\r\n\r\nRemain on their feet and walk extensively throughout the workday, potentially 10,000+ steps per day.\r\n\r\nPerform work outdoors for extended periods.\r\n\r\nWork safely in varying weather conditions, including light rain, wind, heat, and cold, with temperatures potentially ranging from approximately 23°F to 110°F.\r\n#LI-KC1"
+      ],
+      "skills": [
+       "Field Service,auto insurance"
+      ],
+      "responsibilities": [
+       "<p>As a Flight Service Operator, you will:</p><ul><li>Perform pre-flight and post-flight aircraft inspections.</li><li>Complete required start-of-day and end-of-day operational activities.</li><li>Perform routine aircraft procedures in accordance with established UAS maintenance and operating standards.</li><li>Inspect drone nest and associated ground equipment before and after flight operations.</li><li>Replace designated nest equipment as required.</li><li>Assist with the setup and breakdown of equipment used to support daily drone delivery operations.</li><li>Participate in daily crew briefings and operational discussions.</li><li>Maintain clear and professional communication with the Pilot-in-Command and other members of the flight operations team.</li><li>Follow established FAA regulations, safety procedures, Standard Operating Procedures (SOPs), and company protocols.</li><li>Identify and communicate aircraft, equipment, safety, or operational concerns.</li><li>Travel between multiple operational locations throughout the workday as business needs require.</li></ul><p><br></p>"
+      ],
+      "workHours": [
+       "Rotating Shifts"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 30.412229,
+       "lon": -95.6529
+      },
+      "employmentType": "Full-time",
+      "modifiedDate": 1790726902333,
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc5240153b8b20727c9740",
+      "title": "Director Project Controls",
+      "description": "job summary:  Large and established manufacturing organization is seeking a Director of Project Controls.    This role comes with an excellent compensation package with a base salary going up to &#x24;300k plus a 22% annual bonus.    The ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management.    All candidates",
+      "summary": "Large and established manufacturing organization is seeking a Director of Project Controls. <br>\n<br>\nThis role comes with an excellent compensation package with a base salary going up to $300k plus a 22% annual bonus. <br>\n<br>\nThe ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.  ",
+      "type": "Permanent",
+      "createdDate": 1790726720218,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360866",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Denver",
+       "state": "Colorado",
+       "stateAbbreviation": "CO",
+       "postalCode": "80210",
+       "latitude": 39.740009,
+       "longitude": -104.992264,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360866/director-project-controls_denver/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360866/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 5 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Director of Project Controls will be accountable of the leadership, integration and delivery of all project controls activities across a major capital program of approximately $2B.  The role provides end to end oversight of cost, planning, risk, change and performance management, ensuring that the program is delivered with robust control, transparency and predictability</p>  <p>-Accountable for alignment between the busines objectives and project controls on large capital projects utilizing a supply chain delivery model</p>  <p>-Implement a project controls framework that protectgs the $2B investment both with near term performance information and long term detailed analysis/projections over a 10 year project deliver timescale</p>  <p>-Accountable for the project standards framework specific to the U.S. in alignment with the global function</p>  <p>-Contribution to the direction in the development and evolution of standards strategies to deliver against company objectives across the portfolio of projects globally</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree and possess project management or project controls qualification/accreditation such as: APM, PMI, AACE or equivalent</p>  <p>-Minimum 5 years of managing and leading a project controls function</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 39.740009,
+       "lon": -104.992264
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc522c2abc7e001a0b2b3e",
+      "title": "Director Project Controls",
+      "description": "job summary:  Large and established manufacturing organization is seeking a Director of Project Controls.    This role comes with an excellent compensation package with a base salary going up to &#x24;300k plus a 22% annual bonus.    The ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management.    All candidates",
+      "summary": "Large and established manufacturing organization is seeking a Director of Project Controls. <br>\n<br>\nThis role comes with an excellent compensation package with a base salary going up to $300k plus a 22% annual bonus. <br>\n<br>\nThe ideal candidate will possess experience of project controls experience with large capital management projects that provides end to end oversight of cost, planning, risk, change and performance management. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.  ",
+      "type": "Permanent",
+      "createdDate": 1790726700067,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360865",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Dallas",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "75225",
+       "latitude": 32.778149,
+       "longitude": -96.795403,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360865/director-project-controls_dallas/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360865/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 5 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Director of Project Controls will be accountable of the leadership, integration and delivery of all project controls activities across a major capital program of approximately $2B.  The role provides end to end oversight of cost, planning, risk, change and performance management, ensuring that the program is delivered with robust control, transparency and predictability</p>  <p>-Accountable for alignment between the busines objectives and project controls on large capital projects utilizing a supply chain delivery model</p>  <p>-Implement a project controls framework that protectgs the $2B investment both with near term performance information and long term detailed analysis/projections over a 10 year project deliver timescale</p>  <p>-Accountable for the project standards framework specific to the U.S. in alignment with the global function</p>  <p>-Contribution to the direction in the development and evolution of standards strategies to deliver against company objectives across the portfolio of projects globally</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree and possess project management or project controls qualification/accreditation such as: APM, PMI, AACE or equivalent</p>  <p>-Minimum 5 years of managing and leading a project controls function</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 32.778149,
+       "lon": -96.795403
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc520dc4b3e152ac03b8b5",
+      "title": "Commercial Director",
+      "description": "job summary:  Leading manufacturing organization is seeking a Commercial Director.     This role comes with an excellent compensation plan with a salary that can go up to &#x24;300k plus a 22% annual bonus and completion bonus.     The ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding &#x24;300M in value in large construction or EPC environments.      location: Phoenix, Arizona  job type: Permane",
+      "summary": "Leading manufacturing organization is seeking a Commercial Director.  <br>\n<br>\nThis role comes with an excellent compensation plan with a salary that can go up to $300k plus a 22% annual bonus and completion bonus.  <br>\n<br>\nThe ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding $300M in value in large construction or EPC environments.  ",
+      "type": "Permanent",
+      "createdDate": 1790726669666,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360864",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Phoenix",
+       "state": "Arizona",
+       "stateAbbreviation": "AZ",
+       "postalCode": "85040",
+       "latitude": 33.448261,
+       "longitude": -112.075768,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360864/commercial-director_phoenix/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360864/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 7 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Commercial Director will serve as the commercial leader and strategic advisor for the companies multi-billion dollar expansion project.  This roll will be accountable for defining and executing the program&#39;s commercial, contractural, procurement, cost management and commercial assurance strategies.  </p>  <p>Commercial Leadership:</p>  <p>-Project commercial leadership to include commercial strategy development and implementation, leadership of commercial activities across the project lifecycle</p>  <p>Commercial Strategy and Procurement:</p>  <p>-Develop and execute commercial, contracting and procurement strategies aligned to program objectives, business requirements and investments</p>  <p>Cost Management and Commercial Assurance:</p>  <p>-Established and maintain program-wide cost management, forecasting and financial reporting processes</p>  <p>Commercial Goverance:</p>  <p>-Develop and maintain commercial goverance frameworks, policies, and controls across the program</p>  <p>Risk and Claims Management:</p>  <p>-Lead the identification, assessment and mitigation of commercial and contractual risks throughout the program lifecycle</p>  <p>Education &amp; Experience:</p>  <p>-Minimum 10 years of direct work experience leading commercial functions capital infrastructure programs exceeding $300M</p>  <p>-Bachelor&#39;s degree </p>  <p>-Demonstrated relevant operational commercial experience in a commercial lead, or equivalent role with expertise across; contract strategy, procurement, cost management, commercial governance, claims management, supplier management and commercial risk</p>  <p>-EPC/EPCM delivery models</p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 33.448261,
+       "lon": -112.075768
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc51f9b9751c555ea6fd8d",
+      "title": "Commercial Director",
+      "description": "job summary:  Leading manufacturing organization is seeking a Commercial Director.     This role comes with an excellent compensation plan with a salary that can go up to &#x24;300k plus a 22% annual bonus and completion bonus.     The ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding &#x24;300M in value in large construction or EPC environments.      location: Houston, Texas  job type: Permanent",
+      "summary": "Leading manufacturing organization is seeking a Commercial Director.  <br>\n<br>\nThis role comes with an excellent compensation plan with a salary that can go up to $300k plus a 22% annual bonus and completion bonus.  <br>\n<br>\nThe ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding $300M in value in large construction or EPC environments.  ",
+      "type": "Permanent",
+      "createdDate": 1790726649393,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360863",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Houston",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "77024",
+       "latitude": 29.76045,
+       "longitude": -95.369781,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360863/commercial-director_houston/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360863/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 7 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Commercial Director will serve as the commercial leader and strategic advisor for the companies multi-billion dollar expansion project.  This roll will be accountable for defining and executing the program&#39;s commercial, contractural, procurement, cost management and commercial assurance strategies.  </p>  <p>Commercial Leadership:</p>  <p>-Project commercial leadership to include commercial strategy development and implementation, leadership of commercial activities across the project lifecycle</p>  <p>Commercial Strategy and Procurement:</p>  <p>-Develop and execute commercial, contracting and procurement strategies aligned to program objectives, business requirements and investments</p>  <p>Cost Management and Commercial Assurance:</p>  <p>-Established and maintain program-wide cost management, forecasting and financial reporting processes</p>  <p>Commercial Goverance:</p>  <p>-Develop and maintain commercial goverance frameworks, policies, and controls across the program</p>  <p>Risk and Claims Management:</p>  <p>-Lead the identification, assessment and mitigation of commercial and contractual risks throughout the program lifecycle</p>  <p>Education &amp; Experience:</p>  <p>-Minimum 10 years of direct work experience leading commercial functions capital infrastructure programs exceeding $300M</p>  <p>-Bachelor&#39;s degree </p>  <p>-Demonstrated relevant operational commercial experience in a commercial lead, or equivalent role with expertise across; contract strategy, procurement, cost management, commercial governance, claims management, supplier management and commercial risk</p>  <p>-EPC/EPCM delivery models</p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 29.76045,
+       "lon": -95.369781
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc51d1b9751c555ea6fd8c",
+      "title": "Commercial Director",
+      "description": "job summary:  Leading manufacturing organization is seeking a Commercial Director.     This role comes with an excellent compensation plan with a salary that can go up to &#x24;300k plus a 22% annual bonus and completion bonus.     The ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding &#x24;300M in value in large construction or EPC environments.      location: Denver, Colorado  job type: Permane",
+      "summary": "Leading manufacturing organization is seeking a Commercial Director.  <br>\n<br>\nThis role comes with an excellent compensation plan with a salary that can go up to $300k plus a 22% annual bonus and completion bonus.  <br>\n<br>\nThe ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding $300M in value in large construction or EPC environments.  ",
+      "type": "Permanent",
+      "createdDate": 1790726609074,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360862",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Denver",
+       "state": "Colorado",
+       "stateAbbreviation": "CO",
+       "postalCode": "80210",
+       "latitude": 39.740009,
+       "longitude": -104.992264,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360862/commercial-director_denver/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360862/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 7 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Commercial Director will serve as the commercial leader and strategic advisor for the companies multi-billion dollar expansion project.  This roll will be accountable for defining and executing the program&#39;s commercial, contractural, procurement, cost management and commercial assurance strategies.  </p>  <p>Commercial Leadership:</p>  <p>-Project commercial leadership to include commercial strategy development and implementation, leadership of commercial activities across the project lifecycle</p>  <p>Commercial Strategy and Procurement:</p>  <p>-Develop and execute commercial, contracting and procurement strategies aligned to program objectives, business requirements and investments</p>  <p>Cost Management and Commercial Assurance:</p>  <p>-Established and maintain program-wide cost management, forecasting and financial reporting processes</p>  <p>Commercial Goverance:</p>  <p>-Develop and maintain commercial goverance frameworks, policies, and controls across the program</p>  <p>Risk and Claims Management:</p>  <p>-Lead the identification, assessment and mitigation of commercial and contractual risks throughout the program lifecycle</p>  <p>Education &amp; Experience:</p>  <p>-Minimum 10 years of direct work experience leading commercial functions capital infrastructure programs exceeding $300M</p>  <p>-Bachelor&#39;s degree </p>  <p>-Demonstrated relevant operational commercial experience in a commercial lead, or equivalent role with expertise across; contract strategy, procurement, cost management, commercial governance, claims management, supplier management and commercial risk</p>  <p>-EPC/EPCM delivery models</p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 39.740009,
+       "lon": -104.992264
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc51b32abc7e001a0b2b3d",
+      "title": "Commercial Director",
+      "description": "job summary:  Leading manufacturing organization is seeking a Commercial Director.     This role comes with an excellent compensation plan with a salary that can go up to &#x24;300k plus a 22% annual bonus and completion bonus.     The ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding &#x24;300M in value in large construction or EPC environments.      location: Dallas, Texas  job type: Permanent ",
+      "summary": "Leading manufacturing organization is seeking a Commercial Director.  <br>\n<br>\nThis role comes with an excellent compensation plan with a salary that can go up to $300k plus a 22% annual bonus and completion bonus.  <br>\n<br>\nThe ideal candidate will possess experience leading commercial functions capital infrastructure programs exceeding $300M in value in large construction or EPC environments.  ",
+      "type": "Permanent",
+      "createdDate": 1790726579185,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360861",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Dallas",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "75225",
+       "latitude": 32.778149,
+       "longitude": -96.795403,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360861/commercial-director_dallas/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360861/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 7 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Commercial Director will serve as the commercial leader and strategic advisor for the companies multi-billion dollar expansion project.  This roll will be accountable for defining and executing the program&#39;s commercial, contractural, procurement, cost management and commercial assurance strategies.  </p>  <p>Commercial Leadership:</p>  <p>-Project commercial leadership to include commercial strategy development and implementation, leadership of commercial activities across the project lifecycle</p>  <p>Commercial Strategy and Procurement:</p>  <p>-Develop and execute commercial, contracting and procurement strategies aligned to program objectives, business requirements and investments</p>  <p>Cost Management and Commercial Assurance:</p>  <p>-Established and maintain program-wide cost management, forecasting and financial reporting processes</p>  <p>Commercial Goverance:</p>  <p>-Develop and maintain commercial goverance frameworks, policies, and controls across the program</p>  <p>Risk and Claims Management:</p>  <p>-Lead the identification, assessment and mitigation of commercial and contractual risks throughout the program lifecycle</p>  <p>Education &amp; Experience:</p>  <p>-Minimum 10 years of direct work experience leading commercial functions capital infrastructure programs exceeding $300M</p>  <p>-Bachelor&#39;s degree </p>  <p>-Demonstrated relevant operational commercial experience in a commercial lead, or equivalent role with expertise across; contract strategy, procurement, cost management, commercial governance, claims management, supplier management and commercial risk</p>  <p>-EPC/EPCM delivery models</p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 32.778149,
+       "lon": -96.795403
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc5194b9751c555ea6fd89",
+      "title": "Major Project Director",
+      "description": "job summary:  Leading organization is looking for a Major Project Director in New Mexico.     This role comes with an excellent compensation plan with a base salary that can go up to &#x24;300k plus 22.5% annual bonus, sign on bonus, completion bonus, monthly car allowance and relocation assistance.   Candidates need to possess experience managing large construction or EPC projects in a safe and timely manner as well as experience managing project/construc",
+      "summary": "Leading organization is looking for a Major Project Director in New Mexico.  <br>\n<br>\nThis role comes with an excellent compensation plan with a base salary that can go up to $300k plus 22.5% annual bonus, sign on bonus, completion bonus, monthly car allowance and relocation assistance.<br>\n<br>\nCandidates need to possess experience managing large construction or EPC projects in a safe and timely manner as well as experience managing project/construction teams.  <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.  ",
+      "type": "Permanent",
+      "createdDate": 1790726548170,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360860",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 275000,
+       "max": 300000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Caprock",
+       "state": "New Mexico",
+       "stateAbbreviation": "NM",
+       "postalCode": "88213",
+       "latitude": 33.455761,
+       "longitude": -103.63843,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360860/major-project-director_caprock/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360860/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Director<li>Minimum 5 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Responsible for a major contruction expansion project estimated to be in the $1-$3B range.  Safely deliver the expansion project, covers the full project lifecycle from project set up/initiation through all the project delivery stages to closure. </p>  <p>-Safety Culture:</p>  <p>-Actively promote a pro-active safety culture and be a role model, throughout the project lifecycle.  Build the capability and maintain the competency to safely and compliantly manage a large construction project </p>  <p>Group Project Delivery Strategy:</p>  <p>-Advise, consult, lead and provide feedback in the development and evolvement of the Capacity Expansion Program delivery strategy with support of the Global Subject Matter Experts, Procurement and Legal</p>  <p>Delivery of the Centrifuge Expansion Project:</p>  <p>-Overall responsibility for the delivery of the centrifuge expansion projects, to meet safety, scope, cost and schedule and businness benefits objectives.  Develop, implement and communicate strategies, objectives and benefits to business unit and group to achieve business benefit</p>  <p>Integration: </p>  <p>-Design, build and develop a high performance organization and team, ensuring flawless integration of all sub-disciplines, functions and with the site throughout the project lifecycle</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree in Project Management or related discipline</p>  <p>-Project Management Qualification/Accreditation such APM or PMI or equivalent</p>  <p>-5+ years of experience in being fuly accountable and actively leading large complex/multiple EPC/EPCM projects as Project Director</p>  <p>-On-site construction experience</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 33.455761,
+       "lon": -103.63843
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc516bc4b3e152ac03b8b3",
+      "title": "Order Fulfillment Specialist (Drone delivery)",
+      "description": "job summary:  We are seeking a motivated, hands-on Order Fulfillment Specialist / Ground Handler Tier 1 to join a fast-paced fulfillment and drone delivery operation in Newnan, GA. This is an active, operational role where you will be directly involved in the day-to-day movement of customer orders-from picking and packing through quality control and loading packages onto delivery aircraft. This position is an excellent opportunity for someone with experien",
+      "summary": "We are seeking a motivated, hands-on Order Fulfillment Specialist / Ground Handler Tier 1 to join a fast-paced fulfillment and drone delivery operation in Newnan, GA.\r\n\r\nThis is an active, operational role where you will be directly involved in the day-to-day movement of customer orders-from picking and packing through quality control and loading packages onto delivery aircraft.\r\n\r\nThis position is an excellent opportunity for someone with experience in retail, warehouse, logistics, fulfillment, or other fast-paced operations who enjoys working on their feet and is interested in developing their leadership skills. In addition to performing core operational duties, you will have opportunities to support the Operations Team Lead and take on additional responsibilities as needed.\r\n\r\nWhy Join This Team?\r\n\r\nThis opportunity provides hands-on experience within an innovative fulfillment and delivery operation while allowing you to build experience in logistics, inventory, quality control, safety, and team leadership.\r\n\r\nFor candidates interested in growing their operations career, this role provides exposure to both frontline fulfillment activities and the responsibilities involved in supporting an Operations Team Lead.",
+      "type": "Contract",
+      "createdDate": 1790726507534,
+      "opCoName": "Randstad Digital",
+      "lobId": 4,
+      "lobName": "Randstad Digital",
+      "lobAcronym": "rd",
+      "atsReference": "1361680",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1790654400000,
+      "expireDate": 1793246400000,
+      "salary": {
+       "type": "per hour",
+       "currency": "USD",
+       "min": 20,
+       "max": 21,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Newnan",
+       "state": "Georgia",
+       "stateAbbreviation": "GA",
+       "postalCode": "30265",
+       "latitude": 33.374851,
+       "longitude": -84.800468,
+       "contactName": "REDACTED",
+       "contactPhone": "REDACTED",
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/4/1361680/order-fulfillment-specialist-drone-delivery_newnan/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/4/1361680/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "no requirements"
+      ],
+      "qualifications": [
+       "What We're Looking For\r\nExperience\r\n1-2 years of experience in a fast-paced environment such as retail, warehouse, logistics, fulfillment, distribution, or similar operations\r\nExperience with picking, packing, inventory, order fulfillment, shipping/receiving, or other operational processes is helpful but not required for candidates with transferable experience\r\nLeadership Potential\r\nStrong desire to grow into additional leadership responsibilities\r\nPrevious experience training, coaching, mentoring, or supporting coworkers is a plus\r\nComfortable taking initiative and leading by example\r\nSupply Chain & Operational Knowledge\r\nGeneral understanding of warehouse, fulfillment, retail, or supply chain processes\r\nExposure to performance metrics such as order accuracy, cycle times, productivity, or throughput is preferred\r\nStrong attention to accuracy and detail\r\nCommunication & Safety\r\nStrong interpersonal and communication skills\r\nAbility to work effectively as part of a team in a fast-moving environment\r\nSafety-focused mindset and willingness to follow detailed procedures and SOPs\r\nPhysical & Work Environment Requirements\r\n\r\nCandidates must be able to:\r\n\r\nWork outdoors and in varying weather conditions\r\nStand and remain active for extended periods\r\nComfortably lift and handle items weighing up to 35 lbs\r\nPerform repetitive picking, packing, loading, and inventory-related activities\r\nWork effectively in a fast-paced operational environment\r\nSchedule Requirements\r\n\r\nThis position requires schedule flexibility.\r\n\r\nCandidates must be available to work within the operating window of: 8:30 AM - 9:15 PM, 7 days per week.\r\nEmployees will work 40 hours per week based on the assigned schedule and operational needs. Weekend availability is required. Adherence to assigned work hours is essential for this operation."
+      ],
+      "skills": [
+       "Flexibility,Communication,leads by example,leadership,packing,Leadership Potential,logistics,coaching,throughput,picking,performance metrics,Strong interpersonal and communication skills,retail,Selling,warehouse,supply chain processes,Supply Chain Knowledge"
+      ],
+      "responsibilities": [
+       "<p>As a Ground Handler Tier 1, you will:</p><ul><li><strong>Pick &amp; Pack Orders:</strong> Accurately locate, pick, and pack customer orders according to established Standard Operating Procedures (SOPs).</li><li><strong>Perform Quality Control:</strong> Complete weight, accuracy, and quality checks to ensure orders meet operational requirements before delivery.</li><li><strong>Load Delivery Aircraft:</strong> Safely and securely load approved packages onto delivery aircraft while following all required safety procedures.</li><li><strong>Prepare the Site for Operations:</strong> Assist with morning setup and ensure the operational area is clean, organized, safe, and ready for daily activity.</li><li><strong>Support Inventory Management:</strong> Perform daily inventory counts and help maintain accurate stock levels.</li><li><strong>Maintain Equipment:</strong> Handle operational equipment carefully and report equipment, safety, or maintenance concerns.</li><li><strong>Support Team Leadership:</strong> Assist the Operations Team Lead with daily activities and help maintain an efficient workflow during busy periods.</li><li><strong>Maintain Safety Standards:</strong> Follow all safety policies, SOPs, and operational procedures while maintaining strong attention to detail.</li></ul><p><br></p>"
+      ],
+      "workHours": [
+       "Rotating Shifts"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 33.374851,
+       "lon": -84.800468
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc51432abc7e001a0b2b3a",
+      "title": "Sr Lead Buyer",
+      "description": "job summary:  Leading manufacturing organization is seeking a Sr Lead Buyer, this is a hybrid role.    The ideal candidate will possess procurement, supplier sourcing, contract management/negotiation experience with major CAPEX projects in a construction or an EPC environment.     This role comes with an excellent compensation plan with a base salary up to &#x24;165k plus 22% annual bonus and excellent 401k plan with a 6% match.    All candidates must be l",
+      "summary": "Leading manufacturing organization is seeking a Sr Lead Buyer, this is a hybrid role. <br>\n<br>\nThe ideal candidate will possess procurement, supplier sourcing, contract management/negotiation experience with major CAPEX projects in a construction or an EPC environment.  <br>\n<br>\nThis role comes with an excellent compensation plan with a base salary up to $165k plus 22% annual bonus and excellent 401k plan with a 6% match. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S. ",
+      "type": "Permanent",
+      "createdDate": 1790726467816,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360857",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 155000,
+       "max": 165000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Houston",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "77024",
+       "latitude": 29.76045,
+       "longitude": -95.369781,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360857/sr-lead-buyer_houston/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360857/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Experienced<li>Minimum 7 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>Primary Functions:</p>  <p>Sourcing/Category Management:</p>  <p>Closely liaise with the Group Category Management Team to ensure that best practices are shared across the company and that the plans are fully aligned with the group plans</p>  <p>-Lead the development of medium to long term. Category plans to provide clarity on the vision, strategy, and implementation processes ensuring value delivery (lower costs, mitigated risk, supply assurance) through detailed understanding of business requirements, supply market dynamics and TCO impacts</p>  <p>Supplier Management:</p>  <p>-Develop, evaluate and manage internal relationships to optimize companies external legal, business and financial positions</p>  <p>-Lead the development and maintenance of preferred supplier lists</p>  <p>-Develop effective and measurable supplier management methods and performance metrics are applied to all high risk and/or high value suppliers through supplier management programs</p>  <p>Contract Management:</p>  <p>-Lead the development, review, negotiation, execution, management and documentation of significant and complex contracts and contract amendments in accordance with companies policies and procedures to drive value</p>  <p>-Develop and plan supplier relationship and contract management to ensure suppliers meet their contractual obligations and the value expected from a contract is fully delivered throughout the lifecycle</p>  <p>Customer Relationship Managment:</p>  <p>-Develop and maintain partnerships with key stakeholders, business partners and senior leaders to gain support and cooperation in the delivery of sourcing projects and the category plan to drive savings and performance improvement</p>  <p>-Work with customers to ensure an effective, collaborative view of business strategies, portfolios of projects, annual/project budgets and priorities with realistic expectations are formed on all sides</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree</p>  <p>-7+ years of procurement experience including 3+ years of supplier management experience and 2+ years of strategic procurement experience</p>  <p>-Experience sourcing and negotiating contracts for construction, captial projects, facilities improvements and other capital expenditures</p>  <p>-CPM or CPSM certifications</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 29.76045,
+       "lon": -95.369781
+      },
+      "employmentType": "Full-time",
+      "modifiedDate": 1790726902686,
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc5125c9379c739ce12783",
+      "title": "Sr Lead Buyer",
+      "description": "job summary:  Leading manufacturing organization is seeking a Sr Lead Buyer, this is a hybrid role.    The ideal candidate will possess procurement, supplier sourcing, contract management/negotiation experience with major CAPEX projects in a construction or an EPC environment.     This role comes with an excellent compensation plan with a base salary up to &#x24;165k plus 22% annual bonus and excellent 401k plan with a 6% match.    All candidates must be l",
+      "summary": "Leading manufacturing organization is seeking a Sr Lead Buyer, this is a hybrid role. <br>\n<br>\nThe ideal candidate will possess procurement, supplier sourcing, contract management/negotiation experience with major CAPEX projects in a construction or an EPC environment.  <br>\n<br>\nThis role comes with an excellent compensation plan with a base salary up to $165k plus 22% annual bonus and excellent 401k plan with a 6% match. <br>\n<br>\nAll candidates must be legally authorized to work in the U.S. ",
+      "type": "Permanent",
+      "createdDate": 1790726437609,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360855",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 155000,
+       "max": 165000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Dallas",
+       "state": "Texas",
+       "stateAbbreviation": "TX",
+       "postalCode": "75225",
+       "latitude": 32.778149,
+       "longitude": -96.795403,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360855/sr-lead-buyer_dallas/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360855/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Experienced<li>Minimum 7 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>Primary Functions:</p>  <p>Sourcing/Category Management:</p>  <p>Closely liaise with the Group Category Management Team to ensure that best practices are shared across the company and that the plans are fully aligned with the group plans</p>  <p>-Lead the development of medium to long term. Category plans to provide clarity on the vision, strategy, and implementation processes ensuring value delivery (lower costs, mitigated risk, supply assurance) through detailed understanding of business requirements, supply market dynamics and TCO impacts</p>  <p>Supplier Management:</p>  <p>-Develop, evaluate and manage internal relationships to optimize companies external legal, business and financial positions</p>  <p>-Lead the development and maintenance of preferred supplier lists</p>  <p>-Develop effective and measurable supplier management methods and performance metrics are applied to all high risk and/or high value suppliers through supplier management programs</p>  <p>Contract Management:</p>  <p>-Lead the development, review, negotiation, execution, management and documentation of significant and complex contracts and contract amendments in accordance with companies policies and procedures to drive value</p>  <p>-Develop and plan supplier relationship and contract management to ensure suppliers meet their contractual obligations and the value expected from a contract is fully delivered throughout the lifecycle</p>  <p>Customer Relationship Managment:</p>  <p>-Develop and maintain partnerships with key stakeholders, business partners and senior leaders to gain support and cooperation in the delivery of sourcing projects and the category plan to drive savings and performance improvement</p>  <p>-Work with customers to ensure an effective, collaborative view of business strategies, portfolios of projects, annual/project budgets and priorities with realistic expectations are formed on all sides</p>  <p>Education &amp; Experience:</p>  <p>-Bachelor&#39;s degree</p>  <p>-7+ years of procurement experience including 3+ years of supplier management experience and 2+ years of strategic procurement experience</p>  <p>-Experience sourcing and negotiating contracts for construction, captial projects, facilities improvements and other capital expenditures</p>  <p>-CPM or CPSM certifications</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 32.778149,
+       "lon": -96.795403
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc50e7153b8b20727c973d",
+      "title": "Utilities Electrical Maintenance Engineer",
+      "description": "job summary:  Well known and industry leading manufacturer in Cleveland, Ohio is looking for a Electrical Maintenance Engineer.     This role comes with a very competitive base salary upto &#x24;105k plus an annual 15% bonus and relocation assistance.     All candidates must be legally authorized to work in the United States.      location: Cleveland, Ohio  job type: Permanent  salary: &#x24;100,000 - 110,000  per year  work hours: 8am to 4pm  education: B",
+      "summary": "Well known and industry leading manufacturer in Cleveland, Ohio is looking for a Electrical Maintenance Engineer.  <br>\n<br>\nThis role comes with a very competitive base salary upto $105k plus an annual 15% bonus and relocation assistance.  <br>\n<br>\nAll candidates must be legally authorized to work in the United States.  ",
+      "type": "Permanent",
+      "createdDate": 1790726375601,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360838",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 100000,
+       "max": 110000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Cleveland",
+       "state": "Ohio",
+       "stateAbbreviation": "OH",
+       "postalCode": "44114",
+       "latitude": 41.504711,
+       "longitude": -81.690742,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360838/utilities-electrical-maintenance-engineer_cleveland/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360838/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Entry Level<li>Minimum 2 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Provides engineering and maintenance support for the plant&#39;s high and medium voltage electrical power distribution system. </p>  <p>-Coordination and safety of maintenance technicians, engineering analysis, failure analysis, system improvement projects and providing technical support to maintenance</p>  <p>-Safey and reliable operation and maintenance of the plant electrical power distribution system, water treatment plant electrical systems and powerhouse electrical systems</p>  <p>-Engineering support includes system studies; load flow, short circuit, arc flash, protection coordination</p>  <p>-Electrical distribution system equipment includes: substations, circuit breakers, switches and motor starters, crane power rectifers, transformers, generator, underground and overhead cable, plant SCADA system, substation batteries, and all protective relays. System voltage are up to 138 kV</p>  <p>Minimum Qualifications:</p>  <p>-Bachelor&#39;s degree in Engineering/Engineering Technology</p>  <p>-2 years electrical experience in a manufacturing or utility environment</p>  <p>-High voltage experience</p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 41.504711,
+       "lon": -81.690742
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc50c9b9751c555ea6fd87",
+      "title": "Electrical Maintenance Manager",
+      "description": "job summary:  Well known and leading manufacturing company located in Cleveland, Ohio is looking for a M-F day shift Electrical Maintenance Manager.    This role comes with a very good salary up to &#x24;100k plus a 15% annual bonus and relocation assistance is available.    The ideal candidate will possess electrical maintenance experience (PLC's, process automation, drives, instrumentation, AC/DC industrial control, power distribution and AC/DC motors) i",
+      "summary": "Well known and leading manufacturing company located in Cleveland, Ohio is looking for a M-F day shift Electrical Maintenance Manager. <br>\n<br>\nThis role comes with a very good salary up to $100k plus a 15% annual bonus and relocation assistance is available. <br>\n<br>\nThe ideal candidate will possess electrical maintenance experience (PLC's, process automation, drives, instrumentation, AC/DC industrial control, power distribution and AC/DC motors) in a manufacturing environment along with supervisory experience.<br>\n<br>\nAll candidates must be legally authroized to work in the U.S. ",
+      "type": "Permanent",
+      "createdDate": 1790726345150,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360837",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 90000,
+       "max": 100000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Cleveland",
+       "state": "Ohio",
+       "stateAbbreviation": "OH",
+       "postalCode": "44114",
+       "latitude": 41.504711,
+       "longitude": -81.690742,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360837/electrical-maintenance-manager_cleveland/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360837/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "high school"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Manager<li>Minimum 2 years of experience<li>Education: High School (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Manage the maintenance of electrical equipment and providing the day to day supervision of the electrical maintenance employees</p>  <p>-Develop into a maintenance expert for the electrical and automation systems within the department</p>  <p>-Act as a coach to the employees and ensure that they have the tools and knowledge required to safely perform their job</p>  <p>-Manage spending budget using project managemen skills and a thorough understanding of the processes needed to properly maintain the equipment in assigned area</p>  <p>-Collaborate with purching, operations, engineering, continuous improvement, accounting etc. </p>  <p>Minimum Qualifications:</p>  <p>-HS diploma or GED</p>  <p>-2 years of electrical maintenance experience in a manufacturing environment or military</p>  <p>-Applicants must be legally authorized to work full time in the U.S. </p>  <p>Preferred Qualifications: </p>  <p>-Bachelor&#39;s degree from accredited educational institution in electrical engineering or related field</p>  <p>-3 years of electrical maintenance experience </p>  <p>-2 years of supervisory experience in a manufacturing/industrial operation or military</p>  <p>-Experience with PLC&#39;s, process automation, drives, instrumentation, AC/DC industrial control, power distribution and AC/DC motors</p>  <p>#LI-DW1</p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 41.504711,
+       "lon": -81.690742
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc50aac4b3e152ac03b8b0",
+      "title": "Mechanical Maintenance Manager",
+      "description": "job summary:  Well known and industry leading manufacturing company located in Cleveland, Ohio is looking for a M-F day shift Mechanical Maintenance Manager.    This role comes with a very good salary (up to &#x24;120k) plus an annual bonus that can range from 15%-30%.  Relocation assistance is available.     The ideal candidate will possess mechanical maintenance experience in a manufacturing environment along with maintenance planning, reliability and pr",
+      "summary": "Well known and industry leading manufacturing company located in Cleveland, Ohio is looking for a M-F day shift Mechanical Maintenance Manager. <br>\n<br>\nThis role comes with a very good salary (up to $120k) plus an annual bonus that can range from 15%-30%.  Relocation assistance is available.  <br>\n<br>\nThe ideal candidate will possess mechanical maintenance experience in a manufacturing environment along with maintenance planning, reliability and project management ($10k to $1M) and supervisory experience.  <br>\n<br>\nAll candidates must be legally authorized to work in the U.S. ",
+      "type": "Permanent",
+      "createdDate": 1790726314741,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360836",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 110000,
+       "max": 120000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Cleveland",
+       "state": "Ohio",
+       "stateAbbreviation": "OH",
+       "postalCode": "44114",
+       "latitude": 41.504711,
+       "longitude": -81.690742,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360836/mechanical-maintenance-manager_cleveland/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360836/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "high school"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Manager<li>Minimum 2 years of experience<li>Education: High School (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><p>-Manage the maintenance of mechanical equipment and provide the day to day supervision of the maintenance technician mechanics </p>  <p>-Develop into a maintenance expert for the maintenance systems within assigned area</p>  <p>-Act as a coach to employees and ensure that they have the tools and knowledge required to safely perform the job</p>  <p>-Manage spending budget using project management skills and a thorough understanding of the processes needed to properly maintain the equipment</p>  <p>-Interact with purchasing, operations, op tech/continuous improvement, accounting, engineering, vendors and suppliers</p>  <p>-Develop maintenance stragtegy that would ensure a high level of equipment reliability</p>  <p>Minimum Qualification:</p>  <p>-HS diploma or GED</p>  <p>-2 yrs of mechanical maintenance experience in a manufacturing environment</p>  <p>-Applicants must be currently legally authorized to work in the U.S. on a full-time basis</p>  <p>Preferred Qualifications:</p>  <p>-Bachelor&#39;s degree in mechanical engineering</p>  <p>-3 years of mechanical maintenance engineering experience</p>  <p>-2 years of supervisory experience in a manufacturing/industrial operation or military</p>  <p>-Experience working with a computer based PM and/or equipment reliability program</p>  <p></p>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 41.504711,
+       "lon": -81.690742
+      },
+      "employmentType": "Full-time",
+      "modifiedDate": 1790727329004,
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc508cb9751c555ea6fd86",
+      "title": "Structural Engineer",
+      "description": "job summary:  Industry leading organization is searching for a promotable (groomed for advancement opportunities) Structural Engineer in the Duluth, MN area.  This opportunity provides a chance to work in a family and team environment that provides opportunities for growth and advancement.    This roles comes with a very good salary commensurate with experience with a base salary ranging from &#x24;100k to &#x24;150k plus a bonus that can range from 15% to",
+      "summary": "Industry leading organization is searching for a promotable (groomed for advancement opportunities) Structural Engineer in the Duluth, MN area.  This opportunity provides a chance to work in a family and team environment that provides opportunities for growth and advancement. <br>\n<br>\nThis roles comes with a very good salary commensurate with experience with a base salary ranging from $100k to $150k plus a bonus that can range from 15% to 30% based upon company performance along with excellent benefits, matching 401k plan and pension.  Relocation assistance is also available.  <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.<br>\n ",
+      "type": "Permanent",
+      "createdDate": 1790726284307,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360816",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 100000,
+       "max": 150000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Duluth",
+       "state": "Minnesota",
+       "stateAbbreviation": "MN",
+       "postalCode": "55803",
+       "latitude": 46.78796,
+       "longitude": -92.099854,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360816/structural-engineer_duluth/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360816/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Experienced<li>Minimum 3 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><ul><li>Manage structural steel engineering projects from cost estimates, materials specifications, calculations, design of structures, facilities and equipment of installation and start up \t</li><li>Ensure contract work is documented properly with specifications and work scopes, coordinate within operational needs and completed safely \t</li><li>Direct and coordinate work performed by engineering consultants and contractors \t</li><li>Direct and coordinate work performed by operating employees as required for new equipment installation or testing to ensure conformity to engineering design and specifications \t</li><li>Provide structural steel assessments expertise to management, engineeers, and mechanical crafts people on as needed basis </li></ul>  <p>Minimum Requirements:</p>  <ul><li>Bachelor&#39;s degree in structural engineering \t</li><li>Previous knowledge of project management and creation of work scopes  \t</li><li>Project engineering experience \t</li><li>Cost analysis, budgeting and quality management systems \t</li><li>AutoCAD experience  </li></ul>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 46.78796,
+       "lon": -92.099854
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     },
+     {
+      "id": "6abc5077b9751c555ea6fd85",
+      "title": "Mine Engineering Manager",
+      "description": "job summary:  Industry leading organization is searching for a promotable (groomed for advancement opportunities) Mine Engineering Manager in the Duluth,MN area.    This roles comes with a very good salary commensurate with experience with a base salary ranging from &#x24;145k to &#x24;155k plus a bonus that can range from 15% to 30% based upon company performance.  Relocation assistance is also available.     All candidates must be legally authorized to w",
+      "summary": "Industry leading organization is searching for a promotable (groomed for advancement opportunities) Mine Engineering Manager in the Duluth,MN area. <br>\n<br>\nThis roles comes with a very good salary commensurate with experience with a base salary ranging from $145k to $155k plus a bonus that can range from 15% to 30% based upon company performance.  Relocation assistance is also available.  <br>\n<br>\nAll candidates must be legally authorized to work in the U.S.<br>\n ",
+      "type": "Permanent",
+      "createdDate": 1790726263963,
+      "opCoName": "Randstad Engineering",
+      "lobId": 141,
+      "lobName": "Randstad Engineering",
+      "lobAcronym": "re",
+      "atsReference": "1360803",
+      "isRemote": false,
+      "quantity": 1,
+      "startDate": 1789963200000,
+      "expireDate": 1792555200000,
+      "salary": {
+       "type": "per year",
+       "currency": "USD",
+       "min": 145000,
+       "max": 155000,
+       "fixed": null
+      },
+      "jobLocation": {
+       "city": "Duluth",
+       "state": "Minnesota",
+       "stateAbbreviation": "MN",
+       "postalCode": "55803",
+       "latitude": 46.78796,
+       "longitude": -92.099854,
+       "contactName": "REDACTED",
+       "contactPhone": null,
+       "contactEmail": "REDACTED",
+       "address1": null,
+       "address2": null
+      },
+      "detailsUrl": "https://www.randstadusa.com/jobs/141/1360803/mine-engineering-manager_duluth/",
+      "applyUrl": "https://www.randstadusa.com/jobs/apply/141/1360803/",
+      "industries": [
+       "Professional, Scientific, and Technical Services"
+      ],
+      "sicCode": [
+       "54"
+      ],
+      "categories": [
+       "Computer and Mathematical Occupations"
+      ],
+      "categoryCode": [
+       "15"
+      ],
+      "educationRequirements": [
+       "bachelor degree"
+      ],
+      "qualifications": [
+       "<ul><li>Experience level: Manager<li>Minimum 5 years of experience<li>Education: Bachelors (required)</ul>"
+      ],
+      "responsibilities": [
+       "<p></p><ul><li>Direct &amp; coordinate the development of short and long-range mine plans, budgets and targets of performance for the mining operations \t</li><li>Direct, coordinate and motivate departments personnel to meet established plans, budgets and targets of performance for the mining operation \t</li><li>Direct and coordinate the plans, projects and programs to achieve the desired performance results in safety, quality, production and cost \t</li><li>Determine equipment needs and participate in the selection and purchase of the new equipment </li></ul>  <p>Minimum Qualifications:</p>  <ul><li>Bachelor&#39;s degree perferably in Mine Engineering or equivalent field \t</li><li>5 years of supervisory/managerial experience in mine planning, engineering, operations and administration \t</li><li>Ability to maintain ATF certification \t</li><li>Ability to motivate, delegate, establish and work in a collaborative environment </li></ul>  <p></p> <p></p>"
+      ],
+      "workHours": [
+       "8am to 4pm"
+      ],
+      "benefits": [
+       ""
+      ],
+      "location": {
+       "lat": 46.78796,
+       "lon": -92.099854
+      },
+      "employmentType": "Full-time",
+      "jobReference": null,
+      "isDeleted": null,
+      "isInternal": null,
+      "modifiedDate": null,
+      "deletedDate": null,
+      "experienceRequirements": [],
+      "skills": [],
+      "incentives": []
+     }
+    ]
+   }
+  }
+ ]
+}

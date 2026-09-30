@@ -29,6 +29,37 @@ def _parse_workday_posted_on(text: str) -> Optional[datetime]:
         return None
 
 
+_EMPLOYMENT_WORDS = re.compile(
+    r"\b(full[- ]?time|part[- ]?time|contract(or)?|contract[- ]to[- ]hire|temporary|temp|intern(ship)?|freelance|seasonal|fixed[- ]term)\b",
+    re.IGNORECASE,
+)
+
+
+def _greenhouse_employment_type(raw: dict) -> Optional[str]:
+    """Greenhouse custom metadata ("Employment Type", "Job Type", ...), when a board sets it."""
+    for item in raw.get("metadata") or []:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").lower()
+        if "employment" in name or "job type" in name or "worker type" in name or name in ("type", "time type"):
+            value = item.get("value")
+            if isinstance(value, list):
+                value = " ".join(str(v) for v in value if v)
+            if value:
+                return str(value)
+    return None
+
+
+def _lever_pay(raw: dict) -> tuple:
+    """Lever salaryRange -> (min, max, period)."""
+    sr = raw.get("salaryRange") or {}
+    if not isinstance(sr, dict) or not (sr.get("min") or sr.get("max")):
+        return None, None, None
+    interval = str(sr.get("interval") or "").lower()
+    period = next((p for p in ("hour", "day", "week", "month", "year") if p in interval), None)
+    return sr.get("min"), sr.get("max"), period
+
+
 # Helper mixin for Workday API parsing
 class WorkdayMixin:
     # Celery kills HTTP scrape tasks at a 120s soft limit, and a killed task records
@@ -85,9 +116,11 @@ class WorkdayMixin:
             location = raw.get("locationsText", "")
             posted_date = _parse_workday_posted_on(raw.get("postedOn", ""))
             job_url = f"{self._workday_site_url()}{external_path}"
+            emp_raw = raw.get("timeType") or next(
+                (b for b in bullet[1:] if isinstance(b, str) and _EMPLOYMENT_WORDS.search(b)), None)
             return ScrapedJob(
                 title=title, location=location, job_url=job_url, external_job_id=job_id,
-                posted_date=posted_date,
+                posted_date=posted_date, employment_type_raw=emp_raw,
             )
         except Exception as e:
             self.logger.error(f"Error parsing Workday job: {e}")
@@ -120,7 +153,8 @@ class GreenhouseMixin:
                 job_url=raw.get("absolute_url", ""), external_job_id=job_id,
                 job_description=raw.get("content", ""),
                 department=depts[0].get("name", "") if depts else "",
-                posted_date=posted
+                posted_date=posted,
+                employment_type_raw=_greenhouse_employment_type(raw),
             )
         except:
             return None
@@ -147,6 +181,7 @@ class AshbyMixin:
                 job_description=raw.get("descriptionHtml") or raw.get("descriptionPlain"),
                 department=raw.get("department", ""), posted_date=posted,
                 remote_type="remote" if raw.get("isRemote") else None,
+                employment_type_raw=raw.get("employmentType") or None,
             )
         except:
             return None
@@ -168,10 +203,13 @@ class LeverMixin:
             department = categories.get("department", "") or categories.get("team", "")
             created = raw.get("createdAt")
             posted = datetime.fromtimestamp(created / 1000) if created else None
+            pay_min, pay_max, pay_period = _lever_pay(raw)
             return ScrapedJob(
                 title=raw.get("text", ""), location=location,
                 job_url=raw.get("hostedUrl", ""), external_job_id=raw.get("id", ""),
-                department=department, posted_date=posted
+                department=department, posted_date=posted,
+                employment_type_raw=categories.get("commitment") or None,
+                pay_rate_min=pay_min, pay_rate_max=pay_max, pay_period=pay_period,
             )
         except:
             return None
@@ -212,7 +250,9 @@ class SmartRecruitersMixin:
                 job_url=f"https://jobs.smartrecruiters.com/{self.COMPANY_ID}/{job_id}",
                 external_job_id=raw.get("refNumber", "") or job_id,
                 department=dept.get("label", "") if isinstance(dept, dict) else "",
-                posted_date=posted
+                posted_date=posted,
+                employment_type_raw=(raw.get("typeOfEmployment") or {}).get("label")
+                if isinstance(raw.get("typeOfEmployment"), dict) else None,
             )
         except:
             return None

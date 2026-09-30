@@ -28,6 +28,12 @@ from collections import defaultdict, deque
 
 from database import get_db
 from models import Job, Company, User, RoleProfile, JobRelevanceScore
+from services.job_location import country_filter, from_country_codes, normalize_country
+
+# Contract roles live in contract_jobs and are served by /api/contracts. Direct-hire
+# temporary/seasonal roles stay in jobs (employment_type "temporary") and are shown.
+CONTRACT_TYPES = ("contract", "contract_to_hire", "freelance")
+DEFAULT_COUNTRY = "US"
 
 
 def decode_job_description(description: str) -> str:
@@ -290,6 +296,75 @@ def plain_text_description(description: Optional[str], max_chars: Optional[int] 
     return text
 
 
+def _not_contract():
+    """Contract roles live in contract_jobs (/api/contracts); keep strays out of /api/jobs."""
+    return or_(Job.employment_type.is_(None), Job.employment_type.notin_(CONTRACT_TYPES))
+
+
+def _not_evergreen():
+    return or_(Job.is_evergreen.is_(None), Job.is_evergreen == False)  # noqa: E712
+
+
+def _listed_since(job: Job) -> Optional[datetime]:
+    """Earlier of the ATS posted date and our first sighting (fallback: created_at)."""
+    dates = [d for d in (job.effective_posted_at, job.posted_date, job.first_seen_at) if d is not None]
+    if not dates and job.created_at:
+        dates = [job.created_at]
+    return min(d.replace(tzinfo=None) for d in dates) if dates else None
+
+
+def freshness_fields(job: Job) -> dict:
+    listed = _listed_since(job)
+    return {
+        "employment_type": job.employment_type,
+        "listed_since": listed.replace(microsecond=0).isoformat() + "Z" if listed else None,
+        "listed_days": max(0, (datetime.utcnow() - listed).days) if listed else None,
+        "country_codes": from_country_codes(job.country_codes),
+        "is_evergreen": bool(job.is_evergreen),
+        "evergreen_reason": job.evergreen_reason,
+    }
+
+
+def resolve_viewer_country(country: Optional[str], current_user: Optional[User]) -> Optional[str]:
+    """
+    Which country's jobs to show: explicit ?country= (ALL = no filter) ->
+    signed-in user's country_code (admins: no filter) -> US. None = no filter.
+    """
+    if country:
+        if country.strip().upper() in ("ALL", "ANY"):
+            return None
+        code = normalize_country(country)
+        if not code:
+            raise HTTPException(status_code=400, detail=f"Unknown country '{country}' (use ISO-2, e.g. US, GB, IN)")
+        return code
+    if current_user is not None:
+        if current_user_is_admin(current_user):
+            return None
+        code = getattr(current_user, "country_code", None) or normalize_country(getattr(current_user, "country", None))
+        if code:
+            return code
+    return DEFAULT_COUNTRY
+
+
+def _country_visibility(viewer_country: Optional[str], confirmed_only: bool, current_user: Optional[User]):
+    """Jobs in the viewer's country, unknown-location jobs (unless confirmed_only), and the user's own jobs."""
+    if viewer_country is None:
+        cond = None if not confirmed_only else and_(Job.country_codes.isnot(None), Job.country_codes != "")
+    else:
+        cond = country_filter(Job.country_codes, viewer_country, confirmed_only=confirmed_only)
+    if cond is not None and current_user is not None:
+        cond = or_(cond, Job.user_id == current_user.id)
+    return cond
+
+
+def _effective_cutoff_filter(cutoff: datetime):
+    """posted_within_hours on the effective (listed-since) date, falling back to created_at."""
+    return or_(
+        Job.effective_posted_at >= cutoff,
+        and_(Job.effective_posted_at.is_(None), func.coalesce(Job.posted_date, Job.created_at) >= cutoff),
+    )
+
+
 def job_to_response(
     job: Job,
     relevance: Optional[RelevanceResult] = None,
@@ -322,7 +397,8 @@ def job_to_response(
         "department": job.department,
         "job_url": job.job_url,
         "ai_summary": job.ai_summary,
-        "ai_tech_stack": job.ai_tech_stack
+        "ai_tech_stack": job.ai_tech_stack,
+        **freshness_fields(job),
     }
 
     # Only include full description if explicitly requested (reduces response size significantly)
@@ -353,7 +429,10 @@ def get_jobs(
     source: Optional[str] = Query(None, description="Filter by source (greenhouse, lever, etc.)"),
     active_only: bool = Query(True, description="Only show active jobs"),
     company_id: Optional[int] = Query(None, description="Filter by company"),
-    posted_within_hours: Optional[int] = Query(None, ge=1, description="Only show jobs posted within this many hours (e.g., 720 = 30 days). If not set, shows all."),
+    posted_within_hours: Optional[int] = Query(None, ge=1, description="Only show jobs listed within this many hours (e.g., 720 = 30 days), by listed_since (earlier of posted date and first sighting). If not set, shows all."),
+    include_evergreen: Optional[bool] = Query(None, description="Include evergreen / long-listed / reposted postings (default: hidden; admins: shown)"),
+    country: Optional[str] = Query(None, description="Viewer country ISO-2 (ALL = every country). Default: your profile country, else US; admins: all"),
+    confirmed_only: bool = Query(False, description="Exclude jobs whose location country is unknown"),
 
     # Role-aware filtering (THE KEY FEATURE)
     role: Optional[str] = Query(None, description="Single role profile slug (devops, backend, frontend, etc.)"),
@@ -398,6 +477,10 @@ def get_jobs(
     - GET /api/jobs?all=true → All jobs without filtering
     - GET /api/jobs?min_score=50 → Only highly relevant jobs
     """
+    viewer_country = resolve_viewer_country(country, current_user)
+    if include_evergreen is None:
+        include_evergreen = bool(current_user and current_user_is_admin(current_user))
+
     # Generate cache key for this query
     user_role = roles or role or (current_user.role_profile.slug if current_user and current_user.role_profile else None)
     score_preferences = None
@@ -411,6 +494,8 @@ def get_jobs(
         "jobs",
         status=status, source=source, active_only=active_only, company_id=company_id,
         posted_within_hours=posted_within_hours, role=user_role, all_jobs=all,
+        include_evergreen=include_evergreen, v="fresh2",
+        country=viewer_country or "ALL", confirmed_only=confirmed_only,
         score_preferences=score_preferences,
         min_score=min_score, limit=limit, offset=offset,
         viewer=current_user.id if current_user else None,
@@ -440,21 +525,22 @@ def get_jobs(
         query = query.filter(Job.is_active == True)
     if company_id:
         query = query.filter(Job.company_id == company_id)
+    query = query.filter(_not_contract())
+    if not include_evergreen:
+        query = query.filter(_not_evergreen())
+    visibility = _country_visibility(viewer_country, confirmed_only, current_user)
+    if visibility is not None:
+        query = query.filter(visibility)
 
-    # Filter by posted date (only if posted_within_hours is specified)
+    # Filter by listed-since date (only if posted_within_hours is specified)
     if posted_within_hours:
-        cutoff_date = datetime.now() - timedelta(hours=posted_within_hours)
-        query = query.filter(
-            or_(
-                Job.posted_date >= cutoff_date,
-                (Job.posted_date == None) & (Job.created_at >= cutoff_date)
-            )
-        )
+        cutoff_date = datetime.utcnow() - timedelta(hours=posted_within_hours)
+        query = query.filter(_effective_cutoff_filter(cutoff_date))
 
     # If all=true, return without relevance scoring
     if all:
         total = query.count()
-        q = query.order_by(Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
+        q = query.order_by(Job.effective_posted_at.desc().nullslast(), Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
         if limit:
             q = q.limit(limit)
         jobs = q.all()
@@ -491,7 +577,7 @@ def get_jobs(
     # If no role profile available, fall back to showing all jobs
     if not role_profiles:
         total = query.count()
-        q = query.order_by(Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
+        q = query.order_by(Job.effective_posted_at.desc().nullslast(), Job.posted_date.desc().nullslast(), Job.created_at.desc()).offset(offset)
         if limit:
             q = q.limit(limit)
         jobs = q.all()
@@ -514,6 +600,7 @@ def get_jobs(
     # candidate set bounds memory/latency on broad role filters.
     try:
         all_jobs = query.order_by(
+            Job.effective_posted_at.desc().nullslast(),
             Job.posted_date.desc().nullslast(),
             Job.created_at.desc()
         ).limit(MAX_SCORING_CANDIDATES).all()
@@ -574,12 +661,42 @@ def get_jobs(
     return response
 
 
+@router.get("/countries")
+def job_countries_facet(
+    include_evergreen: bool = Query(False),
+    db: Session = Depends(get_db),
+):
+    """Active job counts per country (top 50) for a country picker; unknown-location jobs counted separately."""
+    key = _get_cache_key("jobs_countries", include_evergreen=include_evergreen)
+    cached = _cache_get(key)
+    if cached:
+        return cached
+    q = db.query(Job.country_codes, func.count(Job.id)).filter(
+        Job.is_active == True, Job.user_id == None, _not_contract())  # noqa: E711,E712
+    if not include_evergreen:
+        q = q.filter(_not_evergreen())
+    counts: dict = defaultdict(int)
+    unknown = 0
+    for codes, n in q.group_by(Job.country_codes).all():
+        parsed = from_country_codes(codes)
+        if not parsed:
+            unknown += int(n)
+        for c in parsed:
+            counts[c] += int(n)
+    top = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[:50]
+    result = {"countries": [{"code": c, "count": n} for c, n in top], "unknown": unknown}
+    _cache_set(key, result)
+    return result
+
+
 @router.get("/discover")
 def discover_jobs(
     role: str = Query(..., description="Role profile slug (required)"),
     limit: int = Query(25, ge=1, le=100, description="Maximum results"),
     min_score: float = Query(40, ge=0, le=100, description="Minimum relevance score"),
     posted_within_hours: Optional[int] = Query(None, ge=1, description="Only show jobs posted within this many hours (e.g., 720 = 30 days). If not set, shows all."),
+    country: Optional[str] = Query(None, description="Viewer country ISO-2 (ALL = every country); default: profile country, else US"),
+    confirmed_only: bool = Query(False, description="Exclude jobs whose location country is unknown"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -602,21 +719,21 @@ def discover_jobs(
     # Get active jobs visible to user (owned or shared)
     query = db.query(Job).options(joinedload(Job.company)).filter(
         Job.is_active == True,
-        or_(Job.user_id == current_user.id, Job.user_id == None)
+        or_(Job.user_id == current_user.id, Job.user_id == None),
+        _not_contract(),
+        _not_evergreen(),
     )
+    visibility = _country_visibility(resolve_viewer_country(country, current_user), confirmed_only, current_user)
+    if visibility is not None:
+        query = query.filter(visibility)
     if posted_within_hours:
-        cutoff_date = datetime.now() - timedelta(hours=posted_within_hours)
-        query = query.filter(
-            or_(
-                Job.posted_date >= cutoff_date,
-                (Job.posted_date == None) & (Job.created_at >= cutoff_date)
-            )
-        )
+        cutoff_date = datetime.utcnow() - timedelta(hours=posted_within_hours)
+        query = query.filter(_effective_cutoff_filter(cutoff_date))
     # Same candidate selection as GET /api/jobs: SQL title pre-filter, then
     # only the most recent MAX_SCORING_CANDIDATES get scored (was: every active job).
     query = _apply_title_filter(query, [role_profile])
     jobs = query.order_by(
-        Job.posted_date.desc().nullslast(),
+        Job.effective_posted_at.desc().nullslast(),
         Job.created_at.desc()
     ).limit(MAX_SCORING_CANDIDATES).all()
 
@@ -643,6 +760,7 @@ def discover_jobs(
                 "company_name": job.company.name if job.company else None,
                 "location": job.location,
                 "source": job.source,
+                "country_codes": from_country_codes(job.country_codes),
                 "relevance": {
                     "score": rel.relevance_score,
                     "breakdown": rel.score_breakdown,
@@ -805,6 +923,10 @@ def get_job(
         "department": job.department,
         "ai_summary": job.ai_summary,
         "ai_tech_stack": job.ai_tech_stack,
+        **freshness_fields(job),
+        "reposted_count": job.reposted_count or 0,
+        "first_seen_at": job.first_seen_at,
+        "last_seen_at": job.last_seen_at,
         "interviews": [
             {
                 "id": i.id,
@@ -861,7 +983,9 @@ def create_job(
         if not company:
             raise HTTPException(status_code=404, detail="Company not found")
 
-    db_job = Job(**job.model_dump(), source="manual", is_active=True, user_id=current_user.id)
+    now = datetime.utcnow()
+    db_job = Job(**job.model_dump(), source="manual", is_active=True, user_id=current_user.id,
+                 first_seen_at=now, last_seen_at=now, effective_posted_at=now)
     db.add(db_job)
     db.commit()
     db.refresh(db_job)

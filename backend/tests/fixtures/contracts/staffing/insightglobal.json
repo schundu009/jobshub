@@ -1,0 +1,357 @@
+{
+ "responses": [
+  {
+   "jobs": [
+    {
+     "requisitionId": "7ca97d65-abf3-40b1-a0b1-702c5a388940",
+     "jobTitle": "QC Analyst, Micro - 2nd Shift",
+     "workAddress": {
+      "administrativeArea": "PA",
+      "locality": "Malvern"
+     },
+     "postedDate": "2026-09-30T01:06:36.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 36.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "14c38615-23e6-4c5d-bd89-7c59c7ed781e",
+     "jobTitle": "QC Process Improvement Project Lead",
+     "workAddress": {
+      "administrativeArea": "PA",
+      "locality": "East Whiteland"
+     },
+     "postedDate": "2026-09-30T00:54:40.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 40.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "eb6ad967-ef43-45f2-935f-4d5d4be1f437",
+     "jobTitle": "Technical Lead (.NET/AWS)",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "San Diego"
+     },
+     "postedDate": "2026-09-30T00:29:54.1Z",
+     "workRemote": true,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 75.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "a8e1d0f2-b8e4-4a26-8b11-f4274f25aace",
+     "jobTitle": "REMOTE - Project Manager - INTL Brazil",
+     "workAddress": {
+      "administrativeArea": "São Paulo",
+      "locality": "São Paulo"
+     },
+     "postedDate": "2026-09-29T23:50:20.1Z",
+     "workRemote": true,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 17.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "e7c08bb3-5e5f-4d11-8f61-7def842f042f",
+     "jobTitle": "EHS Specialist - Big Spring (AM)",
+     "workAddress": {
+      "administrativeArea": "TX",
+      "locality": "Big Spring"
+     },
+     "postedDate": "2026-09-29T23:24:57.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 55.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "d13c3dce-1b0f-4aef-8cfb-65c604f3352f",
+     "jobTitle": "Network Engineer",
+     "workAddress": {
+      "administrativeArea": "WA",
+      "locality": "Vancouver"
+     },
+     "postedDate": "2026-09-29T23:12:57.1Z",
+     "workRemote": false,
+     "jobType": "Perm",
+     "payRate": {
+      "min": 100000.0,
+      "max": 120000.0,
+      "currency": "USD",
+      "type": "Annually"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "348b74bd-0558-4f59-8a91-3db707e61c96",
+     "jobTitle": "Launch Support Engineer - Closures",
+     "workAddress": {
+      "administrativeArea": "KY",
+      "locality": "Louisville-Jefferson County"
+     },
+     "postedDate": "2026-09-29T22:57:15.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 57.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "889d1a6d-8586-404d-b4f8-89cf2c01e1f1",
+     "jobTitle": "OTA Integration Engineer",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Palo Alto"
+     },
+     "postedDate": "2026-09-29T22:48:31.1Z",
+     "workRemote": false,
+     "jobType": "Contract, perm possible",
+     "payRate": {
+      "min": 77.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "7fc37192-516e-40f2-bfbb-7b68796b8ea7",
+     "jobTitle": "HR Manager",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Glendale"
+     },
+     "postedDate": "2026-09-29T22:46:44.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 37.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "5d9277f6-32ac-4978-8404-58806f06eef0",
+     "jobTitle": "Electrical Engineer",
+     "workAddress": {
+      "administrativeArea": "SK",
+      "locality": "Regina"
+     },
+     "postedDate": "2026-09-29T22:40:50.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 60.0,
+      "currency": "CAD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "3e44ddc5-cf61-4a4f-8d94-4d7e05ba802c",
+     "jobTitle": "Instrumentation & Controls Engineer",
+     "workAddress": {
+      "administrativeArea": "SK",
+      "locality": "Regina"
+     },
+     "postedDate": "2026-09-29T22:34:36.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 60.0,
+      "currency": "CAD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "274e91aa-cb75-4966-af33-945030edefc6",
+     "jobTitle": "Rotating Equipment Engineer",
+     "workAddress": {
+      "administrativeArea": "SK",
+      "locality": "Saskatoon"
+     },
+     "postedDate": "2026-09-29T22:28:48.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 67.0,
+      "currency": "CAD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "a6666c35-11e0-45bb-8a83-deba72b4d3b1",
+     "jobTitle": "HSE Advisor/ Specialist",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Richmond"
+     },
+     "postedDate": "2026-09-29T22:02:41.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 55.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "9bd164a7-0c10-45b3-afe3-8fcd362e2f18",
+     "jobTitle": "Full Stack Developer (Angular and Typescript)",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Concord"
+     },
+     "postedDate": "2026-09-29T22:00:13.1Z",
+     "workRemote": false,
+     "jobType": "Perm",
+     "payRate": {
+      "min": 160000.0,
+      "max": 160000.0,
+      "currency": "USD",
+      "type": "Annually"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "754d7305-c9e3-4f95-a0fb-52634af509b7",
+     "jobTitle": "Agile 1 - Program Manager V",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Oakland"
+     },
+     "postedDate": "2026-09-29T21:59:35.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 79.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "7a72edad-ad8c-47e4-856b-dc0a4fda4f37",
+     "jobTitle": "Remote Sr. Android Developer",
+     "workAddress": {
+      "administrativeArea": "IL",
+      "locality": "Chicago"
+     },
+     "postedDate": "2026-09-29T21:51:29.1Z",
+     "workRemote": true,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 65.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "34225d41-94eb-4ab1-a96a-0379a17b96c4",
+     "jobTitle": "Senior Electrical Engineer",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Oakland"
+     },
+     "postedDate": "2026-09-29T21:46:40.1Z",
+     "workRemote": false,
+     "jobType": "Perm",
+     "payRate": {
+      "min": 155000.0,
+      "max": 165000.0,
+      "currency": "USD",
+      "type": "Annually"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "33924b6b-8393-49a1-b74b-a7a85b279a89",
+     "jobTitle": "AI Engineer/Architect",
+     "workAddress": {
+      "administrativeArea": "CA",
+      "locality": "Burbank"
+     },
+     "postedDate": "2026-09-29T21:43:06.1Z",
+     "workRemote": false,
+     "jobType": "Contract, perm possible",
+     "payRate": {
+      "min": 71.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "60f6f152-acf2-4a09-83fc-d1cd51a85dee",
+     "jobTitle": "Inventory Specialist",
+     "workAddress": {
+      "administrativeArea": "CO",
+      "locality": "Louisville"
+     },
+     "postedDate": "2026-09-29T21:35:43.1Z",
+     "workRemote": false,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 30.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    },
+    {
+     "requisitionId": "4616c33e-959a-4bf6-a9e6-e51369f4e18b",
+     "jobTitle": "Data Entry Technician 2 - Lead",
+     "workAddress": {
+      "administrativeArea": "ON",
+      "locality": "Toronto"
+     },
+     "postedDate": "2026-09-29T21:31:37.1Z",
+     "workRemote": true,
+     "jobType": "Contract",
+     "payRate": {
+      "min": 35.0,
+      "currency": "USD",
+      "type": "Hourly"
+     },
+     "jobStatus": "active"
+    }
+   ],
+   "pageMetadata": {
+    "size": 50,
+    "number": 1,
+    "totalElements": 20,
+    "totalPages": 1
+   }
+  }
+ ]
+}

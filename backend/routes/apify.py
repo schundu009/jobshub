@@ -115,6 +115,11 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
 
             company = companies_cache[company_name]
 
+            # Contract roles live in contract_jobs (contracts package)
+            from services.scraper_service import route_contract_job_data
+            if route_contract_job_data(db, source, job_data, company.id, source_type="aggregator"):
+                continue
+
             # Check if job already exists
             external_job_id = job_data.get("external_job_id", "")
             if external_job_id:
@@ -129,6 +134,8 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
                     existing.job_description = job_data.get("job_description") or job_data.get("description") or existing.job_description
                     existing.location = job_data.get("location") or existing.location
                     existing.updated_at = datetime.utcnow()
+                    from services.job_freshness import touch_seen
+                    touch_seen(existing)
                     skipped_existing += 1
                     continue
 
@@ -160,6 +167,8 @@ def save_apify_jobs(db: Session, jobs: list[dict], source: str) -> tuple[int, in
                 elif isinstance(posted_date, datetime):
                     job.posted_date = posted_date
 
+            from services.job_freshness import touch_seen
+            touch_seen(job, is_new=True)
             db.add(job)
             jobs_saved += 1
 
