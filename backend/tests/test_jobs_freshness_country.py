@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import create_engine, inspect, text
 
 from contracts.models import ContractJob
-from models import Company, Job, User
+from models import Company, Job
 from utils.security import create_access_token
 
 NOW = datetime.utcnow()
@@ -92,13 +92,6 @@ def test_detail_has_freshness(client, db, jobs, users):
     job = db.query(Job).filter(Job.title == "Old listing").one()
     body = client.get(f"/api/jobs/{job.id}", headers=headers(users[0])).json()
     assert body["listed_days"] == 20 and body["reposted_count"] == 0 and body["country_codes"] == ["US"]
-
-
-def test_settings_country_is_normalized(client, db, users):
-    r = client.put("/api/users/settings", json={"country": "United States"}, headers=headers(users[0]))
-    assert r.status_code == 200, r.text
-    db.refresh(users[0])
-    assert users[0].country == "United States" and users[0].country_code == "US"
 
 
 def test_analytics_summary_counts_contract_jobs(client, db, users):

@@ -1,7 +1,6 @@
 """
 AI Service Router - Routes AI requests to the appropriate provider (OpenAI or Anthropic).
 """
-from typing import Optional
 
 
 def get_db_setting(key: str, default: str = None) -> str:
@@ -56,22 +55,10 @@ def analyze_resume_job_match(job_description: str, resume_text: str) -> dict:
     return service.analyze_resume_job_match(job_description, resume_text)
 
 
-def get_resume_improvements(resume_text: str, target_job_description: str = None) -> str:
-    """Get specific suggestions to improve a resume."""
-    service = get_service()
-    return service.get_resume_improvements(resume_text, target_job_description)
-
-
 def generate_company_research(company_name: str, industry: str = None, website: str = None) -> str:
     """Generate a company research summary for interview prep."""
     service = get_service()
     return service.generate_company_research(company_name, industry, website)
-
-
-def summarize_job_description(job_title: str, job_description: str) -> dict:
-    """Generate a comprehensive summary of a job description."""
-    service = get_service()
-    return service.summarize_job_description(job_title, job_description)
 
 
 def generate_ats_tailored_resume(resume_text: str, job_title: str, job_description: str, company_name: str = None) -> str:

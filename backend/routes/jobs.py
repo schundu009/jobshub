@@ -23,7 +23,7 @@ Full-time jobs page (cariara.com/jobs/firm):
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, and_, func, select, cast, String
-from pydantic import BaseModel, Field, HttpUrl, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 import re
 import hashlib
@@ -31,11 +31,10 @@ import json
 from datetime import date, datetime, timedelta
 
 import html
-import time
-from collections import defaultdict, deque
+from collections import defaultdict
 
 from database import get_db
-from models import Job, Company, User, RoleProfile, JobRelevanceScore
+from models import Job, Company, User, RoleProfile
 from services.job_location import country_filter, from_country_codes, normalize_country
 from services import firm_matching as fm
 
@@ -1083,106 +1082,3 @@ def update_job_status(
     return {"message": "Status updated successfully"}
 
 
-# Simple in-memory per-user rate limit for AI summary generation
-AI_SUMMARY_RATE_LIMIT = 60          # requests
-AI_SUMMARY_RATE_WINDOW = 3600       # seconds
-_ai_summary_calls: dict = defaultdict(deque)
-_ADMIN_ROLES = {"admin", "administrator", "manager", "developer"}
-
-
-def _check_ai_summary_rate_limit(user_id: int) -> None:
-    now = time.monotonic()
-    calls = _ai_summary_calls[user_id]
-    while calls and now - calls[0] > AI_SUMMARY_RATE_WINDOW:
-        calls.popleft()
-    if len(calls) >= AI_SUMMARY_RATE_LIMIT:
-        retry_after = int(AI_SUMMARY_RATE_WINDOW - (now - calls[0])) + 1
-        raise HTTPException(
-            status_code=429,
-            detail="Too many AI summary requests. Please try again later.",
-            headers={"Retry-After": str(retry_after)},
-        )
-    calls.append(now)
-
-
-@router.post("/{job_id}/ai-summary")
-def generate_job_ai_summary(
-    job_id: int,
-    force: bool = False,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Generate an AI summary of the job description.
-    Returns cached summary if available, otherwise generates and stores it.
-    force=true (regenerate even if cached) is honoured for admins only.
-    """
-    job = db.query(Job).filter(
-        Job.id == job_id,
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    ).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    if force and current_user.role not in _ADMIN_ROLES:
-        force = False
-
-    # Return cached summary if available and not forcing regeneration
-    if not force and job.ai_summary and job.ai_tech_stack:
-        return {
-            "summary": job.ai_summary,
-            "tech_stack": job.ai_tech_stack,
-            "cached": True
-        }
-
-    # Generate new summary
-    if not job.job_description:
-        return {
-            "summary": "",
-            "tech_stack": [],
-            "cached": False,
-            "error": "No job description available"
-        }
-
-    _check_ai_summary_rate_limit(current_user.id)
-
-    try:
-        from services.ai_service import summarize_job_description
-        result = summarize_job_description(job.title, job.job_description)
-
-        # Cache the result
-        job.ai_summary = result.get("summary", "")
-        job.ai_tech_stack = result.get("tech_tools", [])
-        db.commit()
-
-        return {
-            "summary": job.ai_summary,
-            "tech_stack": job.ai_tech_stack,
-            "cached": False
-        }
-    except Exception as e:
-        return {
-            "summary": "",
-            "tech_stack": [],
-            "cached": False,
-            "error": str(e)
-        }
-
-
-@router.get("/{job_id}/ai-summary")
-def get_job_ai_summary(
-    job_id: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Get the AI summary for a job (returns empty if not generated yet).
-    """
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    return {
-        "summary": job.ai_summary or "",
-        "tech_stack": job.ai_tech_stack or [],
-        "has_summary": bool(job.ai_summary)
-    }

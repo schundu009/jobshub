@@ -14,7 +14,7 @@ try:
     from database import get_db
     from models import User
     from schemas.auth import (
-        UserRegister, UserLogin, TokenResponse, TokenRefresh,
+        UserLogin, TokenResponse, TokenRefresh,
         UserResponse, UserUpdate, PasswordChange
     )
     from utils.security import (
@@ -28,7 +28,7 @@ except ImportError:
     from database import get_db
     from models import User
     from schemas.auth import (
-        UserRegister, UserLogin, TokenResponse, TokenRefresh,
+        UserLogin, TokenResponse, TokenRefresh,
         UserResponse, UserUpdate, PasswordChange
     )
     from utils.security import (
@@ -45,57 +45,6 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 # Account lockout settings
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_DURATION_MINUTES = 15
-
-
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserRegister, db: Session = Depends(get_db)):
-    """
-    Register a new user account.
-
-    Returns access and refresh tokens on success.
-    """
-    # Check if email already exists
-    existing_user = db.query(User).filter(User.email == user_data.email.lower()).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-
-    # Create new user
-    user = User(
-        email=user_data.email.lower(),
-        name=user_data.name,
-        password_hash=hash_password(user_data.password),
-        is_email_verified=False,
-        role="user",
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    # Generate tokens
-    access_token, _ = create_access_token(user.id, user.email, user.role)
-    refresh_token, _ = create_refresh_token(user.id)
-
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        expires_in=settings.jwt_access_token_expire_minutes * 60,
-        user=UserResponse(
-            id=user.id,
-            email=user.email,
-            name=user.name,
-            role=user.role,
-            is_email_verified=user.is_email_verified,
-            onboarding_completed=user.onboarding_completed or False,
-            job_roles=user.job_roles,
-            roles_confirmed_at=user.roles_confirmed_at,
-            created_at=user.created_at,
-        )
-    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -383,23 +332,3 @@ def logout_all_sessions(current_user: User = Depends(get_current_user)):
         "user_id": current_user.id
     }
 
-
-@router.get("/subscription-status")
-async def get_subscription_status(current_user: User = Depends(get_current_user)):
-    """
-    Check if user has access to the jobs portal.
-
-    Returns subscription status from capra-backend, which tracks
-    whether the user has an active quarterly_pro subscription.
-    """
-    from services.subscription_service import verify_subscription
-
-    result = await verify_subscription(current_user.id)
-    return {
-        "user_id": current_user.id,
-        "hasAccess": result.get("hasAccess", False),
-        "planType": result.get("planType", "free"),
-        "status": result.get("status", "none"),
-        "currentPeriodEnd": result.get("currentPeriodEnd"),
-        "upgradeUrl": "https://capra.cariara.com"
-    }

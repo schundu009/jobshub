@@ -767,7 +767,6 @@ def test_encryption_fails_closed_without_key(monkeypatch):
     assert encryption.decrypt_value(encryption.encrypt_value("secret")) == "secret"
 
 
-def test_workday_account_creation_removed():
-    source = (Path(__file__).resolve().parents[1] / "services" / "auto_apply" / "workday.py").read_text()
-    for needle in ("_create_account", "_generate_temp_password", "workday_password", "_sign_in("):
-        assert needle not in source
+def test_headless_submitters_removed():
+    # The old headless submitters (incl. Workday account creation) are gone for good.
+    assert not list((Path(__file__).resolve().parents[1] / "services" / "auto_apply").glob("*.py"))
