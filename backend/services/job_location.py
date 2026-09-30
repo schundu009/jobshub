@@ -63,6 +63,7 @@ COUNTRY_NAMES = {
     "LT": ["lithuania"], "UA": ["ukraine"], "CY": ["cyprus"], "MT": ["malta"], "TR": ["turkey", "türkiye"],
     "IL": ["israel"], "AE": ["united arab emirates", "uae"], "SA": ["saudi arabia"], "QA": ["qatar"],
     "EG": ["egypt"], "NG": ["nigeria"], "KE": ["kenya"], "ZA": ["south africa"], "MA": ["morocco"],
+    "TN": ["tunisia"], "MU": ["mauritius"],
     "IN": ["india"], "PK": ["pakistan"], "BD": ["bangladesh"], "LK": ["sri lanka"],
     "CN": ["china", "mainland china", "prc"], "HK": ["hong kong"], "TW": ["taiwan"], "JP": ["japan"],
     "KR": ["south korea", "korea", "republic of korea"], "SG": ["singapore"], "MY": ["malaysia"],
@@ -92,7 +93,7 @@ CITIES = {
     "GB": ["edinburgh", "glasgow", "leeds", "liverpool", "belfast", "sheffield", "nottingham", "reading",
            "newcastle", "brighton", "cardiff", "milton keynes", "leicester", "southampton"],
     "IE": ["cork", "galway", "limerick"],
-    "DE": ["berlin", "munich", "münchen", "hamburg", "frankfurt", "cologne", "köln", "stuttgart", "düsseldorf",
+    "DE": ["berlin", "munich", "münchen", "hamburg", "frankfurt", "cologne", "köln", "stuttgart", "düsseldorf", "kleinmachnow",
            "dusseldorf", "leipzig", "dresden", "nuremberg", "karlsruhe"],
     "FR": ["lyon", "marseille", "toulouse", "nice", "nantes", "bordeaux", "lille", "grenoble"],
     "ES": ["madrid", "barcelona", "valencia", "seville", "sevilla", "malaga", "málaga", "bilbao"],
@@ -101,27 +102,34 @@ CITIES = {
     "BE": ["brussels", "antwerp", "ghent"], "CH": ["zurich", "zürich", "geneva", "lausanne", "basel", "bern"],
     "AT": ["vienna", "wien", "graz"], "SE": ["stockholm", "gothenburg", "malmö", "malmo"],
     "NO": ["oslo", "bergen"], "DK": ["copenhagen", "aarhus"], "FI": ["helsinki", "espoo", "tampere"],
-    "PT": ["lisbon", "lisboa", "porto"], "PL": ["warsaw", "krakow", "kraków", "wroclaw", "wrocław", "gdansk",
-                                                "gdańsk", "poznan", "poznań", "lodz"],
-    "CZ": ["prague", "brno"], "HU": ["budapest"], "RO": ["bucharest", "cluj-napoca", "cluj", "iasi"],
+    "PT": ["lisbon", "lisboa", "porto", "braga", "aveiro", "coimbra"], "PL": ["warsaw", "krakow", "kraków", "wroclaw", "wrocław", "gdansk",
+                                                "gdańsk", "poznan", "poznań", "lodz", "warszawa", "katowice"],
+    "CZ": ["prague", "brno"], "HU": ["budapest"], "RO": ["bucharest", "cluj-napoca", "cluj", "iasi", "timișoara", "timisoara", "brașov", "brasov"],
     "BG": ["sofia"], "GR": ["athens greece"], "EE": ["tallinn"], "LV": ["riga"], "LT": ["vilnius"],
     "UA": ["kyiv", "kiev", "lviv", "kharkiv"], "RS": ["belgrade", "novi sad"], "HR": ["zagreb"],
-    "IL": ["tel aviv", "jerusalem", "haifa", "herzliya"], "AE": ["dubai", "abu dhabi"], "TR": ["istanbul", "ankara"],
+    "IL": ["tel aviv", "jerusalem", "haifa", "herzliya", "rehovot", "petah tikva", "ra'anana", "yokneam"], "AE": ["dubai", "abu dhabi"], "TR": ["istanbul", "ankara"],
     "IN": ["bangalore", "bengaluru", "mumbai", "hyderabad", "chennai", "pune", "delhi", "new delhi", "gurgaon",
            "gurugram", "noida", "kolkata", "ahmedabad", "jaipur", "kochi", "thiruvananthapuram", "coimbatore",
-           "chandigarh", "indore", "mysore", "mysuru", "vadodara", "visakhapatnam"],
+           "chandigarh", "indore", "mysore", "mysuru", "vadodara", "visakhapatnam", "mohali", "sanand",
+           "telengana", "bhubaneswar", "nagpur", "trivandrum"],
     "PK": ["karachi", "lahore", "islamabad"], "CN": ["beijing", "shanghai", "shenzhen", "guangzhou", "hangzhou",
-                                                     "chengdu", "suzhou"],
-    "JP": ["tokyo", "osaka", "kyoto", "yokohama"], "KR": ["seoul", "busan"], "TW": ["taipei", "hsinchu"],
-    "PH": ["manila", "makati", "cebu", "taguig"], "VN": ["ho chi minh city", "hanoi"], "TH": ["bangkok"],
-    "MY": ["kuala lumpur"], "ID": ["jakarta"], "AU": ["sydney", "melbourne australia", "brisbane", "adelaide",
+                                                     "chengdu", "suzhou", "wuxi", "changzhou", "chongqing",
+                                                     "changsha", "nanchang", "nanjing", "wuhan", "xi'an", "tianjin",
+                                                     "dalian", "jiangsu", "jiangxi", "zhejiang", "guangdong"],
+    "JP": ["tokyo", "osaka", "kyoto", "yokohama", "hiroshima", "nagoya", "fukuoka"], "KR": ["seoul", "busan"], "TW": ["taipei", "hsinchu"],
+    "PH": ["manila", "makati", "cebu", "taguig", "quezon city", "pasig"],
+    "VN": ["ho chi minh city", "ho chi minh", "hồ chí minh", "hanoi", "hà nội", "da nang"], "TH": ["bangkok"],
+    "MY": ["kuala lumpur", "petaling jaya", "bayan lepas", "batu kawan", "penang", "pulau pinang", "selangor",
+           "cyberjaya", "kulim"], "ID": ["jakarta"], "AU": ["sydney", "melbourne australia", "brisbane", "adelaide",
                                                       "canberra"],
-    "NZ": ["auckland", "wellington"], "MX": ["mexico city", "guadalajara", "monterrey", "cdmx"],
+    "NZ": ["auckland", "wellington"], "MX": ["mexico city", "guadalajara", "monterrey", "cdmx", "aguascalientes",
+                                             "queretaro", "querétaro", "tijuana"],
     "BR": ["são paulo", "sao paulo", "rio de janeiro", "belo horizonte", "florianópolis", "florianopolis",
-           "curitiba", "porto alegre"],
+           "curitiba", "porto alegre", "campinas", "barueri", "são bernardo do campo", "recife"],
     "AR": ["buenos aires", "córdoba argentina"], "CO": ["bogota", "bogotá", "medellin", "medellín"],
     "CL": ["santiago de chile"], "PE": ["lima peru"], "UY": ["montevideo"], "CR": ["san josé costa rica"],
-    "ZA": ["cape town", "johannesburg"], "NG": ["lagos"], "KE": ["nairobi"], "EG": ["cairo"],
+    "ZA": ["cape town", "johannesburg"], "NG": ["lagos"], "KE": ["nairobi"], "EG": ["cairo", "giza"],
+    "MA": ["casablanca", "rabat"], "TN": ["tunis", "ariana"], "MU": ["ebene"],
 }
 
 # Same name in several countries: resolved by an adjacent state/province/country token.
@@ -130,7 +138,7 @@ AMBIGUOUS_CITIES = {
     "dublin": "IE", "paris": "FR", "rome": "IT", "athens": "GR", "vancouver": "CA", "waterloo": "CA",
     "melbourne": "AU", "perth": "AU", "victoria": "CA", "hamilton": "CA", "richmond": "US", "portland": "US",
     "santiago": "CL", "cordoba": "AR", "córdoba": "AR", "valencia": "ES", "lima": "PE", "san josé": "CR",
-    "georgia": "US",
+    "georgia": "US", "roma": "IT",
 }
 
 REGIONS = {
@@ -172,6 +180,22 @@ _IN_STATE_RX = _rx(IN_STATES)
 _REGION_LOOKUP = {alias: code for code, aliases in REGIONS.items() for alias in aliases}
 _REGION_RX = _rx(_REGION_LOOKUP)
 _CODE_RX = re.compile(r"(?:,|\s-|\(|\s)\s*([A-Z]{2})(?![A-Za-z])")
+# "Heredia, CR", "QUEZON CITY, PH": a trailing ISO-2 that is no US state / CA province code
+_TRAILING_ISO2_RX = re.compile(r",\s*([A-Z]{2})\s*$")
+# ISO-3 codes in upper case: "MYS - PETALING JAYA", "Rehovot,ISR", "KOR-Gyeonggi-do". Codes that are
+# also English words (CAN, ARE, PER, COL) are left out.
+ISO3 = {
+    "USA": "US", "GBR": "GB", "IRL": "IE", "DEU": "DE", "FRA": "FR", "ESP": "ES", "ITA": "IT", "NLD": "NL",
+    "BEL": "BE", "LUX": "LU", "CHE": "CH", "AUT": "AT", "SWE": "SE", "NOR": "NO", "DNK": "DK", "FIN": "FI",
+    "ISL": "IS", "PRT": "PT", "POL": "PL", "CZE": "CZ", "SVK": "SK", "HUN": "HU", "ROU": "RO", "BGR": "BG",
+    "GRC": "GR", "HRV": "HR", "SVN": "SI", "SRB": "RS", "EST": "EE", "LVA": "LV", "LTU": "LT", "UKR": "UA",
+    "CYP": "CY", "MLT": "MT", "TUR": "TR", "ISR": "IL", "SAU": "SA", "QAT": "QA", "EGY": "EG", "NGA": "NG",
+    "KEN": "KE", "ZAF": "ZA", "MAR": "MA", "TUN": "TN", "MUS": "MU", "IND": "IN", "PAK": "PK", "BGD": "BD",
+    "LKA": "LK", "CHN": "CN", "HKG": "HK", "TWN": "TW", "JPN": "JP", "KOR": "KR", "SGP": "SG", "MYS": "MY",
+    "THA": "TH", "VNM": "VN", "IDN": "ID", "PHL": "PH", "AUS": "AU", "NZL": "NZ", "MEX": "MX", "BRA": "BR",
+    "ARG": "AR", "CHL": "CL", "URY": "UY", "CRI": "CR", "ECU": "EC", "GTM": "GT", "DOM": "DO", "PAN": "PA",
+}
+_ISO3_RX = re.compile(r"(?<![A-Za-z])(" + "|".join(ISO3) + r")(?![A-Za-z])")
 _SPLIT_RX = re.compile(r"\s*(?:;|\||•|\n|\s/\s|\s+or\s+)\s*", I)
 
 # "Georgia" is a US state far more often than the country in US job boards;
@@ -220,6 +244,11 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
             found.add("CA")
         elif code == "UK" or code == "GB":
             found.add("GB")
+    m = _TRAILING_ISO2_RX.search(s)
+    if m and not found and m.group(1) in COUNTRY_NAMES and m.group(1) not in US_STATE_CODES | CA_PROVINCE_CODES:
+        found.add(m.group(1))
+    for m in _ISO3_RX.finditer(s):
+        found.add(ISO3[m.group(1)])
     # Ambiguous cities only when nothing else in the segment says where they are.
     for m in _AMBIG_RX.finditer(s):
         name = m.group(1).lower()

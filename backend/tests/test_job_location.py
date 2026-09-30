@@ -172,3 +172,14 @@ def test_country_codes_round_trip():
     assert to_country_codes([]) is None
     assert from_country_codes(",GB,US,") == ["GB", "US"]
     assert from_country_codes(None) == []
+
+
+@pytest.mark.parametrize("location, expected", [
+    ("MYS - PETALING JAYA", ["MY"]), ("Rehovot,ISR", ["IL"]), ("KOR-Gyeonggi-do-Pyeongtaek-KLA", ["KR"]),
+    ("QUEZON CITY, PH", ["PH"]), ("Heredia, CR", ["CR"]), ("Wuxi, Jiangsu", ["CN"]), ("Braga", ["PT"]),
+    ("Thành phố Hồ Chí Minh, Hồ Chí Minh", ["VN"]), ("Ebene", ["MU"]),
+    # state/province codes and English-word ISO-3s stay as before
+    ("Wilmington, DE", ["US"]), ("Remote (CAN)", []), ("Sanand, GJ", ["IN"]),
+])
+def test_iso3_trailing_iso2_and_more_cities(location, expected):
+    assert job_countries(location) == expected
