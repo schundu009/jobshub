@@ -9,7 +9,6 @@ from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import field_validator
 import os
-from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -94,7 +93,6 @@ class Settings(BaseSettings):
     oauth_redirect_base: str = os.environ.get("OAUTH_REDIRECT_BASE", "http://localhost:3000")
 
     # Jobshub frontend origin, including local development when needed.
-    jobs_frontend_url: str = "https://jobs.cariara.com"
 
     # AIApply (admin-only auto-apply app) origin; Google sign-in returns to
     # {aiapply_url}/auth/callback when started with ?redirect=aiapply.
@@ -161,7 +159,6 @@ class Settings(BaseSettings):
 
     # Apify API (for cloud-based job scraping)
     apify_api_token: str = os.environ.get("APIFY_API_TOKEN", "")
-    apify_webhook_secret: str = os.environ.get("APIFY_WEBHOOK_SECRET", "apify-cariara-2024")
 
     # ==========================================================================
     # ENVIRONMENT

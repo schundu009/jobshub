@@ -6,11 +6,6 @@ import pytest
 from services.apply import plans
 
 
-@pytest.fixture(autouse=True)
-def not_subscribed(monkeypatch):
-    monkeypatch.setattr(plans, "verify_subscription_sync", lambda user_id: {"hasAccess": False, "planType": "free"})
-
-
 @pytest.mark.parametrize("role", ["admin", "Administrator", "developer", "manager"])
 def test_admin_roles_are_paid(role):
     info = plans.resolve_plan(SimpleNamespace(id=1, role=role))

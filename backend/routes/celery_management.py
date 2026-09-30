@@ -8,7 +8,6 @@ Endpoints for:
 - Viewing task history
 """
 
-from datetime import datetime, timedelta
 from typing import Optional, List
 import json
 import logging
@@ -18,7 +17,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User, AppSetting, ScraperRun
+from models import User, ScraperRun
 from middleware.auth import get_current_admin_detached
 from config import settings
 from services.redis_service import redis_service
@@ -473,70 +472,3 @@ def trigger_named_task(
         current_user
     )
 
-
-@router.get("/workers/ping")
-def ping_workers(current_user: User = Depends(get_current_admin_detached)):
-    """
-    Ping all workers to check if they're alive.
-    """
-    celery_app = get_celery_app()
-
-    try:
-        inspect = celery_app.control.inspect(timeout=3.0)
-        ping_result = inspect.ping()
-
-        if not ping_result:
-            return {
-                "status": "no_workers",
-                "message": "No Celery workers are currently connected",
-                "workers": []
-            }
-
-        workers = []
-        for hostname, response in ping_result.items():
-            workers.append({
-                "hostname": hostname,
-                "status": "ok" if response.get("ok") == "pong" else "error",
-            })
-
-        return {
-            "status": "ok",
-            "message": f"{len(workers)} worker(s) responding",
-            "workers": workers
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Could not ping workers: {str(e)}",
-            "workers": []
-        }
-
-
-@router.post("/workers/purge/{queue_name}")
-def purge_queue(
-    queue_name: str,
-    current_user: User = Depends(get_current_admin_detached)
-):
-    """
-    Purge all pending tasks from a queue.
-    """
-    valid_queues = declared_queue_names()
-    if queue_name not in valid_queues:
-        raise HTTPException(status_code=400, detail=f"Invalid queue. Valid: {valid_queues}")
-
-    celery_app = get_celery_app()
-
-    try:
-        # Purge only this queue (control.purge() would empty every queue).
-        with celery_app.connection_for_write() as conn:
-            purged = conn.default_channel.queue_purge(queue_name)
-
-        redis_service.cache_delete(CELERY_STATUS_CACHE_KEY)
-        return {
-            "status": "success",
-            "message": f"Purged {purged or 0} tasks from {queue_name}",
-            "queue": queue_name,
-            "purged_count": purged or 0
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to purge queue: {str(e)}")

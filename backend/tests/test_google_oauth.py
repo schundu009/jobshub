@@ -35,11 +35,10 @@ def test_google_requires_verified_email(client, db, monkeypatch, info):
 
 
 def test_google_success_and_fragment_encoding(client, db, monkeypatch):
-    monkeypatch.setattr(oauth.settings, 'jobs_frontend_url', 'http://localhost:3000')
     google_stub(monkeypatch, {'sub':'123', 'email':'hello+jobs@example.com', 'name':'A & B 100%', 'email_verified':True})
     response = client.get('/auth/google/callback', follow_redirects=False)
     url = urlsplit(response.headers['location'])
-    assert url.netloc == 'localhost:3000'
+    assert url.netloc == 'cariara.com' and url.path == '/jobs/admin/login.html'
     fragment = parse_qs(url.fragment)
     assert fragment['user_name'] == ['A & B 100%']
     assert fragment['user_email'] == ['hello+jobs@example.com']
@@ -85,7 +84,7 @@ def test_google_authorization_uses_state_and_rejects_mismatch(client, monkeypatc
     monkeypatch.setattr(oauth.settings,'google_client_id','test-client')
     monkeypatch.setattr(oauth.settings,'google_client_secret','test-secret')
     monkeypatch.setattr(oauth.settings,'backend_url','http://localhost:8000')
-    response=client.get('/auth/google/login?redirect=jobs',follow_redirects=False)
+    response=client.get('/auth/google/login?redirect=admin',follow_redirects=False)
     assert response.status_code in (302,307)
     params=parse_qs(urlsplit(response.headers['location']).query)
     assert params['state'][0]

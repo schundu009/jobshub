@@ -100,61 +100,6 @@ def get_all_interviews(
     return result
 
 
-@router.get("/upcoming")
-def get_upcoming_interviews(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    now = datetime.now()
-    interviews = db.query(Interview).join(Job).filter(
-        Interview.interview_date >= now,
-        Interview.outcome == "pending",
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    ).order_by(Interview.interview_date).all()
-
-    result = []
-    for interview in interviews:
-        result.append({
-            "id": interview.id,
-            "job_id": interview.job_id,
-            "job_title": interview.job.title if interview.job else None,
-            "company_name": interview.job.company.name if interview.job and interview.job.company else None,
-            "interview_date": interview.interview_date,
-            "interview_type": interview.interview_type,
-            "location": interview.location
-        })
-    return result
-
-
-@router.get("/job/{job_id}")
-def get_interviews_by_job(
-    job_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    # Verify user has access to this job
-    job = db.query(Job).filter(
-        Job.id == job_id,
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    ).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    interviews = db.query(Interview).filter(Interview.job_id == job_id).order_by(Interview.interview_date).all()
-    result = []
-    for interview in interviews:
-        result.append({
-            "id": interview.id,
-            "interview_date": interview.interview_date,
-            "interview_type": interview.interview_type,
-            "interviewer_names": interview.interviewer_names,
-            "location": interview.location,
-            "notes": interview.notes,
-            "outcome": interview.outcome
-        })
-    return result
-
-
 @router.post("")
 def create_interview(
     interview: InterviewCreate,

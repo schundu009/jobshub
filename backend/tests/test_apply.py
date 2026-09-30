@@ -19,7 +19,7 @@ from models import (
     Company, Job, JobFormSchema, User, UserDocument,
 )
 from services.apply import ats as ats_mod
-from services.apply import form_schema, plans
+from services.apply import form_schema
 from services.apply.form_schema import classify, normalize_ashby, normalize_greenhouse, normalize_lever
 from services.apply.resolver import AnswerResolver, JobContext, ProfileView
 from utils.security import create_access_token, hash_password
@@ -95,7 +95,6 @@ def no_network(monkeypatch):
     http = FakeHTTP()
     monkeypatch.setattr(form_schema, "http_get", http.get)
     monkeypatch.setattr(form_schema, "http_post_json", http.post_json)
-    monkeypatch.setattr(plans, "verify_subscription_sync", lambda user_id: {"hasAccess": False, "planType": "free"})
     monkeypatch.setitem(ats_mod._registry_cache, "stripe", ("greenhouse", "stripe"))
     return http
 

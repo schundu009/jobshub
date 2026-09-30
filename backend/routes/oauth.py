@@ -106,21 +106,21 @@ def aiapply_callback_url() -> str:
     return f"{settings.aiapply_url.rstrip('/')}/auth/callback"
 
 
+ADMIN_LOGIN_URL = "https://cariara.com/jobs/admin/login.html"
+
+
+def login_page(portal: str) -> str:
+    """Where an OAuth result lands: AIApply's callback, else the admin login page."""
+    return aiapply_callback_url() if portal == "aiapply" else ADMIN_LOGIN_URL
+
+
 async def create_frontend_redirect(user: User, portal: str = "admin") -> RedirectResponse:
     """Create redirect to frontend with tokens in URL fragment."""
     import json
     access_token, _ = create_access_token(user.id, user.email, user.role)
     refresh_token, _ = create_refresh_token(user.id)
 
-    # Determine redirect URL based on portal (separate domains)
-    if portal == "jobs":
-        base_url = f"{settings.jobs_frontend_url.rstrip('/')}/login.html"
-    elif portal == "aiapply":
-        base_url = aiapply_callback_url()
-    elif portal == "ascend":
-        base_url = "https://capra.cariara.com/login"
-    else:
-        base_url = "https://cariara.com/jobs/admin/login.html"
+    base_url = login_page(portal)
 
     # Encode each value once so names and email addresses cannot alter the fragment.
     fragment = urlencode({
@@ -153,7 +153,7 @@ def available_providers():
 # =============================================================================
 
 @router.get("/google/login")
-async def google_login(request: Request, redirect: Literal["jobs", "admin", "ascend", "aiapply"] = "jobs"):
+async def google_login(request: Request, redirect: Literal["admin", "aiapply"] = "admin"):
     """Initiate Google OAuth login."""
     if not (settings.google_client_id and settings.google_client_secret):
         raise HTTPException(
@@ -169,7 +169,7 @@ async def google_login(request: Request, redirect: Literal["jobs", "admin", "asc
 @router.get("/google/callback")
 async def google_callback(request: Request, db: Session = Depends(get_db)):
     """Handle Google OAuth callback."""
-    portal = request.session.pop("oauth_portal", "jobs")
+    portal = request.session.pop("oauth_portal", "admin")
     try:
         token = await oauth.google.authorize_access_token(request)
         user_info = token.get("userinfo")
@@ -191,15 +191,7 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
 
     except Exception as e:
         # Redirect to login with error
-        if portal == "jobs":
-            error_base = f"{settings.jobs_frontend_url.rstrip('/')}/login.html"
-        elif portal == "aiapply":
-            error_base = aiapply_callback_url()
-        elif portal == "ascend":
-            error_base = "https://ascend.cariara.com/login"
-        else:
-            error_base = "https://cariara.com/jobs/admin/login.html"
-        error_url = f"{error_base}#" + urlencode({"error": "oauth_failed", "message": "Google sign-in could not be completed. Try again or sign in with your email."})
+        error_url = f"{login_page(portal)}#" + urlencode({"error": "oauth_failed", "message": "Google sign-in could not be completed. Try again or sign in with your email."})
         return RedirectResponse(url=error_url)
 
 
@@ -264,8 +256,7 @@ async def github_callback(request: Request, db: Session = Depends(get_db)):
             return await create_frontend_redirect(user, portal)
 
     except Exception as e:
-        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else ("https://ascend.cariara.com/login" if portal == "ascend" else "https://cariara.com/jobs/admin/login.html")
-        error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
+        error_url = f"{login_page(portal)}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)
 
 
@@ -373,6 +364,5 @@ async def linkedin_callback(request: Request, db: Session = Depends(get_db)):
             return await create_frontend_redirect(user, portal)
 
     except Exception as e:
-        error_base = "https://jobs.cariara.com/login.html" if portal == "jobs" else ("https://ascend.cariara.com/login" if portal == "ascend" else "https://cariara.com/jobs/admin/login.html")
-        error_url = f"{error_base}#error=oauth_failed&message={str(e)}"
+        error_url = f"{login_page(portal)}#error=oauth_failed&message={str(e)}"
         return RedirectResponse(url=error_url)

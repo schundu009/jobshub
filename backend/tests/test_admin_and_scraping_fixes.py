@@ -52,7 +52,6 @@ ADMIN_GETS = [
     "/api/settings/default-ai-provider",
     "/api/celery/tasks/recent",
     "/api/celery/schedules",
-    "/api/ingest/sources",
     "/api/analytics/summary",
 ]
 
@@ -77,14 +76,12 @@ def test_all_admin_roles_accepted(client, db, role):
 
 
 @pytest.mark.parametrize("method,path", [
-    ("post", "/api/scrapers/run-all"),
     ("post", "/api/scrapers/run-warning"),
     ("post", "/api/scrapers/acme/run-sync"),
     ("post", "/api/scrapers/maintenance/reset-failures"),
     ("post", "/api/scrapers/acme/enable"),
     ("delete", "/api/scrapers/custom/acme"),
     ("post", "/api/celery/tasks/trigger/scrape_all_companies"),
-    ("post", "/api/celery/workers/purge/default"),
     ("put", "/api/celery/schedules"),
     ("post", "/api/ingest/refresh"),
     ("delete", "/api/settings/api-key"),
@@ -163,9 +160,6 @@ def test_metrics_requires_admin_or_token(client, admin, member, monkeypatch):
 
 @pytest.mark.parametrize("path,env", [
     ("/api/scrapers/webhook/trigger", "SCRAPER_WEBHOOK_SECRET"),
-    ("/api/scrapers/webhook/run-sync", "SCRAPER_WEBHOOK_SECRET"),
-    ("/api/apify/webhook/trigger", "APIFY_WEBHOOK_SECRET"),
-    ("/api/apify/webhook/bulk-scrape", "APIFY_WEBHOOK_SECRET"),
 ])
 def test_webhooks_disabled_without_secret(client, monkeypatch, path, env):
     monkeypatch.delenv(env, raising=False)
@@ -246,8 +240,6 @@ def test_run_warning_returns_message_and_count(client, db, admin, fake_registry)
     body = client.post("/api/scrapers/run-warning", headers=headers(admin)).json()
     assert body["status"] == "queued" and body["count"] == 1 and body["queued"] == 1
     assert "Queued 1" in body["message"]
-    body = client.post("/api/scrapers/run-warning-sync", headers=headers(admin)).json()
-    assert body["status"] == "queued" and body["count"] == 1
 
 
 def test_status_lists_code_disabled_scrapers(client, admin, fake_registry, monkeypatch):
@@ -257,10 +249,6 @@ def test_status_lists_code_disabled_scrapers(client, admin, fake_registry, monke
     old = [s for s in body if s["company_slug"] == "oldco"][0]
     assert old["is_enabled"] is False and old["disabled_reason"] == "board dead"
     assert all("has_scraper" in s for s in body)
-
-
-def test_purge_rejects_undeclared_queue(client, admin):
-    assert client.post("/api/celery/workers/purge/everything", headers=headers(admin)).status_code == 400
 
 
 # ---------------------------------------------------------------- S5 settings

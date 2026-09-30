@@ -640,8 +640,8 @@ class ApplyPreference(Base):
     excluded_companies = Column(JSON, default=list)
     ats_allowlist = Column(JSON, default=lambda: ["greenhouse", "lever", "ashby"])
 
-    # Plan override for gating: "pro"/"paid" = paid, "free" = free, NULL = ask
-    # capra-backend. Ops/admin-set only (comp accounts, local dev); never
+    # Plan override for gating: "pro"/"paid" = paid, "free" = free, NULL = use the
+    # cariara.com plan. Ops/admin-set only (comp accounts, local dev); never
     # writable through the user API.
     plan_override = Column(String(20), nullable=True)
 

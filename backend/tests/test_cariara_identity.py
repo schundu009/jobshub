@@ -1,6 +1,6 @@
 """cariara.com tokens on the jobportal API (services/cariara_identity.py), copilot mocked."""
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import httpx
 import pytest
@@ -65,7 +65,6 @@ def copilot(monkeypatch):
     monkeypatch.setattr(ci.settings, "cariara_auth_enabled", True)
     # Never touch a real Redis: open its circuit so the in-process cache is used.
     monkeypatch.setattr(ci.redis_service, "_down_until", float("inf"))
-    monkeypatch.setattr(plans, "verify_subscription_sync", lambda user_id: {"hasAccess": False, "planType": "free"})
     ci.clear_local_cache()
     yield fake
     ci.clear_local_cache()

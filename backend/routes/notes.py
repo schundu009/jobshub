@@ -69,32 +69,6 @@ def get_all_notes(
     return result
 
 
-@router.get("/job/{job_id}")
-def get_notes_by_job(
-    job_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    # Verify user has access to this job
-    job = db.query(Job).filter(
-        Job.id == job_id,
-        or_(Job.user_id == current_user.id, Job.user_id == None)
-    ).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    notes = db.query(Note).filter(Note.job_id == job_id).order_by(Note.created_at.desc()).all()
-    result = []
-    for note in notes:
-        result.append({
-            "id": note.id,
-            "content": note.content,
-            "note_type": note.note_type,
-            "created_at": note.created_at
-        })
-    return result
-
-
 @router.post("")
 def create_note(
     note: NoteCreate,

@@ -15,11 +15,11 @@ try:
     from models import User
     from schemas.auth import (
         UserLogin, TokenResponse, TokenRefresh,
-        UserResponse, UserUpdate, PasswordChange
+        UserResponse, UserUpdate
     )
     from utils.security import (
-        hash_password, verify_password, as_utc,
-        create_access_token, create_refresh_token, decode_token
+        verify_password, as_utc, create_access_token,
+        create_refresh_token, decode_token
     )
     from middleware.auth import get_current_user
     from config import settings
@@ -29,11 +29,11 @@ except ImportError:
     from models import User
     from schemas.auth import (
         UserLogin, TokenResponse, TokenRefresh,
-        UserResponse, UserUpdate, PasswordChange
+        UserResponse, UserUpdate
     )
     from utils.security import (
-        hash_password, verify_password, as_utc,
-        create_access_token, create_refresh_token, decode_token
+        verify_password, as_utc, create_access_token,
+        create_refresh_token, decode_token
     )
     from middleware.auth import get_current_user
     from config import settings
@@ -244,32 +244,6 @@ def update_me(
         roles_confirmed_at=current_user.roles_confirmed_at,
         created_at=current_user.created_at,
     )
-
-
-@router.post("/change-password")
-def change_password(
-    password_data: PasswordChange,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Change current user's password.
-    """
-    # Verify current password
-    if not current_user.password_hash or not verify_password(
-        password_data.current_password, current_user.password_hash
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password is incorrect"
-        )
-
-    # Update password
-    current_user.password_hash = hash_password(password_data.new_password)
-    current_user.updated_at = datetime.now(timezone.utc)
-    db.commit()
-
-    return {"message": "Password changed successfully"}
 
 
 @router.post("/logout")

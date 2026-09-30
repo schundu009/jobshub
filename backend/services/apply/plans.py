@@ -1,13 +1,12 @@
 """
 Plan gating for Auto Apply.
 
-Paid status comes from capra-backend (services.subscription_service, the same
-source as GET /api/auth/subscription-status). ApplyPreference.plan_override
+Paid status comes from the user's cariara.com plan (services.cariara_identity).
+ApplyPreference.plan_override
 ("pro"/"paid" or "free") takes precedence; it is ops-set only, for comp
 accounts and local development. Admins (middleware.auth.ADMIN_ROLES) count
-as paid, and so does a paid cariara.com plan (services.cariara_identity).
+as paid.
 """
-import asyncio
 from dataclasses import dataclass
 from typing import Optional
 
@@ -24,19 +23,8 @@ class PlanInfo:
     daily_cap_max: int
 
 
-def verify_subscription_sync(user_id: int) -> dict:
-    """Run the async capra-backend check from sync code (routes run in a threadpool, tasks in Celery)."""
-    from services.subscription_service import verify_subscription
-
-    try:
-        return asyncio.run(verify_subscription(user_id))
-    except Exception:
-        # Includes "called from a running event loop": fail closed.
-        return {"hasAccess": False, "planType": "unknown"}
-
-
 def resolve_plan(user, override: Optional[str] = None) -> PlanInfo:
-    """Paid / free for Auto Apply. Fails closed (free) when the check errors."""
+    """Paid / free for Auto Apply."""
     value = (override or "").strip().lower()
     if value in PAID_OVERRIDES:
         return PlanInfo(True, value, PAID_DAILY_CAP_MAX)
@@ -55,7 +43,4 @@ def resolve_plan(user, override: Optional[str] = None) -> PlanInfo:
     if cariara_plan:
         return PlanInfo(True, cariara_plan, PAID_DAILY_CAP_MAX)
 
-    result = verify_subscription_sync(user.id) or {}
-    if result.get("hasAccess"):
-        return PlanInfo(True, str(result.get("planType") or "pro"), PAID_DAILY_CAP_MAX)
-    return PlanInfo(False, str(result.get("planType") or "free"), 0)
+    return PlanInfo(False, "free", 0)

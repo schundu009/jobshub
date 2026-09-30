@@ -241,30 +241,3 @@ def require_verified_email(
             detail="Email verification required",
         )
     return current_user
-
-
-async def require_quarterly_pro(
-    current_user: User = Depends(get_current_user)
-) -> User:
-    """
-    Dependency to require quarterly_pro subscription.
-
-    Checks subscription status via capra-backend and raises HTTPException 403
-    if user doesn't have an active quarterly_pro subscription.
-    """
-    from services.subscription_service import verify_subscription
-
-    result = await verify_subscription(current_user.id)
-
-    if not result.get("hasAccess"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail={
-                "error": "subscription_required",
-                "message": "Quarterly Pro subscription required to access the Jobs Portal",
-                "planType": result.get("planType", "free"),
-                "status": result.get("status", "none"),
-                "upgradeUrl": "https://capra.cariara.com"
-            }
-        )
-    return current_user
