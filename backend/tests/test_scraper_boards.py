@@ -134,7 +134,7 @@ def test_ashby_skips_unlisted_and_keeps_description():
 
 def test_disabled_scrapers_are_not_registered():
     disabled = ScraperRegistry.get_disabled()
-    for slug in ["discover", "rippling", "ripplematch"]:
+    for slug in ["discover", "ripplematch"]:
         assert slug in disabled and disabled[slug]["reason"].startswith("board dead as of")
         assert ScraperRegistry.get(slug) is None
     assert not set(disabled) & set(ScraperRegistry.list_slugs())

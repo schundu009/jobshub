@@ -1,87 +1,30 @@
 """
 Dell Jobs Scraper.
 
-Uses Dell's careers API.
+jobs.dell.com (Akamai 403 for scripts) now redirects to Dell's Oracle
+Recruiting Cloud site: enterpriseplatform.dell.com/hcmUI/CandidateExperience
+(tenant iawmqy.fa.ocs.oraclecloud.com, site CX_1001).
 """
 
-from datetime import datetime
-from typing import Optional
-
-from scrapers.base import (
-    HTTPScraper,
-    ScraperConfig,
-    ScraperType,
-    ScrapedJob,
-    ScrapeResult,
-)
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.enterprise.oracle import OracleHCMMixin
 from scrapers.registry import ScraperRegistry
 
 
-# DISABLED: board dead as of 2026-09-29; jobs.dell.com API returns Akamai 403 and no public Workday/ATS board found
+# Moved to Oracle HCM (verified 2026-09-29)
 @ScraperRegistry.register(category="other")
-class DellScraper(HTTPScraper):
-    """Scraper for Dell careers."""
+class DellScraper(OracleHCMMixin, HTTPScraper):
+    """Scraper for Dell careers (Oracle Recruiting Cloud)."""
 
     config = ScraperConfig(
         company_slug="dell",
         company_name="Dell Technologies",
-        careers_url="https://jobs.dell.com/",
+        careers_url="https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/CX_1001",
         scraper_type=ScraperType.HTTP,
-        enabled=False,
-        disabled_reason="board dead as of 2026-09-29; jobs.dell.com API returns Akamai 403 and no public Workday/ATS board found",
         rate_limit=15,
-        api_url="https://jobs.dell.com/api/jobs",
+        api_url="https://enterpriseplatform.dell.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
     )
 
-    async def scrape(self) -> ScrapeResult:
-        """Scrape Dell careers API."""
-        all_jobs = []
-        page = 1
-
-        while page <= self.config.max_pages:
-            params = {
-                "page": page,
-                "limit": self.config.page_size,
-                "category": "Engineering",
-            }
-
-            try:
-                data = await self.fetch_json(self.config.api_url, params=params)
-
-                jobs = data.get("jobs", [])
-                if not jobs:
-                    break
-
-                for job_data in jobs:
-                    job = self.parse_job(job_data)
-                    if job:
-                        all_jobs.append(job)
-
-                total = data.get("totalCount", 0)
-                if page * self.config.page_size >= total:
-                    break
-
-                page += 1
-
-            except Exception as e:
-                self.logger.error(f"Error fetching page {page}: {e}")
-                break
-
-        return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=page)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            job_id = raw.get("id", "")
-            return ScrapedJob(
-                title=raw.get("title", ""),
-                location=raw.get("location", ""),
-                job_url=raw.get("url", "") or f"https://jobs.dell.com/job/{job_id}",
-                external_job_id=str(job_id),
-                job_description=raw.get("description", ""),
-                department=raw.get("department", ""),
-                posted_date=self.parse_date(raw.get("postedDate", "")),
-                raw_data=raw,
-            )
-        except Exception as e:
-            self.logger.warning(f"Error parsing job: {e}")
-            return None
+    HCM_HOST = "enterpriseplatform.dell.com"
+    SITE_NUMBER = "CX_1001"
+    MAX_JOBS = 1500

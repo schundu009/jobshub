@@ -183,28 +183,148 @@ class GoogleHTTPScraper(HTTPScraper):
 
 
 # ─── Meta ─────────────────────────────────────────────────────────────────
-# DISABLED: no public job list reachable over plain HTTP as of 2026-09-29.
-# metacareers.com/jobsearch renders results via a Relay GraphQL query whose
-# doc_id is not in the page, and the old /jobs HTML scrape now returns an
-# error page (HTTP 400 without browser headers). A possible route: the
-# sitemap https://www.metacareers.com/jobsearch/sitemap.xml lists ~1000
-# /profile/job_details/{id}/ URLs, and each detail page has a JobPosting
-# JSON-LD block, but that is one 0.5MB request per job (too slow for the
-# 120s task limit).
+# Moved to Relay GraphQL over plain HTTP (verified 2026-09-29).
+# metacareers.com/jobsearch/ loads every open role in ONE anonymous POST to
+# /graphql (CareersJobSearchResultsV2DataQuery, ~1000 jobs, ~220KB). It needs
+# the page's LSD token (one GET of /jobsearch/ first) and the query's doc_id.
+# The doc_id changes when Meta redeploys; it lives in a static JS bundle as
+# __d("CareersJobSearchResultsV2DataQuery_candidate_portalRelayOperation",...
+# a.exports="<doc_id>"), so on a GraphQL error we re-discover it from the
+# bundles the page references and retry once.
 @ScraperRegistry.register(category="big_tech")
 class MetaHTTPScraper(HTTPScraper):
     config = ScraperConfig(
         company_slug="meta", company_name="Meta", careers_url="https://www.metacareers.com/jobsearch",
-        scraper_type=ScraperType.HTTP, rate_limit=10, max_pages=20,
-        enabled=False,
-        disabled_reason="no public job list over HTTP as of 2026-09-29 (GraphQL doc_id not exposed; sitemap + per-job JSON-LD too slow)",
+        scraper_type=ScraperType.HTTP, rate_limit=10, max_pages=20, request_timeout=45,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+        },
+    )
+    PAGE_URL = "https://www.metacareers.com/jobsearch/"
+    GRAPHQL_URL = "https://www.metacareers.com/graphql"
+    JOB_URL = "https://www.metacareers.com/profile/job_details/{id}/"
+    QUERY_NAME = "CareersJobSearchResultsV2DataQuery"
+    DOC_ID = "27129360303422352"  # verified 2026-09-29; re-discovered on failure
+    MAX_JOBS = 1500
+    MAX_BUNDLES = 25
+
+    _LSD_RE = re.compile(r'"LSD",\[\],\{"token":"([^"]+)"')
+    _BUNDLE_RE = re.compile(r'https://static\.xx\.fbcdn\.net/rsrc\.php/[^"\s]+?\.js')
+    _DOC_ID_RE = re.compile(
+        r'__d\("CareersJobSearchResultsV2DataQuery_[A-Za-z_]*RelayOperation",\[\],'
+        r'\(function\([^)]*\)\{[a-z]\.exports="(\d+)"'
     )
 
+    @staticmethod
+    def search_variables() -> dict:
+        return {
+            "search_input": {
+                "q": None, "divisions": [], "offices": [], "roles": [], "leadership_levels": [],
+                "saved_jobs": [], "saved_searches": [], "sub_teams": [], "teams": [],
+                "is_leadership": False, "is_remote_only": False, "sort_by_new": False,
+                "results_per_page": None,
+            },
+            "viewasUserID": None,
+            "isLoggedIn": False,
+        }
+
+    async def _get_text(self, url: str, headers: dict) -> str:
+        session = await self.get_session()
+        async with session.get(url, headers=headers) as resp:
+            resp.raise_for_status()
+            return await resp.text()
+
+    async def _query(self, lsd: str, doc_id: str) -> dict:
+        form = {
+            "av": "0", "__user": "0", "__a": "1", "lsd": lsd,
+            "fb_api_caller_class": "RelayModern",
+            "fb_api_req_friendly_name": self.QUERY_NAME,
+            "variables": json.dumps(self.search_variables()),
+            "doc_id": doc_id, "server_timestamps": "true",
+        }
+        headers = {
+            "Accept": "*/*", "x-fb-lsd": lsd, "x-fb-friendly-name": self.QUERY_NAME,
+            "Origin": "https://www.metacareers.com", "Referer": self.PAGE_URL,
+            "sec-fetch-dest": "empty", "sec-fetch-mode": "cors", "sec-fetch-site": "same-origin",
+        }
+        session = await self.get_session()
+        async with session.post(self.GRAPHQL_URL, data=form, headers=headers) as resp:
+            resp.raise_for_status()
+            text = await resp.text()
+        # Relay may stream several JSON objects; the first carries the data.
+        first = text.strip().split("\n", 1)[0]
+        if first.startswith("for (;;);"):
+            first = first[len("for (;;);"):]
+        try:
+            return json.loads(first)
+        except ValueError:
+            raise UnexpectedResponseError(f"Meta GraphQL returned non-JSON: {first[:120]!r}")
+
+    async def _discover_doc_id(self, page_html: str) -> Optional[str]:
+        bundles = list(dict.fromkeys(u.replace("\\/", "/") for u in self._BUNDLE_RE.findall(page_html)))
+        for url in bundles[: self.MAX_BUNDLES]:
+            try:
+                js = await self._get_text(url, {"Accept": "*/*"})
+            except Exception as e:
+                self.logger.debug(f"Meta bundle fetch failed {url}: {e}")
+                continue
+            match = self._DOC_ID_RE.search(js)
+            if match:
+                return match.group(1)
+        return None
+
+    @staticmethod
+    def _jobs_from(payload: dict) -> Optional[list]:
+        data = (payload or {}).get("data") or {}
+        result = data.get("job_search_with_featured_jobs_v2") or {}
+        jobs = result.get("all_jobs")
+        return jobs if isinstance(jobs, list) else None
+
     async def scrape(self) -> ScrapeResult:
-        return ScrapeResult(success=False, error_message=self.config.disabled_reason)
+        page_headers = {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "sec-fetch-dest": "document", "sec-fetch-mode": "navigate", "sec-fetch-site": "none",
+        }
+        html = await self._get_text(self.PAGE_URL, page_headers)
+        lsd_match = self._LSD_RE.search(html)
+        if not lsd_match:
+            raise UnexpectedResponseError("metacareers.com page has no LSD token")
+        lsd = lsd_match.group(1)
+
+        jobs = self._jobs_from(await self._query(lsd, self.DOC_ID))
+        if jobs is None:
+            doc_id = await self._discover_doc_id(html)
+            if not doc_id or doc_id == self.DOC_ID:
+                raise UnexpectedResponseError("Meta GraphQL query failed and no new doc_id was found")
+            self.logger.info(f"Meta: doc_id changed {self.DOC_ID} -> {doc_id}")
+            jobs = self._jobs_from(await self._query(lsd, doc_id))
+            if jobs is None:
+                raise UnexpectedResponseError("Meta GraphQL returned no all_jobs list")
+
+        parsed = self.parse_all(jobs[: self.MAX_JOBS]) if jobs else []
+        return ScrapeResult(success=True, jobs=parsed, jobs_found=len(parsed), pages_scraped=1)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        return None
+        job_id = str(raw.get("id") or "")
+        title = (raw.get("title") or "").strip()
+        if not job_id or not title:
+            return None
+        locations = [loc for loc in (raw.get("locations") or []) if loc]
+        teams = [t for t in (raw.get("teams") or []) if t]
+        sub_teams = [t for t in (raw.get("sub_teams") or []) if t]
+        department = " / ".join(filter(None, [teams[0] if teams else None, sub_teams[0] if sub_teams else None]))
+        return ScrapedJob(
+            title=title,
+            location="; ".join(locations),
+            job_url=self.JOB_URL.format(id=job_id),
+            external_job_id=job_id,
+            department=department or None,
+            remote_type="remote" if locations and all("remote" in loc.lower() for loc in locations) else None,
+        )
 
 
 # ─── TikTok / ByteDance (ATSX public supplier API) ─────────────────────────

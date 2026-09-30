@@ -1,85 +1,45 @@
 """
 Electronic Arts (EA) Jobs Scraper.
 
-Uses EA's careers API.
+EA hires through an Avature portal at jobs.ea.com (server-rendered
+SearchJobs pages, 20 jobs per page, jobOffset paging). EA's cards carry the
+department in .list-item-department rather than the .list-item-family the
+mixin reads, so _extract_rows() fills it in.
 """
 
-from datetime import datetime
-from typing import Optional
+from bs4 import BeautifulSoup
 
-from scrapers.base import (
-    HTTPScraper,
-    ScraperConfig,
-    ScraperType,
-    ScrapedJob,
-    ScrapeResult,
-)
+from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
+from scrapers.enterprise.avature_scrapers import _JOB_ID_RE, AvatureMixin
 from scrapers.registry import ScraperRegistry
 
 
-# DISABLED: board dead as of 2026-09-29; ea.gr8people.com gone, EA hires via Avature (jobs.ea.com) - no mixin
+# Moved to Avature (verified 2026-09-29)
 @ScraperRegistry.register(category="other")
-class EAScraper(HTTPScraper):
+class EAScraper(AvatureMixin, HTTPScraper):
     """Scraper for EA careers."""
 
     config = ScraperConfig(
         company_slug="ea",
         company_name="Electronic Arts",
-        careers_url="https://ea.gr8people.com/jobs",
+        careers_url="https://jobs.ea.com/en_US/careers/SearchJobs",
         scraper_type=ScraperType.HTTP,
-        enabled=False,
-        disabled_reason="board dead as of 2026-09-29; ea.gr8people.com gone, EA hires via Avature (jobs.ea.com) - no mixin",
         rate_limit=15,
-        api_url="https://ea.gr8people.com/api/jobs",
+        request_timeout=20,
     )
+    PORTAL_URL = "https://jobs.ea.com/en_US/careers"
+    CONCURRENCY = 4
 
-    async def scrape(self) -> ScrapeResult:
-        """Scrape EA careers API."""
-        all_jobs = []
-        page = 1
-
-        while page <= self.config.max_pages:
-            params = {
-                "page": page,
-                "limit": self.config.page_size,
-                "category": "Engineering",
-            }
-
-            try:
-                data = await self.fetch_json(self.config.api_url, params=params)
-                jobs = data.get("jobs", []) or data.get("results", [])
-                if not jobs:
-                    break
-
-                for job_data in jobs:
-                    job = self.parse_job(job_data)
-                    if job:
-                        all_jobs.append(job)
-
-                total = data.get("totalCount", 0)
-                if page * self.config.page_size >= total:
-                    break
-                page += 1
-
-            except Exception as e:
-                self.logger.error(f"Error fetching page {page}: {e}")
-                break
-
-        return ScrapeResult(success=True, jobs=all_jobs, pages_scraped=page)
-
-    def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
-        try:
-            job_id = raw.get("id", "")
-            return ScrapedJob(
-                title=raw.get("title", ""),
-                location=raw.get("location", ""),
-                job_url=raw.get("url", "") or f"https://ea.gr8people.com/jobs/{job_id}",
-                external_job_id=str(job_id),
-                job_description=raw.get("description", ""),
-                department=raw.get("department", ""),
-                posted_date=self.parse_date(raw.get("postedDate", "")),
-                raw_data=raw,
-            )
-        except Exception as e:
-            self.logger.warning(f"Error parsing job: {e}")
-            return None
+    def _extract_rows(self, html: str) -> list:
+        rows = super()._extract_rows(html)
+        departments = {}
+        for card in BeautifulSoup(html, "lxml").select("article.article--result"):
+            link = card.select_one("a[href*='JobDetail']")
+            dept = card.select_one(".list-item-department")
+            m = _JOB_ID_RE.search(link.get("href", "")) if link else None
+            if m and dept:
+                departments[m.group(1)] = " ".join(dept.get_text(" ", strip=True).split())
+        for row in rows:
+            if not row.get("department") and departments.get(row["id"]):
+                row["department"] = departments[row["id"]]
+        return rows
