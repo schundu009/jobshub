@@ -2,39 +2,21 @@
   "version": 2,
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*).html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
+      "source": "/job_detail{.html}?",
+      "has": [{ "type": "query", "key": "id", "value": "(?<id>\\d+)" }],
+      "destination": "https://cariara.com/jobs/firm?job=:id",
+      "permanent": false
     },
-    {
-      "source": "/js/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/css/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    }
+    { "source": "/autoapply{.html}?", "destination": "https://cariara.com/jobs/firm/auto-apply", "permanent": false },
+    { "source": "/login{.html}?", "destination": "https://cariara.com/login", "permanent": false },
+    { "source": "/register{.html}?", "destination": "https://cariara.com/login", "permanent": false },
+    { "source": "/upgrade{.html}?", "destination": "https://cariara.com/pricing", "permanent": false },
+    { "source": "/select-roles{.html}?", "destination": "https://cariara.com/account/preferences", "permanent": false },
+    { "source": "/settings{.html}?", "destination": "https://cariara.com/account", "permanent": false },
+    { "source": "/onboarding{.html}?", "destination": "https://cariara.com/account/preferences", "permanent": false },
+    { "source": "/documents{.html}?", "destination": "https://cariara.com/account", "permanent": false },
+    { "source": "/(.*)", "destination": "https://cariara.com/jobs/firm", "permanent": false }
   ]
 }
