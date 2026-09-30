@@ -31,7 +31,7 @@ from services.apply.constants import SCHEMA_TTL_HOURS
 
 logger = logging.getLogger(__name__)
 
-USER_AGENT = "CariaraBot/1.0 (+https://jobs.cariara.com; read-only form schema)"
+USER_AGENT = "CariaraBot/1.0 (+https://cariara.com; read-only form schema)"
 HTTP_TIMEOUT = 15.0
 
 

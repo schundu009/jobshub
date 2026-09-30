@@ -1,7 +1,7 @@
 /* Cariara design layer — admin shell.
  *
  * Maps the admin-* classes (js/admin-sidebar.js, css/admin-layout.css) onto the
- * same Material 3 / Cloud Console system as cariara.com and jobs.cariara.com.
+ * same Material 3 / Cloud Console system as cariara.com.
  * Loaded after css/cariara.css, which supplies the tokens (--c-*) and the
  * shared buttons, fields, cards, tabs and tables.
  */

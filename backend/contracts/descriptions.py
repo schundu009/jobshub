@@ -27,7 +27,7 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
-USER_AGENT = "Mozilla/5.0 (compatible; CariaraJobsBot/1.0; +https://jobs.cariara.com)"
+USER_AGENT = "Mozilla/5.0 (compatible; CariaraJobsBot/1.0; +https://cariara.com)"
 FETCH_TIMEOUT = 10.0  # per HTTP request
 DEADLINE = 12.0  # whole on-demand fetch, including robots.txt
 MAX_BYTES = 3_000_000

@@ -2758,7 +2758,7 @@
                 selectEl.innerHTML = '<option value="">No resumes found</option>';
                 selectEl.disabled = true;
                 textarea.placeholder = 'No resume uploaded. Go to Documents to upload one, or paste your resume here...';
-                if (statusSpan) statusSpan.innerHTML = '<a href="https://jobs.cariara.com/documents.html" style="color: var(--accent-blue);">Upload Resume</a>';
+                if (statusSpan) statusSpan.innerHTML = '<a href="https://cariara.com/account" style="color: var(--accent-blue);">Upload Resume</a>';
                 return;
             }
 
@@ -2821,12 +2821,12 @@
                     statusDiv.innerHTML = `<span style="color: var(--c-green);">Using: ${escapeHtml(response.filename)}</span>`;
                     return true;
                 } else {
-                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">No resume content found. <a href="https://jobs.cariara.com/documents.html" style="color: var(--accent-blue);">Upload Resume</a></span>';
+                    statusDiv.innerHTML = '<span style="color: var(--accent-red);">No resume content found. <a href="https://cariara.com/account" style="color: var(--accent-blue);">Upload Resume</a></span>';
                     return false;
                 }
             } catch (error) {
                 console.error('Failed to load resume:', error);
-                statusDiv.innerHTML = '<span style="color: var(--accent-red);">Failed to load resume. <a href="https://jobs.cariara.com/documents.html" style="color: var(--accent-blue);">Upload Resume</a></span>';
+                statusDiv.innerHTML = '<span style="color: var(--accent-red);">Failed to load resume. <a href="https://cariara.com/account" style="color: var(--accent-blue);">Upload Resume</a></span>';
                 return false;
             }
         }

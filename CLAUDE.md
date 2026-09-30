@@ -13,8 +13,8 @@ git add -A && git commit -m "Your message" && git push origin main
 **DO NOT** consider a task complete until changes are committed and pushed.
 
 ### Production URLs
-- **Jobs Portal**: https://jobs.cariara.com
-- **Admin Portal**: https://admin.cariara.com
+- **Jobs (customer)**: https://cariara.com/jobs/firm, /jobs/contract, /jobs/firm/auto-apply (copilot repo, `apps/web`)
+- **Admin**: https://cariara.com/jobs/admin (this repo's `admin-app`, proxied by cariara.com; admin.cariara.com redirects there; jobs.cariara.com is retired)
 - **Backend API**: https://cariara-backend.up.railway.app
 
 Railway and Vercel auto-deploy from `main` branch within 1-2 minutes.
@@ -27,9 +27,6 @@ source venv/bin/activate
 
 # Start backend (with auto-reload)
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-
-# Serve jobs frontend (separate terminal)
-cd jobs-app && python3 -m http.server 3000
 
 # Serve admin frontend (separate terminal)
 cd admin-app && python3 -m http.server 3001
@@ -65,7 +62,6 @@ playwright install chromium
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/api/analytics/summary
-curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/
 pgrep -fl "uvicorn"
 ```
 
@@ -80,9 +76,9 @@ pgrep -fl "uvicorn"
 - **Services**: `backend/services/` - Business logic layer
 
 ### Frontend (Vanilla HTML/CSS/JS)
-- **Auth helper**: `frontend/js/app.js` - Use `apiRequest()` for all API calls (handles auth, token refresh)
+- **Auth helper**: `admin-app/js/app.js` - Use `apiRequest()` for all API calls (handles auth, token refresh)
 - **Theme**: Dark/light mode via `data-theme` attribute
-- Pages: `index.html` (dashboard), `jobs.html` (list), `discover.html` (ATS discovery), `analytics.html`
+- Admin pages (`admin-app/`): `index.html` (dashboard), `jobs.html`, `job_detail.html`, `companies.html`, `analytics.html`, `settings.html`; asset and page paths are absolute under `/jobs/admin/`
 
 ### AI Services
 
@@ -137,7 +133,7 @@ class CompanyScraper(GreenhouseMixin, HTTPScraper):
 
 ## Auto-Apply Feature
 
-Customer-facing "Auto Apply" (paid plans only): `jobs-app/autoapply.html` + `js/autoapply.js`, API `routes/apply.py` (`/api/apply/*`), logic in `backend/services/apply/`, Celery tasks in `tasks/apply_tasks.py`.
+Customer-facing "Auto Apply" (paid plans only): cariara.com/jobs/firm/auto-apply (copilot `apps/web/src/pages/AutoApplyPage.tsx`), API `routes/apply.py` (`/api/apply/*`), logic in `backend/services/apply/`, Celery tasks in `tasks/apply_tasks.py`.
 
 - **Form discovery (read-only)**: Greenhouse (`?questions=true`), Lever (apply page), Ashby (posting API). Other ATSs → `unsupported` (manual apply link).
 - **Answers**: factual fields (work authorization, sponsorship, salary, start date, EEO) come only from the user's Answers profile; AI drafts free-text only (marked `ai_draft`); legal attestations always need the user.
@@ -157,8 +153,8 @@ Customer-facing "Auto Apply" (paid plans only): `jobs-app/autoapply.html` + `js/
 
 ## Common Issues
 
-### Vercel Routing / Redirect Loop on jobs.cariara.com
-The root Vercel project serves jobs.cariara.com. **NEVER create an `index.html` in the repo root** - this causes redirect loops. The root `vercel.json` must have `outputDirectory: "jobs-app"` to serve the correct content.
+### Admin under cariara.com/jobs/admin
+copilot `apps/web/vercel.json` proxies `^/jobs/admin` to `admin.cariara.com/jobs/admin`; `admin-app/vercel.json` rewrites `/jobs/admin/*` to its files and redirects every other admin.cariara.com path to cariara.com/jobs/admin. Keep `cleanUrls`/`trailingSlash` off there, or its redirects send users to the admin host.
 
 ### Railway SSL Errors
 For internal PostgreSQL connections, ensure `sslmode=disable`:
