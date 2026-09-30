@@ -2,8 +2,8 @@
 /api/contracts - contract roles (public read API for cariara.com/jobs/contract).
 
 Public (no auth, cached 120s per param set):
-    GET /api/contracts/jobs
-    GET /api/contracts/jobs/{id}
+    GET /api/contracts/jobs        (q/loc search, profile matching: roles/skills/seniority/min_match/sort=match)
+    GET /api/contracts/jobs/{id}   (fetches a missing description on demand, see contracts.descriptions)
     GET /api/contracts/facets
 Admin only:
     GET  /api/contracts/status
@@ -39,12 +39,14 @@ router = APIRouter(prefix="/api/contracts", tags=["contracts"])
 CACHE_TTL = 120
 DEFAULT_COUNTRY = "US"
 MAX_LIMIT = 100
-SORTS = ("recent", "rate", "duration")
+SORTS = ("recent", "rate", "duration", "match")
+MATCH_CANDIDATES = 2000  # rows scored in Python per request (most recent first)
+SENIORITIES = ("junior", "mid", "senior", "lead", "principal")
 
 
 # ------------------------------------------------------------------ helpers
 
-_CACHE_VERSION = 2
+_CACHE_VERSION = 3
 
 
 def _cache_key(prefix: str, **params) -> str:
@@ -120,7 +122,7 @@ def _listed_days(dt: Optional[datetime], now: datetime) -> Optional[int]:
 
 
 def contract_to_dict(job: ContractJob, now: datetime, description_chars: Optional[int] = None,
-                     full_description: bool = False) -> dict:
+                     full_description: bool = False, match: Optional[tuple] = None) -> dict:
     listed = job.effective_posted_at or job.first_seen_at
     company_name = job.company.name if job.company_id and job.company else None
     out = {
@@ -149,6 +151,8 @@ def contract_to_dict(job: ContractJob, now: datetime, description_chars: Optiona
         "listed_since": _iso_z(listed),
         "listed_days": _listed_days(listed, now),
         "is_active": bool(job.is_active),
+        "match_score": match[0] if match else None,
+        "match_reasons": match[1] if match else None,
     }
     if full_description:
         out["description"] = job.description
@@ -179,6 +183,71 @@ def _base_query(db: Session, country: str, confirmed_only: bool):
     return q
 
 
+# ------------------------------------------------------------------ search
+
+_TOKEN_SPLIT = re.compile(r"[\s,]+")
+
+
+def _search_tokens(q: Optional[str]) -> list[str]:
+    toks = [t.strip().lower() for t in _TOKEN_SPLIT.split(q or "")]
+    return list(dict.fromkeys(t for t in toks if t and len(t) <= 60))[:10]
+
+
+def _like_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _token_filter(haystack, token: str):
+    """Case-insensitive match of one search token; short tokens (<= 3 chars: go, qa, ai)
+    must stand alone (space / punctuation / JSON quote around them), not be inside a word."""
+    tok = _like_escape(token)
+    if len(token) > 3:
+        return haystack.like(f"%{tok}%", escape="\\")
+    padded = " " + haystack + " "
+    return or_(*[padded.like(f"%{a}{tok}{b}%", escape="\\")
+                 for a in (" ", '"', "/", "(", "-", ".")
+                 for b in (" ", '"', "/", ")", "-", ",", ".")])
+
+
+def _search_haystack(include_description: bool):
+    parts = [func.coalesce(ContractJob.title, ""), func.coalesce(cast(ContractJob.skills, String), ""),
+             func.coalesce(ContractJob.agency_name, ""), func.coalesce(ContractJob.end_client, "")]
+    if include_description:
+        parts.append(func.coalesce(ContractJob.description, ""))
+    hay = parts[0]
+    for p in parts[1:]:
+        hay = hay + " " + p
+    return func.lower(hay)
+
+
+def _state_lookup() -> tuple[dict, dict]:
+    try:
+        from contracts.scrapers._base import US_STATES
+    except Exception:  # pragma: no cover
+        US_STATES = {}
+    by_abbr = {k.upper(): v for k, v in US_STATES.items()}
+    by_name = {v.lower(): k.upper() for k, v in US_STATES.items()}
+    return by_abbr, by_name
+
+
+def _location_filter(value: str):
+    """Location text OR the state's other spelling: "california" also finds "San Jose, CA", "CA" finds "California"."""
+    raw = value.strip()
+    low = raw.lower()
+    by_abbr, by_name = _state_lookup()
+    loc = func.coalesce(ContractJob.location, "")
+    conds = [func.lower(loc).like(f"%{_like_escape(low)}%", escape="\\")] if len(raw) > 2 else []
+    # word-bounded, case-insensitive view of the location: " SAN JOSE CA 95112 "
+    bounded = " " + func.upper(func.replace(func.replace(func.replace(loc, ",", " "), "-", " "), "|", " ")) + " "
+    abbr = by_name.get(low) or (raw.upper() if raw.upper() in by_abbr else None)
+    if abbr:
+        conds.append(bounded.like(f"% {abbr} %"))
+        conds.append(func.lower(loc).like(f"%{by_abbr[abbr].lower()}%"))
+    elif len(raw) <= 2:
+        conds.append(bounded.like(f"% {_like_escape(raw.upper())} %", escape="\\"))
+    return or_(*conds)
+
+
 # ------------------------------------------------------------------ public API
 
 @router.get("/jobs")
@@ -193,12 +262,18 @@ def list_contract_jobs(
     exclude_visa: Optional[str] = Query(None, description="Comma list of visa_terms codes the job must NOT have"),
     country: Optional[str] = Query(None, description="Viewer country, ISO-2 (default US). Unknown-location jobs are included unless confirmed_only"),
     confirmed_only: bool = Query(False, description="Exclude jobs whose location country is unknown"),
-    q: Optional[str] = Query(None, max_length=200, description="Search title, skills, agency, client"),
-    location: Optional[str] = Query(None, max_length=100, description="Substring of location (e.g. 'Austin', 'TX', 'Remote')"),
+    q: Optional[str] = Query(None, max_length=200, description="Search title, skills, agency, client; every word must match"),
+    q_description: bool = Query(False, description="Also search the description"),
+    location: Optional[str] = Query(None, max_length=100, description="Location text or US state name/abbrev (e.g. 'Austin', 'TX', 'California', 'Remote')"),
+    loc: Optional[str] = Query(None, max_length=100, description="Alias of location"),
+    roles: Optional[str] = Query(None, max_length=500, description="Comma list of role titles/slugs to match, e.g. 'DevOps Engineer,SRE,platform'"),
+    skills: Optional[str] = Query(None, max_length=1000, description="Comma list of candidate skills"),
+    seniority: Optional[str] = Query(None, description="junior | mid | senior | lead | principal"),
+    min_match: Optional[int] = Query(None, ge=0, le=100, description="Only jobs with match_score >= this (needs roles or skills)"),
     remote: Optional[bool] = Query(None, description="true = remote only"),
     agency: Optional[str] = Query(None, max_length=500, description="Comma list of agency names or source slugs"),
     posted_within_days: Optional[int] = Query(None, ge=1, le=365),
-    sort: str = Query("recent", description="recent | rate | duration"),
+    sort: str = Query("recent", description="recent | rate | duration | match (match needs roles or skills)"),
     limit: int = Query(25, ge=1, le=MAX_LIMIT),
     offset: int = Query(0, ge=0, le=100000),
     description_chars: Optional[int] = Query(None, ge=50, le=5000, description="Include plain-text description truncated to N chars"),
@@ -212,8 +287,18 @@ def list_contract_jobs(
     if sort not in SORTS:
         raise HTTPException(status_code=400, detail=f"Invalid sort. Allowed: {', '.join(SORTS)}")
     viewer = _viewer_country(country)
+    location = location or loc
+    if seniority and seniority.strip().lower() not in SENIORITIES + ("jr", "sr", "staff", "entry"):
+        raise HTTPException(status_code=400, detail=f"Invalid seniority. Allowed: {', '.join(SENIORITIES)}")
+    from contracts.matching import build_profile, max_score_without_skills, max_score_without_title, \
+        role_title_phrases, score_job
+    profile = build_profile(roles, skills, seniority)
+    if (sort == "match" or min_match) and not profile.active:
+        raise HTTPException(status_code=400, detail="sort=match and min_match need roles or skills")
 
-    params = dict(employment_type=",".join(types) or None, tax_terms=",".join(taxes) or None,
+    params = dict(q_description=q_description or None, roles=roles, skills=skills,
+                  seniority=profile.seniority, min_match=min_match,
+                  employment_type=",".join(types) or None, tax_terms=",".join(taxes) or None,
                   min_rate=min_rate, max_rate=max_rate, include_salary_equiv=include_salary_equiv,
                   min_duration_months=min_duration_months, visa=",".join(required_visa) or None,
                   exclude_visa=",".join(excluded_visa) or None, country=viewer, confirmed_only=confirmed_only,
@@ -244,16 +329,13 @@ def list_contract_jobs(
             query = query.filter(ContractJob.hourly_rate_min <= max_rate)
     if min_duration_months is not None:
         query = query.filter(ContractJob.contract_duration_months >= min_duration_months)
-    if q:
-        like = f"%{q.strip().lower()}%"
-        query = query.filter(or_(
-            func.lower(ContractJob.title).like(like),
-            func.lower(cast(ContractJob.skills, String)).like(like),
-            func.lower(ContractJob.agency_name).like(like),
-            func.lower(ContractJob.end_client).like(like),
-        ))
-    if location:
-        query = query.filter(func.lower(ContractJob.location).like(f"%{location.strip().lower()}%"))
+    tokens = _search_tokens(q)
+    if tokens:
+        hay = _search_haystack(q_description)
+        for tok in tokens:
+            query = query.filter(_token_filter(hay, tok))
+    if location and location.strip():
+        query = query.filter(_location_filter(location))
     if remote is True:
         query = query.filter(func.lower(ContractJob.location).like("%remote%"))
     elif remote is False:
@@ -267,6 +349,42 @@ def list_contract_jobs(
     if posted_within_days:
         query = query.filter(ContractJob.effective_posted_at >= now - timedelta(days=posted_within_days))
 
+    if profile.active and min_match:
+        # Exact SQL pre-filter: below these bounds a job cannot reach min_match.
+        if profile.roles and min_match > max_score_without_title(profile):
+            phrases = role_title_phrases(profile.roles)
+            title_l = " " + func.lower(func.replace(func.replace(ContractJob.title, "-", " "), "/", " ")) + " "
+            query = query.filter(or_(*[title_l.like(f"%{_like_escape(p)}%", escape="\\") for p in phrases]))
+        elif not profile.roles and min_match > max_score_without_skills(profile):
+            hay = func.lower(func.coalesce(ContractJob.title, "") + " " + func.coalesce(cast(ContractJob.skills, String), ""))
+            query = query.filter(or_(*[hay.like(f"%{_like_escape(s)}%", escape="\\") for s in profile.skills]))
+
+    if profile.active and (sort == "match" or min_match):
+        # Score up to MATCH_CANDIDATES most recent candidates in Python.
+        cands = (query.options(joinedload(ContractJob.company))
+                 .order_by(ContractJob.effective_posted_at.desc().nullslast(), ContractJob.id.desc())
+                 .limit(MATCH_CANDIDATES).all())
+        scored = [(r, score_job(r.title, r.skills, profile)) for r in cands]
+        if min_match:
+            scored = [x for x in scored if x[1][0] >= min_match]
+        if sort == "match":
+            scored.sort(key=lambda x: -x[1][0])  # stable: recency order breaks ties
+        elif sort == "rate":
+            scored.sort(key=lambda x: -(x[0].hourly_rate_max or -1))
+        elif sort == "duration":
+            scored.sort(key=lambda x: -(x[0].contract_duration_months or -1))
+        page = scored[offset:offset + limit]
+        result = {
+            "jobs": [contract_to_dict(r, now, description_chars=description_chars, match=m) for r, m in page],
+            "total": len(scored),
+            "limit": limit,
+            "offset": offset,
+            "country": viewer,
+            "match_candidates_capped": len(cands) >= MATCH_CANDIDATES,
+        }
+        _cache_set(key, result)
+        return result
+
     total = query.count()
     if sort == "rate":
         order = [ContractJob.hourly_rate_max.desc().nullslast(), ContractJob.effective_posted_at.desc().nullslast()]
@@ -277,7 +395,9 @@ def list_contract_jobs(
     rows = (query.options(joinedload(ContractJob.company))
             .order_by(*order, ContractJob.id.desc()).offset(offset).limit(limit).all())
     result = {
-        "jobs": [contract_to_dict(r, now, description_chars=description_chars) for r in rows],
+        "jobs": [contract_to_dict(r, now, description_chars=description_chars,
+                                  match=score_job(r.title, r.skills, profile) if profile.active else None)
+                 for r in rows],
         "total": total,
         "limit": limit,
         "offset": offset,
@@ -351,8 +471,15 @@ def get_contract_job(job_id: int, db: Session = Depends(get_db)):
     job = db.query(ContractJob).options(joinedload(ContractJob.company)).filter(ContractJob.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Contract job not found")
+    from contracts.descriptions import describe
+    try:
+        status = describe(db, job)
+    except Exception:  # never fail the detail view on a fetch problem
+        status = "stored" if (job.description or "").strip() else "unavailable"
     result = contract_to_dict(job, datetime.utcnow(), full_description=True)
-    _cache_set(key, result)
+    result["description_status"] = status
+    if status != "unavailable":  # a failed fetch is retried later (descriptions has its own backoff)
+        _cache_set(key, result)
     return result
 
 

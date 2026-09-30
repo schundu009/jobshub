@@ -31,6 +31,8 @@ class RandstadScraper(StaffingScraper):
     CATEGORY = "Computer and Mathematical Occupations"
     CATEGORY_SLUG = "r-computer-and-mathematical-occupations"
     PAGE_SIZE = 30
+    IT_AMBIGUOUS_DEFAULT = True  # the listing is already the computer & mathematical category
+    IT_CATEGORY_KEYS = ("categories",)
 
     def _payload(self, page: int) -> dict:
         route = self.CATEGORY_SLUG + (f"/page-{page}" if page > 1 else "")
@@ -46,16 +48,17 @@ class RandstadScraper(StaffingScraper):
         }}
 
     async def fetch_raw(self) -> list:
-        raw, page, seen = [], 1, set()
+        raw, page, seen, listed = [], 1, set(), 0
         while len(raw) < self.MAX_JOBS:
             data = await self._http("POST", API_URL, json_body=self._payload(page))
             results = (data or {}).get("searchResults") if isinstance(data, dict) else None
             hits = self.expect_list(results or {}, "hits")
             fresh = [h for h in hits if h.get("id") not in seen]
             seen.update(h.get("id") for h in fresh)
-            raw.extend(fresh)
+            raw.extend(self.take_it(fresh))
+            listed += len(fresh)
             total = (results or {}).get("totalSize") or 0
-            if not fresh or len(raw) >= total or self.out_of_time():
+            if not fresh or listed >= total or self.out_of_time():
                 break
             page += 1
         return raw

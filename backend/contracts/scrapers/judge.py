@@ -7,6 +7,11 @@ admin-ajax.php). 20 postings per page, newest first; the body is a JSON string
 holding JSON. Postings carry type ("Contract" / "Permanent") and a salary text
 ("$60.00 USD Hourly - $70.00 USD Hourly").
 Public posting URL: https://www.judge.com/jobs/details/{jobOrderId}/.
+IT only: the InformationTechnology and Engineering categories are requested and
+each page is filtered per title with services.it_roles. Engineering is kept at
+the API because it holds ~140 IT postings (embedded, firmware, test automation,
+...; live check 2026-09-29: 822 IT with it vs 684 without); its mechanical /
+civil / manufacturing postings are dropped by the title filter.
 Verified 2026-09-29 (~750 IT + Engineering postings).
 """
 
@@ -30,6 +35,7 @@ class JudgeScraper(StaffingScraper):
     )
     AGENCY_NAME = "The Judge Group"
     CATEGORIES = ["InformationTechnology", "Engineering"]
+    IT_CATEGORY_KEYS = ("category",)
 
     def _payload(self, page: int) -> dict:
         return {"payload": {
@@ -39,7 +45,7 @@ class JudgeScraper(StaffingScraper):
         }}
 
     async def fetch_raw(self) -> list:
-        raw, page, seen = [], 0, set()
+        raw, page, seen, listed = [], 0, set(), 0
         while len(raw) < self.MAX_JOBS:
             data = await self._http("POST", API_URL, json_body=self._payload(page))
             if isinstance(data, str):
@@ -50,9 +56,10 @@ class JudgeScraper(StaffingScraper):
             hits = self.expect_list(data, "hits")
             fresh = [h for h in hits if h.get("jobOrderId") not in seen]
             seen.update(h.get("jobOrderId") for h in fresh)
-            raw.extend(fresh)
+            raw.extend(self.take_it(fresh))
+            listed += len(fresh)
             total = data.get("total") or 0
-            if not fresh or len(raw) >= total or self.out_of_time():
+            if not fresh or listed >= total or self.out_of_time():
                 break
             page += 1
         return raw

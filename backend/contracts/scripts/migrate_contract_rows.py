@@ -45,8 +45,9 @@ def migrate(db, apply: bool = False, batch: int = BATCH, out=print) -> dict:
         by_source = defaultdict(list)
         for job in rows:
             scanned += 1
-            route, et = contract_routing(job.title, job.job_description,
-                                         {"employment_type": job.employment_type})
+            # jobs.employment_type is our own earlier (text-based) label, not the
+            # ATS field, so it is not passed: company-board rows route on the title.
+            route, et = contract_routing(job.title, job.job_description)
             if not route:
                 continue
             found[et] += 1

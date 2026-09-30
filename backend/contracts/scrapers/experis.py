@@ -7,8 +7,16 @@ the experis.com/en/search page makes. ``filter.offset`` is a 0-based page index
 employmentType ("Contract" / "Permanent"), a public description (HTML) and the
 industry ("Technology and IT", "Engineering", ...).
 The recruiter contact fields in the response are not stored.
+IT only: each page is filtered per title with services.it_roles (the posting's
+industry is the tie-breaker). The API also takes an industry facet filter
+(``filter.industries`` = [{"key": ...}], see INDUSTRY_KEYS), but restricting to
+"Technology and IT" + "Engineering" lost ~55 IT postings filed under other
+industries (live check 2026-09-29: 829 vs 883 IT), and the whole board fits
+the time budget, so INDUSTRIES is empty by default.
 Verified 2026-09-29 (~1,470 postings).
 """
+
+import asyncio
 
 import aiohttp
 
@@ -19,6 +27,11 @@ from ._base import STAFFING_CATEGORY, StaffingScraper, is_us_state, parse_iso, p
 
 API_URL = "https://www.experis.com/api/services/Jobs/searchjobs"
 SITE = "https://www.experis.com"
+# Industry facet keys from the searchjobs response (filters.industries).
+INDUSTRY_KEYS = {
+    "Technology and IT": "e39142081f614173b46a4e6c459048c5",
+    "Engineering": "89fa7e6cc28e479cb5f4b7f922c37657",
+}
 
 
 @ScraperRegistry.register(category=STAFFING_CATEGORY)
@@ -32,26 +45,41 @@ class ExperisScraper(StaffingScraper):
     )
     AGENCY_NAME = "Experis"
     PAGE_SIZE = 50
+    PAGE_RETRIES = 2
+    RETRY_DELAY = 2.0
+    INDUSTRIES: tuple = ()  # e.g. ("Technology and IT", "Engineering") to filter at the API
+    IT_CATEGORY_KEYS = ("domain",)
 
     async def fetch_raw(self) -> list:
-        raw, page, seen = [], 0, set()
+        raw, page, seen, listed = [], 0, set(), 0
         while len(raw) < self.MAX_JOBS:
             body = {"filter": {"offset": page, "totalCount": 0, "limit": self.PAGE_SIZE,
                                "searchkeyword": None, "haslocation": False, "language": "en"}}
-            try:
-                data = await self._http("POST", API_URL, json_body=body)
-            except aiohttp.ClientResponseError as e:
-                # Some deep pages answer 502 while page 0 is fine; keep what we have.
-                if raw and e.status >= 500:
-                    self.logger.warning(f"Experis page {page} failed ({e.status}); keeping {len(raw)} jobs")
+            if self.INDUSTRIES:
+                body["filter"]["industries"] = [{"key": INDUSTRY_KEYS[i]} for i in self.INDUSTRIES]
+            data = None
+            for attempt in range(self.PAGE_RETRIES + 1):
+                try:
+                    data = await self._http("POST", API_URL, json_body=body)
                     break
-                raise
+                except aiohttp.ClientResponseError as e:
+                    # Deep pages sometimes answer 502 while page 0 is fine: retry,
+                    # then keep what we have.
+                    if not (listed and e.status >= 500):
+                        raise
+                    if attempt < self.PAGE_RETRIES and not self.out_of_time():
+                        await asyncio.sleep(self.RETRY_DELAY)
+                        continue
+                    self.logger.warning(f"Experis page {page} failed ({e.status}); keeping {len(raw)} jobs")
+            if data is None:
+                break
             jobs = self.expect_list(data, "jobsItems")
             fresh = [j for j in jobs if j.get("jobID") not in seen]
             seen.update(j.get("jobID") for j in fresh)
-            raw.extend(fresh)
+            raw.extend(self.take_it(fresh))
+            listed += len(fresh)
             total = ((data.get("filters") or {}).get("totalCount")) or 0
-            if not fresh or len(raw) >= total or self.out_of_time():
+            if not fresh or listed >= total or self.out_of_time():
                 break
             page += 1
         return raw

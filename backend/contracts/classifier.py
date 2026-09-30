@@ -143,9 +143,26 @@ _TITLE_FULL = re.compile(r"\bfull[- ]?time\b", I)
 _TITLE_1099 = re.compile(r"\(\s*1099\s*\)|\b1099\s+(contract|contractor|only|role|position|basis)\b|\b(on|via)\s+1099\b|\bw-?2\s*/\s*1099\b|\b1099\s*/\s*(w-?2|c2c)\b", I)
 
 
+# Phrases where "contract" names the work, not the job's terms: blockchain
+# ("Smart Contract Engineer"), procurement / legal roles ("Contract Manager",
+# "Contracts Systems Analyst", "Government Contracts"), CLM tooling.
+_CONTRACT_WORK_PHRASES = re.compile(
+    r"\bsmart[- ]contracts?\b(?:[- ](?:engineer|developer|auditor|security|programmer)s?)?|"
+    r"\b(?:government|federal|defen[cs]e|dod|vendor|customer|client|supplier|commercial|sales|prime|sub)[- ]contracts?\b|"
+    r"\bcontracts?[- ](?:management|manager|managers|administrator|administration|admin|specialist|analyst|"
+    r"negotiat\w*|review\w*|lifecycle|life[- ]cycle|systems?|compliance|attorney|counsel|lawyer|officer|"
+    r"coordinator|paralegal|drafting|closeout|pricing|operations)\b|"
+    r"\bclm\b(?:[- ](?:contract|contracts))?|\bcontract lifecycle management\b", I)
+
+
+def strip_contract_work(text: str) -> str:
+    """Blank out phrases where "contract" is the subject of the work, not the terms."""
+    return _CONTRACT_WORK_PHRASES.sub(" ", text) if text else (text or "")
+
+
 def employment_type_from_title(title: str) -> Optional[str]:
-    t = title or ""
-    if not t:
+    t = strip_contract_work(title or "")
+    if not t.strip():
         return None
     if _TITLE_C2H.search(t):
         return "contract_to_hire"
@@ -210,8 +227,35 @@ _CONTRACT_NOISE = re.compile(
     r"\bemployees?,?\s+(and|or)\s+contractors\b|\bcontractors?\s+(and|or)\s+(employees|vendors)\b", I)
 
 
+# Legal / privacy / EEO boilerplate that mentions contractors without describing
+# the job ("evaluate your application for employment or an independent contractor
+# role, as applicable"). Sentences matching this are dropped before text detection.
+_BOILERPLATE = re.compile(
+    r"\bemployment or (?:an? )?(?:independent )?contract(?:or|ual)?\b|"
+    r"\b(?:employees?|staff|workers?|personnel)\s*(?:,\s*(?:\w+\s+){0,3})?(?:and|or|&|/)\s*(?:independent\s+|external\s+)?contractors?\b|"
+    r"\bcontractors?\s*(?:and|or|&|/)\s*(?:\w+\s+)?employees?\b|"
+    r"\b(?:as|whether as|whether|either)\s+an?\s+employee\s+or\s+(?:an?\s+)?(?:independent\s+)?contractor\b|"
+    r"\bindependent contractors?\s+(?:are|is|will be)\s+not\s+eligible\b|"
+    r"\bnot eligible\b[^.]{0,60}\bcontractors?\b|"
+    r"\b(?:equal (?:employment )?opportunity|eeo(?:c)?\b|affirmative action|privacy (?:notice|policy|statement)|"
+    r"applicant privacy|personal (?:data|information)|reasonable accommodations?|e-?verify|"
+    r"without regard to|protected veteran|sexual orientation|gender identity|pay transparency|"
+    r"fair chance|arrest (?:and|or) conviction|background check)", I)
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?;])\s+|\s*\n\s*|\s+(?=•)")
+
+
+def strip_boilerplate(text: str) -> str:
+    """Drop legal / privacy / EEO sentences (they mention contractors generically)."""
+    if not text or not _BOILERPLATE.search(text):
+        return text or ""
+    return " ".join(p for p in _SENTENCE_SPLIT.split(text) if p and not _BOILERPLATE.search(p))
+
+
 def employment_type_from_text(text: str) -> Optional[str]:
     if not text:
+        return None
+    text = strip_contract_work(strip_boilerplate(text))
+    if not text.strip():
         return None
     m = _DESC_TYPE_FIELD.search(text)
     if m:
@@ -686,7 +730,7 @@ def detect_employment_type(title: Optional[str], description: Optional[str] = No
         extra = raw.get("extra") or {}
         extra_text = " ".join(str(v) for v in extra.values() if isinstance(v, (str, int, float))) if isinstance(extra, dict) else ""
         raw_type_text = " ".join(str(raw.get(k) or "") for k in ("employment_type_raw", "employment_type"))
-        text = to_text(description)
+        text = strip_boilerplate(to_text(description))
         et = _employment_type((title or "").strip(), text, raw, raw_type_text, extra_text)
         if et is None and _C2C_OR_1099.search(text):
             terms = tax_terms_from_text(text)
@@ -703,6 +747,7 @@ _CONTRACT_WORD = re.compile(r"\b(contract(or)?|contract[- ]to[- ]hire|c2h|corp[-
 
 
 def _has_contract_wording(text: str) -> bool:
+    text = strip_contract_work(strip_boilerplate(text))
     for m in _CONTRACT_WORD.finditer(text):
         span = text[max(0, m.start() - 25):m.end() + 25]
         if _negated(text, m.start()) or _CONTRACT_NOISE.search(span):
@@ -711,17 +756,90 @@ def _has_contract_wording(text: str) -> bool:
     return False
 
 
+_TITLE_TEMP_WORD = re.compile(r"\btemp(orary)?\b(?!erature|late)", I)
+_RAW_CONTRACT_TERMS = re.compile(r"\b(contract|contractor|contractual|c2c|corp[- ]?to[- ]?corp|1099|w-?2|c2h)\b", I)
+
+
+def _raw_type_value(raw: dict) -> Optional[str]:
+    for k in ("employment_type_raw", "employment_type"):
+        v = raw.get(k)
+        if isinstance(v, (list, tuple)):
+            v = " ".join(str(x) for x in v if x)
+        if v and str(v).strip():
+            return str(v)
+    return None
+
+
+def title_contract_type(title: Optional[str]) -> Optional[str]:
+    """
+    Employment type from explicit title markers only: Contract, Contractor, C2H,
+    Contract-to-Hire, Temp, Temporary, Freelance, 1099. "Seasonal" alone is not
+    a marker (direct-hire retail).
+    """
+    et = employment_type_from_title(title or "")
+    if et == "temporary" and not _TITLE_TEMP_WORD.search(title or ""):
+        return None
+    return et if et in CONTRACT_TYPES else None
+
+
+def company_board_routing(title: Optional[str], raw: Optional[dict] = None,
+                          description: Optional[str] = None) -> tuple[bool, Optional[str]]:
+    """
+    Routing for anything that is not a staffing scraper (company boards,
+    aggregators): contracts ONLY when
+
+    (a) the ATS's structured employment field says contract / contract-to-hire /
+        freelance, or temporary with contract terms in the field itself
+        ("Temporary (Contract)", "Temp - W2"), or
+    (b) the title carries an explicit marker (Contract, Contractor, C2H,
+        Contract-to-Hire, Temp, Temporary, Freelance, 1099).
+
+    The description is never used to route (privacy / EEO boilerplate such as
+    "employment or an independent contractor role" misrouted full-time roles);
+    it only labels non-routed rows (full_time / part_time / internship).
+    """
+    raw = dict(raw or {})
+    raw_value = _raw_type_value(raw)
+    ats = map_employment_type_raw(raw_value) if raw_value else None
+    t_type = title_contract_type(title)
+    if t_type:
+        if t_type == "contract" and ats == "contract_to_hire":
+            return True, "contract_to_hire"
+        return True, t_type
+    if ats in ("contract", "contract_to_hire", "freelance"):
+        return True, ats
+    if ats == "temporary" and raw_value and _RAW_CONTRACT_TERMS.search(raw_value):
+        return True, "temporary"
+    # Not routed: best non-contract label for the jobs row.
+    if ats:
+        return False, ats
+    et = employment_type_from_title(title or "")
+    if et:
+        return False, et
+    try:
+        text_type = employment_type_from_text(to_text(description)) if description else None
+    except Exception:
+        text_type = None
+    return False, text_type if text_type in ("full_time", "part_time", "internship") else None
+
+
 def contract_routing(title: Optional[str], description: Optional[str] = None, raw: Optional[dict] = None,
                      staffing: bool = False) -> tuple[bool, Optional[str]]:
     """
     The single rule deciding whether a posting belongs in contract_jobs.
     Returns (route_to_contracts, employment_type).
 
-    contract / contract_to_hire / freelance -> contracts. temporary -> contracts
-    only with contract evidence: a staffing source, explicit tax terms (W2/C2C/1099),
-    or an hourly/daily rate together with explicit contract wording. Seasonal /
-    fixed-term direct hires (retail) stay in jobs labelled "temporary".
+    Non-staffing sources (company boards, aggregators): company_board_routing()
+    - structured ATS field or explicit title marker only, never description text.
+
+    Staffing sources: contract / contract_to_hire / freelance -> contracts;
+    temporary -> contracts (a staffing source is contract evidence).
     """
+    if not staffing:
+        try:
+            return company_board_routing(title, raw, description)
+        except Exception:  # never block a save on a classifier bug
+            return False, None
     et = detect_employment_type(title, description, raw)
     if et in ROUTED_TYPES:
         return True, et

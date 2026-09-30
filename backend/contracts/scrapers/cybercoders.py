@@ -50,9 +50,10 @@ class CyberCodersScraper(StaffingScraper):
     # almost all direct hire (3,985 PERM vs 4 CONT on 2026-09-29), so only the
     # contract bucket is read; an empty run is normal.
     TERM_OPTION = "2"
+    IT_SKILLS_KEYS = ("tags",)
 
     async def fetch_raw(self) -> list:
-        raw, page, seen = [], 1, set()
+        raw, page, seen, listed = [], 1, set(), 0
         while len(raw) < self.MAX_JOBS:
             params = {"rows": str(self.PAGE_SIZE), "page": str(page), "sortType": "date",
                       "daysPosted": "0", "buid": str(self.BUSINESS_UNIT),
@@ -61,9 +62,10 @@ class CyberCodersScraper(StaffingScraper):
             jobs = self.expect_list(data, "jobs")
             fresh = [j for j in jobs if j.get("Id") not in seen]
             seen.update(j.get("Id") for j in fresh)
-            raw.extend(fresh)
+            raw.extend(self.take_it(fresh))
+            listed += len(fresh)
             total = data.get("numFound") or 0
-            if not fresh or len(raw) >= total or self.out_of_time():
+            if not fresh or listed >= total or self.out_of_time():
                 break
             page += 1
         return raw

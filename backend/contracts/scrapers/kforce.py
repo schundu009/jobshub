@@ -39,6 +39,8 @@ class KforceScraper(StaffingScraper):
     AGENCY_NAME = "Kforce"
     PAGE_SIZE = 200
     INDUSTRY_FILTER = "Industry eq 'Technology'"
+    IT_AMBIGUOUS_DEFAULT = True  # already the Technology industry
+    IT_CATEGORY_KEYS = ("Industry",)
 
     async def fetch_raw(self) -> list:
         raw, skip = [], 0
@@ -50,7 +52,7 @@ class KforceScraper(StaffingScraper):
             }
             data = await self._http("POST", API_URL, json_body=body, headers={"api-key": QUERY_KEY})
             jobs = self.expect_list(data, "value")
-            raw.extend(jobs)
+            raw.extend(self.take_it(jobs))
             skip += len(jobs)
             total = data.get("@odata.count") or 0
             if not jobs or skip >= total or self.out_of_time():

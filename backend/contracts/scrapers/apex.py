@@ -72,7 +72,7 @@ class ApexSystemsScraper(StaffingScraper):
                                     expect="text")
             rows = [r for r in parse_apex_listing(html) if r["id"] not in seen]
             seen.update(r["id"] for r in rows)
-            raw.extend(rows)
+            raw.extend(self.take_it(rows))
             if not rows or len(raw) >= self.MAX_JOBS or self.out_of_time():
                 break
         return raw

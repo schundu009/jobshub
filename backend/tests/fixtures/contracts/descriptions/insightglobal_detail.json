@@ -1,0 +1,17 @@
+{
+ "requisitionId": "eb6ad967-ef43-45f2-935f-4d5d4be1f437",
+ "jobTitle": "Technical Lead (.NET/AWS)",
+ "workAddress": {
+  "administrativeArea": "CA",
+  "locality": "San Diego"
+ },
+ "postedDate": "2026-09-30T00:29:54.1Z",
+ "jobType": "Contract",
+ "payRate": {
+  "min": 75.0,
+  "max": 0,
+  "currency": "USD",
+  "type": "Hourly"
+ },
+ "descriptionHtml": "Required Skills & Experience<br><br>&bull; 5+ years of software engineering experience with strong hands-on development expertise in C#/.NET, ideally .NET 8+.\n&bull; 2+ years of Technical Lead or equivalent technical leadership experience, including ownership of application/system architecture and technical design.\n&bull; Strong hands-on AWS experience designing and developing cloud-native applications, APIs, and backend services.\n&bull; Experience with serverless and API-driven architecture utilizing technologies such as AWS Lambda, API Gateway, SQS/SNS, EventBridge, or comparable AWS services.\n&bull; Hands-on Infrastructure as Code (IaC) experience using AWS CDK, Terraform, and/or CloudFormation, along with containerization technologies such as Docker/ECS.\n&bull; Strong ability to translate business and functional requirements into technical solutions while communicating effectively with both engineering teams and business stakeholders.<br><br>Nice to Have Skills & Experience<br><br>&bull; Experience with AWS CDK specifically for API/application development and infrastructure deployment.\n&bull; Previous experience within the insurance industry or other complex, highly regulated enterprise environments.\n&bull; Exposure to Java and the ability to support or modernize existing Java-based applications when needed.\n&bull; Experience with a modern frontend framework such as Angular, React, or Vue.js.<br><br>Job Description<br><br>A leading insurance organization is seeking a Technical Lead to support a new greenfield application initiative. This individual will initially focus heavily on solution design and architecture, establishing the technical foundation and architectural runway for the application before transitioning into a more hands-on development capacity. You will work closely with business stakeholders and engineers to translate functional requirements into scalable technical solutions, while providing technical direction to the development team. The environment is primarily modern .NET and AWS, with a strong focus on APIs, serverless architecture, cloud-native development, and Infrastructure as Code."
+}

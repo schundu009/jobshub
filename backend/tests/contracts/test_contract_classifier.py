@@ -305,3 +305,112 @@ from contracts.classifier import parse_duration_months as _dur
 ])
 def test_years_of_experience_are_not_durations(text, known, expected):
     assert _dur(text, known) == expected
+
+
+# ------------------------------------------- company boards: ATS field or title only
+
+REDDIT_PRIVACY = (
+    "<p>Reddit is proud to be an equal opportunity employer.</p><p>Pay Transparency: $317,000 per year.</p>"
+    "<p>Please see our Candidate Privacy Policy. By applying, you acknowledge that Reddit will collect "
+    "and process your personal information to evaluate your application for employment or an "
+    "independent contractor role, as applicable.</p>"
+)
+
+
+@pytest.mark.parametrize("title, description, raw, expected", [
+    # the prod misroute: privacy boilerplate mentions "independent contractor role"
+    ("Senior Director, Data Science", REDDIT_PRIVACY, None, (False, None)),
+    ("Senior Director, Data Science", REDDIT_PRIVACY, {"employment_type_raw": "Full-time"}, (False, "full_time")),
+    # description text never routes a company-board posting, even when it is explicit
+    ("Data Engineer", "This is a 6 month contract role, W2 $70/hr.", None, (False, None)),
+    ("Backend Engineer", "Contract-to-hire opportunity. C2C welcome.", None, (False, None)),
+    ("Software Engineer", "We hire employees and contractors worldwide.", None, (False, None)),
+    ("Recruiter", "Independent contractors are not eligible for benefits.", None, (False, None)),
+    ("Designer", "You may be engaged as an employee or independent contractor.", None, (False, None)),
+    ("Staff Engineer", "This is a full-time role with benefits.", None, (False, "full_time")),
+    # (a) structured ATS field
+    ("Data Engineer", "", {"employment_type_raw": "Contract"}, (True, "contract")),
+    ("Data Engineer", "", {"employment_type_raw": "Contract to Hire"}, (True, "contract_to_hire")),
+    ("Data Engineer", "", {"employment_type_raw": "Freelance"}, (True, "freelance")),
+    ("Data Engineer", "", {"employment_type_raw": "Temporary (Contract)"}, (True, "contract")),
+    ("Data Engineer", "", {"employment_type_raw": "Temp - W2"}, (True, "temporary")),
+    ("Data Engineer", "", {"employment_type_raw": "Temporary"}, (False, "temporary")),
+    ("Data Engineer", "", {"employment_type_raw": "Fixed Term"}, (False, "temporary")),
+    ("Data Engineer", "6 month contract", {"employment_type_raw": "FullTime"}, (False, "full_time")),
+    # (b) explicit title markers
+    ("Java Developer (Contract)", "", {"employment_type_raw": "Full-time"}, (True, "contract")),
+    ("Contractor - Data Analyst", "", None, (True, "contract")),
+    ("QA Analyst C2H", "", None, (True, "contract_to_hire")),
+    ("Contract-to-Hire Java Engineer", "", None, (True, "contract_to_hire")),
+    ("Temp Receptionist", "", None, (True, "temporary")),
+    ("Temporary Accountant", "", None, (True, "temporary")),
+    ("Freelance Copywriter", "", None, (True, "freelance")),
+    ("Real Estate Associate Agent (1099) - Boise", "", None, (True, "contract")),
+    ("Data Engineer (Contract)", "", {"employment_type_raw": "Contract to Hire"}, (True, "contract_to_hire")),
+    # not markers
+    ("Seasonal Stock & Fulfillment", "Temporary position", None, (False, "temporary")),
+    ("Contract Manager", "", None, (False, None)),
+    ("Government Contracts Analyst", "", None, (False, None)),
+    ("Frontend Engineer, Ads Campaign Manager", "employment or an independent contractor role", None, (False, None)),
+])
+def test_company_board_routing(title, description, raw, expected):
+    assert contract_routing(title, description, raw) == expected
+
+
+@pytest.mark.parametrize("text", [
+    "We evaluate your application for employment or an independent contractor role, as applicable.",
+    "Our employees and contractors enjoy flexible hours.",
+    "This policy applies to employees, interns and contractors.",
+    "Whether as an employee or independent contractor, you must comply.",
+    "Independent contractors are not eligible for the bonus program.",
+    "Contractors or employees must complete training.",
+    "Equal Opportunity Employer: contractors and applicants are considered without regard to race.",
+])
+def test_boilerplate_never_reads_as_contract(text):
+    assert employment_type_from_text(text) is None
+    # staffing text detection too
+    assert detect_employment_type("Analyst", text) is None
+
+
+def test_boilerplate_keeps_real_contract_sentences():
+    text = ("This is a 6 month contract role. We are an equal opportunity employer and evaluate applications "
+            "for employment or an independent contractor role.")
+    assert employment_type_from_text(text) == "contract"
+    assert contract_routing("Analyst", text, staffing=True) == (True, "contract")
+
+
+# ------------------------------------- "contract" as the subject of the work, not the terms
+
+@pytest.mark.parametrize("title", [
+    "Smart Contract Engineer", "Smart Contracts Developer", "Senior Smart Contract Auditor",
+    "Contract Management Specialist", "Contract Manager", "Contracts Administrator", "Contract Analyst",
+    "Contracts Systems Analyst", "Government Contracts Manager", "Contract Negotiation Lead",
+    "Contract Review Attorney", "Contract Lifecycle Manager", "CLM Contract Administrator", "CLM Developer",
+])
+@pytest.mark.parametrize("staffing", [False, True])
+def test_contract_work_titles_are_not_contract_terms(title, staffing):
+    route, et = contract_routing(title, "", None, staffing=staffing)
+    assert not route and et is None
+
+
+@pytest.mark.parametrize("title, expected", [
+    ("Smart Contract Engineer (Contract)", (True, "contract")),
+    ("Contract - Smart Contract Engineer", (True, "contract")),
+    ("Contract Manager (Contract)", (True, "contract")),
+    ("Contract Java Developer", (True, "contract")),
+    ("Contracts Systems Analyst - 6 month contract", (True, "contract")),
+])
+def test_real_contract_markers_still_route(title, expected):
+    assert contract_routing(title) == expected
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("We build smart contracts on Ethereum.", None),
+    ("This is a smart contract role on our DeFi team.", None),
+    ("Experience with contract lifecycle management (CLM) tools such as Icertis.", None),
+    ("This is a contract management position supporting government contracts.", None),
+    ("Support contract negotiation and contract review for vendor contracts.", None),
+    ("This is a 6 month contract role auditing smart contracts.", "contract"),
+])
+def test_contract_work_in_description(text, expected):
+    assert employment_type_from_text(text) == expected

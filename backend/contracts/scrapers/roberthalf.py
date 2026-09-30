@@ -28,6 +28,9 @@ class RobertHalfScraper(StaffingScraper):
     AGENCY_NAME = "Robert Half"
     LINES_OF_BUSINESS = ["RHT"]
     PAGE_SIZE = 100
+    IT_AMBIGUOUS_DEFAULT = True  # already Robert Half Technology
+    IT_CATEGORY_KEYS = ("functional_role",)
+    IT_SKILLS_KEYS = ("skills",)
 
     def _payload(self, page: int) -> dict:
         return {
@@ -40,13 +43,14 @@ class RobertHalfScraper(StaffingScraper):
         }
 
     async def fetch_raw(self) -> list:
-        raw, page = [], 1
+        raw, page, listed = [], 1, 0
         while len(raw) < self.MAX_JOBS:
             data = await self._http("POST", API_URL, json_body=self._payload(page))
             jobs = self.expect_list(data, "jobs")
-            raw.extend(jobs)
+            raw.extend(self.take_it(jobs))
+            listed += len(jobs)
             total = int(str(data.get("found") or 0) or 0)
-            if not jobs or len(raw) >= total or self.out_of_time():
+            if not jobs or listed >= total or self.out_of_time():
                 break
             page += 1
         return raw

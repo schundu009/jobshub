@@ -38,6 +38,13 @@ FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "contracts" / "sta
 PII_MARKERS = ("recruiter", "contact", "email", "phone", "owner")
 
 
+@pytest.fixture(autouse=True)
+def _parse_everything(monkeypatch):
+    """These tests cover parsing of each board, so the IT-only filter is off here;
+    it is covered by test_staffing_it_filter.py."""
+    monkeypatch.setattr(StaffingScraper, "IT_ONLY", False)
+
+
 def responses(slug):
     return json.loads((FIXTURES / f"{slug}.json").read_text())["responses"]
 
@@ -208,6 +215,8 @@ def test_teksystems_phenom():
     widget = calls[1]
     assert widget["url"] == "https://careers.teksystems.com/widgets"
     assert widget["json_body"]["refNum"] == "TESYUS" and widget["json_body"]["ddoKey"] == "refineSearch"
+    cats = widget["json_body"]["selected_fields"]["category"]
+    assert "Developer" in cats and "Customer Service" not in cats
     assert all(j.job_url.startswith("https://careers.teksystems.com/us/en/job/JP-") for j in jobs)
     assert {j.employment_type_raw for j in jobs} <= {"Contractor", "Full-time", "Contract to Hire", "Permanent"}
     assert any(j.extra.get("skills") for j in jobs)

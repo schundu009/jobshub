@@ -29,6 +29,9 @@ class JobotScraper(StaffingScraper):
     AGENCY_NAME = "Jobot"
     PAGE_SIZE = 100
     POSITION_TYPE = "consulting"
+    # Jobot's "industry" facet is the employer's industry (finance, legal, ...),
+    # not the job's function, so it is not used; titles decide.
+    IT_SKILLS_KEYS = ("skills",)
 
     async def fetch_raw(self) -> list:
         raw, offset, seen = [], 0, set()
@@ -39,7 +42,7 @@ class JobotScraper(StaffingScraper):
             docs = self.expect_list(data, "documents")
             fresh = [d for d in docs if d.get("id") not in seen]
             seen.update(d.get("id") for d in fresh)
-            raw.extend(fresh)
+            raw.extend(self.take_it(fresh))
             total = (((data.get("hits") or {}).get("total")) or {}).get("value") or 0
             offset += len(docs)
             if not fresh or offset >= total or self.out_of_time():

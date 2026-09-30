@@ -28,11 +28,12 @@ class YohScraper(StaffingScraper):
         request_timeout=60,  # one ~3 MB response
     )
     AGENCY_NAME = "Yoh"
+    IT_CATEGORY_KEYS = ("category",)
 
     async def fetch_raw(self) -> list:
         data = await self._http("GET", FEED_URL)
         rows = self.expect_list(data)
-        return [r.get("data") if isinstance(r, dict) and "data" in r else r for r in rows]
+        return self.take_it([r.get("data") if isinstance(r, dict) and "data" in r else r for r in rows])
 
     def parse_job(self, raw: dict):
         if not isinstance(raw, dict):

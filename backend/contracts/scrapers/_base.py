@@ -9,7 +9,11 @@ Every agency scraper subclasses StaffingScraper, which adds to HTTPScraper:
   most recent ones are kept) so a run fits inside the HTTP task's time limit;
 - ``make_job`` to build a ScrapedJob with the contract fields
   (employment_type_raw, pay_rate_min/max, pay_period, extra) filled in;
-- helpers for US-location checks and pay-text parsing.
+- helpers for US-location checks and pay-text parsing;
+- IT-only: every listing page goes through ``take_it`` (services.it_roles on the
+  title, with the board's own category / skills as tie-breakers) before it is
+  kept, so MAX_JOBS counts IT postings and paging continues past non-IT ones.
+  Agencies whose API has a category filter also request only IT categories.
 
 All network I/O goes through ``_http`` so offline tests can replace it.
 
@@ -26,6 +30,7 @@ from typing import Any, Iterable, Optional
 from urllib.parse import urlparse
 
 from scrapers.base import HTTPScraper, ScrapedJob, ScrapeResult
+from services.it_roles import is_it_role
 
 STAFFING_CATEGORY = "staffing"
 
@@ -154,6 +159,28 @@ def parse_iso(value: Any) -> Optional[datetime]:
     return dt
 
 
+_LD_JSON_RE = re.compile(r'<script[^>]+type="application/ld\+json"[^>]*>(.*?)</script>', re.S | re.I)
+
+
+def jsonld_job_description(html: Optional[str]) -> Optional[str]:
+    """The schema.org JobPosting description (HTML) embedded in a posting page, or None."""
+    import html as _html
+    import json
+    for block in _LD_JSON_RE.findall(html or ""):
+        try:
+            data = json.loads(block.strip())
+        except ValueError:
+            continue
+        items = data if isinstance(data, list) else (data.get("@graph") or [data]) if isinstance(data, dict) else []
+        for item in items:
+            if isinstance(item, dict) and item.get("@type") == "JobPosting" and item.get("description"):
+                desc = _html.unescape(str(item["description"]))
+                if "&lt;" in desc or "&#" in desc:
+                    desc = _html.unescape(desc)
+                return desc.strip() or None
+    return None
+
+
 def slugify(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
 
@@ -178,12 +205,78 @@ class StaffingScraper(HTTPScraper):
     AGENCY_NAME: str = ""
     MIN_INTERVAL = 1.0  # seconds between requests to the same host
     TIME_BUDGET_SECONDS = 60  # + one in-flight request stays well under 75s
-    MAX_JOBS = 2000
+    MAX_JOBS = 2000  # IT postings kept per run
+
+    # IT-only filter (services.it_roles). IT_AMBIGUOUS_DEFAULT decides titles
+    # it_roles cannot settle ("Consultant", "Specialist") - True for boards whose
+    # listing is already restricted to a technology category.
+    IT_ONLY = True
+    IT_AMBIGUOUS_DEFAULT = False
+    # Keys read by the default it_view(); override it_view() for nested shapes.
+    IT_TITLE_KEYS: tuple = ("title", "jobTitle", "jobtitle", "Title", "jobName")
+    IT_CATEGORY_KEYS: tuple = ()
+    IT_SKILLS_KEYS: tuple = ()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._last_hit: dict[str, float] = {}
         self._deadline: Optional[float] = None
+        self.it_listed = 0  # postings seen in listing responses
+        self.it_dropped = 0  # of those, dropped as non-IT
+
+    # ------------------------------------------------------------ IT filter --
+
+    @staticmethod
+    def _text(value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            value = value.get("description") or value.get("name") or value.get("title") or value.get("value")
+        if isinstance(value, (list, tuple)):
+            value = " ".join(t for t in (StaffingScraper._text(v) for v in value) if t)
+        value = str(value).strip() if value is not None else ""
+        return value or None
+
+    @staticmethod
+    def _skills(value: Any) -> list:
+        if not value:
+            return []
+        if isinstance(value, str):
+            return [s.strip() for s in re.split(r"[,;|]", value) if s.strip()]
+        out = []
+        for v in value if isinstance(value, (list, tuple)) else [value]:
+            t = StaffingScraper._text(v)
+            if t:
+                out.append(t)
+        return out
+
+    def it_view(self, raw: Any) -> dict:
+        """title / category / department / skills of one listing entry, for it_roles."""
+        if not isinstance(raw, dict):
+            return {"title": None}
+        title = next((raw.get(k) for k in self.IT_TITLE_KEYS if raw.get(k)), None)
+        category = " ".join(t for t in (self._text(raw.get(k)) for k in self.IT_CATEGORY_KEYS) if t) or None
+        skills: list = []
+        for k in self.IT_SKILLS_KEYS:
+            skills.extend(self._skills(raw.get(k)))
+        return {"title": title, "category": category, "skills": skills or None}
+
+    def is_it_posting(self, raw: Any) -> bool:
+        view = self.it_view(raw)
+        if not view.get("title"):
+            return True  # parse_job drops untitled rows anyway
+        return is_it_role(view.get("title"), category=view.get("category"), department=view.get("department"),
+                          skills=view.get("skills"), ambiguous_default=self.IT_AMBIGUOUS_DEFAULT)
+
+    def take_it(self, items: Iterable) -> list:
+        """Filter one listing page to IT postings (counted in it_listed / it_dropped)."""
+        items = list(items or [])
+        self.it_listed += len(items)
+        if not self.IT_ONLY:
+            return items
+        kept = [r for r in items if self.is_it_posting(r)]
+        self.it_dropped += len(items) - len(kept)
+        return kept
 
     # ------------------------------------------------------------ network --
 
@@ -243,8 +336,12 @@ class StaffingScraper(HTTPScraper):
 
     async def scrape(self) -> ScrapeResult:
         self.start_clock()
+        self.it_listed = self.it_dropped = 0
         raw = await self.fetch_raw()
         jobs = self.finalize(self.parse_all(raw))
+        if self.it_listed:
+            self.logger.info(f"{self.config.company_slug}: {self.it_listed} listed, "
+                             f"{self.it_dropped} non-IT dropped, {len(jobs)} kept")
         return ScrapeResult(success=True, jobs=jobs, jobs_found=len(jobs))
 
     def finalize(self, jobs: Iterable[ScrapedJob]) -> list[ScrapedJob]:

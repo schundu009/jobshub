@@ -126,6 +126,7 @@ class ContractSaveResult:
     skipped_old: int = 0
     skipped_invalid: int = 0
     skipped_not_contract: int = 0
+    skipped_non_it: int = 0
     duplicates: int = 0
     errors: int = 0
     expired: int = 0
@@ -137,6 +138,29 @@ class ContractSaveResult:
 
     def as_dict(self) -> dict:
         return dict(self.__dict__)
+
+
+CONFIDENT_NON_IT = ("title_out", "qualifier_out", "context_out")
+
+
+def is_it_posting(scraped) -> bool:
+    """
+    Safety net behind the agencies' own IT category filters: False only for a
+    confident non-IT decision by services.it_roles (reason title_out /
+    qualifier_out / context_out). Lean-out and undecided titles are kept.
+    """
+    from services.it_roles import classify_it
+    extra = getattr(scraped, "extra", None) or {}
+    extra = extra if isinstance(extra, dict) else {}
+    category = extra.get("category") or extra.get("industry")
+    skills = extra.get("skills")
+    try:
+        d = classify_it(scraped.title, category=category if isinstance(category, str) else None,
+                        department=getattr(scraped, "department", None),
+                        skills=skills if isinstance(skills, (list, tuple)) else None)
+    except Exception:  # pragma: no cover - never drop a row on a classifier bug
+        return True
+    return not (d.is_it is False and d.reason in CONFIDENT_NON_IT)
 
 
 def classify_scraped(scraped, default_type: Optional[str] = "contract") -> dict:
@@ -158,6 +182,7 @@ def save_contract_jobs(
     commit: bool = True,
     now: Optional[datetime] = None,
     classified: Optional[dict] = None,
+    it_only: bool = True,
 ) -> ContractSaveResult:
     """
     Upsert contract postings for one source.
@@ -166,6 +191,9 @@ def save_contract_jobs(
     already classified (the full-time bridge), to avoid doing it twice.
     Staffing postings the classifier calls full-time/part-time/internship
     ("Direct Hire", "Permanent") are skipped (skipped_not_contract).
+    With ``it_only`` (default) non-IT roles are skipped (skipped_non_it) - a
+    safety net behind the staffing scrapers' own IT category filters: only
+    confident non-IT titles are dropped (see is_it_posting).
     """
     stats = ContractSaveResult()
     if not jobs:
@@ -187,6 +215,9 @@ def save_contract_jobs(
                 stats.duplicates += 1
                 continue
             seen.add(ext)
+            if it_only and not is_it_posting(scraped):
+                stats.skipped_non_it += 1
+                continue
             fields = classified.get(id(scraped)) or classify_scraped(
                 scraped, default_type="contract" if source_type == "staffing" else None)
             if fields.get("employment_type") not in CONTRACT_TYPES:

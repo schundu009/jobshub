@@ -9,6 +9,11 @@ requests) and the most recent MAX_JOBS postings are kept.
 
 The listing has the job type ("Contractor", "Contract to Hire", "Permanent",
 ...) and a teaser that usually states the rate ("Compensation: $80-$85/hr W2").
+
+IT only: the widgets call takes ``selected_fields: {"category": [...]}`` (the
+site's own category facet), so only IT categories are requested (API_CATEGORIES),
+and every page is then filtered with services.it_roles (StaffingScraper.take_it)
+using the Phenom category as the tie-breaker.
 Verified 2026-09-29.
 """
 
@@ -49,6 +54,16 @@ class AllegisPhenomScraper(StaffingScraper):
     FETCH_LIMIT = 10000  # Elasticsearch result window
     # Optional allowlist of Phenom "category" values (None = keep all).
     CATEGORIES: Optional[set] = None
+    # Categories requested from the API (the site's facet filter); None = all.
+    API_CATEGORIES: Optional[list] = None
+    IT_CATEGORY_KEYS = ("category", "subCategory")
+    IT_SKILLS_KEYS = ("ml_skills",)
+
+    def _payload(self, settings: dict, offset: int, size: int) -> dict:
+        payload = PhenomMixin._widget_payload(self, settings, offset, size)
+        if self.API_CATEGORIES:
+            payload["selected_fields"] = {"category": list(self.API_CATEGORIES)}
+        return payload
 
     def _host(self) -> str:
         u = urlparse(self.SITE_URL)
@@ -60,14 +75,16 @@ class AllegisPhenomScraper(StaffingScraper):
         if not all(settings.values()):
             # Fall back to the jobs embedded in the page itself.
             first, _ = PhenomMixin._unpack(parse_phenom_ddo(html).get("eagerLoadRefineSearch"))
-            return first
+            if self.API_CATEGORIES:
+                first = [j for j in first if j.get("category") in self.API_CATEGORIES]
+            return self.take_it(first)
 
         raw, offset, total = [], 0, None
         while offset < self.FETCH_LIMIT:
             size = self.PAGE_SIZE if total is None else min(self.PAGE_SIZE, total - offset)
             if size <= 0:
                 break
-            payload = PhenomMixin._widget_payload(self, settings, offset, size)
+            payload = self._payload(settings, offset, size)
             data = await self._http("POST", f"{self._host()}/widgets", json_body=payload)
             search = data.get("refineSearch") if isinstance(data, dict) else None
             if offset == 0:
@@ -76,7 +93,7 @@ class AllegisPhenomScraper(StaffingScraper):
                 jobs = ((search or {}).get("data") or {}).get("jobs") or []
             if not jobs:
                 break
-            raw.extend(jobs)
+            raw.extend(self.take_it(jobs))
             offset += len(jobs)
             if (total is not None and offset >= total) or self.out_of_time():
                 break
@@ -133,6 +150,13 @@ class TEKsystemsScraper(AllegisPhenomScraper):
     )
     AGENCY_NAME = "TEKsystems"
     SITE_URL = "https://careers.teksystems.com/us/en"
+    # Every TEKsystems category except "Customer Service" (call-center work);
+    # "Other" and "Telecom Technician" are mixed and settled per title.
+    API_CATEGORIES = [
+        "Helpdesk/Desktop", "Developer", "Systems Administrator/Engineer", "Network Engineer",
+        "Business/Systems Analyst", "Project Manager", "Architect", "Security Analyst/Engineer",
+        "Database Administrator", "Tester", "Telecom Technician", "Other",
+    ]
 
 
 @ScraperRegistry.register(category=STAFFING_CATEGORY)
@@ -163,11 +187,8 @@ class ActalentScraper(AllegisPhenomScraper):
     )
     AGENCY_NAME = "Actalent"
     SITE_URL = "https://careers.actalentservices.com/us/en"
-    # Engineering & software only; skips Health & Medical, Clinical,
-    # Laboratory & Sciences and Construction Management.
-    CATEGORIES = {
-        "Systems & Software",
-        "Manufacturing, Mechanical, & Electrical",
-        "Transmission, Distribution, & Power",
-        "Architecture, Environmental, & Civil",
-    }
+    # Software/IT, plus Manufacturing/Mechanical/Electrical for the embedded /
+    # electronics roles in it (the per-title IT filter drops the rest). Power,
+    # civil, construction, lab, clinical and medical categories are not requested.
+    API_CATEGORIES = ["Systems & Software", "Manufacturing, Mechanical, & Electrical"]
+    CATEGORIES = set(API_CATEGORIES)
