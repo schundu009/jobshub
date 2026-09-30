@@ -14,6 +14,9 @@ from .base import ApifyScraper, ApifyScraperConfig
 logger = logging.getLogger(__name__)
 
 
+# DISABLED (2026-09-29): not worth it - mostly duplicates of jobs scraped from
+# company ATS boards, apply links go to LinkedIn (no Auto Apply), needs a paid
+# Apify actor rental, and it never succeeded in production.
 @ScraperRegistry.register(category="apify")
 class LinkedInJobsScraper(ApifyScraper):
     """
@@ -28,6 +31,8 @@ class LinkedInJobsScraper(ApifyScraper):
         company_name="LinkedIn Jobs",
         careers_url="https://www.linkedin.com/jobs",
         scraper_type=ScraperType.HTTP,
+        enabled=False,
+        disabled_reason="Retired 2026-09-29: duplicates ATS-scraped jobs, links to LinkedIn (no Auto Apply), paid Apify actor",
         actor_key="linkedin_jobs",
         default_search_queries=[
             "software engineer",

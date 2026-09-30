@@ -352,12 +352,9 @@ def scrape_all_apify():
         logger.exception(f"Indeed scrape failed: {e}")
         results["indeed"] = {"status": "error", "error": str(e)}
 
-    # Run LinkedIn scraper (may fail if not subscribed)
-    try:
-        results["linkedin"] = scrape_apify_linkedin()
-    except Exception as e:
-        logger.exception(f"LinkedIn scrape failed: {e}")
-        results["linkedin"] = {"status": "error", "error": str(e)}
+    # LinkedIn retired 2026-09-29 (see scrapers/apify/linkedin.py): duplicates of
+    # ATS-scraped jobs behind a paid Apify actor. scrape_apify_linkedin stays for
+    # manual runs only.
 
     logger.info(f"Apify scrape-all completed: {results}")
     return results
