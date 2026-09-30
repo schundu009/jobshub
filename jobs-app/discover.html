@@ -2156,6 +2156,29 @@
             overflow: hidden;
         }
 
+        /* Selection column: the 16px cell padding left ~13px for a 16px checkbox,
+           so it was clipped. No padding, checkbox centred. */
+        .ag-theme-alpine .ag-cell.select-cell,
+        .ag-theme-alpine .ag-header-cell.select-header {
+            padding: 0 !important;
+            justify-content: center;
+        }
+        .ag-theme-alpine .select-cell .ag-cell-wrapper {
+            justify-content: center;
+            width: 100%;
+        }
+        /* Empty value / header label take space next to the checkbox and push it left. */
+        .ag-theme-alpine .select-cell .ag-cell-value,
+        .ag-theme-alpine .select-header .ag-header-cell-comp-wrapper {
+            display: none !important;
+        }
+        .ag-theme-alpine .select-cell .ag-selection-checkbox {
+            margin: 0 !important;
+        }
+        .ag-theme-alpine .select-header .ag-header-select-all {
+            margin: 0 auto !important;
+        }
+
         /* Ensure cell renderer content stays within cell bounds */
         .ag-theme-alpine .ag-cell > * {
             width: 100%;
@@ -3856,8 +3879,10 @@
             {
                 headerCheckboxSelection: true,
                 checkboxSelection: true,
-                width: 45,
-                maxWidth: 45,
+                width: 48,
+                maxWidth: 48,
+                cellClass: 'select-cell',
+                headerClass: 'select-header',
                 headerCheckboxSelectionFilteredOnly: true,
                 suppressSizeToFit: true,
                 lockPosition: true,
