@@ -394,7 +394,6 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
                  r"(?:analyst|engineer|specialist|architect|administrator|consultant)s?"),
     ("software", r"forward deployed (?:software )?engineers?"),
     ("tech_writing", r"tech writers?|technical writers?"),
-    ("software", r"technical account (?:manager|lead|director|executive)s?"),  # TAM: technical, customer-facing (user decision 2026-09-30)
     ("design_ux", r"design systems? (?:designer|engineer|lead|manager|architect)s?"),
     ("software", r"(?:solutions?|technical|cloud|software|saas|security|data|network|platform) sales engineers?|"
                  r"(?:technical|technology|software|it|data|cyber ?security|developer) interns?|"
@@ -406,6 +405,46 @@ _STRONG_IN = [(cat, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])")) fo
 # Patterns whose qualifier often sits in a later segment ("Product Manager,
 # Developer Experience", "Warehouse Mgmt. Systems (WMS) Analyst") also run on the full title.
 _STRONG_IN_FULL = [_STRONG_IN[2], _STRONG_IN[-1]]
+
+
+# Technical Account Managers are IT only with tech context (user decision
+# 2026-09-30): a tech area / vendor in the title, else the department decides.
+_TAM = re.compile(r"(?<![a-z0-9])(?:technical account (?:manager|lead|director|executive)s?|tams?)(?![a-z0-9])")
+_TAM_TECH = re.compile(r"(?<![a-z0-9])(?:cloud|software|saas|platform|data|security|cyber|network|networking|infrastructure|"
+                       r"it|api|apis|enterprise software|developer|devops|observability|database|analytics|ai|ml|"
+                       r"aws|amazon web services|azure|gcp|google cloud|salesforce|servicenow|service now|sap|oracle|"
+                       r"microsoft|datadog|snowflake|confluent|databricks|mongodb|elastic|splunk|okta|cisco|vmware|"
+                       r"red hat|redhat|atlassian|github|gitlab|hashicorp|cloudflare|twilio|zscaler|palo alto|crowdstrike)(?![a-z0-9])")
+
+
+# Departments that make a context-free TAM technical.
+_TAM_DEPT = re.compile(r"(?<![a-z0-9])(?:engineering|it|information technology|technology|tech|customer success|customer support|"
+                       r"technical support|support|professional services|solutions?|services|cloud|product)(?![a-z0-9])")
+
+
+_TAM_NEUTRAL = frozenset("""senior sr junior jr lead principal staff associate chief head group global regional strategic key
+    enterprise named major mid market midmarket smb commercial public sector federal m f x d w h all genders i ii iii iv v vi
+    level l1 l2 l3 l4 l5 remote hybrid onsite on site full time part time contract temporary fixed term
+    us usa uk emea apac apj amer americas na latam anz dach nordics east west north south central
+    new york london singapore sydney tokyo berlin paris toronto dublin austin seattle chicago san francisco
+    a an the and of for in to with at team""".split())
+
+
+def _tam_verdict(full: str) -> Optional[tuple]:
+    """None when the title isn't a TAM; else a _decide_title result."""
+    m = _TAM.search(full)
+    if not m:
+        return None
+    rest = full[:m.start()] + " " + full[m.end():]
+    if _TAM_TECH.search(rest):
+        return True, "software", "title", None
+    if _NON_IT_QUALIFIER.search(rest):
+        return False, None, "qualifier_out", None
+    # Any other topic word without a tech one ("- Cranes", "- Life Science") means
+    # a non-tech product domain; seniority / level / region words don't count.
+    if any(w not in _TAM_NEUTRAL and not w.isdigit() for w in rest.split()):
+        return False, None, "qualifier_out", None
+    return None, "software", "ambiguous", None  # no lean: department / board context decides
 
 
 def _strong_in(primary: str, full: str) -> Optional[str]:
@@ -572,6 +611,9 @@ def _decide_title(title: str) -> tuple[Optional[bool], Optional[str], str, Optio
     if not full.strip():
         return None, None, "no_match", None
     primary = _norm(_SEGMENT_SPLIT.split(str(title), maxsplit=1)[0])
+    tam = _tam_verdict(full)
+    if tam is not None:
+        return tam
     strong = _strong_in(primary if primary.strip() else full, full)
     if strong:
         return True, strong, "title", None
@@ -620,6 +662,10 @@ def classify_it(title: Optional[str], category: Optional[str] = None, department
     if is_it is not None:
         return ItDecision(is_it, cat, reason)
     # Undecided title (ambiguous word or no role phrase): board category, department, skills.
+    if _TAM.search(_norm(title or "")):
+        ctx = " ".join(str(c) for c in (category, department) if c)
+        if ctx and _TAM_DEPT.search(_norm(ctx)) and not _NON_IT_CONTEXT.search(_norm(ctx)):
+            return ItDecision(True, "software", "context")
     for ctx in (category, department):
         v = _ctx_verdict(ctx)
         if v is True:

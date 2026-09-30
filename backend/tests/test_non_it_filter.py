@@ -105,3 +105,18 @@ def test_reactivate_revives_only_recent_save_filter_false_negatives(db):
     assert db.query(Job).filter(Job.is_active == True).count() == 0  # noqa: E712
     assert reactivate(db, since, apply=True)["reactivated"] == 1
     assert [j.title for j in db.query(Job).filter(Job.is_active == True)] == [rows["fn"].title]  # noqa: E712
+
+
+@pytest.mark.parametrize("title,department,expected", [
+    ("Technical Account Manager", "Engineering", True),
+    ("Technical Account Manager", "Customer Success", True),
+    ("TAM 3", "Solutions", True),
+    ("Technical Account Manager", None, False),                       # no tech context
+    ("Technical Account Manager", "Sales", False),
+    ("Technical Account Manager - Cranes", "Engineering", False),     # non-tech product domain
+    ("Technical Account Manager - Projects & Life Science (m/f/x)", "Customer Success", False),
+    ("Senior TAM - Datadog", None, True),                             # tech vendor in title
+])
+def test_technical_account_manager_needs_tech_context(title, department, expected):
+    from services.it_roles import is_it_role
+    assert is_it_role(title, department=department) is expected

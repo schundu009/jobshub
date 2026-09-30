@@ -666,8 +666,18 @@ OUT	Security Specialist II	curated
 OUT	Risk & Compliance Analyst	curated
 OUT	Finance Analyst/Accounting	curated
 OUT	Store Associate/Cashier	curated
-# 2026-09-30: user decision: TAM is a tech role
-IN	Technical Account Manager	user
-IN	Senior Technical Account Manager, Enterprise	user
+# 2026-09-30: user decision: only IT TAMs (tech area/vendor in title, or tech department)
+IN	Cloud Technical Account Manager	user
+IN	Technical Account Manager - AWS	user
+IN	Senior Technical Account Manager, Salesforce	user
+IN	Technical Account Manager, SaaS Platform	user
+IN	Senior TAM - Datadog	user
+OUT	Technical Account Manager - Cranes	user
+OUT	Technical Account Manager - Projects & Life Science (m/f/x)	user
+OUT	Technical Account Manager - Vertical Sales	user
+OUT	Technical Account Manager - Industrial Automation	user
+OUT	Technical Account Manager, Medical Devices	user
+OUT	Technical Account Manager	user
+OUT	TAM 80-100%	user
 OUT	Account Manager	curated
 OUT	Key Account Manager	curated
