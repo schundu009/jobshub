@@ -15,7 +15,6 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
-            display: flex;
             min-height: 100vh;
         }
 
@@ -2045,6 +2044,7 @@
                 currentJob = await apiRequestWithTimeout(`/jobs/${encodeURIComponent(jobId)}`);
                 if (currentJob) {
                     renderJobDetail(currentJob);
+                    fetchMissingDescription(currentJob);
                 }
             } catch (error) {
                 console.error('Failed to load job:', error);
@@ -2056,6 +2056,28 @@
                     </div>
                 `;
             }
+        }
+
+        // Scraped jobs often arrive without a description (e.g. Workday's list API
+        // has none); fetch it from the ATS once, on open, then re-render.
+        let descriptionFetchTried = false;
+        async function fetchMissingDescription(job) {
+            const text = String(job.job_description || '').trim();
+            if (descriptionFetchTried || !job.job_url || (text && !/^No description/i.test(text))) return;
+            descriptionFetchTried = true;
+            const body = document.querySelector('.desc-card-body');
+            if (body) body.innerHTML = '<div class="desc-empty"><span>Fetching the description from the job posting…</span></div>';
+            try {
+                const res = await apiRequest(`/ingest/refetch-description/${encodeURIComponent(job.id)}`, 'POST');
+                if (res && res.new_description_length) {
+                    currentJob = await apiRequestWithTimeout(`/jobs/${encodeURIComponent(job.id)}`);
+                    if (currentJob) renderJobDetail(currentJob);
+                    return;
+                }
+            } catch (e) {
+                console.warn('Description fetch failed:', e);
+            }
+            if (body) body.innerHTML = formatJobDescription('');
         }
 
         function getSourceBadge(source) {
