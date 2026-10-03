@@ -571,6 +571,16 @@ def scrape_all_companies(force: bool = False) -> dict:
                 else:
                     browser_tasks.append(scrape_company_browser.s(slug))
 
+            # Companies added as data (job_boards rows) run like any HTTP scraper.
+            for slug in ScraperRegistry.list_board_slugs():
+                try:
+                    if not is_scraper_enabled(db, slug):
+                        logger.info(f"Skipping disabled board: {slug}")
+                        continue
+                except Exception as e:
+                    logger.warning(f"Error checking board {slug}, including it anyway: {e}")
+                http_tasks.append(scrape_company_http.s(slug))
+
             # Dispatch, staggered DISPATCH_STAGGER_SECONDS apart so ~250 tasks
             # don't all sit unacked on the broker at once.
             _dispatch_staggered(http_tasks, "scrapers_http")

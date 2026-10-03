@@ -15,6 +15,7 @@ Security features:
 
 import logging
 import os
+import re
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional
@@ -25,7 +26,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import ScraperRun, ScraperConfigDB, User
+from models import JobBoard, ScraperRun, ScraperConfigDB, User
 from scrapers.registry import ScraperRegistry, list_all_scrapers
 from services.scraper_service import get_scraper_stats, get_all_scraper_stats
 from services.redis_service import redis_service
@@ -96,8 +97,7 @@ class ConfigUpdate(BaseModel):
     config_overrides: Optional[dict] = None
 
 
-class CustomCompanyRequest(BaseModel):
-    company_name: str = Field(..., min_length=2, max_length=255)
+class DetectBoardRequest(BaseModel):
     careers_url: str = Field(..., min_length=10, max_length=500)
 
     @field_validator('careers_url')
@@ -107,6 +107,10 @@ class CustomCompanyRequest(BaseModel):
         if not is_valid:
             raise ValueError(error)
         return v
+
+
+class CustomCompanyRequest(DetectBoardRequest):
+    company_name: str = Field(..., min_length=2, max_length=255)
 
 
 class CustomCompanyResponse(BaseModel):
@@ -209,7 +213,7 @@ def get_all_status(
     if cached is not None:
         return cached
 
-    slugs = ScraperRegistry.list_slugs()
+    slugs = ScraperRegistry.list_slugs() + ScraperRegistry.list_board_slugs()
     statuses = [
         ScraperStatus(**stats).model_dump()
         for stats in get_all_scraper_stats(db, slugs)
@@ -340,7 +344,7 @@ def _warning_slugs(db: Session) -> list[str]:
     cutoff = datetime.utcnow() - timedelta(days=7)
     configs = {c.company_slug: c for c in db.query(ScraperConfigDB).all()}
     warning = []
-    for slug in ScraperRegistry.list_slugs():
+    for slug in ScraperRegistry.list_slugs() + ScraperRegistry.list_board_slugs():
         config = configs.get(slug)
         if config is None:
             warning.append(slug)
@@ -506,26 +510,29 @@ def disable_scraper(
 
 @router.post("/custom/detect", response_model=DetectBoardResponse)
 async def detect_job_board(
-    request: CustomCompanyRequest,
+    request: DetectBoardRequest,
     current_user: User = Depends(get_current_admin)
 ):
     """
-    Detect the job board type from a careers URL.
-
-    Probes the URL to determine if it's Workday, Greenhouse, Lever, Ashby, etc.
-    Returns job count if the API is valid.
+    Detect the ATS board behind a careers URL (services.ats_detect): Greenhouse,
+    Lever, Ashby, SmartRecruiters or Workday, confirmed by its API listing jobs.
     """
-    from services.scraper_generator import scraper_generator
+    from services import ats_detect
 
-    board_type, api_info = await scraper_generator.detect_and_validate(request.careers_url)
-
+    found = await run_in_threadpool(ats_detect.detect, request.careers_url)
+    if not found:
+        return DetectBoardResponse(
+            board_type="unknown", valid=False, job_count=0, api_url=None,
+            error="No Greenhouse, Lever, Ashby, SmartRecruiters or Workday board with jobs found",
+        )
     return DetectBoardResponse(
-        board_type=board_type,
-        valid=api_info.get('valid', False),
-        job_count=api_info.get('job_count', 0),
-        api_url=api_info.get('api_url'),
-        error=api_info.get('error'),
+        board_type=found["ats"], valid=True, job_count=found["job_count"],
+        api_url=found["api_url"], error=None,
     )
+
+
+def _board_slug(company_name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", company_name.lower())
 
 
 @router.post("/custom/add", response_model=CustomCompanyResponse)
@@ -535,78 +542,60 @@ async def add_custom_company(
     db: Session = Depends(get_db)
 ):
     """
-    Add a custom company by detecting its job board and generating a scraper.
+    Add a company as data: detect its ATS board and save a job_boards row.
+    The registry builds its scraper from the row (scrapers.board_scraper), so
+    it survives redeploys and every worker sees it.
 
-    1. Detects the job board type (Workday, Greenhouse, Lever, Ashby)
-    2. Validates the API endpoint works
-    3. Generates scraper code
-    4. Registers the scraper
-    5. Triggers initial scrape
-
-    Returns the company slug and initial job count.
+    400 when no supported board with jobs is found; 409 when the slug, or the
+    board itself, already has a scraper. Queues a first scrape.
     """
-    from services.scraper_generator import scraper_generator
-    import re
+    from services import ats_detect
 
-    # Validate company name
-    if not request.company_name or len(request.company_name) < 2:
-        raise HTTPException(status_code=400, detail="Company name must be at least 2 characters")
+    company_name = request.company_name.strip()
+    slug = _board_slug(company_name)
+    if not slug or not slug[0].isalpha():
+        raise HTTPException(status_code=400, detail="Company name must start with a letter")
+    if ScraperRegistry.has_coded(slug) or db.query(JobBoard).filter(JobBoard.slug == slug).first():
+        raise HTTPException(status_code=409, detail=f"Scraper for '{slug}' already exists")
 
-    # Check if slug already exists
-    slug = re.sub(r'[^a-z0-9]+', '', request.company_name.lower())
-    if ScraperRegistry.get(slug):
-        raise HTTPException(status_code=400, detail=f"Scraper for '{slug}' already exists")
-
-    # Detect and validate
-    board_type, api_info = await scraper_generator.detect_and_validate(request.careers_url)
-
-    if board_type == 'unknown':
+    found = await run_in_threadpool(ats_detect.detect, request.careers_url)
+    if not found:
         raise HTTPException(
             status_code=400,
-            detail=f"Could not detect job board type. Supported: Workday, Greenhouse, Lever, Ashby. Error: {api_info.get('error', 'Unknown')}"
+            detail="Could not detect a job board with jobs. Supported: Greenhouse, Lever, Ashby, SmartRecruiters, Workday",
         )
 
-    if not api_info.get('valid'):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Could not validate API endpoint. Error: {api_info.get('error', 'API returned no jobs')}"
-        )
+    # The same board under another name would be scraped twice.
+    duplicate = db.query(JobBoard).filter(JobBoard.ats == found["ats"], JobBoard.board == found["board"]).first()
+    owner = duplicate.slug if duplicate else next(
+        (s for s, cls in ScraperRegistry.get_all().items() if getattr(cls, "API_URL", None) == found["api_url"]),
+        None,
+    )
+    if owner:
+        raise HTTPException(status_code=409, detail=f"This board is already scraped as '{owner}'")
 
-    # Generate scraper
-    try:
-        slug, file_path = scraper_generator.generate_scraper(
-            company_name=request.company_name,
-            careers_url=request.careers_url,
-            board_type=board_type,
-            api_info=api_info,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate scraper: {str(e)}")
+    db.add(JobBoard(
+        company_name=company_name, slug=slug, ats=found["ats"], board=found["board"],
+        careers_url=request.careers_url, enabled=True,
+    ))
+    db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
 
-    # Reload scrapers to pick up new one
-    scraper_generator.reload_scrapers()
-
-    # Verify it's registered
-    if not ScraperRegistry.get(slug):
-        raise HTTPException(status_code=500, detail="Scraper generated but failed to register")
-
-    # Trigger initial scrape
     task_id = None
     try:
         from tasks.scraper_tasks import scrape_company_http
-        task = scrape_company_http.delay(slug)
-        task_id = task.id
+        task_id = scrape_company_http.apply_async(args=[slug], queue="scrapers_http").id
     except Exception as e:
-        # Non-fatal - scraper was created, just couldn't trigger initial run
-        pass
+        # Non-fatal: the board is saved and the next scheduled run picks it up.
+        logger.warning(f"Could not queue the first scrape of {slug}: {e}")
 
     return CustomCompanyResponse(
         status="success",
         slug=slug,
-        company_name=request.company_name,
-        board_type=board_type,
-        job_count=api_info.get('job_count', 0),
-        message=f"Scraper created for {request.company_name} ({board_type}). Found {api_info.get('job_count', 0)} jobs.",
+        company_name=company_name,
+        board_type=found["ats"],
+        job_count=found["job_count"],
+        message=f"Board added for {company_name} ({found['ats']}). Found {found['job_count']} jobs.",
         task_id=task_id,
     )
 
@@ -618,27 +607,16 @@ def delete_custom_scraper(
     db: Session = Depends(get_db)
 ):
     """
-    Delete a custom scraper.
-
-    Only allows deleting scrapers in the 'custom' category.
+    Delete a company added from the admin (its job_boards row) and its run
+    history. Coded scrapers can't be deleted here.
     """
-    import os
-
-    metadata = ScraperRegistry.get_metadata(company_slug)
-    if not metadata:
+    board = db.query(JobBoard).filter(JobBoard.slug == company_slug).first()
+    if not board:
+        if ScraperRegistry.has_coded(company_slug):
+            raise HTTPException(status_code=400, detail="Only companies added from the admin can be deleted")
         raise HTTPException(status_code=404, detail="Scraper not found")
 
-    if metadata.get('category') != 'custom':
-        raise HTTPException(status_code=400, detail="Can only delete custom scrapers")
-
-    # Delete the scraper file
-    scrapers_dir = os.path.dirname(os.path.dirname(__file__)) + '/scrapers/custom'
-    file_path = os.path.join(scrapers_dir, f"{company_slug}.py")
-
-    if os.path.exists(file_path):
-        os.remove(file_path)
-
-    # Delete from database
+    db.delete(board)
     db.query(ScraperRun).filter(ScraperRun.company_slug == company_slug).delete()
     db.query(ScraperConfigDB).filter(ScraperConfigDB.company_slug == company_slug).delete()
     db.commit()

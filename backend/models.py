@@ -491,6 +491,27 @@ class ScraperConfigDB(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
+class JobBoard(Base):
+    """
+    A company's public ATS board, scraped without a Python file: the registry
+    builds a scraper for the row at run time (scrapers.board_scraper).
+
+    board is what the ATS API needs: the board token for Greenhouse, Lever and
+    Ashby, the company identifier for SmartRecruiters, and "host/tenant/site"
+    for Workday (acme.wd5.myworkdayjobs.com/acme/Acme_Careers).
+    """
+    __tablename__ = "job_boards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    company_name = Column(String(255), nullable=False)
+    slug = Column(String(100), unique=True, nullable=False, index=True)
+    ats = Column(String(20), nullable=False, index=True)  # greenhouse | lever | ashby | smartrecruiters | workday
+    board = Column(String(255), nullable=False)
+    careers_url = Column(String(500))
+    enabled = Column(Boolean, default=True, nullable=False, index=True)
+    created_at = Column(DateTime, server_default=func.now())
+
+
 # ============== Auto-Apply Models ==============
 
 class ApplicationAnswer(Base):

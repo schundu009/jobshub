@@ -193,13 +193,10 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
     - Greenhouse:
         - https://boards.greenhouse.io/{company}
         - https://job-boards.greenhouse.io/{company}
-        - https://{company}.greenhouse.io
     - Lever:
         - https://jobs.lever.co/{company}
-        - https://{company}.lever.co
     - Ashby:
         - https://jobs.ashbyhq.com/{company}
-        - https://{company}.ashbyhq.com
     - SmartRecruiters:
         - https://jobs.smartrecruiters.com/{company}
         - https://careers.smartrecruiters.com/{company}
@@ -209,63 +206,23 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
     - Recruitee:
         - https://{company}.recruitee.com
     - Workday:
-        - https://{company}.wd{number}.myworkdayjobs.com/{site}
+        - https://{company}.wd{number}.myworkdayjobs.com/[{locale}/]{site}
     """
     original_url = url.strip()  # Keep original for Workday (case-sensitive site names)
     url = original_url.lower()
 
-    # Greenhouse patterns
-    greenhouse_patterns = [
-        r'boards\.greenhouse\.io/([a-z0-9_-]+)',
-        r'job-boards\.greenhouse\.io/([a-z0-9_-]+)',
-        r'([a-z0-9_-]+)\.greenhouse\.io',
-    ]
-
-    for pattern in greenhouse_patterns:
-        match = re.search(pattern, url)
-        if match:
-            slug = match.group(1)
-            if slug not in ['www', 'boards', 'job-boards', 'api']:
-                return ('greenhouse', slug)
-
-    # Lever patterns
-    lever_patterns = [
-        r'jobs\.lever\.co/([a-z0-9_-]+)',
-        r'([a-z0-9_-]+)\.lever\.co',
-    ]
-
-    for pattern in lever_patterns:
-        match = re.search(pattern, url)
-        if match:
-            slug = match.group(1)
-            if slug not in ['www', 'jobs', 'api']:
-                return ('lever', slug)
-
-    # Ashby patterns
-    ashby_patterns = [
-        r'jobs\.ashbyhq\.com/([a-z0-9_-]+)',
-        r'([a-z0-9_-]+)\.ashbyhq\.com',
-    ]
-
-    for pattern in ashby_patterns:
-        match = re.search(pattern, url)
-        if match:
-            slug = match.group(1)
-            if slug not in ['www', 'jobs', 'api']:
-                return ('ashby', slug)
-
-    # SmartRecruiters patterns
-    smartrecruiters_patterns = [
-        r'jobs\.smartrecruiters\.com/([a-z0-9_-]+)',
-        r'careers\.smartrecruiters\.com/([a-z0-9_-]+)',
-    ]
-
-    for pattern in smartrecruiters_patterns:
-        match = re.search(pattern, url)
-        if match:
-            slug = match.group(1)
-            if slug not in ['www', 'jobs', 'api', 'careers']:
-                return ('smartrecruiters', slug)
+    # Greenhouse, Lever, Ashby, SmartRecruiters and Workday board URLs: one
+    # matcher, shared with the job_boards detector (services.ats_detect).
+    from services.ats_detect import match_url
+    hit = match_url(original_url)
+    if hit:
+        ats, board = hit
+        if ats == 'workday':
+            host, _tenant, site = board.split('/')
+            company, wd, _rest = host.split('.', 2)
+            # Stored as company:wd_number:site
+            return ('workday', f"{company}:{wd}:{site}")
+        return (ats, board.lower())
 
     # Workable patterns
     workable_patterns = [
@@ -291,18 +248,6 @@ def detect_ats_type(url: str) -> Tuple[Optional[str], Optional[str]]:
             slug = match.group(1)
             if slug not in ['www', 'api', 'app']:
                 return ('recruitee', slug)
-
-    # Workday patterns - URLs like: nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
-    # Also handle URLs without site name: salesforce.wd12.myworkdayjobs.com/
-    # Note: Site name is case-sensitive in Workday API, so extract from original_url
-    workday_pattern_full = r'([a-z0-9_-]+)\.wd(\d+)\.myworkdayjobs\.com/([a-zA-Z0-9_-]+)'
-    match = re.search(workday_pattern_full, original_url, re.IGNORECASE)
-    if match:
-        company = match.group(1).lower()
-        wd_number = match.group(2)
-        site = match.group(3)  # Keep original case for site name
-        # Store as company:wd_number:site
-        return ('workday', f"{company}:wd{wd_number}:{site}")
 
     # Workday pattern without site name - try to discover it
     workday_pattern_base = r'([a-z0-9_-]+)\.wd(\d+)\.myworkdayjobs\.com/?$'

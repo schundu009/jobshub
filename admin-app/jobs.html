@@ -819,7 +819,7 @@
                 detectedBoardInfo = response;
 
                 if (!response || response.board_type === 'unknown') {
-                    resultDiv.innerHTML = `<div class="import-result error">Could not detect job board type. Supported: Greenhouse, Lever, Workday, Ashby</div>`;
+                    resultDiv.innerHTML = `<div class="import-result error">Could not detect a job board with jobs. Supported: Greenhouse, Lever, Ashby, SmartRecruiters, Workday</div>`;
                     addBtn.disabled = true;
                 } else {
                     resultDiv.innerHTML = `
@@ -867,7 +867,7 @@
 
                 resultDiv.innerHTML = `
                     <div class="import-result success">
-                        <strong>${escapeHtml(response.company_name)}</strong> scraper created - ${Number(response.job_count || 0).toLocaleString()} jobs
+                        <strong>${escapeHtml(response.company_name)}</strong> added - ${Number(response.job_count || 0).toLocaleString()} jobs
                     </div>
                 `;
                 nameInput.value = '';

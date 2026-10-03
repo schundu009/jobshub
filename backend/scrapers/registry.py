@@ -104,7 +104,8 @@ class ScraperRegistry:
     @classmethod
     def get(cls, slug: str) -> Optional[Type[BaseScraper]]:
         """
-        Get a scraper class by company slug.
+        Get a scraper class by company slug: a coded scraper, else one built
+        from the enabled job_boards row with that slug.
 
         Args:
             slug: Company slug (e.g., "microsoft")
@@ -113,7 +114,13 @@ class ScraperRegistry:
             Scraper class or None if not found
         """
         cls._ensure_loaded()
-        return cls._scrapers.get(slug)
+        scraper_cls = cls._scrapers.get(slug)
+        if scraper_cls is None:
+            board = cls._board(slug)
+            if board:
+                from .board_scraper import build_scraper_class
+                scraper_cls = build_scraper_class(board)
+        return scraper_cls
 
     @classmethod
     def get_all(cls) -> dict[str, Type[BaseScraper]]:
@@ -162,7 +169,7 @@ class ScraperRegistry:
     @classmethod
     def get_metadata(cls, slug: str) -> Optional[dict]:
         """
-        Get metadata for a scraper.
+        Get metadata for a scraper (coded, else its job_boards row).
 
         Args:
             slug: Company slug
@@ -171,7 +178,13 @@ class ScraperRegistry:
             Metadata dict or None
         """
         cls._ensure_loaded()
-        return cls._metadata.get(slug)
+        metadata = cls._metadata.get(slug)
+        if metadata is None:
+            board = cls._board(slug)
+            if board:
+                from .board_scraper import board_metadata
+                metadata = board_metadata(board)
+        return metadata
 
     @classmethod
     def get_all_metadata(cls) -> dict[str, dict]:
@@ -194,6 +207,29 @@ class ScraperRegistry:
         """
         cls._ensure_loaded()
         return cls._disabled.copy()
+
+    @classmethod
+    def has_coded(cls, slug: str) -> bool:
+        """True when a scraper class in code owns this slug (enabled or disabled)."""
+        cls._ensure_loaded()
+        return slug in cls._scrapers or slug in cls._disabled
+
+    @classmethod
+    def _board(cls, slug: str) -> Optional[dict]:
+        """The enabled job_boards row for a slug no coded scraper owns."""
+        if not slug or cls.has_coded(slug):
+            return None
+        from .board_scraper import load_board
+        return load_board(slug)
+
+    @classmethod
+    def list_board_slugs(cls) -> list[str]:
+        """
+        Slugs of enabled job_boards rows (companies added as data). Rows whose
+        slug a coded scraper owns are left out: code wins.
+        """
+        from .board_scraper import load_boards
+        return [b["slug"] for b in load_boards() if not cls.has_coded(b["slug"])]
 
     @classmethod
     def list_categories(cls) -> list[str]:
@@ -308,12 +344,17 @@ def get_scraper(
 
 def list_all_scrapers() -> list[dict]:
     """
-    List all scrapers with their metadata.
+    List all scrapers (coded and job_boards rows) with their metadata.
 
     Returns:
         List of scraper info dicts
     """
-    return [
+    scrapers = [
         {"slug": slug, **metadata}
         for slug, metadata in ScraperRegistry.get_all_metadata().items()
     ]
+    for slug in ScraperRegistry.list_board_slugs():
+        metadata = ScraperRegistry.get_metadata(slug)
+        if metadata:
+            scrapers.append({"slug": slug, **metadata})
+    return scrapers
