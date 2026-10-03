@@ -20,6 +20,8 @@ JOB_CLASSIFICATION_COLUMNS = [
     ("evergreen_reason", "VARCHAR(40)", "VARCHAR(40)"),
     ("effective_posted_at", "TIMESTAMP", "DATETIME"),
     ("country_codes", "VARCHAR(200)", "VARCHAR(200)"),
+    ("description_fetch_attempted_at", "TIMESTAMP", "DATETIME"),
+    ("description_fetch_failures", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0"),
 ]
 
 JOB_CLASSIFICATION_INDEXES = [

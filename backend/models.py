@@ -324,6 +324,12 @@ class Job(Base):
     country_codes = Column(String(200), nullable=True)  # ",US,GB," (services.job_location); NULL = unknown
     # remote | hybrid | onsite (services.firm_matching.derive_work_type, set on save); NULL = unknown
     work_type = Column(String(10), nullable=True)
+    # The description backfill (tasks/maintenance_tasks.fetch_missing_descriptions)
+    # keeps its own queue: when it last tried this job and how many times it
+    # failed. It used to order by updated_at, which every scrape bumps, so the
+    # postings still listed never reached the front of the queue.
+    description_fetch_attempted_at = Column(DateTime, nullable=True)
+    description_fetch_failures = Column(Integer, default=0, nullable=True)
 
     owner = relationship("User", back_populates="jobs")
     company = relationship("Company", back_populates="jobs")

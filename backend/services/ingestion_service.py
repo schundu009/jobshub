@@ -448,26 +448,36 @@ def workday_detail_api_url(job_url: str) -> Optional[str]:
     return f"https://{m['host']}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
 
 
-def fetch_workday_posting_info(job_url: str) -> dict:
+def fetch_workday_posting(job_url: str) -> tuple:
     """
-    jobPostingInfo for a Workday job page URL (description HTML, location,
-    additionalLocations, country, ...), or {} when it isn't a Workday URL or
-    the request fails. Workday pages are rendered client-side, so scraping the
-    page HTML never finds the description; the cxs JSON API has it.
+    (HTTP status, jobPostingInfo) for a Workday job page URL. The status is
+    None when it isn't a Workday URL or the request never got an answer, so a
+    caller can tell a closed posting (404) from a refusal or a timeout.
+    Workday pages are rendered client-side, so scraping the page HTML never
+    finds the description; the cxs JSON API has it.
     """
     api_url = workday_detail_api_url(job_url)
     if not api_url:
-        return {}
+        return None, {}
     try:
         request = urllib.request.Request(api_url, headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'application/json',
         })
         with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
-            return json.loads(response.read().decode('utf-8')).get('jobPostingInfo') or {}
+            return response.status, json.loads(response.read().decode('utf-8')).get('jobPostingInfo') or {}
+    except urllib.error.HTTPError as e:
+        logger.debug(f"Workday detail fetch failed for {job_url}: HTTP {e.code}")
+        return e.code, {}
     except Exception as e:
         logger.debug(f"Workday detail fetch failed for {job_url}: {e}")
-        return {}
+        return None, {}
+
+
+def fetch_workday_posting_info(job_url: str) -> dict:
+    """jobPostingInfo for a Workday job page URL (description HTML, location,
+    additionalLocations, country, ...), or {} when there is none."""
+    return fetch_workday_posting(job_url)[1]
 
 
 def workday_posting_location(info: dict) -> str:

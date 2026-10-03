@@ -43,10 +43,10 @@ def test_backfill_fills_workday_description_location_and_country(db, monkeypatch
     db.add(job)
     db.commit()
     monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)
-    monkeypatch.setattr(ingestion_service, "fetch_workday_posting_info", lambda u: {
+    monkeypatch.setattr(ingestion_service, "fetch_workday_posting", lambda u: (200, {
         "jobDescription": "<p>" + "Build CI/CD with GitHub Actions. " * 10 + "</p>",
         "location": "Madrid", "country": {"descriptor": "Spain"},
-    })
+    }))
     monkeypatch.setattr(ingestion_service, "fetch_job_description_from_url",
                         lambda u: pytest.fail("Workday URLs must use the detail API"))
 
@@ -71,3 +71,55 @@ def test_backfill_rotates_jobs_it_cannot_fetch(db, monkeypatch):
     maintenance_tasks.fetch_missing_descriptions(batch_size=1, delay_between=0)
 
     assert sorted(seen) == ["https://example.com/a", "https://example.com/b"]  # not the same job twice
+
+
+def test_backfill_reaches_live_postings_the_scraper_keeps_touching(db, monkeypatch):
+    # A live posting the scraper re-listed a minute ago (updated_at fresh) and a
+    # stale one nobody touched for weeks. Ordering by updated_at put the stale
+    # one first every run and the live one never; the backfill's own attempt
+    # time puts never-tried jobs first, the most recently listed of them first.
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
+    live = Job(title="Data Engineer Live", job_url="https://example.com/live", source="x", is_active=True,
+               last_seen_at=now, updated_at=now)
+    stale = Job(title="Data Engineer Stale", job_url="https://example.com/stale", source="x", is_active=True,
+                last_seen_at=now - timedelta(days=3), updated_at=now - timedelta(days=20))
+    db.add_all([live, stale])
+    db.commit()
+    monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)
+    seen = []
+    monkeypatch.setattr(ingestion_service, "fetch_job_description_from_url", lambda u: seen.append(u) or "")
+    maintenance_tasks.fetch_missing_descriptions(batch_size=1, delay_between=0)
+    assert seen == ["https://example.com/live"]
+
+
+def test_backfill_retires_a_closed_workday_posting(db, monkeypatch):
+    url = "https://intel.wd1.myworkdayjobs.com/External/job/US-Texas-Austin/Memory-Circuit-Design-Engineer_JR0286626"
+    job = Job(title="Memory Circuit Design Engineer", job_url=url, source="intel", is_active=True)
+    db.add(job)
+    db.commit()
+    monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)
+    monkeypatch.setattr(ingestion_service, "fetch_workday_posting", lambda u: (404, {}))
+    result = maintenance_tasks.fetch_missing_descriptions(batch_size=5, delay_between=0)
+    assert result["closed"] == 1 and result["failed"] == 0
+    assert db.query(Job).get(job.id).is_active is False
+
+
+def test_backfill_gives_up_after_repeated_failures_and_skips_meta(db, monkeypatch):
+    from datetime import datetime, timedelta
+    job = Job(title="Data Engineer", job_url="https://example.com/x", source="x", is_active=True)
+    meta = Job(title="Data Engineer", job_url="https://www.metacareers.com/profile/job_details/1/", source="meta", is_active=True)
+    db.add_all([job, meta])
+    db.commit()
+    monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)
+    seen = []
+    monkeypatch.setattr(ingestion_service, "fetch_job_description_from_url", lambda u: seen.append(u) or "")
+    for _ in range(maintenance_tasks.DESCRIPTION_MAX_FAILURES + 2):
+        maintenance_tasks.fetch_missing_descriptions(batch_size=5, delay_between=0)
+        # Let the retry wait pass between runs.
+        j = db.query(Job).get(job.id)
+        if j.description_fetch_attempted_at:
+            j.description_fetch_attempted_at -= timedelta(hours=maintenance_tasks.DESCRIPTION_RETRY_HOURS + 1)
+            db.commit()
+    assert seen.count("https://example.com/x") == maintenance_tasks.DESCRIPTION_MAX_FAILURES
+    assert all("metacareers" not in u for u in seen)
