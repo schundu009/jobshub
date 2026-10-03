@@ -51,6 +51,18 @@ class UnexpectedResponseError(Exception):
     """The API answered, but not with the shape the scraper expects."""
 
 
+class ThrottledError(Exception):
+    """
+    The host answered 429/503 with a Retry-After longer than we wait, or kept
+    throttling after we waited. The run gives up instead of retrying.
+    """
+
+    def __init__(self, host: str, status: int, retry_after: Optional[float]):
+        self.host, self.status, self.retry_after = host, status, retry_after
+        wait = f", Retry-After {retry_after:.0f}s" if retry_after is not None else ""
+        super().__init__(f"{host} answered {status}{wait}")
+
+
 @dataclass
 class ScraperConfig:
     """Configuration for a company scraper."""
@@ -331,6 +343,14 @@ class BaseScraper(ABC):
 
                     return self._check_empty(result)
 
+                except ThrottledError as e:
+                    # The host asked us to back off for longer than a run may
+                    # wait: give up until the next scheduled run.
+                    last_error = f"Rate limited: {e}"
+                    last_error_type = ScraperErrorType.RATE_LIMITED
+                    self.logger.warning(f"Throttled, giving up this run: {e}")
+                    break
+
                 except UnexpectedResponseError as e:
                     last_error = f"Unexpected response: {e}"
                     last_error_type = ScraperErrorType.UNEXPECTED_RESPONSE
@@ -605,21 +625,10 @@ class HTTPScraper(BaseScraper):
         if json is not None and json_data is None:
             json_data = json
 
-        session = await self.get_session()
-
-        request_headers = {}
-        if headers:
-            request_headers.update(headers)
-
-        async with session.request(
-            method,
-            url,
-            params=params,
-            json=json_data,
-            headers=request_headers,
-        ) as response:
-            response.raise_for_status()
-            return await response.json()
+        return await self._request(
+            method, url, lambda response: response.json(),
+            params=params, json=json_data, headers=dict(headers or {}),
+        )
 
     async def fetch_html(
         self,
@@ -636,11 +645,37 @@ class HTTPScraper(BaseScraper):
         Returns:
             HTML content as string
         """
-        session = await self.get_session()
+        return await self._request("GET", url, lambda response: response.text(), params=params)
 
-        async with session.get(url, params=params) as response:
-            response.raise_for_status()
-            return await response.text()
+    # Retry-After up to this long is waited out (at most RETRY_AFTER_ATTEMPTS
+    # times per request); longer, and the run gives up (ThrottledError).
+    MAX_RETRY_AFTER_SECONDS = 30
+    RETRY_AFTER_ATTEMPTS = 2
+
+    async def _request(self, method: str, url: str, read, **kwargs):
+        """
+        One polite request: wait for the host's shared token bucket, honour
+        Retry-After on 429/503, raise for other HTTP errors, return read(response).
+        """
+        from urllib.parse import urlparse
+        from scrapers.rate_limiter import get_host_limiter, retry_after_seconds
+
+        session = await self.get_session()
+        host = (urlparse(url).hostname or "").lower()
+        for attempt in range(self.RETRY_AFTER_ATTEMPTS + 1):
+            await get_host_limiter().acquire(host)
+            async with session.request(method, url, **kwargs) as response:
+                wait = None
+                if response.status in (429, 503):
+                    wait = retry_after_seconds(response.headers.get("Retry-After"))
+                    if wait is not None and (wait > self.MAX_RETRY_AFTER_SECONDS or attempt == self.RETRY_AFTER_ATTEMPTS):
+                        raise ThrottledError(host, response.status, wait)
+                if wait is None:
+                    # Includes 429/503 without Retry-After: run() retries with backoff.
+                    response.raise_for_status()
+                    return await read(response)
+                self.logger.info(f"{host} answered {response.status}; waiting {wait:.0f}s (Retry-After)")
+            await asyncio.sleep(wait)
 
     async def __aenter__(self):
         return self

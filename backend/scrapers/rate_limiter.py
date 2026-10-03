@@ -1,14 +1,20 @@
 """
-Rate Limiter - Per-domain rate limiting for scrapers.
+Rate Limiter - rate limiting for scrapers.
 
-Uses a sliding window algorithm to enforce rate limits without
-blocking the entire application.
+- RateLimiter / AdaptiveRateLimiter: per-slug sliding window, one acquire
+  per scrape run (in-process).
+- HostRateLimiter: per-host token bucket around every request, shared by
+  all workers through Redis, so the ~250 scrapers that hit one host
+  (boards-api.greenhouse.io, api.lever.co, ...) stay polite together. When
+  Redis can't be reached it limits in-process instead.
 """
 
 import asyncio
+import os
 import time
 from collections import defaultdict
-from typing import Optional
+from email.utils import parsedate_to_datetime
+from typing import Callable, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -369,3 +375,137 @@ def set_rate_limiter(limiter: RateLimiter):
     """
     global _global_limiter
     _global_limiter = limiter
+
+
+# ---------------------------------------------------------------- per-host bucket
+
+# Requests per minute per host, and how many may go back to back.
+HOST_RATE_PER_MINUTE = int(os.environ.get("SCRAPER_HOST_RATE_PER_MINUTE", "120"))
+HOST_BURST = int(os.environ.get("SCRAPER_HOST_BURST", "10"))
+
+# Token bucket in one round trip: refill by elapsed time, take a token or
+# return how long until one is due. Returned as a string (Lua numbers come
+# back from Redis as integers).
+_BUCKET_LUA = """
+local rate = tonumber(ARGV[1])
+local burst = tonumber(ARGV[2])
+local now = tonumber(ARGV[3])
+local data = redis.call('HMGET', KEYS[1], 'tokens', 'ts')
+local tokens = tonumber(data[1]) or burst
+local ts = tonumber(data[2]) or now
+tokens = math.min(burst, tokens + math.max(0, now - ts) * rate)
+local wait = 0
+if tokens >= 1 then tokens = tokens - 1 else wait = (1 - tokens) / rate end
+redis.call('HSET', KEYS[1], 'tokens', tostring(tokens), 'ts', tostring(now))
+redis.call('EXPIRE', KEYS[1], math.ceil(burst / rate) + 60)
+return tostring(wait)
+"""
+
+
+def _redis_client():
+    """The shared Redis client, or None while it is unreachable (circuit open)."""
+    try:
+        from services.redis_service import redis_service
+        return redis_service.client if redis_service.available else None
+    except Exception:
+        return None
+
+
+class HostRateLimiter:
+    """
+    Per-host token bucket: rate_per_minute requests, bursts of up to `burst`.
+
+    The bucket lives in Redis (key scrape:host:<host>) so every worker draws
+    from the same one; if Redis fails the call is answered by an in-process
+    bucket, which still keeps one worker polite.
+    """
+
+    KEY_PREFIX = "scrape:host:"
+
+    def __init__(
+        self,
+        rate_per_minute: int = HOST_RATE_PER_MINUTE,
+        burst: int = HOST_BURST,
+        redis_factory: Callable = _redis_client,
+    ):
+        self.rate = max(rate_per_minute, 1) / 60.0  # tokens per second
+        self.burst = max(burst, 1)
+        self._redis_factory = redis_factory
+        self._script = None
+        self._local: dict[str, tuple[float, float]] = {}  # host -> (tokens, ts)
+
+    def _take_redis(self, host: str) -> Optional[float]:
+        client = self._redis_factory()
+        if client is None:
+            return None
+        try:
+            if self._script is None:
+                self._script = client.register_script(_BUCKET_LUA)
+            return float(self._script(keys=[self.KEY_PREFIX + host], args=[self.rate, self.burst, time.time()]))
+        except Exception as e:
+            logger.debug(f"host bucket in Redis unavailable ({type(e).__name__}); limiting in-process")
+            self._script = None
+            return None
+
+    def _take_local(self, host: str) -> float:
+        now = time.monotonic()
+        tokens, ts = self._local.get(host, (float(self.burst), now))
+        tokens = min(self.burst, tokens + max(0.0, now - ts) * self.rate)
+        if tokens >= 1:
+            self._local[host] = (tokens - 1, now)
+            return 0.0
+        self._local[host] = (tokens, now)
+        return (1 - tokens) / self.rate
+
+    def take(self, host: str) -> float:
+        """Take a token for host: 0 when granted, else seconds until one is due."""
+        if not host:
+            return 0.0
+        wait = self._take_redis(host)
+        return self._take_local(host) if wait is None else wait
+
+    async def acquire(self, host: str) -> float:
+        """Wait until host may be requested. Returns the time waited."""
+        waited = 0.0
+        while (wait := self.take(host)) > 0:
+            await asyncio.sleep(wait)
+            waited += wait
+        return waited
+
+    def acquire_sync(self, host: str) -> float:
+        """acquire() for blocking code (the description extractor)."""
+        waited = 0.0
+        while (wait := self.take(host)) > 0:
+            time.sleep(wait)
+            waited += wait
+        return waited
+
+
+_host_limiter: Optional[HostRateLimiter] = None
+
+
+def get_host_limiter() -> HostRateLimiter:
+    """The process-wide HostRateLimiter."""
+    global _host_limiter
+    if _host_limiter is None:
+        _host_limiter = HostRateLimiter()
+    return _host_limiter
+
+
+def set_host_limiter(limiter: Optional[HostRateLimiter]):
+    global _host_limiter
+    _host_limiter = limiter
+
+
+def retry_after_seconds(value: Optional[str]) -> Optional[float]:
+    """A Retry-After header (seconds or an HTTP date) in seconds from now; None if absent/invalid."""
+    if not value:
+        return None
+    value = value.strip()
+    if value.isdigit():
+        return float(value)
+    try:
+        when = parsedate_to_datetime(value)
+        return max(0.0, when.timestamp() - time.time())
+    except Exception:
+        return None

@@ -9,6 +9,7 @@ import re
 import html
 import urllib.request
 import urllib.error
+from urllib.parse import urlparse
 import json
 import ssl
 import os
@@ -582,6 +583,15 @@ def fetch_job_description_from_url(job_url: str) -> str:
 
     if workday_detail_api_url(job_url):
         return (fetch_workday_posting_info(job_url).get('jobDescription') or '').strip()
+
+    # An HTML career page: only where the site's robots.txt allows it, and
+    # through the per-host bucket the scrapers share.
+    from services import robots
+    from scrapers.rate_limiter import get_host_limiter
+    if not robots.allowed(job_url):
+        logger.info(f"robots.txt disallows {job_url}; not fetching its description")
+        return ''
+    get_host_limiter().acquire_sync((urlparse(job_url).hostname or '').lower())
 
     try:
         request = urllib.request.Request(

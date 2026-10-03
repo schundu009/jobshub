@@ -31,6 +31,15 @@ def _clear_jobs_ranking_cache():
     clear_caches()
 
 
+@pytest.fixture(autouse=True)
+def _host_limiter_in_process():
+    """The per-host request bucket never touches Redis in tests."""
+    from scrapers.rate_limiter import HostRateLimiter, set_host_limiter
+    set_host_limiter(HostRateLimiter(redis_factory=lambda: None))
+    yield
+    set_host_limiter(None)
+
+
 @pytest.fixture
 def db():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
