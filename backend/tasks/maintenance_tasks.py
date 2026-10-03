@@ -132,90 +132,93 @@ def mark_stale_jobs_inactive(days: int = 14) -> dict:
         db.close()
 
 
+def _board_line(r: dict) -> str:
+    if r["failing"]:
+        why = f"{r['consecutive_failures']} failed runs in a row"
+        if r.get("last_error"):
+            why += f": {r['last_error'][:100]}"
+    else:
+        why = f"no success since {r['last_success_at'][:16]}" if r["last_success_at"] else "never succeeded"
+    trend = ""
+    if r["jobs_found_last"] is not None:
+        trend = f" [jobs found {r['jobs_found_last']}"
+        if r["jobs_found_previous"] is not None:
+            trend += f", before {r['jobs_found_previous']}"
+        trend += "]"
+    return f"  - {r['slug']} ({r['ats']}): {why}{trend}"
+
+
 @celery_app.task
 def check_scraper_health_and_notify() -> dict:
     """
-    Check scraper health and send email alert if too many failures
-    or no new jobs in the last 24 hours.
+    Email the boards that broke: failing (3+ failed runs in a row) and stale
+    (no success in 48h), from services.scraper_health, rather than one global
+    success rate. Also alerts when no scrape ran at all in 24 hours.
     """
     import os
+    from services.scraper_health import FAILING_AFTER, STALE_HOURS, health_report
+
     logger.info("Running scraper health check with notification")
 
     db = get_db()
     try:
         cutoff = datetime.utcnow() - timedelta(hours=24)
+        total_runs = db.query(func.count(ScraperRun.id)).filter(ScraperRun.run_at > cutoff).scalar() or 0
+        new_jobs = db.query(func.coalesce(func.sum(ScraperRun.jobs_new), 0)).filter(
+            ScraperRun.run_at > cutoff, ScraperRun.success == True).scalar() or 0  # noqa: E712
+        active_jobs = db.query(func.count(Job.id)).filter(Job.is_active == True).scalar() or 0  # noqa: E712
 
-        # Count recent runs
-        from sqlalchemy import func
-        total_runs = db.query(func.count(ScraperRun.id)).filter(ScraperRun.started_at > cutoff).scalar() or 0
-        success_runs = db.query(func.count(ScraperRun.id)).filter(ScraperRun.started_at > cutoff, ScraperRun.success == True).scalar() or 0
-        new_jobs = db.query(func.coalesce(func.sum(ScraperRun.jobs_new), 0)).filter(ScraperRun.started_at > cutoff, ScraperRun.success == True).scalar() or 0
-        active_jobs = db.query(func.count(Job.id)).filter(Job.is_active == True).scalar() or 0
-
-        success_rate = (success_runs / max(total_runs, 1)) * 100
-        is_healthy = success_rate >= 50 and new_jobs > 0 and total_runs > 0
+        health = health_report(db)
+        failing = health["failing"]
+        failing_slugs = {r["slug"] for r in failing}
+        stale = [r for r in health["stale"] if r["slug"] not in failing_slugs]
+        broken = len(failing) + len(stale)
+        is_healthy = total_runs > 0 and broken == 0
 
         report = {
+            "boards": health["boards"],
+            "failing": sorted(failing_slugs),
+            "stale": [r["slug"] for r in stale],
+            "by_ats": health["by_ats"],
             "total_runs_24h": total_runs,
-            "success_runs_24h": success_runs,
-            "success_rate": round(success_rate, 1),
             "new_jobs_24h": int(new_jobs),
             "active_jobs": active_jobs,
             "is_healthy": is_healthy,
-            "checked_at": datetime.utcnow().isoformat(),
+            "checked_at": health["checked_at"],
         }
 
-        # Get top failures for detail
-        recent_fails = db.query(ScraperRun).filter(
-            ScraperRun.started_at > cutoff, ScraperRun.success == False
-        ).order_by(ScraperRun.started_at.desc()).limit(10).all()
-        fail_details = "\n".join(
-            f"  - {r.company_slug}: {(r.error_message or 'unknown')[:60]}"
-            for r in recent_fails
+        by_ats = "\n".join(
+            f"  - {ats}: {c['boards']} boards, {c['failing']} failing, {c['stale']} stale"
+            for ats, c in health["by_ats"].items()
         )
-
-        # Get top successes
-        recent_success = db.query(ScraperRun).filter(
-            ScraperRun.started_at > cutoff, ScraperRun.success == True, ScraperRun.jobs_new > 0
-        ).order_by(ScraperRun.jobs_new.desc()).limit(5).all()
-        success_details = "\n".join(
-            f"  - {r.company_slug}: {r.jobs_found} found, {r.jobs_new} new"
-            for r in recent_success
-        )
-
         alert_email = os.environ.get("ALERT_EMAIL", "chundubabu@gmail.com")
 
-        if not is_healthy:
-            subject = f"[ALERT] Cariara Scraper {'DOWN' if total_runs == 0 else 'DEGRADED'} — {success_rate:.0f}% success"
-            body = (
-                f"Scraper Health Alert\n"
-                f"====================\n\n"
-                f"Status: {'NO SCRAPES RAN' if total_runs == 0 else 'HIGH FAILURE RATE' if success_rate < 50 else 'NO NEW JOBS'}\n"
-                f"Success rate: {success_rate:.0f}% ({success_runs}/{total_runs})\n"
-                f"New jobs (last 6h): {int(new_jobs)}\n"
-                f"Active jobs total: {active_jobs}\n"
-                f"Time: {datetime.utcnow().isoformat()}\n\n"
-                f"Recent failures:\n{fail_details}\n\n"
-                f"Action: Check Railway logs → cariara-worker\n"
-            )
-            _send_alert_email(alert_email, subject, body)
-            logger.warning(f"Scraper health alert sent: {subject}")
+        if total_runs == 0:
+            subject = "[ALERT] Cariara Scraper DOWN — no scrapes ran in 24h"
+        elif broken:
+            subject = f"[ALERT] Cariara Scraper — {broken} of {health['boards']} boards broken"
         else:
-            # Send success summary too so you know it's working
-            subject = f"[OK] Cariara Scraper Healthy — {int(new_jobs)} new jobs, {success_rate:.0f}% success"
-            body = (
-                f"Scraper Health Report\n"
-                f"=====================\n\n"
-                f"Status: HEALTHY\n"
-                f"Success rate: {success_rate:.0f}% ({success_runs}/{total_runs})\n"
-                f"New jobs (last 6h): {int(new_jobs)}\n"
-                f"Active jobs total: {active_jobs}\n"
-                f"Time: {datetime.utcnow().isoformat()}\n\n"
-                f"Top scrapers:\n{success_details}\n"
-            )
-            _send_alert_email(alert_email, subject, body)
-            logger.info(f"Scrapers healthy: {success_rate:.0f}% success, {int(new_jobs)} new jobs")
+            noun = "board" if health["boards"] == 1 else "boards"
+            subject = f"[OK] Cariara Scraper Healthy — {health['boards']} {noun} fresh, {int(new_jobs)} new jobs"
 
+        body = (
+            f"Scraper Health {'Report' if is_healthy else 'Alert'}\n"
+            f"======================\n\n"
+            f"Boards: {health['boards']} ({len(failing)} failing, {len(stale)} stale)\n"
+            f"Runs (24h): {total_runs}, new jobs: {int(new_jobs)}\n"
+            f"Active jobs total: {active_jobs}\n"
+            f"Time: {health['checked_at']}\n\n"
+        )
+        if failing:
+            body += f"Failing ({FAILING_AFTER}+ failed runs in a row):\n" + "\n".join(map(_board_line, failing)) + "\n\n"
+        if stale:
+            body += f"Stale (no success in {STALE_HOURS}h):\n" + "\n".join(map(_board_line, stale)) + "\n\n"
+        body += f"By ATS:\n{by_ats}\n"
+        if not is_healthy:
+            body += "\nDetails: GET /api/scrapers/health; logs: Railway → cariara-worker\n"
+
+        _send_alert_email(alert_email, subject, body)
+        (logger.info if is_healthy else logger.warning)(f"Scraper health: {subject}")
         return report
     finally:
         db.close()

@@ -170,3 +170,15 @@ def load_boards() -> list[dict]:
     except Exception as e:
         logger.debug(f"job_boards listing skipped: {e}")
         return []
+
+
+def ats_of(scraper_cls) -> str:
+    """The ATS a scraper class reads (greenhouse, ..., workday), else "other"."""
+    if getattr(scraper_cls, "BOARD_ATS", None):
+        return scraper_cls.BOARD_ATS
+    for name, mixin in _MIXINS.items():
+        if isinstance(scraper_cls, type) and issubclass(scraper_cls, mixin):
+            return name
+    from services.ats_detect import match_url
+    hit = match_url(getattr(scraper_cls, "API_URL", None) or "")
+    return hit[0] if hit else "other"

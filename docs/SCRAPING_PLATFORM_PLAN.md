@@ -1,6 +1,6 @@
 # Cariara's own scraping platform (instead of Apify)
 
-Status: approved 2026-10-02. Build in the phases below, one commit each.
+Status: approved 2026-10-02. Phases 0-5 built 2026-10-03, one commit each.
 
 ## Where we are
 

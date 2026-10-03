@@ -237,6 +237,19 @@ def get_all_status(
     return statuses
 
 
+@router.get("/health")
+def get_scraper_health(
+    current_user: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Per-board freshness from scraper_runs: boards with no success in 48h
+    (stale), boards failing 3+ runs in a row (failing), and counts by ATS.
+    """
+    from services.scraper_health import health_report
+    return health_report(db)
+
+
 @router.get("/{company_slug}")
 def get_scraper_detail(
     company_slug: str,
