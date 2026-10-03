@@ -142,3 +142,11 @@ def test_smartrecruiters_completeness():
     assert _run(SR(), [page]).complete is True
     full = {"content": [{"id": str(i), "name": "SRE", "location": {}} for i in range(100)], "totalFound": 250}
     assert _run(SR(), [full, None]).complete is False
+
+
+def test_most_of_a_board_vanishing_closes_nothing(db):
+    """A changed job-id format looks like every posting removed: leave them open."""
+    scrape(db, list(range(1, 31)))
+    scrape(db, [1, 2, 3])
+    scrape(db, [1, 2, 3])
+    assert state(db, "20") == (True, 0)

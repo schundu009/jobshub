@@ -676,6 +676,11 @@ def close_removed_postings(db: Session, company_slug: str, result) -> int:
         ).all()
         listed_again = [r.id for r in rows if r.external_job_id in seen and (r.missed_runs or 0) > 0]
         missing = [r for r in rows if r.external_job_id not in seen]
+        # Most of a board vanishing at once is a changed job-id format or a
+        # partial listing, not mass removal: leave every posting open.
+        if len(missing) > max(10, len(rows) // 2):
+            logger.warning(f"{company_slug}: {len(missing)} of {len(rows)} postings not listed; not closing any")
+            return 0
         to_close = [r.id for r in missing if (r.missed_runs or 0) + 1 >= CLOSE_AFTER_MISSES]
         to_count = [r.id for r in missing if (r.missed_runs or 0) + 1 < CLOSE_AFTER_MISSES]
         # Keep updated_at for bookkeeping-only changes (it is "content changed").
