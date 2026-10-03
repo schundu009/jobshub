@@ -50,48 +50,123 @@ def fill_workday_location(job, info: dict) -> None:
     job.country_codes = to_country_codes(job_countries(job.location, job.title))
 
 
+def fetch_posting(job_url: str) -> tuple:
+    """
+    Network only (safe to run in threads): (http status, description, workday
+    info) for a posting URL. The ATS's own JSON where it has one (SmartRecruiters,
+    Oracle, Workday), else the page (its schema.org JobPosting, then its text).
+    """
+    if ingestion_service.smartrecruiters_detail_api_url(job_url):
+        status, description = ingestion_service.fetch_smartrecruiters_description(job_url)
+        return status, description, {}
+    if ingestion_service.oracle_detail_api_url(job_url):
+        status, description = ingestion_service.fetch_oracle_description(job_url)
+        return status, description, {}
+    if ingestion_service.workday_detail_api_url(job_url):
+        # One JSON call gives the description and the full location list.
+        status, info = ingestion_service.fetch_workday_posting(job_url)
+        return status, (info.get("jobDescription") or "").strip(), info
+    return None, ingestion_service.fetch_job_description_from_url(job_url), {}
+
+
+def claim(db, job, on_demand: bool = False):
+    """
+    Decide whether ``job`` needs a request: the outcome to report when it does
+    not ('stored' or 'skipped'), else None (and the attempt is stamped).
+    """
+    if has_description(job):
+        return "stored"
+    now = datetime.utcnow()
+    if not job.job_url or job.source in SKIP_SOURCES:
+        return "skipped"
+    if on_demand and job.description_fetch_attempted_at and now - job.description_fetch_attempted_at < ON_DEMAND_COOLDOWN:
+        return "skipped"
+    job.description_fetch_attempted_at = now
+    if not is_it_role(job.title, department=job.department):
+        # Non-IT jobs are being retired (deactivate_non_it_jobs): no request.
+        job.description_fetch_failures = MAX_FAILURES
+        return "skipped"
+    return None
+
+
+def store(db, job, status, description: str, info: dict) -> str:
+    """Record a fetch's result on ``job``; commits. 'fetched', 'closed' or 'failed'."""
+    if info:
+        fill_workday_location(job, info)
+    if description and len(description) > max(100, len((job.job_description or "").strip())):
+        job.job_description = description[:15000]
+        job.description_fetch_failures = 0
+        db.commit()
+        return "fetched"
+    if status in (404, 410):
+        job.is_active = False
+        db.commit()
+        return "closed"
+    job.description_fetch_failures = (job.description_fetch_failures or 0) + 1
+    db.commit()
+    return "failed"
+
+
 def fetch_description(db, job, on_demand: bool = False) -> tuple[str, int | None]:
     """
     Fetch and store ``job``'s description; commits. Returns (outcome, http status):
     'stored' (it already had one), 'fetched', 'closed' (Workday says the posting
     is gone; the job is retired), 'skipped' (no request made) or 'failed'.
     """
-    if has_description(job):
-        return "stored", None
-    now = datetime.utcnow()
-    if not job.job_url or job.source in SKIP_SOURCES:
-        return "skipped", None
-    if on_demand and job.description_fetch_attempted_at and now - job.description_fetch_attempted_at < ON_DEMAND_COOLDOWN:
-        return "skipped", None
-    job.description_fetch_attempted_at = now
-    if not is_it_role(job.title, department=job.department):
-        # Non-IT jobs are being retired (deactivate_non_it_jobs): no request.
-        job.description_fetch_failures = MAX_FAILURES
+    skip = claim(db, job, on_demand)
+    if skip:
         db.commit()
-        return "skipped", None
+        return skip, None
+    status, description, info = fetch_posting(job.job_url)
+    return store(db, job, status, description, info), status
 
-    status = None
-    if ingestion_service.smartrecruiters_detail_api_url(job.job_url):
-        status, description = ingestion_service.fetch_smartrecruiters_description(job.job_url)
-    elif ingestion_service.oracle_detail_api_url(job.job_url):
-        status, description = ingestion_service.fetch_oracle_description(job.job_url)
-    elif ingestion_service.workday_detail_api_url(job.job_url):
-        # Workday: one JSON call gives the description and the full location list.
-        status, info = ingestion_service.fetch_workday_posting(job.job_url)
-        description = (info.get("jobDescription") or "").strip()
-        fill_workday_location(job, info)
-    else:
-        description = ingestion_service.fetch_job_description_from_url(job.job_url)
 
-    if description and len(description) > max(100, len((job.job_description or "").strip())):
-        job.job_description = description[:15000]
-        job.description_fetch_failures = 0
-        db.commit()
-        return "fetched", status
-    if status in (404, 410):
-        job.is_active = False
-        db.commit()
-        return "closed", status
-    job.description_fetch_failures = (job.description_fetch_failures or 0) + 1
+def fetch_many(db, jobs, workers: int = 8, per_host: int = 2) -> dict:
+    """
+    The backfill's batch: claim in this thread, fetch in a pool (at most
+    ``per_host`` requests to one site at a time), store in this thread.
+    Returns outcome counts and the failures for the run's report.
+    """
+    import threading
+    from collections import defaultdict
+    from concurrent.futures import ThreadPoolExecutor
+    from urllib.parse import urlparse
+
+    counts: dict = defaultdict(int)
+    failed: list = []
+    todo = []
+    for job in jobs:
+        skip = claim(db, job)
+        if skip:
+            counts[skip] += 1
+        else:
+            todo.append(job)
     db.commit()
-    return "failed", status
+
+    gates: dict = defaultdict(lambda: threading.Semaphore(per_host))
+    lock = threading.Lock()
+
+    def one(url):
+        host = urlparse(url).netloc.lower()
+        with lock:
+            gate = gates[host]
+        with gate:
+            try:
+                return fetch_posting(url)
+            except Exception as e:  # one bad page never stops the batch
+                return None, "", {"_error": str(e)[:200]}
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(one, [j.job_url for j in todo]))
+    for job, (status, description, info) in zip(todo, results):
+        error = info.pop("_error", None) if info else None
+        try:
+            outcome = store(db, job, status, description, info)
+        except Exception as e:
+            db.rollback()
+            outcome, error = "failed", str(e)[:200]
+        counts[outcome] += 1
+        if outcome == "failed":
+            failed.append({"id": job.id, "title": job.title, "url": job.job_url,
+                           "reason": error or (f"HTTP {status}" if status else "Empty or short description returned")})
+    return {"counts": dict(counts), "failed": failed}

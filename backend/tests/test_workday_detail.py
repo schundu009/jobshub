@@ -50,10 +50,11 @@ def test_backfill_fills_workday_description_location_and_country(db, monkeypatch
     monkeypatch.setattr(ingestion_service, "fetch_job_description_from_url",
                         lambda u: pytest.fail("Workday URLs must use the detail API"))
 
+    job_id = job.id
     result = maintenance_tasks.fetch_missing_descriptions(batch_size=10, delay_between=0)
 
     assert result["updated"] == 1
-    job = db.query(Job).get(job.id)
+    job = db.query(Job).get(job_id)
     assert "GitHub Actions" in job.job_description
     assert job.location == "Madrid, Spain" and job.country_codes == ",ES,"
 
@@ -100,9 +101,10 @@ def test_backfill_retires_a_closed_workday_posting(db, monkeypatch):
     db.commit()
     monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)
     monkeypatch.setattr(ingestion_service, "fetch_workday_posting", lambda u: (404, {}))
+    job_id = job.id
     result = maintenance_tasks.fetch_missing_descriptions(batch_size=5, delay_between=0)
     assert result["closed"] == 1 and result["failed"] == 0
-    assert db.query(Job).get(job.id).is_active is False
+    assert db.query(Job).get(job_id).is_active is False
 
 
 def test_backfill_gives_up_after_repeated_failures(db, monkeypatch):

@@ -312,7 +312,7 @@ DESCRIPTION_SKIP_SOURCES = job_descriptions.SKIP_SOURCES
 
 
 @celery_app.task
-def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5) -> dict:
+def fetch_missing_descriptions(batch_size: int = 2000, delay_between: float = 0.0) -> dict:
     """
     Fetch descriptions for jobs that have empty or missing descriptions.
 
@@ -320,9 +320,9 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
     fetches the description from the job page, and updates the record.
 
     Args:
-        batch_size: Maximum number of jobs to process per run (default: 200;
-            200 x ~(fetch + 0.5s) fits the 25-minute soft time limit)
-        delay_between: Seconds to wait between requests to avoid rate limiting (default: 0.5)
+        batch_size: Maximum number of jobs to process per run (default: 2000;
+            fetched 8 at a time, at most 2 per site, it fits the 25-minute soft limit)
+        delay_between: unused (kept for callers); the per-site limit paces requests
 
     Returns:
         Dict with fetch results
@@ -382,47 +382,12 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
 
         logger.info(f"Found {len(jobs_to_update)} jobs with missing descriptions")
 
-        updated_count = 0
-        failed_count = 0
-        closed_count = 0
-        failed_jobs = []
-
-        for job in jobs_to_update:
-            try:
-                logger.debug(f"Fetching description for job {job.id}: {job.title} at {job.job_url}")
-
-                outcome, status = job_descriptions.fetch_description(db, job)
-                if outcome == "fetched":
-                    updated_count += 1
-                    logger.info(f"Updated description for job {job.id}: {job.title}")
-                elif outcome == "closed":
-                    closed_count += 1
-                    logger.info(f"Closed posting retired: job {job.id} {job.title} (HTTP {status})")
-                elif outcome == "skipped":
-                    continue
-                elif outcome == "failed":
-                    failed_count += 1
-                    failed_jobs.append({
-                        "id": job.id,
-                        "title": job.title,
-                        "url": job.job_url,
-                        "reason": f"HTTP {status}" if status else "Empty or short description returned"
-                    })
-                    logger.warning(f"Could not fetch description for job {job.id}: {job.title}" + (f" (HTTP {status})" if status else ""))
-
-                # Rate limiting between requests
-                time.sleep(delay_between)
-
-            except Exception as e:
-                failed_count += 1
-                failed_jobs.append({
-                    "id": job.id,
-                    "title": job.title,
-                    "url": job.job_url,
-                    "reason": str(e)
-                })
-                logger.error(f"Error fetching description for job {job.id}: {e}")
-                db.rollback()
+        # Fetched in parallel (job_descriptions.fetch_many: at most 2 requests
+        # to one site at a time), stored here.
+        batch = job_descriptions.fetch_many(db, jobs_to_update)
+        counts = batch["counts"]
+        updated_count, closed_count, failed_count = counts.get("fetched", 0), counts.get("closed", 0), counts.get("failed", 0)
+        failed_jobs = batch["failed"]
 
         result = {
             "status": "success",
