@@ -574,6 +574,58 @@ def workday_posting_location(info: dict) -> str:
     return f"{text}, {country}" if country and country.lower() not in text.lower() else text
 
 
+_LD_JSON = re.compile(r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', re.DOTALL | re.IGNORECASE)
+# JobPosting fields that hold the posting's text, in reading order, with the
+# heading each gets (the description has none).
+_JOBPOSTING_FIELDS = (("description", None), ("responsibilities", "Responsibilities"),
+                      ("qualifications", "Qualifications"), ("experienceRequirements", "Experience"),
+                      ("educationRequirements", "Education"), ("skills", "Skills"))
+
+
+def _jobposting_nodes(data):
+    """Every schema.org JobPosting in a JSON-LD value (a list, an @graph, or one object)."""
+    if isinstance(data, list):
+        for d in data:
+            yield from _jobposting_nodes(d)
+    elif isinstance(data, dict):
+        t = data.get("@type")
+        if t == "JobPosting" or (isinstance(t, list) and "JobPosting" in t):
+            yield data
+        if "@graph" in data:
+            yield from _jobposting_nodes(data["@graph"])
+
+
+def _ld_text(value) -> str:
+    if isinstance(value, list):
+        return "".join(f"<li>{_ld_text(v)}</li>" for v in value if _ld_text(v))
+    if isinstance(value, dict):
+        return str(value.get("description") or value.get("name") or "")
+    return str(value or "").replace("&nbsp;", " ").strip()
+
+
+def jobposting_from_html(page_html: str) -> str:
+    """The page's schema.org JobPosting as HTML: description, then responsibilities,
+    qualifications, experience, education and skills under their own <h2>. '' if none."""
+    for block in _LD_JSON.findall(page_html or ""):
+        try:
+            data = json.loads(block)
+        except Exception:
+            continue
+        for node in _jobposting_nodes(data):
+            parts = []
+            for key, heading in _JOBPOSTING_FIELDS:
+                text = _ld_text(node.get(key))
+                if not text:
+                    continue
+                if text.startswith("<li>"):
+                    text = f"<ul>{text}</ul>"
+                parts.append(f"<h2>{heading}</h2>{text}" if heading else text)
+            out = sanitize_html("\n".join(parts))
+            if out:
+                return out
+    return ""
+
+
 def fetch_job_description_from_url(job_url: str) -> str:
     """
     Fetch job description from any job URL by analyzing the page content.
@@ -589,14 +641,23 @@ def fetch_job_description_from_url(job_url: str) -> str:
     try:
         request = urllib.request.Request(
             job_url,
+            # A plain page request, as a browser opening the link sends it
+            # (some career sites, Meta's among them, answer 400 without the
+            # navigation headers).
             headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Dest': 'document', 'Sec-Fetch-Site': 'none',
             }
         )
         with urllib.request.urlopen(request, timeout=20, context=ssl_context) as response:
             html = response.read().decode('utf-8', errors='ignore')
+
+        # schema.org JobPosting first: the employer's own structured posting.
+        posting = jobposting_from_html(html)
+        if posting and len(posting) > 100:
+            return posting[:15000]
 
         # Method 1: Look for __NEXT_DATA__ (Next.js apps like Eightfold, Phenom)
         next_data_match = re.search(r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)

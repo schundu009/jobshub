@@ -105,11 +105,10 @@ def test_backfill_retires_a_closed_workday_posting(db, monkeypatch):
     assert db.query(Job).get(job.id).is_active is False
 
 
-def test_backfill_gives_up_after_repeated_failures_and_skips_meta(db, monkeypatch):
+def test_backfill_gives_up_after_repeated_failures(db, monkeypatch):
     from datetime import datetime, timedelta
     job = Job(title="Data Engineer", job_url="https://example.com/x", source="x", is_active=True)
-    meta = Job(title="Data Engineer", job_url="https://www.metacareers.com/profile/job_details/1/", source="meta", is_active=True)
-    db.add_all([job, meta])
+    db.add(job)
     db.commit()
     monkeypatch.setattr(maintenance_tasks, "get_db", lambda: db)
     seen = []
@@ -122,7 +121,6 @@ def test_backfill_gives_up_after_repeated_failures_and_skips_meta(db, monkeypatc
             j.description_fetch_attempted_at -= timedelta(hours=maintenance_tasks.DESCRIPTION_RETRY_HOURS + 1)
             db.commit()
     assert seen.count("https://example.com/x") == maintenance_tasks.DESCRIPTION_MAX_FAILURES
-    assert all("metacareers" not in u for u in seen)
 
 
 def test_opening_a_job_without_a_description_fetches_it(db, client, monkeypatch):
@@ -151,3 +149,13 @@ def test_smartrecruiters_company_blurb_is_replaced_by_the_whole_posting(db, clie
                         lambda u: (200, blurb + "<h2>Job Description</h2><p>" + "Run Kubernetes. " * 30 + "</p>"))
     r = client.post(f"/api/jobs/{job.id}/description").json()
     assert "Job Description" in r["job_description"]
+
+
+def test_jobposting_json_ld_gives_the_whole_posting():
+    page = ('<html><script type="application/ld+json">{"@context":"https://schema.org","@type":"JobPosting",'
+            '"title":"SRE","description":"Keep the fleet healthy.","responsibilities":"Run on-call.&nbsp;Fix outages.",'
+            '"qualifications":"5+ years of Linux."}</script></html>')
+    text = ingestion_service.jobposting_from_html(page)
+    assert text.startswith("Keep the fleet healthy.")
+    assert "<h2>Responsibilities</h2>" in text and "<h2>Qualifications</h2>" in text
+    assert ingestion_service.jobposting_from_html("<html>no posting</html>") == ""

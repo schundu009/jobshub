@@ -16,9 +16,9 @@ MAX_FAILURES = 5
 # An opened job is fetched at most this often, however many people open it
 # (Try again on the job page waits this out).
 ON_DEMAND_COOLDOWN = timedelta(minutes=1)
-# Pages that refuse a plain request: Meta answers 400 and lists its jobs only
-# through its GraphQL search, so its descriptions need their own fetcher.
-SKIP_SOURCES = ("meta",)
+# Sources whose pages give nothing to read (none at present: Meta's job pages
+# carry a schema.org JobPosting, read by fetch_job_description_from_url).
+SKIP_SOURCES: tuple = ()
 
 _VAGUE_LOCATION = re.compile(r"^\s*$|^\s*\d+\s+locations?\s*$|\(\+\d+ more\)", re.IGNORECASE)
 
