@@ -882,7 +882,7 @@ def fetch_job_description(job_id: int, db: Session = Depends(get_db)):
     """
     The posting's description, fetched now when the feed did not carry it, so
     a job can be read before applying (the 30-minute backfill would get to it
-    later). Shared jobs only; at most one fetch per job every 10 minutes.
+    later). Shared jobs only; at most one fetch per job a minute.
     """
     from services import job_descriptions
     job = db.query(Job).filter(Job.id == job_id, Job.user_id == None).first()  # noqa: E711

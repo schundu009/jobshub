@@ -13,8 +13,9 @@ from services import ingestion_service
 from services.it_roles import is_it_role
 
 MAX_FAILURES = 5
-# An opened job is fetched at most this often, however many people open it.
-ON_DEMAND_COOLDOWN = timedelta(minutes=10)
+# An opened job is fetched at most this often, however many people open it
+# (Try again on the job page waits this out).
+ON_DEMAND_COOLDOWN = timedelta(minutes=1)
 # Pages that refuse a plain request: Meta answers 400 and lists its jobs only
 # through its GraphQL search, so its descriptions need their own fetcher.
 SKIP_SOURCES = ("meta",)
