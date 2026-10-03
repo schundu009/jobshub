@@ -139,3 +139,15 @@ def test_opening_a_job_without_a_description_fetches_it(db, client, monkeypatch)
     assert r.json()["job_description"].startswith("Build and run the platform.")
     assert client.post(f"/api/jobs/{job.id}/description").json()["description_status"] == "stored"
     assert len(calls) == 1
+
+
+def test_smartrecruiters_company_blurb_is_replaced_by_the_whole_posting(db, client, monkeypatch):
+    blurb = "<h2>Company Description</h2><p>" + "We build things. " * 40 + "</p>"
+    job = Job(title="Site Reliability Engineer", job_url="https://jobs.smartrecruiters.com/ServiceNow/744000152904739",
+              job_description=blurb, is_active=True, source="servicenow")
+    db.add(job)
+    db.commit()
+    monkeypatch.setattr(ingestion_service, "fetch_smartrecruiters_description",
+                        lambda u: (200, blurb + "<h2>Job Description</h2><p>" + "Run Kubernetes. " * 30 + "</p>"))
+    r = client.post(f"/api/jobs/{job.id}/description").json()
+    assert "Job Description" in r["job_description"]

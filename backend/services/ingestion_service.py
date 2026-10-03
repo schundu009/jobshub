@@ -6,6 +6,7 @@ Security: Uses proper SSL verification by default.
 Set DISABLE_SSL_VERIFY=true in development only if needed.
 """
 import re
+import html
 import urllib.request
 import urllib.error
 import json
@@ -472,6 +473,46 @@ def fetch_workday_posting(job_url: str) -> tuple:
     except Exception as e:
         logger.debug(f"Workday detail fetch failed for {job_url}: {e}")
         return None, {}
+
+
+_SMARTRECRUITERS_JOB_URL = re.compile(r"^https?://(?:jobs|careers)\.smartrecruiters\.com/(?P<company>[^/?#]+)/(?P<id>\d+)")
+_SR_SECTIONS = ("companyDescription", "jobDescription", "qualifications", "additionalInformation")
+
+
+def smartrecruiters_detail_api_url(job_url: str) -> Optional[str]:
+    """jobs.smartrecruiters.com/{Company}/{id} -> its public posting API (all four sections)."""
+    m = _SMARTRECRUITERS_JOB_URL.match(job_url or "")
+    if not m:
+        return None
+    return f"https://api.smartrecruiters.com/v1/companies/{m['company']}/postings/{m['id']}"
+
+
+def fetch_smartrecruiters_description(job_url: str) -> tuple:
+    """
+    (HTTP status, description HTML) for a SmartRecruiters posting: every
+    jobAd section, each under its own <h2>. The page scrape kept only the
+    first one (Company Description). (None, '') when not a SmartRecruiters URL.
+    """
+    api_url = smartrecruiters_detail_api_url(job_url)
+    if not api_url:
+        return None, ""
+    try:
+        request = urllib.request.Request(api_url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return e.code, ""
+    except Exception as e:
+        logger.debug(f"SmartRecruiters detail fetch failed for {job_url}: {e}")
+        return None, ""
+    sections = (data.get("jobAd") or {}).get("sections") or {}
+    parts = []
+    for key in _SR_SECTIONS:
+        sec = sections.get(key) or {}
+        text = (sec.get("text") or "").strip()
+        if text:
+            parts.append(f"<h2>{html.escape(sec.get('title') or key)}</h2>{text}")
+    return 200, "\n".join(parts)
 
 
 _ORACLE_JOB_URL = re.compile(

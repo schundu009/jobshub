@@ -12,7 +12,7 @@ import logging
 import re
 import time
 from datetime import datetime, timedelta
-from sqlalchemy import func, or_
+from sqlalchemy import and_, func, or_
 
 from celery_app import celery_app
 from database import SessionLocal
@@ -354,6 +354,10 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
                 Job.job_description == 'No description available.',
                 # Empty, or only the list's summary (job_descriptions.THIN).
                 func.length(func.trim(Job.job_description)) < job_descriptions.THIN,
+                # SmartRecruiters stored with only its Company Description.
+                and_(Job.job_url.like('%smartrecruiters.com/%'),
+                     ~Job.job_description.ilike('%job description%'),
+                     ~Job.job_description.ilike('%qualifications%')),
             ),
             or_(Job.description_fetch_attempted_at.is_(None),
                 Job.description_fetch_attempted_at < retry_cutoff),

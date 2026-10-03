@@ -29,7 +29,13 @@ THIN = 400
 
 def has_description(job) -> bool:
     text = (job.job_description or "").strip()
-    return text != "No description available." and len(text) >= THIN
+    if text == "No description available." or len(text) < THIN:
+        return False
+    # The SmartRecruiters page scrape kept only the Company Description: that
+    # is the employer's blurb, not the job.
+    if ingestion_service.smartrecruiters_detail_api_url(job.job_url) and not re.search(r"job description|qualifications", text, re.I):
+        return False
+    return True
 
 
 def fill_workday_location(job, info: dict) -> None:
@@ -65,7 +71,9 @@ def fetch_description(db, job, on_demand: bool = False) -> tuple[str, int | None
         return "skipped", None
 
     status = None
-    if ingestion_service.oracle_detail_api_url(job.job_url):
+    if ingestion_service.smartrecruiters_detail_api_url(job.job_url):
+        status, description = ingestion_service.fetch_smartrecruiters_description(job.job_url)
+    elif ingestion_service.oracle_detail_api_url(job.job_url):
         status, description = ingestion_service.fetch_oracle_description(job.job_url)
     elif ingestion_service.workday_detail_api_url(job.job_url):
         # Workday: one JSON call gives the description and the full location list.
