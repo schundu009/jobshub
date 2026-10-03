@@ -134,8 +134,9 @@ def test_ashby_skips_unlisted_and_keeps_description():
 
 def test_disabled_scrapers_are_not_registered():
     disabled = ScraperRegistry.get_disabled()
-    assert "linkedin-jobs" in disabled and disabled["linkedin-jobs"]["reason"].startswith("Retired")
-    assert ScraperRegistry.get("linkedin-jobs") is None
+    assert disabled and all(info["reason"] for info in disabled.values())
+    for slug in disabled:
+        assert ScraperRegistry.get(slug) is None
     assert not set(disabled) & set(ScraperRegistry.list_slugs())
 
 
@@ -143,6 +144,8 @@ def test_removed_scrapers_are_gone():
     # Deleted outright (merged / no board) so they don't clutter "Disabled boards".
     known = set(ScraperRegistry.list_slugs()) | set(ScraperRegistry.get_disabled())
     assert not {"discover", "ripplematch", "contextualai"} & known
+    # Apify retired 2026-10-02 (docs/SCRAPING_PLATFORM_PLAN.md).
+    assert not {"indeed-jobs", "linkedin-jobs"} & known
 
 
 @pytest.mark.parametrize("slug,fragment", [
