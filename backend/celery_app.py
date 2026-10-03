@@ -32,7 +32,6 @@ celery_app = Celery(
         "tasks.scraper_tasks",
         "tasks.maintenance_tasks",
         "tasks.apply_tasks",
-        "tasks.apify_tasks",
         "contracts.tasks",
     ],
 )
@@ -83,12 +82,6 @@ BEAT_SCHEDULE = {
         "task": "tasks.maintenance_tasks.auto_heal_scrapers",
         "schedule": crontab(minute=45, hour=1),
         "options": {"queue": "maintenance"},
-    },
-    # Apify scrapers — once daily to stay within $5/month free tier
-    "apify-scrape-all": {
-        "task": "tasks.apify_tasks.scrape_all_apify",
-        "schedule": crontab(minute=30, hour=3),
-        "options": {"queue": "scrapers_orchestrator"},
     },
     # Cariara Auto Apply (routes/apply.py). Nothing here submits applications:
     # matching rebuilds each enabled user's queue; preparation drafts
@@ -145,9 +138,6 @@ celery_app.conf.update(
         "tasks.scraper_tasks.scrape_all_companies": {"queue": "scrapers_orchestrator"},
         "tasks.maintenance_tasks.*": {"queue": "maintenance"},
         "tasks.apply_tasks.*": {"queue": "default"},
-        "tasks.apify_tasks.scrape_apify_indeed": {"queue": "scrapers_http"},
-        "tasks.apify_tasks.scrape_apify_linkedin": {"queue": "scrapers_http"},
-        "tasks.apify_tasks.scrape_all_apify": {"queue": "scrapers_orchestrator"},
         "contracts.tasks.*": {"queue": "contracts"},
     },
 
@@ -226,19 +216,6 @@ celery_app.conf.update(
             "soft_time_limit": 600,
             "time_limit": 660,
             "reject_on_worker_lost": False,
-        },
-        # Apify actors can take 10+ minutes — give them ample time
-        "tasks.apify_tasks.scrape_apify_indeed": {
-            "soft_time_limit": 3300,  # 55 min soft (200+ queries × up to 300s each)
-            "time_limit": 3600,  # 60 min hard
-        },
-        "tasks.apify_tasks.scrape_apify_linkedin": {
-            "soft_time_limit": 720,  # 12 min soft
-            "time_limit": 780,  # 13 min hard
-        },
-        "tasks.apify_tasks.scrape_all_apify": {
-            "soft_time_limit": 1800,  # 30 min soft (orchestrator runs all actors)
-            "time_limit": 1860,  # 31 min hard
         },
     },
 

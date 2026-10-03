@@ -319,7 +319,7 @@ def _route_to_contracts(db: Session, company_slug: str, company_id: Optional[int
 def route_contract_job_data(db: Session, source: str, job_data: dict, company_id: Optional[int],
                             source_type: str = "aggregator") -> bool:
     """
-    For the ingest / Apify save paths (dict-shaped jobs): when the posting is a
+    For the ingest save path (dict-shaped jobs): when the posting is a
     contract role, save it to contract_jobs and return True (the caller skips
     the jobs insert). Does not commit; never raises.
     """
