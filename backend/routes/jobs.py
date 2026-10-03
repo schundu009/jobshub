@@ -877,6 +877,28 @@ def list_available_roles(db: Session = Depends(get_db)):
     }
 
 
+@router.post("/{job_id}/description")
+def fetch_job_description(job_id: int, db: Session = Depends(get_db)):
+    """
+    The posting's description, fetched now when the feed did not carry it, so
+    a job can be read before applying (the 30-minute backfill would get to it
+    later). Shared jobs only; at most one fetch per job every 10 minutes.
+    """
+    from services import job_descriptions
+    job = db.query(Job).filter(Job.id == job_id, Job.user_id == None).first()  # noqa: E711
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    try:
+        outcome, _ = job_descriptions.fetch_description(db, job, on_demand=True)
+    except Exception:
+        db.rollback()
+        outcome = "failed"
+    return {
+        "job_description": decode_job_description(job.job_description) if job_descriptions.has_description(job) else "",
+        "description_status": "stored" if outcome in ("stored", "fetched") else ("closed" if outcome == "closed" else "unavailable"),
+    }
+
+
 @router.get("/{job_id}")
 def get_job(
     job_id: int,

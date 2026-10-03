@@ -17,7 +17,7 @@ from sqlalchemy import func, or_
 from celery_app import celery_app
 from database import SessionLocal
 from models import ScraperRun, Job, ScraperConfigDB
-from services import ingestion_service
+from services import ingestion_service, job_descriptions
 from services.it_roles import is_it_role
 
 logger = logging.getLogger(__name__)
@@ -302,29 +302,10 @@ def deactivate_non_it_jobs() -> dict:
         db.close()
 
 
-_VAGUE_LOCATION = re.compile(r"^\s*$|^\s*\d+\s+locations?\s*$|\(\+\d+ more\)", re.IGNORECASE)
-
-
-def _fill_workday_location(job, info: dict) -> None:
-    """Replace a missing / "3 Locations" / "City (+2 more)" location with Workday's full list, and re-tag countries."""
-    if not _VAGUE_LOCATION.search(job.location or ""):
-        return
-    location = ingestion_service.workday_posting_location(info)
-    if not location:
-        return
-    from services.job_location import job_countries, to_country_codes
-    job.location = location[:500]
-    job.country_codes = to_country_codes(job_countries(job.location, job.title))
-
-
 # The description backfill's queue (fetch_missing_descriptions).
 DESCRIPTION_RETRY_HOURS = 12
-DESCRIPTION_MAX_FAILURES = 5
-# Sources whose pages refuse a plain request: Meta answers 400 and lists its
-# jobs only through its GraphQL search (scrapers/other/remaining_http.py), so a
-# description needs its own fetcher; until then the backfill does not spend
-# slots on them.
-DESCRIPTION_SKIP_SOURCES = ("meta",)
+DESCRIPTION_MAX_FAILURES = job_descriptions.MAX_FAILURES
+DESCRIPTION_SKIP_SOURCES = job_descriptions.SKIP_SOURCES
 
 
 @celery_app.task
@@ -402,40 +383,16 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
             try:
                 logger.debug(f"Fetching description for job {job.id}: {job.title} at {job.job_url}")
 
-                job.description_fetch_attempted_at = datetime.utcnow()
-                if not is_it_role(job.title, department=job.department):
-                    # Non-IT jobs are being retired (deactivate_non_it_jobs); don't
-                    # spend a request on them.
-                    job.description_fetch_failures = DESCRIPTION_MAX_FAILURES
-                    db.commit()
-                    continue
-
-                status = None
-                if ingestion_service.workday_detail_api_url(job.job_url):
-                    # Workday: one JSON call gives the description and the full
-                    # location list (the list API often has neither).
-                    status, info = ingestion_service.fetch_workday_posting(job.job_url)
-                    description = (info.get('jobDescription') or '').strip()
-                    _fill_workday_location(job, info)
-                else:
-                    description = ingestion_service.fetch_job_description_from_url(job.job_url)
-
-                if description and len(description) > 100:
-                    job.job_description = description[:15000]
-                    job.description_fetch_failures = 0
-                    db.commit()
+                outcome, status = job_descriptions.fetch_description(db, job)
+                if outcome == "fetched":
                     updated_count += 1
-                    logger.info(f"Updated description for job {job.id}: {job.title} ({len(description)} chars)")
-                elif status in (404, 410):
-                    # Workday says the posting is gone: it is closed, not missing
-                    # a description. Retire it rather than retry it.
-                    job.is_active = False
-                    db.commit()
+                    logger.info(f"Updated description for job {job.id}: {job.title}")
+                elif outcome == "closed":
                     closed_count += 1
                     logger.info(f"Closed posting retired: job {job.id} {job.title} (HTTP {status})")
-                else:
-                    job.description_fetch_failures = (job.description_fetch_failures or 0) + 1
-                    db.commit()
+                elif outcome == "skipped":
+                    continue
+                elif outcome == "failed":
                     failed_count += 1
                     failed_jobs.append({
                         "id": job.id,

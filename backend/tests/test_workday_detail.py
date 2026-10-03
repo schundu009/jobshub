@@ -123,3 +123,19 @@ def test_backfill_gives_up_after_repeated_failures_and_skips_meta(db, monkeypatc
             db.commit()
     assert seen.count("https://example.com/x") == maintenance_tasks.DESCRIPTION_MAX_FAILURES
     assert all("metacareers" not in u for u in seen)
+
+
+def test_opening_a_job_without_a_description_fetches_it(db, client, monkeypatch):
+    """POST /api/jobs/{id}/description fetches and stores it once; the cooldown stops a second request."""
+    job = Job(title="DevOps Engineer", job_url="https://example.com/devops", is_active=True, source="greenhouse")
+    db.add(job)
+    db.commit()
+    calls = []
+    monkeypatch.setattr(ingestion_service, "fetch_job_description_from_url",
+                        lambda u: calls.append(u) or "Build and run the platform. " * 10)
+    r = client.post(f"/api/jobs/{job.id}/description")
+    assert r.status_code == 200
+    assert r.json()["description_status"] == "stored"
+    assert r.json()["job_description"].startswith("Build and run the platform.")
+    assert client.post(f"/api/jobs/{job.id}/description").json()["description_status"] == "stored"
+    assert len(calls) == 1
