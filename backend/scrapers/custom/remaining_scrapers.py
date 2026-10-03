@@ -4,6 +4,7 @@ from scrapers.registry import ScraperRegistry
 from typing import List, Optional
 from datetime import datetime, timedelta
 import asyncio
+import html
 import re
 
 
@@ -82,6 +83,31 @@ def _lever_pay(raw: dict) -> tuple:
     interval = str(sr.get("interval") or "").lower()
     period = next((p for p in ("hour", "day", "week", "month", "year") if p in interval), None)
     return sr.get("min"), sr.get("max"), period
+
+
+def _lever_description(raw: dict) -> Optional[str]:
+    """
+    The whole Lever posting from the list call: the description, each list
+    section (Requirements, Responsibilities, ...) and the closing text, as
+    HTML; the plain-text fields when a posting has no HTML.
+    """
+    parts = []
+    body = raw.get("description") or ""
+    if body.strip():
+        parts.append(body)
+    elif (raw.get("descriptionPlain") or "").strip():
+        parts.append(f"<p>{html.escape(raw['descriptionPlain'].strip())}</p>")
+    for section in raw.get("lists") or []:
+        if not isinstance(section, dict) or not (section.get("content") or "").strip():
+            continue
+        heading = html.escape((section.get("text") or "").strip())
+        parts.append((f"<h3>{heading}</h3>" if heading else "") + f"<ul>{section['content']}</ul>")
+    extra = raw.get("additional") or ""
+    if extra.strip():
+        parts.append(extra)
+    elif (raw.get("additionalPlain") or "").strip():
+        parts.append(f"<p>{html.escape(raw['additionalPlain'].strip())}</p>")
+    return "\n".join(parts) or None
 
 
 # Helper mixin for Workday API parsing
@@ -231,6 +257,7 @@ class LeverMixin:
             return ScrapedJob(
                 title=raw.get("text", ""), location=location,
                 job_url=raw.get("hostedUrl", ""), external_job_id=raw.get("id", ""),
+                job_description=_lever_description(raw),
                 department=department, posted_date=posted,
                 employment_type_raw=categories.get("commitment") or None,
                 pay_rate_min=pay_min, pay_rate_max=pay_max, pay_period=pay_period,

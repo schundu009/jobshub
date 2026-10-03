@@ -1,6 +1,7 @@
 """Zoox job scraper - Lever API (migrated from Greenhouse)."""
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType, ScrapedJob, ScrapeResult
 from scrapers.registry import ScraperRegistry
+from scrapers.custom.remaining_scrapers import _lever_description
 from typing import List, Optional
 from datetime import datetime
 
@@ -32,7 +33,7 @@ class ZooxScraper(HTTPScraper):
                 location=location,
                 job_url=raw.get("hostedUrl", f"https://jobs.lever.co/zoox/{job_id}"),
                 external_job_id=job_id,
-                job_description=raw.get("descriptionPlain", ""),
+                job_description=_lever_description(raw),
                 department=department,
                 posted_date=posted_date,
             )

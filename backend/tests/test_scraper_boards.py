@@ -161,3 +161,27 @@ def test_removed_scrapers_are_gone():
 ])
 def test_moved_boards_point_at_new_ats(slug, fragment):
     assert fragment in ScraperRegistry.get(slug).API_URL
+
+
+def test_lever_list_call_carries_the_whole_description():
+    from scrapers.custom.remaining_scrapers import LeverMixin
+
+    class FakeLever(LeverMixin, HTTPScraper):
+        config = _cfg("fakelever")
+        API_URL = "https://api.lever.co/v0/postings/acme?mode=json"
+
+    posting = {
+        "id": "abc", "text": "SRE", "hostedUrl": "https://jobs.lever.co/acme/abc",
+        "categories": {"location": "Remote", "team": "Infra"},
+        "description": "<div>Run production.</div>", "descriptionPlain": "Run production.",
+        "lists": [{"text": "Requirements", "content": "<li>Linux</li><li>Go</li>"},
+                  {"text": "Empty", "content": ""}],
+        "additional": "<div>Benefits.</div>",
+    }
+    result = asyncio.run(_with_response(FakeLever(), [posting]).scrape())
+    desc = result.jobs[0].job_description
+    assert desc == "<div>Run production.</div>\n<h3>Requirements</h3><ul><li>Linux</li><li>Go</li></ul>\n<div>Benefits.</div>"
+
+    plain = {"id": "p", "text": "QA", "categories": {}, "descriptionPlain": "Test <things> & ship."}
+    assert FakeLever().parse_job(plain).job_description == "<p>Test &lt;things&gt; &amp; ship.</p>"
+    assert FakeLever().parse_job({"id": "n", "text": "X", "categories": {}}).job_description is None
