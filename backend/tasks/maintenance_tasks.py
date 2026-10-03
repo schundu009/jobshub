@@ -351,8 +351,9 @@ def fetch_missing_descriptions(batch_size: int = 200, delay_between: float = 0.5
             ~Job.source.in_(DESCRIPTION_SKIP_SOURCES),
             or_(
                 Job.job_description.is_(None),
-                Job.job_description == '',
-                Job.job_description == 'No description available.'
+                Job.job_description == 'No description available.',
+                # Empty, or only the list's summary (job_descriptions.THIN).
+                func.length(func.trim(Job.job_description)) < job_descriptions.THIN,
             ),
             or_(Job.description_fetch_attempted_at.is_(None),
                 Job.description_fetch_attempted_at < retry_cutoff),

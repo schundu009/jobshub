@@ -893,9 +893,13 @@ def fetch_job_description(job_id: int, db: Session = Depends(get_db)):
     except Exception:
         db.rollback()
         outcome = "failed"
+    # A short text (a list summary the posting could not improve on) is still
+    # better than nothing to read.
+    text = (job.job_description or "").strip()
+    readable = bool(text) and text != "No description available."
     return {
-        "job_description": decode_job_description(job.job_description) if job_descriptions.has_description(job) else "",
-        "description_status": "stored" if outcome in ("stored", "fetched") else ("closed" if outcome == "closed" else "unavailable"),
+        "job_description": decode_job_description(job.job_description) if readable else "",
+        "description_status": "closed" if outcome == "closed" else ("stored" if readable else "unavailable"),
     }
 
 

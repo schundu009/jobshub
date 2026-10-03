@@ -22,8 +22,13 @@ SKIP_SOURCES = ("meta",)
 _VAGUE_LOCATION = re.compile(r"^\s*$|^\s*\d+\s+locations?\s*$|\(\+\d+ more\)", re.IGNORECASE)
 
 
+# Shorter than this is a list summary (Oracle sends 125 chars), not the posting.
+THIN = 400
+
+
 def has_description(job) -> bool:
-    return (job.job_description or "").strip() not in ("", "No description available.")
+    text = (job.job_description or "").strip()
+    return text != "No description available." and len(text) >= THIN
 
 
 def fill_workday_location(job, info: dict) -> None:
@@ -59,7 +64,9 @@ def fetch_description(db, job, on_demand: bool = False) -> tuple[str, int | None
         return "skipped", None
 
     status = None
-    if ingestion_service.workday_detail_api_url(job.job_url):
+    if ingestion_service.oracle_detail_api_url(job.job_url):
+        status, description = ingestion_service.fetch_oracle_description(job.job_url)
+    elif ingestion_service.workday_detail_api_url(job.job_url):
         # Workday: one JSON call gives the description and the full location list.
         status, info = ingestion_service.fetch_workday_posting(job.job_url)
         description = (info.get("jobDescription") or "").strip()
@@ -67,7 +74,7 @@ def fetch_description(db, job, on_demand: bool = False) -> tuple[str, int | None
     else:
         description = ingestion_service.fetch_job_description_from_url(job.job_url)
 
-    if description and len(description) > 100:
+    if description and len(description) > max(100, len((job.job_description or "").strip())):
         job.job_description = description[:15000]
         job.description_fetch_failures = 0
         db.commit()

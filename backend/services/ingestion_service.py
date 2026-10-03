@@ -474,6 +474,45 @@ def fetch_workday_posting(job_url: str) -> tuple:
         return None, {}
 
 
+_ORACLE_JOB_URL = re.compile(
+    r"^https?://(?P<host>[\w.-]+\.oraclecloud\.com)/hcmUI/CandidateExperience/[a-z]{2}(?:-[A-Z]{2})?/sites/(?P<site>[^/]+)/job/(?P<id>\d+)"
+)
+
+
+def oracle_detail_api_url(job_url: str) -> Optional[str]:
+    """
+    Oracle Recruiting Cloud job page -> its public requisition-details REST call:
+    https://x.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/210796882
+    The list API carries only a 125-char summary; this has the whole posting.
+    """
+    m = _ORACLE_JOB_URL.match(job_url or "")
+    if not m:
+        return None
+    return (f"https://{m['host']}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails"
+            f"?expand=all&onlyData=true&finder=ById;Id=%22{m['id']}%22,siteNumber={m['site']}")
+
+
+def fetch_oracle_description(job_url: str) -> tuple:
+    """(HTTP status, description HTML) for an Oracle Recruiting Cloud job page; (None, '') when not one."""
+    api_url = oracle_detail_api_url(job_url)
+    if not api_url:
+        return None, ""
+    try:
+        request = urllib.request.Request(api_url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+        with urllib.request.urlopen(request, timeout=15, context=ssl_context) as response:
+            items = json.loads(response.read().decode("utf-8")).get("items") or []
+    except urllib.error.HTTPError as e:
+        return e.code, ""
+    except Exception as e:
+        logger.debug(f"Oracle detail fetch failed for {job_url}: {e}")
+        return None, ""
+    if not items:
+        return 404, ""
+    it = items[0]
+    parts = [it.get("ExternalDescriptionStr"), it.get("ExternalResponsibilitiesStr"), it.get("ExternalQualificationsStr")]
+    return 200, "\n".join(p for p in parts if p and p.strip())
+
+
 def fetch_workday_posting_info(job_url: str) -> dict:
     """jobPostingInfo for a Workday job page URL (description HTML, location,
     additionalLocations, country, ...), or {} when there is none."""
