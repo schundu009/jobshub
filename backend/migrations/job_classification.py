@@ -1,5 +1,5 @@
 """
-Add employment_type + freshness columns to jobs (idempotent).
+Add employment_type, freshness and board-tracking columns to jobs (idempotent).
 
 Called from main.run_migrations, which already runs under the startup
 advisory lock, so only one worker/replica executes this DDL.
@@ -22,6 +22,7 @@ JOB_CLASSIFICATION_COLUMNS = [
     ("country_codes", "VARCHAR(200)", "VARCHAR(200)"),
     ("description_fetch_attempted_at", "TIMESTAMP", "DATETIME"),
     ("description_fetch_failures", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0"),
+    ("missed_runs", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0"),
 ]
 
 JOB_CLASSIFICATION_INDEXES = [

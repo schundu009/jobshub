@@ -617,6 +617,7 @@ def _refresh_existing(existing: Job, fields: dict, company_id: int, now: datetim
     if "country_codes" in fields:
         existing.country_codes = fields["country_codes"]
     existing.is_active = True  # Mark as still active
+    existing.missed_runs = 0
 
     existing.first_seen_at = existing.first_seen_at or existing.created_at or now
     existing.last_seen_at = now
@@ -633,41 +634,71 @@ def _refresh_existing(existing: Job, fields: dict, company_id: int, now: datetim
         flag_modified(existing, "updated_at")
 
 
-def mark_jobs_inactive(
-    db: Session,
-    company_slug: str,
-    active_external_ids: set[str],
-):
-    """
-    Mark jobs that are no longer on the career page as inactive.
+# A posting missing from this many consecutive complete scrapes of its board is closed.
+CLOSE_AFTER_MISSES = 2
 
-    Args:
-        db: Database session
-        company_slug: Company slug
-        active_external_ids: Set of external IDs still active
+
+def close_removed_postings(db: Session, company_slug: str, result) -> int:
     """
-    # Get company
+    After a complete, successful scrape of a company's board, count a miss for
+    each active posting of that company + source the board no longer lists
+    (jobs.missed_runs), clear it for those it lists, and close (is_active=False)
+    those missed CLOSE_AFTER_MISSES runs in a row. Returns how many were closed.
+
+    Never acts on a run that failed, found nothing, was cut short (page/job cap,
+    time budget: result.complete is False) or whose save failed, and never for
+    aggregator feeds or staffing agencies. The 14-day stale sweep still covers
+    every other source.
+    """
+    stats = result.save_stats or {}
+    if (
+        not result.success
+        or not getattr(result, "complete", False)
+        or not result.jobs
+        or stats.get("exception")
+        or stats.get("commit_error")
+        or company_slug in AGGREGATOR_SLUGS
+    ):
+        return 0
     metadata = ScraperRegistry.get_metadata(company_slug)
-    if not metadata:
-        return
+    if not metadata or metadata.get("category") == "staffing":
+        return 0
 
-    company = CompanyResolver(db).find(metadata["company_name"], prefer_name=metadata["company_name"])
-
-    if not company:
-        return
-
-    # Find jobs to mark inactive
-    inactive_count = db.query(Job).filter(
-        Job.company_id == company.id,
-        Job.source == company_slug,
-        Job.is_active == True,
-        ~Job.external_job_id.in_(active_external_ids),
-    ).update({"is_active": False}, synchronize_session=False)
-
-    db.commit()
-
-    if inactive_count:
-        logger.info(f"Marked {inactive_count} jobs inactive for {company_slug}")
+    seen = {_clean_external_id(j.external_job_id or j.generate_id()) for j in result.jobs}
+    try:
+        company = get_or_create_company(db, company_slug, company_name=metadata["company_name"],
+                                        website=metadata.get("careers_url"))
+        rows = db.query(Job.id, Job.external_job_id, Job.missed_runs).filter(
+            Job.company_id == company.id,
+            Job.source == company_slug,
+            Job.is_active == True,  # noqa: E712
+            Job.user_id.is_(None),
+        ).all()
+        listed_again = [r.id for r in rows if r.external_job_id in seen and (r.missed_runs or 0) > 0]
+        missing = [r for r in rows if r.external_job_id not in seen]
+        to_close = [r.id for r in missing if (r.missed_runs or 0) + 1 >= CLOSE_AFTER_MISSES]
+        to_count = [r.id for r in missing if (r.missed_runs or 0) + 1 < CLOSE_AFTER_MISSES]
+        # Keep updated_at for bookkeeping-only changes (it is "content changed").
+        for i in range(0, len(listed_again), 500):
+            db.query(Job).filter(Job.id.in_(listed_again[i:i + 500])).update(
+                {"missed_runs": 0, "updated_at": Job.updated_at}, synchronize_session=False)
+        for i in range(0, len(to_count), 500):
+            db.query(Job).filter(Job.id.in_(to_count[i:i + 500])).update(
+                {"missed_runs": func.coalesce(Job.missed_runs, 0) + 1, "updated_at": Job.updated_at},
+                synchronize_session=False)
+        for i in range(0, len(to_close), 500):
+            db.query(Job).filter(Job.id.in_(to_close[i:i + 500])).update(
+                {"missed_runs": func.coalesce(Job.missed_runs, 0) + 1, "is_active": False},
+                synchronize_session=False)
+        db.commit()
+    except Exception as e:
+        logger.warning(f"Closing removed postings for {company_slug} failed: {type(e).__name__}: {e}")
+        _rollback(db)
+        return 0
+    if to_close or to_count:
+        logger.info(f"{company_slug}: closed {len(to_close)} postings no longer listed; "
+                    f"{len(to_count)} missing for the first time")
+    return len(to_close)
 
 
 def get_scraper_stats(db: Session, company_slug: str) -> dict:

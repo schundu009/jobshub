@@ -124,23 +124,25 @@ class WorkdayMixin:
         offset = 0
         limit = 20  # Workday CXS rejects limit > 20 with HTTP 400
         deadline = asyncio.get_event_loop().time() + self.TIME_BUDGET_SECONDS
+        complete = False
         while True:
             payload = {"appliedFacets": {}, "limit": limit, "offset": offset, "searchText": ""}
             data = await self.fetch_json(self.API_URL, method="POST", json_data=payload)
             if not data:
-                break
+                break  # an empty body: we can't tell the board ended
             jobs = self.expect_list(data, "jobPostings") if offset == 0 else (data.get("jobPostings") or [])
-            if not jobs:
+            if not jobs or len(jobs) < limit:
+                all_jobs.extend(self.parse_all(jobs))
+                complete = True
                 break
             all_jobs.extend(self.parse_all(jobs))
-            if len(jobs) < limit:
-                break
             offset += limit
             if offset >= min(self.MAX_JOBS, 2000) or asyncio.get_event_loop().time() > deadline:
                 self.logger.info(f"Workday: stopping at {len(all_jobs)} jobs (cap/time budget)")
                 break
             await asyncio.sleep(0.05)
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None,
+                            complete=complete)
 
     def _workday_site_url(self) -> str:
         """
@@ -188,7 +190,8 @@ class GreenhouseMixin:
         if not data:
             return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data")
         all_jobs = self.parse_all(self.expect_list(data, "jobs"))
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+        # One call lists the whole board.
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None, complete=True)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
@@ -219,7 +222,7 @@ class AshbyMixin:
         # Unlisted Ashby postings are not publicly reachable
         raw_jobs = [j for j in self.expect_list(data, "jobs") if j.get("isListed", True)]
         all_jobs = self.parse_all(raw_jobs)
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None, complete=True)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
@@ -244,7 +247,7 @@ class LeverMixin:
         if data is None:
             return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message="No data")
         all_jobs = self.parse_all(self.expect_list(data))  # Lever returns a list directly
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None, complete=True)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:
@@ -271,19 +274,23 @@ class SmartRecruitersMixin:
         all_jobs: List[ScrapedJob] = []
         offset = 0
         limit = 100
+        complete = False
         while True:
             data = await self.fetch_json(self.API_URL, params={"offset": offset, "limit": limit})
             if not data:
-                break
+                break  # an empty body: we can't tell the board ended
             jobs = self.expect_list(data, "content")
             if not jobs:
+                complete = True
                 break
             all_jobs.extend(self.parse_all(jobs))
             total = data.get("totalFound", 0)
             if len(jobs) < limit or offset + limit >= total:
+                complete = True
                 break
             offset += limit
-        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None)
+        return ScrapeResult(success=True, jobs=all_jobs, jobs_found=len(all_jobs), error_message=None,
+                            complete=complete)
 
     def parse_job(self, raw: dict) -> Optional[ScrapedJob]:
         try:

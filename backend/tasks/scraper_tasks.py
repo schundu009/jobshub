@@ -35,10 +35,10 @@ def get_db() -> Session:
 def save_jobs_into_result(db: Session, company_slug: str, result: ScrapeResult) -> None:
     """
     Save result.jobs and copy the outcome onto the result (jobs_new/updated and
-    save_stats) so record_scraper_run can flag found-but-not-saved runs.
-    Never raises.
+    save_stats) so record_scraper_run can flag found-but-not-saved runs; then
+    close postings a complete board scrape no longer lists. Never raises.
     """
-    from services.scraper_service import is_connection_error, save_scraped_jobs
+    from services.scraper_service import close_removed_postings, is_connection_error, save_scraped_jobs
 
     def _connection_failed(stats) -> bool:
         err = f"{stats.commit_error or ''} {stats.first_error or ''}"
@@ -55,6 +55,9 @@ def save_jobs_into_result(db: Session, company_slug: str, result: ScrapeResult) 
                 continue
             result.jobs_new, result.jobs_updated = stats.new, stats.updated
             result.save_stats = stats.as_dict()
+            closed = close_removed_postings(db, company_slug, result)
+            if closed:
+                result.save_stats["closed"] = closed
             return
         except Exception as save_err:
             _reset_session(db)
@@ -82,7 +85,7 @@ def _save_summary(stats: dict) -> str:
     if stats.get("exception"):
         return f"save raised {stats['exception']}"
     parts = [f"{stats.get('new', 0)} new", f"{stats.get('updated', 0)} updated"]
-    for key in ("skipped_old", "skipped_invalid", "skipped_non_it", "duplicates", "contracts", "errors"):
+    for key in ("skipped_old", "skipped_invalid", "skipped_non_it", "duplicates", "contracts", "closed", "errors"):
         if stats.get(key):
             parts.append(f"{stats[key]} {key}")
     if stats.get("first_error"):
@@ -136,7 +139,7 @@ def record_scraper_run(
     error_message = result.error_message
     if result.success and result.save_stats and not error_message:
         stats = result.save_stats
-        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "skipped_non_it", "duplicates", "contracts", "errors")):
+        if any(stats.get(k) for k in ("skipped_old", "skipped_invalid", "skipped_non_it", "duplicates", "contracts", "closed", "errors")):
             error_message = f"saved: {_save_summary(stats)}"[:1000]
 
     run = ScraperRun(

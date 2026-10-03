@@ -176,6 +176,11 @@ class ScrapeResult:
     pages_scraped: int = 0
     total_pages: Optional[int] = None
 
+    # True only when the scraper read the whole board (every page, no job or
+    # time cap). Postings missing from a complete result are closed after two
+    # such runs (scraper_service.close_removed_postings); unknown = False.
+    complete: bool = False
+
     # Set by the caller after save_scraped_jobs (SaveResult.as_dict(), or
     # {"exception": "..."} when saving raised). None = saving wasn't attempted.
     save_stats: Optional[dict] = None

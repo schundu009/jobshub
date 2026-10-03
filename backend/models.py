@@ -330,6 +330,9 @@ class Job(Base):
     # postings still listed never reached the front of the queue.
     description_fetch_attempted_at = Column(DateTime, nullable=True)
     description_fetch_failures = Column(Integer, default=0, nullable=True)
+    # Consecutive complete scrapes of its board that no longer listed it; at
+    # 2 the posting is closed (scraper_service.close_removed_postings).
+    missed_runs = Column(Integer, default=0, nullable=True)
 
     owner = relationship("User", back_populates="jobs")
     company = relationship("Company", back_populates="jobs")

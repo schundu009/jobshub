@@ -118,7 +118,7 @@ def test_migration_is_idempotent(tmp_path):
             migrate_job_classification(conn)
     cols = {c["name"] for c in inspect(engine).get_columns("jobs")}
     assert {"employment_type", "first_seen_at", "last_seen_at", "reposted_count", "is_evergreen",
-            "evergreen_reason", "effective_posted_at", "country_codes"} <= cols
+            "evergreen_reason", "effective_posted_at", "country_codes", "missed_runs"} <= cols
     idx = {i["name"] for i in inspect(engine).get_indexes("jobs")}
     assert {"ix_jobs_employment_type", "ix_jobs_active_effective_posted", "ix_jobs_country_codes"} <= idx
     with engine.connect() as conn:
