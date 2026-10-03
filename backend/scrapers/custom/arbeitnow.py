@@ -8,6 +8,8 @@ from scrapers.registry import ScraperRegistry
 from typing import List, Optional
 from datetime import datetime
 
+from services.job_location import job_countries
+
 
 @ScraperRegistry.register(category="custom")
 class ArbeitnowScraper(HTTPScraper):
@@ -69,8 +71,10 @@ class ArbeitnowScraper(HTTPScraper):
             company = raw.get("company_name", "")
             location = raw.get("location", "")
             remote = raw.get("remote", False)
-            if remote and not location:
-                location = "Remote"
+            # A German board: its locations are bare cities ("Bonn"). Name the
+            # country unless the location already does, so country filters work.
+            if not job_countries(location):
+                location = f"{location}, Germany" if location else ("Remote, Germany" if remote else "Germany")
 
             created = raw.get("created_at", 0)
             posted_date = datetime.fromtimestamp(created) if created else None

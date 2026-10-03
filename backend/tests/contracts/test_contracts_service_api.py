@@ -99,7 +99,7 @@ def ids(resp, seeded):
 def test_public_list_defaults_to_us_plus_unknown(client, seeded):
     r = client.get("/api/contracts/jobs")
     assert r.status_code == 200 and r.json()["country"] == "US"
-    assert ids(r, seeded) == ["1", "2", "4", "5"]  # Toronto hidden, "Remote" (unknown) visible
+    assert ids(r, seeded) == ["1", "2", "4", "5"]  # Toronto hidden; a staffing "Remote" is US
     item = next(j for j in r.json()["jobs"] if j["title"] == "Java Developer")
     for key in ("employment_type", "tax_terms", "pay_rate_min", "pay_rate_max", "pay_period", "hourly_rate_min",
                 "contract_duration_months", "visa_terms", "country_codes", "agency_name", "end_client",
@@ -110,8 +110,9 @@ def test_public_list_defaults_to_us_plus_unknown(client, seeded):
 
 
 def test_country_and_confirmed_only(client, seeded):
-    assert ids(client.get("/api/contracts/jobs?country=CA"), seeded) == ["3", "4"]
-    assert ids(client.get("/api/contracts/jobs?confirmed_only=true"), seeded) == ["1", "2", "5"]
+    # The staffing scrapers keep US postings only, so their bare "Remote" is US, not everywhere.
+    assert ids(client.get("/api/contracts/jobs?country=CA"), seeded) == ["3"]
+    assert ids(client.get("/api/contracts/jobs?confirmed_only=true"), seeded) == ["1", "2", "4", "5"]
     assert ids(client.get("/api/contracts/jobs?country=ALL"), seeded) == ["1", "2", "3", "4", "5"]
     assert client.get("/api/contracts/jobs?country=Narnia").status_code == 400
 

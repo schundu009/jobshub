@@ -220,6 +220,10 @@ def save_contract_jobs(
                 continue
             fields = classified.get(id(scraped)) or classify_scraped(
                 scraped, default_type="contract" if source_type == "staffing" else None)
+            # The staffing scrapers keep US postings only (contracts/scrapers), so
+            # their "REMOTE" or bare "TN" is a US role, not one shown everywhere.
+            if source_type == "staffing" and not fields.get("countries"):
+                fields = {**fields, "countries": ["US"]}
             if fields.get("employment_type") not in CONTRACT_TYPES:
                 stats.skipped_not_contract += 1
                 continue
