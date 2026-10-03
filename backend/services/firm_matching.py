@@ -1,5 +1,5 @@
 """
-Full-time jobs (GET /api/jobs) helpers for the cariara.com/jobs/firm page.
+Full-time jobs (GET /api/jobs) helpers for the cariara.com/jobs page.
 
     derive_work_type(title, location, description) -> "remote" | "hybrid" | "onsite" | None
     build_profile(roles, skills, seniority) -> MatchProfile

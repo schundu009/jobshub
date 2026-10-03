@@ -1,5 +1,5 @@
 """
-/api/contracts - contract roles (public read API for cariara.com/jobs/contract).
+/api/contracts - contract roles (public read API for cariara.com/jobs?kind=contract).
 
 Public (no auth, cached 120s per param set):
     GET /api/contracts/jobs        (q/loc search, profile matching: roles/skills/seniority/min_match/sort=match)

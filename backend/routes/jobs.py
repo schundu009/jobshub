@@ -11,7 +11,7 @@ Overrides:
 - ?role=backend → preview relevance for a specific role
 - ?min_score=40 → filter by minimum relevance score
 
-Full-time jobs page (cariara.com/jobs/firm):
+Full-time jobs (cariara.com/jobs):
 - q / location / work_type / salary_min+salary_max / company / employment_type are
   applied in SQL and named in the response's applied_filters
 - sort=match|recent, skills, seniority, min_match switch scoring to
