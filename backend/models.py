@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Boolean, Float, JSON, Index, text
+from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Boolean, Float, JSON, Index, text, FetchedValue
 from sqlalchemy import event, inspect as sa_inspect
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -332,7 +332,9 @@ class Job(Base):
     role_category = Column(String(32), nullable=True)
     seniority = Column(String(16), nullable=True)
     # TRUE when the posting requires citizenship / clearance (no visa sponsorship possible)
-    citizenship_restricted = Column(Boolean, nullable=True)
+    # Generated in Postgres from job_description (GENERATED ALWAYS, see copilot
+    # live-api routes/jobs.js): never written, so inserts must leave it out.
+    citizenship_restricted = Column(Boolean, nullable=True, server_default=FetchedValue())
     # The description backfill (tasks/maintenance_tasks.fetch_missing_descriptions)
     # keeps its own queue: when it last tried this job and how many times it
     # failed. It used to order by updated_at, which every scrape bumps, so the
