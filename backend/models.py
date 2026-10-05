@@ -261,6 +261,8 @@ class Company(Base):
     name = Column(String(255), nullable=False)
     website = Column(String(500))
     industry = Column(String(255))
+    # services.job_taxonomy.DOMAINS slug, set on save from data/company_domains.json; NULL = not classified
+    domain = Column(String(40), nullable=True, index=True)
     size = Column(String(50))
     location = Column(String(255))
     notes = Column(Text)
@@ -281,6 +283,8 @@ class Job(Base):
         Index('ix_jobs_active_effective_posted', 'is_active', 'effective_posted_at'),
         Index('ix_jobs_country_codes', 'country_codes'),
         Index('ix_jobs_work_type', 'work_type'),
+        Index('ix_jobs_role_category', 'role_category'),
+        Index('ix_jobs_seniority', 'seniority'),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -324,6 +328,11 @@ class Job(Base):
     country_codes = Column(String(200), nullable=True)  # ",US,GB," (services.job_location); NULL = unknown
     # remote | hybrid | onsite (services.firm_matching.derive_work_type, set on save); NULL = unknown
     work_type = Column(String(10), nullable=True)
+    # services.job_taxonomy, set on save: ROLE_CATEGORIES / SENIORITIES slugs
+    role_category = Column(String(32), nullable=True)
+    seniority = Column(String(16), nullable=True)
+    # TRUE when the posting requires citizenship / clearance (no visa sponsorship possible)
+    citizenship_restricted = Column(Boolean, nullable=True)
     # The description backfill (tasks/maintenance_tasks.fetch_missing_descriptions)
     # keeps its own queue: when it last tried this job and how many times it
     # failed. It used to order by updated_at, which every scrape bumps, so the
@@ -810,4 +819,33 @@ def _job_work_type_on_save(mapper, connection, target):
         from services.firm_matching import derive_work_type
         target.work_type = derive_work_type(loaded.get("title"), loaded.get("location"), loaded.get("job_description"))
     except Exception:  # never block a save over a label
+        pass
+
+
+@event.listens_for(Job, "before_insert")
+@event.listens_for(Job, "before_update")
+def _job_taxonomy_on_save(mapper, connection, target):
+    """Keep jobs.role_category / seniority in step with the title and department."""
+    state = sa_inspect(target)
+    if state.persistent and not any(state.attrs[a].history.has_changes() for a in ("title", "department")) \
+            and target.role_category and target.seniority:
+        return
+    try:
+        from services.job_taxonomy import role_category, seniority
+        target.role_category = role_category(target.title, target.department)
+        target.seniority = seniority(target.title)
+    except Exception:  # never block a save over a label
+        pass
+
+
+@event.listens_for(Company, "before_insert")
+@event.listens_for(Company, "before_update")
+def _company_domain_on_save(mapper, connection, target):
+    """Classify a new or renamed company from data/company_domains.json (an admin's choice is kept)."""
+    if target.domain:
+        return
+    try:
+        from services.job_taxonomy import company_domain
+        target.domain = company_domain(target.name)
+    except Exception:
         pass

@@ -37,6 +37,7 @@ from database import get_db
 from models import Job, Company, User, RoleProfile
 from services.job_location import country_filter, from_country_codes, normalize_country
 from services import firm_matching as fm
+from services import job_taxonomy as tx
 
 # Contract roles live in contract_jobs and are served by /api/contracts. Direct-hire
 # temporary/seasonal roles stay in jobs (employment_type "temporary") and are shown.
@@ -364,6 +365,9 @@ def job_to_response(
         "ai_summary": job.ai_summary,
         "ai_tech_stack": job.ai_tech_stack,
         "work_type": job.work_type,
+        "role_category": job.role_category,
+        "seniority": job.seniority,
+        "company_domain": job.company.domain if job.company else None,
         **freshness_fields(job),
     }
 
@@ -421,12 +425,13 @@ def _company_ids_where(condition):
 
 
 def _search_condition(q: str, include_description: bool):
-    """Every word of q in title / company / department / tech stack (/ description)."""
+    """Every word of q in title / company / department / location / tech stack (/ description)."""
     per_term = []
     for token, whole in fm.search_terms(q):
         fields = [
             _matches_term(Job.title, token, whole),
             _matches_term(Job.department, token, whole),
+            _matches_term(Job.location, token, whole),
             _matches_term(cast(Job.ai_tech_stack, String), token, whole),
             _company_ids_where(_matches_term(Company.name, token, whole)),
         ]
@@ -436,51 +441,70 @@ def _search_condition(q: str, include_description: bool):
     return and_(*per_term) if per_term else None
 
 
+def _domain_condition(domains: List[str]):
+    """Jobs whose company is in one of the domains; "other" also takes unclassified companies."""
+    cond = Company.domain.in_(domains)
+    if "other" in domains:
+        cond = or_(cond, Company.domain.is_(None))
+    return _company_ids_where(cond)
+
+
 def _firm_filter_conditions(
     q: Optional[str], q_description: bool, location: Optional[str], work_type: Optional[str],
     salary_min: Optional[int], salary_max: Optional[int], company: Optional[str], employment_type: Optional[str],
-):
-    """SQL conditions for the full-time page's filters, and the names of the ones applied."""
-    conds, applied = [], []
+    role_category: Optional[str] = None, seniority: Optional[str] = None, domain: Optional[str] = None,
+    countries: Optional[str] = None, visa_ok: bool = False,
+) -> dict:
+    """SQL condition per applied filter of the jobs page, keyed by filter name (facets leave one out)."""
+    conds: dict = {}
     if q and q.strip():
         cond = _search_condition(q, q_description)
         if cond is not None:
-            conds.append(cond)
-            applied.append("q")
+            conds["q"] = cond
     if location and location.strip():
         aliases = fm.resolve_location(location)
         if aliases:
-            conds.append(or_(*[_contains_ci(Job.location, a) for a in aliases]))
+            conds["location"] = or_(*[_contains_ci(Job.location, a) for a in aliases])
         else:
-            conds.append(_contains_ci(Job.location, location.strip()))
-        applied.append("location")
+            conds["location"] = _contains_ci(Job.location, location.strip())
     types = [t for t in (x.lower() for x in _csv(work_type)) if t in fm.WORK_TYPES]
     if types:
-        conds.append(Job.work_type.in_(types))
-        applied.append("work_type")
+        conds["work_type"] = Job.work_type.in_(types)
     if salary_min or salary_max:
         lo = func.coalesce(Job.salary_min, Job.salary_max)
         hi = func.coalesce(Job.salary_max, Job.salary_min)
         # a job without pay is out once a salary filter is on; values under 10k are not annual
-        conds.append(and_(hi.isnot(None), hi >= MIN_ANNUAL_SALARY))
+        parts = [hi.isnot(None), hi >= MIN_ANNUAL_SALARY]
         if salary_min:
-            conds.append(hi >= salary_min)
+            parts.append(hi >= salary_min)
         if salary_max:
-            conds.append(lo <= salary_max)
-        applied.append("salary")
+            parts.append(lo <= salary_max)
+        conds["salary"] = and_(*parts)
     names = [n.lower() for n in _csv(company)]
     if names:
-        conds.append(_company_ids_where(func.lower(Company.name).in_(names)))
-        applied.append("company")
+        conds["company"] = _company_ids_where(func.lower(Company.name).in_(names))
     emp = [t for t in (fm.normalize_employment(x) for x in _csv(employment_type)) if t in fm.EMPLOYMENT_ALIASES]
     if emp:
         raw = sorted({v for t in emp for v in fm.EMPLOYMENT_ALIASES[t]})
         cond = Job.employment_type.in_(raw)
         if "full_time" in emp:  # unlabelled postings count as full-time
             cond = or_(cond, Job.employment_type.is_(None), Job.employment_type == "")
-        conds.append(cond)
-        applied.append("employment_type")
-    return conds, applied
+        conds["employment_type"] = cond
+    cats = [c for c in _csv(role_category) if c in tx.ROLE_CATEGORIES]
+    if cats:
+        conds["role_category"] = Job.role_category.in_(cats)
+    levels = [lv for lv in _csv(seniority) if lv in tx.SENIORITIES]
+    if levels:
+        conds["seniority"] = Job.seniority.in_(levels)
+    domains = [d for d in _csv(domain) if d in tx.DOMAINS]
+    if domains:
+        conds["domain"] = _domain_condition(domains)
+    codes = [c for c in (normalize_country(x) for x in _csv(countries)) if c]
+    if codes:
+        conds["countries"] = or_(*[country_filter(Job.country_codes, c, confirmed_only=True) for c in codes])
+    if visa_ok:
+        conds["visa"] = Job.citizenship_restricted.isnot(True)
+    return conds
 
 
 def _base_conditions(
@@ -589,6 +613,11 @@ def get_jobs(
     salary_max: Optional[int] = Query(None, ge=0, description="Annual USD: keep jobs whose pay range starts at or below this"),
     company: Optional[str] = Query(None, max_length=2000, description="Comma-separated company names (case-insensitive exact)"),
     employment_type: Optional[str] = Query(None, description="Comma-separated: full_time,part_time,internship,temporary (unlabelled = full_time)"),
+    role_category: Optional[str] = Query(None, max_length=400, description="Comma-separated job_taxonomy.ROLE_CATEGORIES slugs (GET /api/jobs/taxonomy)"),
+    seniority_level: Optional[str] = Query(None, max_length=200, description="Comma-separated job_taxonomy.SENIORITIES slugs"),
+    domain: Optional[str] = Query(None, max_length=600, description="Comma-separated company domain slugs (job_taxonomy.DOMAINS; other = unclassified too)"),
+    countries: Optional[str] = Query(None, max_length=400, description="Comma-separated ISO-2 job countries (known location only); use with country=ALL"),
+    visa_ok: bool = Query(False, description="Hide postings that require citizenship / clearance"),
 
     # Role-aware filtering (THE KEY FEATURE)
     role: Optional[str] = Query(None, description="Single role profile slug (devops, backend, frontend, etc.)"),
@@ -653,19 +682,22 @@ def get_jobs(
     if not role_slugs and not all and current_user and current_user.role_profile:
         role_slugs = [current_user.role_profile.slug]
 
-    filter_conds, applied_filters = _firm_filter_conditions(
-        q, q_description, location, work_type, salary_min, salary_max, company, employment_type)
+    filter_by_key = _firm_filter_conditions(
+        q, q_description, location, work_type, salary_min, salary_max, company, employment_type,
+        role_category, seniority_level, domain, countries, visa_ok)
+    filter_conds, applied_filters = list(filter_by_key.values()), list(filter_by_key)
 
     # Everything that decides which jobs match and how they rank (not the page window)
     selection = dict(
         status=status, source=source, active_only=active_only, company_id=company_id,
         posted_within_hours=posted_within_hours, role=",".join(role_slugs), all_jobs=all,
-        include_evergreen=include_evergreen, v="firm2",
+        include_evergreen=include_evergreen, v="firm3",
         country=viewer_country or "ALL", confirmed_only=confirmed_only, min_score=min_score,
         viewer=current_user.id if current_user else None,
         q=q, q_description=q_description, location=location, work_type=work_type,
         salary_min=salary_min, salary_max=salary_max, company=company, employment_type=employment_type,
-        skills=skills, seniority=seniority, sort=sort, min_match=min_match,
+        role_category=role_category, seniority_level=seniority_level, domain=domain, countries=countries,
+        visa_ok=visa_ok, skills=skills, seniority=seniority, sort=sort, min_match=min_match,
     )
     cache_key = _get_cache_key("jobs", limit=limit, offset=offset, description_chars=description_chars, **selection)
     ranked_key = _get_cache_key("jobs_ranked", **selection)
@@ -756,49 +788,135 @@ def get_jobs(
     return result
 
 
+def _options(labels: dict, counts: dict) -> list:
+    """Every option of a taxonomy in its order, with its count (0 included)."""
+    return [{"value": k, "label": v, "count": int(counts.get(k, 0))} for k, v in labels.items()]
+
+
+@router.get("/taxonomy")
+def job_taxonomy_labels():
+    """Slugs and labels of the role, seniority and domain filters, in display order."""
+    return {
+        "role_categories": [{"value": k, "label": v} for k, v in tx.ROLE_CATEGORIES.items()],
+        "seniorities": [{"value": k, "label": v} for k, v in tx.SENIORITIES.items()],
+        "domains": [{"value": k, "label": v} for k, v in tx.DOMAINS.items()],
+    }
+
+
 @router.get("/facets")
 def job_facets(
-    country: Optional[str] = Query(None, description="Viewer country ISO-2 (ALL = every country); default US"),
+    country: Optional[str] = Query(None, description="Viewer country ISO-2 (ALL = every country); default as GET /api/jobs"),
     confirmed_only: bool = Query(False, description="Exclude jobs whose location country is unknown"),
-    include_evergreen: bool = Query(False, description="Count evergreen / long-listed postings too"),
+    include_evergreen: Optional[bool] = Query(None, description="Count evergreen / long-listed postings too (default: admins yes)"),
+    status: Optional[str] = Query(None),
+    source: Optional[str] = Query(None),
+    company_id: Optional[int] = Query(None),
+    posted_within_hours: Optional[int] = Query(None, ge=1),
+    q: Optional[str] = Query(None, max_length=200),
+    q_description: bool = Query(False),
+    location: Optional[str] = Query(None, max_length=200),
+    work_type: Optional[str] = Query(None),
+    salary_min: Optional[int] = Query(None, ge=0),
+    salary_max: Optional[int] = Query(None, ge=0),
+    company: Optional[str] = Query(None, max_length=2000),
+    employment_type: Optional[str] = Query(None),
+    role_category: Optional[str] = Query(None, max_length=400),
+    seniority_level: Optional[str] = Query(None, max_length=200),
+    domain: Optional[str] = Query(None, max_length=600),
+    countries: Optional[str] = Query(None, max_length=400),
+    visa_ok: bool = Query(False),
+    no_cache: bool = Query(False),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: Session = Depends(get_db),
 ):
-    """Filter counts for the full-time jobs page over active shared jobs (cached 5 minutes)."""
-    viewer_country = resolve_viewer_country(country, None)
-    key = _get_cache_key("jobs_facets", country=viewer_country or "ALL", confirmed_only=confirmed_only,
-                         include_evergreen=include_evergreen, v=1)
-    cached = _ranked_get(key)
-    if cached is not None:
-        return cached
-    conds = _base_conditions(None, include_evergreen=include_evergreen, viewer_country=viewer_country,
-                             confirmed_only=confirmed_only)
-    total = db.query(func.count(Job.id)).filter(*conds).scalar() or 0
-    companies = (
-        db.query(Company.name, func.count(Job.id).label("n"))
-        .select_from(Job)
-        .join(Company, Job.company_id == Company.id)
-        .filter(*conds)
-        .group_by(Company.name)
-        .order_by(func.count(Job.id).desc(), Company.name)
-        .limit(50)
-        .all()
+    """
+    Counts for every filter of GET /api/jobs, taking the same parameters (cached 5 minutes).
+
+    Each group is counted with every other applied filter but not its own, so its options show how
+    many jobs each would give next to what is already chosen; `total` applies them all and equals the
+    list's total.
+    """
+    viewer_country = resolve_viewer_country(country, current_user)
+    if include_evergreen is None:
+        include_evergreen = bool(current_user and current_user_is_admin(current_user))
+    params = dict(
+        country=viewer_country or "ALL", confirmed_only=confirmed_only, include_evergreen=include_evergreen,
+        status=status, source=source, company_id=company_id, posted_within_hours=posted_within_hours,
+        q=q, q_description=q_description, location=location, work_type=work_type, salary_min=salary_min,
+        salary_max=salary_max, company=company, employment_type=employment_type, role_category=role_category,
+        seniority_level=seniority_level, domain=domain, countries=countries, visa_ok=visa_ok,
+        viewer=current_user.id if current_user else None, v=2,
     )
+    key = _get_cache_key("jobs_facets", **params)
+    if not no_cache:
+        cached = _ranked_get(key)
+        if cached is not None:
+            return cached
+    base = _base_conditions(
+        current_user, status=status, source=source, company_id=company_id, include_evergreen=include_evergreen,
+        viewer_country=viewer_country, confirmed_only=confirmed_only, posted_within_hours=posted_within_hours)
+    filters = _firm_filter_conditions(
+        q, q_description, location, work_type, salary_min, salary_max, company, employment_type,
+        role_category, seniority_level, domain, countries, visa_ok)
+
+    def where(*leave_out: str) -> list:
+        return base + [c for k, c in filters.items() if k not in leave_out]
+
+    def grouped(column, *leave_out: str) -> dict:
+        rows = db.query(column, func.count(Job.id)).select_from(Job).filter(*where(*leave_out)).group_by(column).all()
+        return {value: int(n) for value, n in rows}
+
+    total = db.query(func.count(Job.id)).filter(*where()).scalar() or 0
+
+    roles = grouped(Job.role_category, "role_category")
+    levels = grouped(Job.seniority, "seniority")
+    by_domain: dict = defaultdict(int)
+    for value, n in (db.query(Company.domain, func.count(Job.id)).select_from(Job)
+                     .outerjoin(Company, Job.company_id == Company.id)
+                     .filter(*where("domain")).group_by(Company.domain).all()):
+        by_domain[value if value in tx.DOMAINS else "other"] += int(n)
+
     work_types = {t: 0 for t in fm.WORK_TYPES}
-    for value, n in db.query(Job.work_type, func.count(Job.id)).filter(*conds).group_by(Job.work_type).all():
+    for value, n in grouped(Job.work_type, "work_type").items():
         if value in work_types:
-            work_types[value] += int(n)
+            work_types[value] += n
     employment = {t: 0 for t in fm.EMPLOYMENT_TYPES}
-    for value, n in db.query(Job.employment_type, func.count(Job.id)).filter(*conds).group_by(Job.employment_type).all():
+    for value, n in grouped(Job.employment_type, "employment_type").items():
         k = fm.normalize_employment(value)
-        employment[k] = employment.get(k, 0) + int(n)
+        employment[k] = employment.get(k, 0) + n
+
+    companies = (
+        db.query(Company.name, func.count(Job.id).label("n")).select_from(Job)
+        .join(Company, Job.company_id == Company.id)
+        .filter(*where("company")).group_by(Company.name)
+        .order_by(func.count(Job.id).desc(), Company.name).limit(100).all()
+    )
+    by_country: dict = defaultdict(int)
+    unknown = 0
+    for codes, n in grouped(Job.country_codes, "countries").items():
+        parsed = from_country_codes(codes)
+        if not parsed:
+            unknown += n
+        for c in parsed:
+            by_country[c] += n
     with_salary = db.query(func.count(Job.id)).filter(
-        *conds, or_(Job.salary_min.isnot(None), Job.salary_max.isnot(None))).scalar() or 0
+        *where("salary"), or_(Job.salary_min.isnot(None), Job.salary_max.isnot(None))).scalar() or 0
+    visa_ok_count = db.query(func.count(Job.id)).filter(
+        *where("visa"), Job.citizenship_restricted.isnot(True)).scalar() or 0
+
     result = {
         "total": int(total),
+        "applied_filters": list(filters),
+        "role_category": _options(tx.ROLE_CATEGORIES, roles),
+        "seniority": _options(tx.SENIORITIES, levels),
+        "domain": _options(tx.DOMAINS, by_domain),
+        "countries": [{"code": c, "count": n} for c, n in sorted(by_country.items(), key=lambda kv: (-kv[1], kv[0]))],
+        "unknown_country": unknown,
         "companies": [{"name": name, "count": int(n)} for name, n in companies if name],
         "work_type": work_types,
         "employment_type": employment,
         "with_salary": int(with_salary),
+        "visa_ok": int(visa_ok_count),
     }
     _ranked_set(key, result)
     return result

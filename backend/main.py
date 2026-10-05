@@ -763,6 +763,15 @@ def run_migrations():
             logger.warning(f"Could not add/backfill jobs.work_type: {e}")
             conn.rollback()
 
+        # jobs.role_category / seniority and companies.domain for the jobs filters and groups
+        try:
+            from migrations.job_taxonomy import migrate_job_taxonomy
+            migrate_job_taxonomy(conn, commit_batches=True)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Could not add/backfill job taxonomy: {e}")
+            conn.rollback()
+
         # Add new ingestion sources
         try:
             new_sources = [
