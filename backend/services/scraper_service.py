@@ -669,6 +669,13 @@ def close_aged_postings(db: Session, company_slug: str) -> int:
             Job.posted_date.isnot(None),
             Job.posted_date < cutoff,
         ).update({"is_active": False, "updated_at": Job.updated_at}, synchronize_session=False)
+        from contracts.models import ContractJob
+        n += db.query(ContractJob).filter(
+            ContractJob.source == company_slug,
+            ContractJob.is_active == True,  # noqa: E712
+            ContractJob.posted_date.isnot(None),
+            ContractJob.posted_date < cutoff,
+        ).update({"is_active": False}, synchronize_session=False)
         db.commit()
         return n
     except Exception as e:
