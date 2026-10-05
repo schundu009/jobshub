@@ -141,6 +141,7 @@ def _as_dict(row) -> dict:
     return {
         "slug": row.slug, "company_name": row.company_name, "ats": row.ats,
         "board": row.board, "careers_url": row.careers_url, "enabled": bool(row.enabled),
+        "max_age_days": getattr(row, "max_age_days", None),
     }
 
 

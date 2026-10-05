@@ -38,7 +38,9 @@ def save_jobs_into_result(db: Session, company_slug: str, result: ScrapeResult) 
     save_stats) so record_scraper_run can flag found-but-not-saved runs; then
     close postings a complete board scrape no longer lists. Never raises.
     """
-    from services.scraper_service import close_removed_postings, is_connection_error, save_scraped_jobs
+    from services.scraper_service import (
+        close_aged_postings, close_removed_postings, is_connection_error, save_scraped_jobs,
+    )
 
     def _connection_failed(stats) -> bool:
         err = f"{stats.commit_error or ''} {stats.first_error or ''}"
@@ -55,7 +57,7 @@ def save_jobs_into_result(db: Session, company_slug: str, result: ScrapeResult) 
                 continue
             result.jobs_new, result.jobs_updated = stats.new, stats.updated
             result.save_stats = stats.as_dict()
-            closed = close_removed_postings(db, company_slug, result)
+            closed = close_removed_postings(db, company_slug, result) + close_aged_postings(db, company_slug)
             if closed:
                 result.save_stats["closed"] = closed
             return

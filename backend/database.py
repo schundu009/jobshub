@@ -187,6 +187,17 @@ def _run_early_migrations_locked():
                 conn.rollback()
                 print(f"Could not add jobs columns early: {e}")
 
+            # job_boards.max_age_days (ORM selects it).
+            try:
+                if conn.execute(text(
+                    "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_boards')"
+                )).scalar():
+                    conn.execute(text("ALTER TABLE job_boards ADD COLUMN IF NOT EXISTS max_age_days INTEGER"))
+                    conn.commit()
+            except Exception as e:
+                conn.rollback()
+                print(f"Could not add job_boards.max_age_days: {e}")
+
             # cariara.com identity link columns on users (ORM selects them).
             try:
                 from migrations.cariara_identity import migrate_cariara_identity

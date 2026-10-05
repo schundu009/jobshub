@@ -198,8 +198,9 @@ class GreenhouseMixin:
             job_id = str(raw.get("id", ""))
             loc = raw.get("location", {})
             location = loc.get("name", "") if isinstance(loc, dict) else str(loc)
-            updated = raw.get("updated_at", "")
-            posted = datetime.fromisoformat(updated.replace("Z", "+00:00")) if updated else None
+            # first_published is when the posting went up; updated_at moves on every edit.
+            when = raw.get("first_published") or raw.get("updated_at", "")
+            posted = datetime.fromisoformat(when.replace("Z", "+00:00")) if when else None
             depts = raw.get("departments", [])
             return ScrapedJob(
                 title=raw.get("title", ""), location=location,

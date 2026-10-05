@@ -512,6 +512,8 @@ class JobBoard(Base):
     board = Column(String(255), nullable=False)
     careers_url = Column(String(500))
     enabled = Column(Boolean, default=True, nullable=False, index=True)
+    # Keep only postings first published within this many days (NULL: no limit).
+    max_age_days = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 

@@ -216,6 +216,43 @@ def test_scrape_company_http_saves_and_records_a_board(boards_db, monkeypatch):
     assert run.success and run.jobs_found == 1
 
 
+def test_board_with_max_age_keeps_only_recent_postings(boards_db, monkeypatch):
+    """job_boards.max_age_days: postings first published before the cutoff are not
+    saved, and ones that age past it are closed. Greenhouse dates by first_published."""
+    from datetime import timedelta
+    from tasks import scraper_tasks
+    row = add_board(boards_db)
+    row.max_age_days = 3
+    boards_db.commit()
+    now = datetime.utcnow()
+    iso = lambda d: (now - timedelta(days=d)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def posting(i, first, updated):
+        return {"id": i, "title": "Platform Engineer", "location": {"name": "Remote"},
+                "absolute_url": f"https://job-boards.greenhouse.io/acme/jobs/{i}", "content": "Build it.",
+                "first_published": iso(first), "updated_at": iso(updated)}
+
+    # Job 2 was updated yesterday but first published 40 days ago: not recent.
+    jobs = [posting(1, 1, 1), posting(2, 40, 1)]
+
+    async def fetch_json(self, url, method="GET", params=None, json_data=None, **_):
+        return {"jobs": jobs}
+    monkeypatch.setattr(BoardScraper, "fetch_json", fetch_json)
+    out = scraper_tasks.scrape_company_http.run("acmeboard")
+    assert out["status"] == "success" and out["jobs_new"] == 1
+    saved = boards_db.query(Job).filter(Job.source == "acmeboard").one()
+    assert saved.external_job_id == "1"
+
+    # Four days on, job 1 is past the cutoff: the next run closes it.
+    saved.posted_date = now - timedelta(days=4)
+    boards_db.commit()
+    jobs[:] = [posting(3, 0, 0)]
+    scraper_tasks.scrape_company_http.run("acmeboard")
+    boards_db.expire_all()
+    active = {j.external_job_id for j in boards_db.query(Job).filter(Job.source == "acmeboard", Job.is_active == True)}  # noqa: E712
+    assert active == {"3"}
+
+
 # ------------------------------------------------------------------ admin routes
 
 @pytest.fixture

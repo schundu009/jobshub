@@ -207,6 +207,17 @@ def _max_job_age_days(db: Session) -> int:
         return MAX_JOB_AGE_DAYS
 
 
+def board_max_age_days(company_slug: str) -> Optional[int]:
+    """job_boards.max_age_days for a board added as data (None: no limit, or a coded scraper)."""
+    try:
+        from scrapers.registry import ScraperRegistry
+        board = ScraperRegistry._board(company_slug)
+        days = (board or {}).get("max_age_days")
+        return int(days) if days else None
+    except Exception:
+        return None
+
+
 def is_connection_error(exc: BaseException) -> bool:
     """The DB connection itself is broken - retrying on this session can't work."""
     if isinstance(exc, (OperationalError, PendingRollbackError)):
@@ -434,6 +445,8 @@ def save_scraped_jobs(
     now = datetime.utcnow()
     cutoff_date = now - timedelta(days=stats.max_age_days)
     aggregator = company_slug in AGGREGATOR_SLUGS
+    board_days = board_max_age_days(company_slug)
+    board_cutoff = now - timedelta(days=board_days) if board_days else None
 
     # 1. Validate and normalize every job; drop in-batch duplicates; route contracts.
     prepared = []
@@ -455,6 +468,11 @@ def save_scraped_jobs(
                 stats.duplicates += 1
                 continue
             seen.add(external_id)
+            # A board limited to recent postings (job_boards.max_age_days): older
+            # ones are not saved, full-time or contract. Undated postings stay.
+            if board_cutoff and posted is not None and posted < board_cutoff:
+                stats.skipped_old += 1
+                continue
             route, employment_type = contract_routing(title, scraped_job.job_description, _raw_fields(scraped_job))
             if route:
                 detected[id(scraped_job)] = employment_type
@@ -632,6 +650,31 @@ def _refresh_existing(existing: Job, fields: dict, company_id: int, now: datetim
         # Keep updated_at as is (the column has onupdate=now(), which would fire
         # for the last_seen_at-only UPDATE otherwise).
         flag_modified(existing, "updated_at")
+
+
+def close_aged_postings(db: Session, company_slug: str) -> int:
+    """
+    For a board limited to recent postings (job_boards.max_age_days), close its
+    active scraped postings first published before the cutoff. Returns how many.
+    """
+    days = board_max_age_days(company_slug)
+    if not days:
+        return 0
+    cutoff = datetime.utcnow() - timedelta(days=days)
+    try:
+        n = db.query(Job).filter(
+            Job.source == company_slug,
+            Job.is_active == True,  # noqa: E712
+            Job.user_id.is_(None),
+            Job.posted_date.isnot(None),
+            Job.posted_date < cutoff,
+        ).update({"is_active": False, "updated_at": Job.updated_at}, synchronize_session=False)
+        db.commit()
+        return n
+    except Exception as e:
+        db.rollback()
+        logger.warning(f"Closing aged postings for {company_slug} failed: {type(e).__name__}: {e}")
+        return 0
 
 
 # A posting missing from this many consecutive complete scrapes of its board is closed.
