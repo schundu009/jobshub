@@ -58,6 +58,8 @@ def add_board(db, slug="acmeboard", ats="greenhouse", board="acme", name="Acme B
     ("https://careers.smartrecruiters.com/Acme1", ("smartrecruiters", "Acme1")),
     ("https://acme.wd5.myworkdayjobs.com/Acme_Careers", ("workday", "acme.wd5.myworkdayjobs.com/acme/Acme_Careers")),
     ("https://acme.wd1.myworkdayjobs.com/en-US/External/job/x_R1", ("workday", "acme.wd1.myworkdayjobs.com/acme/External")),
+    ("https://careers-acme.icims.com/jobs/1234/engineer/job", ("icims", "careers-acme.icims.com")),
+    ("https://internal-acme.icims.com/jobs/search", None),
     ("https://www2.jobdiva.com/portal/?a=tmjdnw195lqt8n1w5asw8r4q3j2ixr002cwt3sf&amp;compid=0#/",
      ("jobdiva", "www2.tmjdnw195lqt8n1w5asw8r4q3j2ixr002cwt3sf")),
     ("https://www1.jobdiva.com/candidates/myjobs/searchjobsdone.jsp?a=qfjdnwj6ytav36y4wncfts29u9d&compid=-1",
@@ -255,6 +257,20 @@ def test_board_with_max_age_keeps_only_recent_postings(boards_db, monkeypatch):
     boards_db.expire_all()
     active = {j.external_job_id for j in boards_db.query(Job).filter(Job.source == "acmeboard", Job.is_active == True)}  # noqa: E712
     assert active == {"3"}
+
+
+def test_icims_and_successfactors_boards_reuse_the_mixins():
+    from scrapers.enterprise.icims_scrapers import ICIMSMixin
+    from scrapers.enterprise.successfactors_scrapers import SuccessFactorsMixin
+    ic = build_scraper_class({"slug": "icco", "company_name": "IC Co", "ats": "icims",
+                              "board": "careers-icco.icims.com", "careers_url": None})
+    assert issubclass(ic, ICIMSMixin) and ic.ICIMS_HOST == "careers-icco.icims.com"
+    assert ic.config.careers_url == "https://careers-icco.icims.com/jobs/search"
+    sf = build_scraper_class({"slug": "sfco", "company_name": "SF Co", "ats": "successfactors",
+                              "board": "jobs.sfco.com", "careers_url": None})
+    assert issubclass(sf, SuccessFactorsMixin) and sf.SF_HOST == "jobs.sfco.com"
+    assert api_url("icims", "evil.example.com") is None
+    assert api_url("successfactors", "not a host") is None
 
 
 def test_jobdiva_board_scrapes_with_the_portal_token(monkeypatch):

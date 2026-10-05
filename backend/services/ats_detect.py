@@ -33,7 +33,7 @@ _WORKDAY_HOST = re.compile(r"([a-z0-9\-]+)\.wd\d+\.myworkdayjobs\.com")
 _LOCALE = re.compile(r"[a-z]{2}[-_][A-Za-z]{2}")
 # ATS links in a page: href/src values and script strings, absolute or protocol-relative.
 _ATS_LINK = re.compile(
-    r"(?:https?:)?//(?:[a-z0-9\-]+\.)*(?:greenhouse\.io|lever\.co|ashbyhq\.com|smartrecruiters\.com|myworkdayjobs\.com|jobdiva\.com)"
+    r"(?:https?:)?//(?:[a-z0-9\-]+\.)*(?:greenhouse\.io|lever\.co|ashbyhq\.com|smartrecruiters\.com|myworkdayjobs\.com|jobdiva\.com|icims\.com)"
     r"[^\s\"'<>\\)]*",
     re.IGNORECASE,
 )
@@ -86,6 +86,9 @@ def match_url(url: str) -> Optional[tuple[str, str]]:
     if host == "api.smartrecruiters.com" and lower[:2] == ["v1", "companies"] and len(segs) > 2:
         board = _token(segs[2])
         return ("smartrecruiters", board) if board else None
+
+    if host.endswith(".icims.com") and not host.startswith(("www.", "cdn", "static", "assets", "internal-")):
+        return ("icims", host)
 
     if host in ("www1.jobdiva.com", "www2.jobdiva.com") and lower[:1] in (["portal"], ["candidates"]):
         from scrapers.custom.jobdiva import jobdiva_parts
@@ -158,10 +161,39 @@ def _probe_jobdiva(board: str) -> int:
         return 0
 
 
+_ICIMS_JOB = re.compile(r"/jobs/(\d+)/")
+_PAGE_OF = re.compile(r"Page\s+\d+\s+of\s+(\d+)", re.I)
+_SF_TOTAL = re.compile(r"paginationLabel[^>]*>[^<]*?of\s*(?:<[^>]+>\s*)*([\d,]+)", re.I)
+
+
+def _probe_html(ats: str, board: str) -> int:
+    """iCIMS / SuccessFactors boards render jobs server-side: count them on the first page."""
+    url = api_url(ats, board)
+    if not url:
+        return 0
+    try:
+        with httpx.Client(timeout=TIMEOUT, follow_redirects=True, headers={"User-Agent": USER_AGENT}) as client:
+            if ats == "icims":
+                html = client.get(url, params={"ss": "1", "in_iframe": "1", "pr": "0"}).text
+                rows = len(set(_ICIMS_JOB.findall(html)))
+                pages = _PAGE_OF.search(html)
+                return rows * int(pages.group(1)) if rows and pages else rows
+            html = client.get(url, params={"q": "", "startrow": "0"}).text
+            total = _SF_TOTAL.search(html)
+            if total:
+                return int(total.group(1).replace(",", ""))
+            return html.count('class="data-row')
+    except Exception as e:
+        logger.info(f"ats_detect: probe {ats}/{board} failed: {type(e).__name__}: {e}")
+        return 0
+
+
 def probe(ats: str, board: str) -> int:
     """How many jobs the board's public API lists (0 when it answers with none or fails)."""
     if ats == "jobdiva":
         return _probe_jobdiva(board)
+    if ats in ("icims", "successfactors"):
+        return _probe_html(ats, board)
     url = api_url(ats, board)
     if not url:
         return 0

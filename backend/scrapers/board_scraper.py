@@ -21,6 +21,8 @@ from scrapers.custom.remaining_scrapers import (
     WorkdayMixin,
 )
 from scrapers.custom.jobdiva import JobDivaMixin, jobdiva_parts, jobdiva_portal_url
+from scrapers.enterprise.icims_scrapers import ICIMSMixin
+from scrapers.enterprise.successfactors_scrapers import SuccessFactorsMixin
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +35,16 @@ _MIXINS = {
     "smartrecruiters": SmartRecruitersMixin,
     "workday": WorkdayMixin,
     "jobdiva": JobDivaMixin,
+    "icims": ICIMSMixin,
+    "successfactors": SuccessFactorsMixin,
 }
 SUPPORTED_ATS = tuple(_MIXINS)
 
 _TOKEN = re.compile(r"[A-Za-z0-9_.\-]{1,120}")
 _WORKDAY_HOST = re.compile(r"[a-z0-9\-]+\.wd\d+\.myworkdayjobs\.com")
+_ICIMS_HOST = re.compile(r"[a-z0-9\-]+\.icims\.com")
+# A SuccessFactors Career Site Builder site, usually on the company's own domain.
+_SITE_HOST = re.compile(r"(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}")
 
 
 def workday_parts(board: str) -> Optional[tuple[str, str, str]]:
@@ -56,6 +63,10 @@ def api_url(ats: str, board: str) -> Optional[str]:
     if ats == "workday":
         parts = workday_parts(board)
         return f"https://{parts[0]}/wday/cxs/{parts[1]}/{parts[2]}/jobs" if parts else None
+    if ats == "icims":
+        return f"https://{board}/jobs/search" if _ICIMS_HOST.fullmatch(board or "") else None
+    if ats == "successfactors":
+        return f"https://{board}/search/" if _SITE_HOST.fullmatch(board or "") else None
     if ats == "jobdiva":
         # One API for every firm; the key keeps each board's URL distinct.
         parts = jobdiva_parts(board)
@@ -80,6 +91,8 @@ def board_careers_url(ats: str, board: str) -> Optional[str]:
         return f"https://{parts[0]}/{parts[2]}" if parts else None
     if ats == "jobdiva":
         return jobdiva_portal_url(board)
+    if ats in ("icims", "successfactors"):
+        return api_url(ats, board)
     return {
         "greenhouse": f"https://job-boards.greenhouse.io/{board}",
         "lever": f"https://jobs.lever.co/{board}",
@@ -125,6 +138,10 @@ def build_scraper_class(board: dict) -> Optional[type]:
     }
     if ats == "smartrecruiters":
         attrs["COMPANY_ID"] = board["board"]
+    if ats == "icims":
+        attrs["ICIMS_HOST"] = board["board"]
+    if ats == "successfactors":
+        attrs["SF_HOST"] = board["board"]
     name = re.sub(r"[^A-Za-z0-9]", "", board["slug"].title()) or "Board"
     cls = type(f"{name}BoardScraper", (_MIXINS[ats], BoardScraper), attrs)
     _class_cache[key] = cls
