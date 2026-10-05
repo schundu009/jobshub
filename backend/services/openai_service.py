@@ -1,16 +1,33 @@
 import os
+import logging
+
+import openai
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 client = None
 _cached_api_key = None
 
-# Available models
+# Selectable models (admin Settings > AI model). Verified on the production key 2026-10-05.
 OPENAI_MODELS = {
-    "gpt-4o-mini": "GPT-4o Mini (Fast, Cheap)",
-    "gpt-4o": "GPT-4o (Best Quality)",
-    "gpt-4-turbo": "GPT-4 Turbo (High Quality)",
+    "gpt-5.4-mini": "GPT-5.4 Mini (Default)",
+    "gpt-5.6-luna": "GPT-5.6 Luna (Cheapest, Auto Apply drafting)",
+    "gpt-5.6-terra": "GPT-5.6 Terra (Stronger)",
+    "gpt-5.4": "GPT-5.4 (Stronger)",
 }
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "gpt-5.4-mini"
+
+# Per-feature model map: the one place that decides which OpenAI model a feature uses.
+# Features listed here use a fixed model; every other feature uses the admin's
+# "ai_model" setting, else DEFAULT_MODEL.
+FEATURE_MODELS = {
+    "auto_apply_draft": "gpt-5.6-luna",  # high volume, short answers
+}
+
+# GPT-5.x may spend completion tokens on reasoning before any visible text, so a
+# max_completion_tokens equal to the old max_tokens could return an empty answer.
+_REASONING_HEADROOM = 2048
 
 
 def get_db_setting(key: str, default: str = None) -> str:
@@ -30,12 +47,53 @@ def get_db_setting(key: str, default: str = None) -> str:
     return default
 
 
-def get_ai_model() -> str:
-    """Get the configured AI model from database."""
+def get_ai_model(feature: str = None) -> str:
+    """Model for a feature: FEATURE_MODELS, else the admin's ai_model setting, else DEFAULT_MODEL.
+
+    A saved id that is no longer offered (e.g. a retired gpt-4o) falls back to DEFAULT_MODEL.
+    """
+    if feature in FEATURE_MODELS:
+        return FEATURE_MODELS[feature]
     model = get_db_setting("ai_model", DEFAULT_MODEL)
     if model in OPENAI_MODELS:
         return model
     return DEFAULT_MODEL
+
+
+def _is_reasoning_model(model: str) -> bool:
+    """GPT-5.x and o-series: max_completion_tokens only, default temperature only."""
+    return model.startswith(("gpt-5", "o1", "o3", "o4"))
+
+
+def _chat(model: str, messages: list, max_tokens: int, temperature: float = None) -> str:
+    """chat.completions.create with the parameters the model family accepts.
+
+    GPT-5.x rejects max_tokens (needs max_completion_tokens) and non-default
+    temperature. If the API still rejects one of them, retry once without it.
+    """
+    kwargs = {"model": model, "messages": messages}
+    if _is_reasoning_model(model):
+        kwargs["max_completion_tokens"] = max_tokens + _REASONING_HEADROOM
+    else:
+        kwargs["max_tokens"] = max_tokens
+        if temperature is not None:
+            kwargs["temperature"] = temperature
+
+    openai_client = get_client()
+    try:
+        response = openai_client.chat.completions.create(**kwargs)
+    except openai.BadRequestError as e:
+        message = str(e)
+        retry = dict(kwargs)
+        if "temperature" in message and "temperature" in retry:
+            retry.pop("temperature")
+        if "max_tokens" in message and "max_tokens" in retry:
+            retry["max_completion_tokens"] = retry.pop("max_tokens") + _REASONING_HEADROOM
+        if retry == kwargs:
+            raise
+        logger.warning("OpenAI rejected parameters for %s (%s); retrying without them", model, message)
+        response = openai_client.chat.completions.create(**retry)
+    return response.choices[0].message.content or ""
 
 
 def get_openai_api_key():
@@ -67,8 +125,6 @@ def get_client():
 def generate_cover_letter(job_title: str, company_name: str, job_description: str, resume_text: str) -> str:
     """Generate a tailored cover letter for a specific job."""
     from datetime import datetime
-    openai_client = get_client()
-
     today_date = datetime.now().strftime("%B %d, %Y")
 
     prompt = f"""Write a professional cover letter for the following job application.
@@ -111,23 +167,19 @@ Sincerely,
 [Candidate's actual name]
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
-        messages=[
+    return _chat(
+        get_ai_model(),
+        [
             {"role": "system", "content": "You are an expert career coach who writes compelling, personalized cover letters that help candidates stand out."},
             {"role": "user", "content": prompt}
         ],
+        max_tokens=1000,
         temperature=0.7,
-        max_tokens=1000
     )
-
-    return response.choices[0].message.content
 
 
 def generate_interview_questions(job_title: str, job_description: str, interview_type: str) -> str:
     """Generate practice interview questions based on the job."""
-    openai_client = get_client()
-
     type_guidance = {
         "phone_screen": "Focus on general fit questions, basic qualifications, and motivation for the role.",
         "technical": "Focus on technical skills, problem-solving, coding concepts, and system design relevant to the role.",
@@ -156,23 +208,19 @@ Instructions:
 - Format as a numbered list with the question followed by the tip
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
-        messages=[
+    return _chat(
+        get_ai_model(),
+        [
             {"role": "system", "content": "You are an experienced hiring manager and interview coach who helps candidates prepare for job interviews."},
             {"role": "user", "content": prompt}
         ],
+        max_tokens=1500,
         temperature=0.7,
-        max_tokens=1500
     )
-
-    return response.choices[0].message.content
 
 
 def analyze_resume_job_match(job_description: str, resume_text: str) -> dict:
     """Analyze how well a resume matches a job posting."""
-    openai_client = get_client()
-
     prompt = f"""Analyze how well this resume matches the job description.
 
 Job Description:
@@ -204,17 +252,15 @@ SUMMARY:
 [2-3 sentence overall assessment]
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
-        messages=[
+    content = _chat(
+        get_ai_model(),
+        [
             {"role": "system", "content": "You are an expert ATS (Applicant Tracking System) analyst and career coach who helps candidates optimize their resumes for specific jobs."},
             {"role": "user", "content": prompt}
         ],
+        max_tokens=1000,
         temperature=0.3,
-        max_tokens=1000
     )
-
-    content = response.choices[0].message.content
 
     # Parse the response
     result = {
@@ -258,8 +304,6 @@ SUMMARY:
 
 def generate_company_research(company_name: str, industry: str = None, website: str = None) -> str:
     """Generate a company research summary for interview prep."""
-    openai_client = get_client()
-
     context = f"Company: {company_name}"
     if industry:
         context += f"\nIndustry: {industry}"
@@ -300,23 +344,19 @@ Create a comprehensive but concise research summary including:
 Note: Base this on general knowledge. For the most current information, the candidate should also check the company's website and recent news.
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
-        messages=[
+    return _chat(
+        get_ai_model(),
+        [
             {"role": "system", "content": "You are a career coach helping candidates prepare for interviews by researching companies. Provide helpful, accurate information based on general knowledge about well-known companies, and general industry insights for less known companies."},
             {"role": "user", "content": prompt}
         ],
+        max_tokens=1500,
         temperature=0.7,
-        max_tokens=1500
     )
-
-    return response.choices[0].message.content
 
 
 def generate_ats_tailored_resume(resume_text: str, job_title: str, job_description: str, company_name: str = None) -> str:
     """Generate an ATS-optimized resume tailored to a specific job."""
-    openai_client = get_client()
-
     company_context = f" at {company_name}" if company_name else ""
 
     prompt = f"""You are an expert ATS (Applicant Tracking System) resume optimizer. Rewrite the candidate's resume to be highly optimized for the following job posting.
@@ -341,26 +381,22 @@ Instructions:
 Output the complete rewritten resume in a clean, professional format. Do not include any commentary - just output the optimized resume text ready to be used.
 """
 
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
-        messages=[
+    return _chat(
+        get_ai_model(),
+        [
             {"role": "system", "content": "You are a professional resume writer specializing in ATS optimization. You transform resumes to maximize their chances of passing ATS screening and impressing recruiters for specific job postings."},
             {"role": "user", "content": prompt}
         ],
+        max_tokens=3000,
         temperature=0.5,
-        max_tokens=3000
     )
 
-    return response.choices[0].message.content
 
-
-def complete_text(system: str, prompt: str, max_tokens: int = 1000) -> str:
-    """Single-turn completion with the configured model."""
-    openai_client = get_client()
-    response = openai_client.chat.completions.create(
-        model=get_ai_model(),
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-        temperature=0.3,
+def complete_text(system: str, prompt: str, max_tokens: int = 1000, feature: str = None) -> str:
+    """Single-turn completion on the feature's model (see FEATURE_MODELS)."""
+    return _chat(
+        get_ai_model(feature),
+        [{"role": "system", "content": system}, {"role": "user", "content": prompt}],
         max_tokens=max_tokens,
+        temperature=0.3,
     )
-    return response.choices[0].message.content or ""

@@ -270,6 +270,72 @@ def test_ai_model_lists_come_from_services(client, db, admin):
                        headers=headers(admin)).status_code == 400
 
 
+def test_openai_models_and_feature_map(monkeypatch):
+    from services import openai_service as svc
+    assert list(svc.OPENAI_MODELS) == ["gpt-5.4-mini", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.4"]
+    assert svc.DEFAULT_MODEL == "gpt-5.4-mini"
+    assert not any(m.startswith("gpt-4") for m in svc.OPENAI_MODELS)
+
+    monkeypatch.setattr(svc, "get_db_setting", lambda key, default=None: "gpt-4o")  # retired saved id
+    assert svc.get_ai_model() == "gpt-5.4-mini"
+    assert svc.get_ai_model("auto_apply_draft") == "gpt-5.6-luna"
+    monkeypatch.setattr(svc, "get_db_setting", lambda key, default=None: "gpt-5.6-terra")
+    assert svc.get_ai_model() == "gpt-5.6-terra"  # admin choice respected
+    assert svc.get_ai_model("auto_apply_draft") == "gpt-5.6-luna"
+
+
+def _fake_openai(calls, reject=None):
+    import httpx
+    import openai
+    from types import SimpleNamespace
+
+    def create(**kwargs):
+        calls.append(kwargs)
+        if reject and reject in kwargs:
+            raise openai.BadRequestError(
+                f"Unsupported parameter: '{reject}'",
+                response=httpx.Response(400, request=httpx.Request("POST", "https://api.openai.com")),
+                body=None,
+            )
+        msg = SimpleNamespace(content="ok")
+        return SimpleNamespace(choices=[SimpleNamespace(message=msg)])
+
+    return SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+
+
+def test_gpt5_calls_use_max_completion_tokens_without_temperature(monkeypatch):
+    from services import openai_service as svc
+    calls = []
+    monkeypatch.setattr(svc, "get_client", lambda: _fake_openai(calls))
+    monkeypatch.setattr(svc, "get_db_setting", lambda key, default=None: default)
+
+    assert svc.complete_text("sys", "hi", max_tokens=1500, feature="auto_apply_draft") == "ok"
+    call = calls[-1]
+    assert call["model"] == "gpt-5.6-luna"
+    assert "max_tokens" not in call and "temperature" not in call
+    assert call["max_completion_tokens"] >= 1500
+
+    svc.generate_cover_letter("Eng", "Acme", "JD", "Resume")
+    assert calls[-1]["model"] == "gpt-5.4-mini"
+    assert "max_tokens" not in calls[-1] and "temperature" not in calls[-1]
+
+
+def test_rejected_parameter_is_retried_without_it(monkeypatch):
+    from services import openai_service as svc
+    calls = []
+    monkeypatch.setattr(svc, "get_client", lambda: _fake_openai(calls, reject="temperature"))
+    assert svc._chat("gpt-4.1-mini", [{"role": "user", "content": "x"}], 100, temperature=0.3) == "ok"
+    assert "temperature" in calls[0] and "temperature" not in calls[1]
+
+
+def test_default_provider_is_openai(monkeypatch):
+    from services import ai_service
+    monkeypatch.setattr(ai_service, "get_db_setting", lambda key, default=None: default)
+    assert ai_service.get_default_provider() == "openai"
+    monkeypatch.setattr(ai_service, "get_db_setting", lambda key, default=None: "anthropic")
+    assert ai_service.get_default_provider() == "anthropic"  # explicit admin choice kept
+
+
 def test_anthropic_key_test_uses_current_model():
     from routes import settings as settings_routes
     assert settings_routes.TEST_CLAUDE_MODEL == "claude-haiku-4-5-20251001"

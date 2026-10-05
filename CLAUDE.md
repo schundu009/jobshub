@@ -83,8 +83,8 @@ pgrep -fl "uvicorn"
 ### AI Services
 
 Provider-based architecture with routing in `backend/services/ai_service.py`:
-- **OpenAI**: `openai_service.py` - Models: `gpt-4o-mini` (default), `gpt-4o`, `gpt-4-turbo`
-- **Anthropic**: `anthropic_service.py` - Models: `claude-3-5-sonnet-20241022` (default), `claude-3-5-haiku`, `claude-3-opus`
+- **OpenAI** (default provider): `openai_service.py` - Models: `gpt-5.4-mini` (default), `gpt-5.6-luna` (Auto Apply drafting, fixed in `FEATURE_MODELS`), `gpt-5.6-terra`, `gpt-5.4`. GPT-5.x calls go through `_chat()`: `max_completion_tokens`, no `temperature`
+- **Anthropic** (selectable): `anthropic_service.py` - Models: `claude-sonnet-5-5` (default), `claude-opus-5-5`, `claude-haiku-4-5-20251001`
 
 Configuration stored in `AppSetting` table:
 - `default_ai_provider`: "openai" or "anthropic"

@@ -391,8 +391,8 @@ Output the complete rewritten resume in a clean, professional format. Do not inc
     return response.content[0].text
 
 
-def complete_text(system: str, prompt: str, max_tokens: int = 1000) -> str:
-    """Single-turn completion with the configured Claude model."""
+def complete_text(system: str, prompt: str, max_tokens: int = 1000, feature: str = None) -> str:
+    """Single-turn completion with the configured Claude model (`feature` is accepted, not used)."""
     anthropic_client = get_client()
     message = _create_message(
         anthropic_client,

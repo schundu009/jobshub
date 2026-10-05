@@ -368,5 +368,5 @@ def draft_with_ai(questions: List[Dict[str, Any]], profile: ProfileView, job: Jo
     prompt = build_draft_prompt(questions, profile, job)
     system = ("You help a job candidate draft truthful, concise answers to application questions. "
               "The candidate reviews every draft before it is used.")
-    text = ai_service.complete_text(system, prompt, max_tokens=1500)
+    text = ai_service.complete_text(system, prompt, max_tokens=1500, feature="auto_apply_draft")
     return parse_draft_response(text, [q["id"] for q in questions])

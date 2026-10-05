@@ -846,8 +846,10 @@
         // Fallbacks when GET /settings/ai-model doesn't return model lists.
         const FALLBACK_MODELS = {
             openai: [
-                { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
-                { id: 'gpt-4o', name: 'GPT-4o' },
+                { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini' },
+                { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna' },
+                { id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra' },
+                { id: 'gpt-5.4', name: 'GPT-5.4' },
             ],
             anthropic: [
                 { id: 'claude-opus-5-5', name: 'Claude Opus 5.5' },
@@ -855,7 +857,7 @@
                 { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5' },
             ],
         };
-        let aiModelSettings = { openai_model: 'gpt-4o-mini', claude_model: 'claude-sonnet-5-5', openai_models: null, claude_models: null };
+        let aiModelSettings = { openai_model: 'gpt-5.4-mini', claude_model: 'claude-sonnet-5-5', openai_models: null, claude_models: null };
 
         function switchProvider(provider) {
             currentProvider = provider;

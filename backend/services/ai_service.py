@@ -20,9 +20,13 @@ def get_db_setting(key: str, default: str = None) -> str:
     return default
 
 
+DEFAULT_PROVIDER = "openai"
+
+
 def get_default_provider() -> str:
-    """Get the default AI provider from database."""
-    return get_db_setting("default_ai_provider", "openai")
+    """The admin's default_ai_provider setting; OpenAI when unset or unrecognized."""
+    provider = get_db_setting("default_ai_provider", DEFAULT_PROVIDER)
+    return provider if provider in ("openai", "anthropic") else DEFAULT_PROVIDER
 
 
 def get_service():
@@ -67,7 +71,11 @@ def generate_ats_tailored_resume(resume_text: str, job_title: str, job_descripti
     return service.generate_ats_tailored_resume(resume_text, job_title, job_description, company_name)
 
 
-def complete_text(system: str, prompt: str, max_tokens: int = 1000) -> str:
-    """Single-turn completion on the default provider (used by Auto Apply answer drafting)."""
+def complete_text(system: str, prompt: str, max_tokens: int = 1000, feature: str = None) -> str:
+    """Single-turn completion on the default provider.
+
+    `feature` picks a per-feature model where the provider has one
+    (openai_service.FEATURE_MODELS, e.g. "auto_apply_draft" -> gpt-5.6-luna).
+    """
     service = get_service()
-    return service.complete_text(system, prompt, max_tokens)
+    return service.complete_text(system, prompt, max_tokens, feature=feature)

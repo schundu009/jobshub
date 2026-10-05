@@ -80,10 +80,12 @@ class FakeHTTP:
 class FakeAI:
     def __init__(self, fail=False):
         self.prompts = []
+        self.features = []
         self.fail = fail
 
-    def __call__(self, system, prompt, max_tokens=1000):
+    def __call__(self, system, prompt, max_tokens=1000, feature=None):
         self.prompts.append(prompt)
+        self.features.append(feature)
         if self.fail:
             raise ValueError("Anthropic API key not configured")
         ids = [item["id"] for item in json.loads(prompt.split("Questions (JSON): ", 1)[1].split("\n\n")[0])]
@@ -351,6 +353,7 @@ def test_ai_prompt_contains_resume_and_jd_only(fake_ai):
     prompt = fake_ai.prompts[0]
     assert "RESUME-BODY" in prompt and "JD-BODY" in prompt and "Why us?" in prompt
     assert "password" not in prompt.lower() and "ada@example.com" not in prompt
+    assert fake_ai.features == ["auto_apply_draft"]  # routed to the cheap drafting model
 
 
 # =========================================================================== API: plan gating / caps / uniqueness

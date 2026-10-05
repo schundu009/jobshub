@@ -213,7 +213,8 @@ def get_default_ai_provider(db: Session) -> str:
     setting = db.query(AppSetting).filter(AppSetting.key == "default_ai_provider").first()
     if setting and setting.value in ["openai", "anthropic"]:
         return setting.value
-    return "openai"  # Default to OpenAI
+    from services.ai_service import DEFAULT_PROVIDER
+    return DEFAULT_PROVIDER
 
 
 @router.get("/default-ai-provider")
