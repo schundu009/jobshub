@@ -108,3 +108,15 @@ def test_registered_under_original_slugs():
     for slug, cls in [("netflix", NetflixEightfoldScraper), ("vodafone", VodafoneEightfoldScraper)]:
         assert ScraperRegistry.get(slug) is cls
         assert issubclass(cls, EightfoldMixin)
+
+
+def test_vodafone_drops_istanbul_only_postings():
+    s = VodafoneEightfoldScraper()
+    assert s.parse_job({"id": 1, "name": "Network Engineer", "location": "İstanbul, Turkey"}) is None
+    kept = s.parse_job({"id": 2, "name": "Network Engineer", "location": "İstanbul, Turkey", "locations": ["London, UK"]})
+    assert kept is not None
+
+
+def test_dotted_capital_i_city_resolves():
+    from services.job_location import _segment_countries
+    assert _segment_countries("İstanbul, Turkey")[0] == {"TR"}

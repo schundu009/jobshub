@@ -23,6 +23,7 @@ per-position endpoints (/api/apply/v2/jobs/{id}, /api/pcsx/position_details),
 which would cost one request per job, so they are not fetched.
 """
 import asyncio
+import re
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -56,6 +57,8 @@ class EightfoldMixin:
     # Celery soft-limits HTTP scrape tasks at 120s; stay well inside it (see WorkdayMixin).
     MAX_JOBS = 1500
     TIME_BUDGET_SECONDS = 60
+    # Postings whose every location matches this are dropped.
+    EXCLUDE_LOCATIONS: Optional[re.Pattern] = None
 
     # -- request helpers -------------------------------------------------------
 
@@ -155,6 +158,9 @@ class EightfoldMixin:
             primary = raw.get("location") or (locations[0] if locations else "")
             extra = [l for l in dict.fromkeys(locations) if l != primary]
             location = "; ".join([primary] + extra[:2]) if primary else "; ".join(extra[:3])
+            every = [l for l in [primary, *locations] if l]
+            if self.EXCLUDE_LOCATIONS and every and all(self.EXCLUDE_LOCATIONS.search(l) for l in every):
+                return None
 
             if pcsx:
                 posted = _from_epoch(raw.get("postedTs") or raw.get("creationTs"))
@@ -213,3 +219,4 @@ class VodafoneEightfoldScraper(EightfoldMixin, HTTPScraper):
     DOMAIN = "vodafone.com"
     API_VARIANT = "pcsx"
     API_URL = "https://jobs.vodafone.com/api/pcsx/search?domain=vodafone.com"
+    EXCLUDE_LOCATIONS = re.compile(r"istanbul", re.I)  # matches "İstanbul" too

@@ -166,6 +166,11 @@ REGION_MEMBERS = {
 # ----------------------------------------------------------------- regexes
 
 
+def _key(word: str) -> str:
+    """Lookup key for a regex match: "İstanbul".lower() is "i̇stanbul" (i + U+0307), which no table holds."""
+    return word.lower().replace("\u0307", "")
+
+
 def _rx(words: Iterable[str]) -> re.Pattern:
     words = sorted(set(words), key=len, reverse=True)
     return re.compile(r"(?<![\w])(" + "|".join(re.escape(w) for w in words) + r")(?![\w])", I)
@@ -215,12 +220,12 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
     for m in _COUNTRY_RX.finditer(s):
         if re.search(r"\bnew\s+$", s[max(0, m.start() - 4):m.start()], I):
             continue  # New Mexico, New England
-        found.add(_COUNTRY_LOOKUP[m.group(1).lower()])
+        found.add(_COUNTRY_LOOKUP[_key(m.group(1))])
     if _US_TOKEN_RX.search(s):
         found.add("US")
     has_foreign_country = bool(found - {"US"})
     for m in _CITY_RX.finditer(s):
-        found.add(_CITY_LOOKUP[m.group(1).lower()])
+        found.add(_CITY_LOOKUP[_key(m.group(1))])
     if _US_STATE_RX.search(s):
         found.add("US")
     if re.search(r"(?<![\w])washington(?![\w])", s, I) and not has_foreign_country:
@@ -234,7 +239,7 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
     # Two-letter codes: "Austin, TX", "Toronto, ON", "Remote - US". A code next to a
     # named foreign country ("Chennai, TN, India") is that country's state, not US.
     codes = [m.group(1) for m in _CODE_RX.finditer(s)]
-    city_country = {_CITY_LOOKUP[m.group(1).lower()] for m in _CITY_RX.finditer(s)}
+    city_country = {_CITY_LOOKUP[_key(m.group(1))] for m in _CITY_RX.finditer(s)}
     for code in codes:
         if code in ("US",):
             found.add("US")
@@ -254,7 +259,7 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
         found.add(ISO3[m.group(1)])
     # Ambiguous cities only when nothing else in the segment says where they are.
     for m in _AMBIG_RX.finditer(s):
-        name = m.group(1).lower()
+        name = _key(m.group(1))
         if name == "georgia":
             continue
         if not found:
@@ -263,7 +268,7 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
     if not found:
         m = _REGION_RX.search(s)
         if m:
-            region = _REGION_LOOKUP[m.group(1).lower()]
+            region = _REGION_LOOKUP[_key(m.group(1))]
     return found, region
 
 
