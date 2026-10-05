@@ -101,3 +101,12 @@ def test_taxonomy_endpoint(client):
     body = client.get("/api/jobs/taxonomy").json()
     assert [d["value"] for d in body["domains"]] == list(tx.DOMAINS)
     assert body["seniorities"][0] == {"value": "intern", "label": "Intern"}
+
+
+def test_rank_only_orders_without_narrowing(client, mix):
+    qs = "country=ALL&include_evergreen=false&roles=sre&skills=kubernetes&rank_only=true&limit=10"
+    body = client.get(f"/api/jobs?{qs}").json()
+    assert body["total"] == 4 == client.get("/api/jobs/facets?country=ALL").json()["total"]
+    assert body["jobs"][0]["title"] == "Site Reliability Engineer"
+    scores = [j["match_score"] for j in body["jobs"]]
+    assert scores == sorted(scores, reverse=True)

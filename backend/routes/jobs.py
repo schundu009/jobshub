@@ -69,6 +69,7 @@ except Exception:
     redis_service = None
 
 MAX_SCORING_CANDIDATES = 3000  # most recent title-matched jobs scored per request
+MAX_RANK_ONLY_CANDIDATES = 50000  # rank_only scores every filtered job (~25k titles take ~0.6s; cached)
 CACHE_TTL_JOBS = 300  # Cache job lists for 5 minutes (scoring is expensive)
 MIN_ANNUAL_SALARY = 10000  # salary filters ignore pay figures below this (hourly / monthly)
 
@@ -630,6 +631,7 @@ def get_jobs(
     seniority: Optional[str] = Query(None, max_length=40, description="junior | mid | senior | lead | principal"),
     sort: Optional[str] = Query(None, description="match (best match first) | recent (newest first)"),
     min_match: Optional[int] = Query(None, ge=0, le=100, description="Minimum match_score (overrides min_score)"),
+    rank_only: bool = Query(False, description="Roles/skills/seniority order the list but do not narrow it: every filtered job is scored, so total equals /facets total"),
 
     # Pagination
     limit: Optional[int] = Query(None, ge=1, description="Maximum results to return (no limit if not specified)"),
@@ -743,12 +745,15 @@ def get_jobs(
     ranked = None if no_cache else _ranked_get(ranked_key)
     if ranked is None:
         cand = db.query(Job.id, Job.title, Job.ai_tech_stack).filter(*conds)
-        if profile.roles:
+        if rank_only:
+            pass  # the filters decide the set; the profile only orders it
+        elif profile.roles:
             cand = cand.filter(_title_prefilter(fm.role_title_word_sets(profile.roles)))
         elif threshold > fm.max_score_without_skills(profile):
             cand = cand.filter(_skills_prefilter(profile.skills))
         try:
-            rows = cand.order_by(*_recent_order()).limit(MAX_SCORING_CANDIDATES).all()
+            rows = cand.order_by(*_recent_order()).limit(
+                MAX_RANK_ONLY_CANDIDATES if rank_only else MAX_SCORING_CANDIDATES).all()
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
         ranked = []
