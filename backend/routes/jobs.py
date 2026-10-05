@@ -468,7 +468,8 @@ def _firm_filter_conditions(
         parts = []
         for place in places:
             aliases = fm.resolve_location(place)
-            parts.extend(_contains_ci(Job.location, a) for a in (aliases or [place]))
+            # short tokens ("CA", "NY") as whole words, or "CA" matches Chicago
+            parts.extend(_matches_term(Job.location, a, len(a) <= 3) for a in (aliases or [place]))
         conds["location"] = or_(*parts)
     types = [t for t in (x.lower() for x in _csv(work_type)) if t in fm.WORK_TYPES]
     if types:

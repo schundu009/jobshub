@@ -121,3 +121,10 @@ def test_location_any_of_and_list_orders(client, db, mix):
     assert client.get("/api/jobs?sort=bogus").status_code == 400
     locs = client.get("/api/jobs/facets?country=ALL&location=London").json()["locations"]
     assert {loc["name"]: loc["count"] for loc in locs} == {"Austin, TX": 3, "London": 1}  # own filter left out
+
+
+def test_short_place_tokens_match_whole_words(client, db):
+    fm.clear_caches()
+    add_job(db, title="A", location="Chicago, IL")
+    add_job(db, title="B", location="San Jose, CA")
+    assert titles(client.get(f"{BASE}&location=CA")) == ["B"]
