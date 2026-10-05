@@ -329,6 +329,16 @@
             margin-bottom: 15px;
             max-width: 100%;
         }
+        .filter-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+        .filter-check input { padding: 0; }
+        .group-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .group-bar label { font-size: 13px; color: var(--text-secondary); }
+        .group-bar select { padding: 6px 10px; border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-primary); border-radius: 8px; font-family: inherit; }
+        .group-strip { display: flex; gap: 6px; flex-wrap: wrap; flex: 1 1 100%; }
+        .group-chip { display: inline-flex; gap: 6px; align-items: baseline; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border-default); background: var(--bg-elevated); color: var(--text-primary); font: inherit; font-size: 13px; cursor: pointer; }
+        .group-chip b { font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+        .group-chip.active { border-color: var(--accent-primary, #26619C); background: color-mix(in srgb, var(--accent-primary, #26619C) 14%, transparent); }
+        .tag { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
         .filter-bar select, .filter-bar input {
             padding: 10px 14px;
             border: 1px solid var(--border-default);
@@ -554,7 +564,16 @@
                     <button class="time-pill" data-days="7" onclick="setTimeFilter(7)">Past Week</button>
                     <button class="time-pill" data-days="30" onclick="setTimeFilter(30)">Past Month</button>
                 </div>
-                <select id="status-filter">
+                <input type="search" id="search-input" placeholder="Search title, company, location, skills" aria-label="Search jobs">
+                <select id="f-countries" aria-label="Country"><option value="">All Countries</option></select>
+                <input type="search" id="f-location" placeholder="City or metro" aria-label="Location">
+                <select id="f-role_category" aria-label="Role"><option value="">All Roles</option></select>
+                <select id="f-domain" aria-label="Domain"><option value="">All Domains</option></select>
+                <select id="f-seniority_level" aria-label="Seniority"><option value="">All Levels</option></select>
+                <select id="f-work_type" aria-label="Work type"><option value="">Any Work Type</option></select>
+                <select id="f-employment_type" aria-label="Job type"><option value="">Any Job Type</option></select>
+                <select id="company-filter" aria-label="Company"><option value="">All Companies</option></select>
+                <select id="status-filter" aria-label="Status">
                     <option value="">All Statuses</option>
                     <option value="wishlist">Wishlist</option>
                     <option value="applied">Applied</option>
@@ -563,26 +582,20 @@
                     <option value="rejected">Rejected</option>
                     <option value="withdrawn">Withdrawn</option>
                 </select>
-                <select id="source-filter">
-                    <option value="">All Sources</option>
-                    <option value="greenhouse">Greenhouse</option>
-                    <option value="ashby">Ashby</option>
-                    <option value="workday">Workday</option>
-                    <option value="lever">Lever</option>
-                    <option value="smartrecruiters">SmartRecruiters</option>
-                    <option value="workable">Workable</option>
-                    <option value="recruitee">Recruitee</option>
-                    <option value="manual">Manual</option>
-                </select>
-                <select id="type-filter">
-                    <option value="">All Job Types</option>
-                </select>
-                <select id="company-filter">
-                    <option value="">All Companies</option>
-                </select>
-                <input type="search" id="search-input" placeholder="Search jobs..." aria-label="Search jobs">
+                <label class="filter-check"><input type="checkbox" id="f-visa_ok"> No citizenship required</label>
+                <button type="button" class="btn btn-secondary btn-small" id="clear-filters">Clear</button>
             </div>
-            <p id="filter-hint" style="display: none; margin: 0 0 12px; font-size: 13px; color: var(--c-ink-2);"></p>
+            <div class="group-bar">
+                <label for="group-by">Group by</label>
+                <select id="group-by">
+                    <option value="role_category">Role</option>
+                    <option value="domain">Domain</option>
+                    <option value="seniority_level">Seniority</option>
+                    <option value="countries">Country</option>
+                    <option value="company">Company</option>
+                </select>
+                <div id="group-strip" class="group-strip"></div>
+            </div>
 
             <div class="table-container">
                 <table class="admin-table">
@@ -592,8 +605,8 @@
                             <th>Company</th>
                             <th>Location</th>
                             <th>Source</th>
-                            <th>Status</th>
-                            <th>Excitement</th>
+                            <th>Role</th>
+                            <th>Domain</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -617,78 +630,75 @@
     <script src="/jobs/admin/js/app.js?v=202609291817"></script>
     <script src="/jobs/admin/js/admin-sidebar.js?v=202609291817"></script>
     <script>
-        // Server-side paging: GET /api/jobs?all=true supports limit/offset, status,
-        // source, company_id, posted_within_hours and description_chars, and returns
-        // `total` for the filtered set. It does NOT support free-text search or job
-        // type, so those two are applied client-side to the current page only; while
-        // either is active we fetch bigger pages (CLIENT_FILTER_PAGE_SIZE) so the
-        // filter has more rows to work with, and say so in #filter-hint.
+        // Every filter is a GET /api/jobs parameter, so paging, totals and the dropdown
+        // counts (GET /api/jobs/facets, same parameters) always describe the same set.
         const PAGE_SIZE = 50;
-        const CLIENT_FILTER_PAGE_SIZE = 500;
+        // select id suffix -> API parameter (and facet key)
+        const FACET_SELECTS = ['countries', 'role_category', 'domain', 'seniority_level', 'work_type', 'employment_type'];
+        const FACET_KEY = { countries: 'countries', role_category: 'role_category', domain: 'domain',
+                            seniority_level: 'seniority', work_type: 'work_type', employment_type: 'employment_type' };
+        const ANY_LABEL = { countries: 'All Countries', role_category: 'All Roles', domain: 'All Domains',
+                            seniority_level: 'All Levels', work_type: 'Any Work Type', employment_type: 'Any Job Type' };
+        const WORK_LABELS = { remote: 'Remote', hybrid: 'Hybrid', onsite: 'On-site' };
+        const EMPLOYMENT_LABELS = { full_time: 'Full-time', part_time: 'Part-time', internship: 'Internship', temporary: 'Temporary' };
 
         let currentPage = 0;
-        let currentPageJobs = [];
         let serverTotal = 0;
         let allCompanies = [];
         let timeFilterDays = 0;
         let loadSeq = 0;
+        let facetSeq = 0;
+        let lastFacets = null;
+        let taxonomy = { role_category: {}, domain: {}, seniority: {} };
         let pendingCompanyParam = null;
-
-        // Same patterns and order as backend /api/analytics/by-job-type, so the
-        // dropdown counts and the client-side matcher classify titles identically.
-        const JOB_TYPE_PATTERNS = {
-            'fullstack': [/full\s*stack/, /fullstack/],
-            'frontend': [/front\s*end/, /frontend/, /\bui\b/, /\bux\b/, /react/, /angular/, /vue/],
-            'backend': [/back\s*end/, /backend/, /server/, /\bapi\b/, /java\b/, /python/, /golang/, /node/],
-            'devops': [/devops/, /\bsre\b/, /site reliability/, /platform/, /infrastructure/, /cloud/],
-            'data': [/\bdata\b/, /analytics/, /\bml\b/, /machine learning/, /\bai\b/, /artificial intelligence/, /scientist/],
-            'mobile': [/mobile/, /\bios\b/, /android/, /swift/, /kotlin/],
-            'security': [/security/, /infosec/, /cyber/],
-            'qa': [/\bqa\b/, /quality/, /\btest/, /sdet/],
-            'manager': [/manager/, /\blead\b/, /director/, /head of/, /vp /, /principal/],
-        };
-        const JOB_TYPE_LABELS = {
-            fullstack: 'Full Stack', frontend: 'Frontend', backend: 'Backend', devops: 'DevOps',
-            data: 'Data/ML', mobile: 'Mobile', security: 'Security', qa: 'QA/Test', manager: 'Manager', other: 'Other'
-        };
-
-        function getJobType(title) {
-            const t = (title || '').toLowerCase();
-            for (const [type, patterns] of Object.entries(JOB_TYPE_PATTERNS)) {
-                if (patterns.some(re => re.test(t))) return type;
-            }
-            return 'other';
-        }
+        const regionNames = (() => { try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; } })();
+        const countryName = (code) => (regionNames && regionNames.of(code)) || code;
 
         function getFilters() {
-            return {
-                status: document.getElementById('status-filter').value,
-                source: document.getElementById('source-filter').value,
-                companyId: document.getElementById('company-filter').value,
-                type: document.getElementById('type-filter').value,
-                q: document.getElementById('search-input').value.trim(),
+            const val = (id) => document.getElementById(id).value.trim();
+            const f = {
+                q: val('search-input'),
+                location: val('f-location'),
+                company_id: val('company-filter'),
+                status: val('status-filter'),
+                visa_ok: document.getElementById('f-visa_ok').checked,
             };
+            FACET_SELECTS.forEach(k => { f[k] = val('f-' + k); });
+            return f;
         }
 
-        function clientFiltering(f = getFilters()) {
-            return !!(f.type || f.q);
+        function anyFilter(f = getFilters()) {
+            return !!(timeFilterDays || Object.values(f).some(Boolean));
         }
 
-        // ?status=, ?source=, ?company= (id or name), ?q=, ?type=, ?days=, ?page=
+        // The list and the facets share these; paging is added by loadJobs.
+        function filterParams(f = getFilters()) {
+            const params = new URLSearchParams({ country: 'ALL', include_evergreen: 'true', active_only: 'true' });
+            for (const [k, v] of Object.entries(f)) {
+                if (v === true) params.set(k, 'true');
+                else if (v) params.set(k, v);
+            }
+            if (timeFilterDays > 0) params.set('posted_within_hours', String(timeFilterDays * 24));
+            return params;
+        }
+
+        function setSelectValue(id, value) {
+            const el = document.getElementById(id);
+            if (value && ![...el.options].some(o => o.value === value)) el.add(new Option(value, value));
+            el.value = value || '';
+        }
+
+        // ?q= ?location= ?countries= ?role_category= ?domain= ?seniority_level= ?work_type=
+        // ?employment_type= ?company=(id|name) ?status= ?visa_ok=1 ?days= ?page= ?group=
         function applyUrlFilters() {
             const params = new URLSearchParams(window.location.search);
-            const setSelect = (id, value) => {
-                if (!value) return;
-                const el = document.getElementById(id);
-                if (![...el.options].some(o => o.value === value)) {
-                    el.add(new Option(value, value));
-                }
-                el.value = value;
-            };
-            setSelect('status-filter', params.get('status'));
-            setSelect('source-filter', params.get('source'));
-            setSelect('type-filter', params.get('type'));
-            if (params.get('q')) document.getElementById('search-input').value = params.get('q');
+            document.getElementById('search-input').value = params.get('q') || '';
+            document.getElementById('f-location').value = params.get('location') || '';
+            FACET_SELECTS.forEach(k => setSelectValue('f-' + k, params.get(k)));
+            setSelectValue('status-filter', params.get('status'));
+            document.getElementById('f-visa_ok').checked = params.get('visa_ok') === '1';
+            const group = params.get('group');
+            if (group) setSelectValue('group-by', group);
             pendingCompanyParam = params.get('company') || params.get('company_id');
             const days = parseInt(params.get('days'), 10);
             if ([1, 7, 30].includes(days)) setTimeFilter(days, false);
@@ -699,13 +709,15 @@
         function syncUrl() {
             const f = getFilters();
             const params = new URLSearchParams();
-            if (f.status) params.set('status', f.status);
-            if (f.source) params.set('source', f.source);
-            if (f.companyId) params.set('company', f.companyId);
-            if (f.type) params.set('type', f.type);
-            if (f.q) params.set('q', f.q);
+            for (const [k, v] of Object.entries(f)) {
+                if (k === 'company_id') { if (v) params.set('company', v); }
+                else if (v === true) params.set(k, '1');
+                else if (v) params.set(k, v);
+            }
             if (timeFilterDays) params.set('days', timeFilterDays);
             if (currentPage) params.set('page', currentPage + 1);
+            const group = document.getElementById('group-by').value;
+            if (group !== 'role_category') params.set('group', group);
             const qs = params.toString();
             history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
         }
@@ -727,27 +739,76 @@
             return true;
         }
 
-        async function loadJobTypeCounts() {
+        async function loadTaxonomy() {
             try {
-                const data = await apiRequest('/analytics/by-job-type');
-                const select = document.getElementById('type-filter');
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">All Job Types</option>';
-                (data.job_types || []).forEach(jt => {
-                    const opt = new Option(`${JOB_TYPE_LABELS[jt.type] || jt.type} (${Number(jt.count).toLocaleString()} active)`, jt.type);
-                    select.add(opt);
-                });
-                if (currentValue) {
-                    if (![...select.options].some(o => o.value === currentValue)) select.add(new Option(JOB_TYPE_LABELS[currentValue] || currentValue, currentValue));
-                    select.value = currentValue;
-                }
+                const t = await apiRequest('/jobs/taxonomy');
+                const toMap = (rows) => Object.fromEntries((rows || []).map(r => [r.value, r.label]));
+                taxonomy = { role_category: toMap(t.role_categories), domain: toMap(t.domains), seniority: toMap(t.seniorities) };
             } catch (error) {
-                console.error('Failed to load job type counts:', error);
-                const select = document.getElementById('type-filter');
-                if (select.options.length <= 1) {
-                    Object.entries(JOB_TYPE_LABELS).forEach(([k, v]) => select.add(new Option(v, k)));
-                }
+                console.error('Failed to load job taxonomy:', error);
             }
+        }
+
+        // facet key -> [{value, label, count}] in display order
+        function facetOptions(facets, key) {
+            const v = facets[key];
+            if (key === 'countries') return (v || []).map(c => ({ value: c.code, label: countryName(c.code), count: c.count }));
+            if (key === 'work_type') return Object.entries(v || {}).map(([k, n]) => ({ value: k, label: WORK_LABELS[k] || k, count: n }));
+            if (key === 'employment_type') return Object.entries(v || {}).map(([k, n]) => ({ value: k, label: EMPLOYMENT_LABELS[k] || k, count: n }));
+            if (key === 'companies') return (v || []).map(c => ({ value: c.name, label: c.name, count: c.count }));
+            return v || [];
+        }
+
+        function fillFacetSelect(k, facets) {
+            const select = document.getElementById('f-' + k);
+            const current = select.value;
+            const options = facetOptions(facets, FACET_KEY[k]).filter(o => o.count > 0 || o.value === current);
+            select.innerHTML = '';
+            select.add(new Option(ANY_LABEL[k], ''));
+            options.forEach(o => select.add(new Option(`${o.label} (${Number(o.count).toLocaleString()})`, o.value)));
+            if (current && ![...select.options].some(o => o.value === current)) select.add(new Option(current, current));
+            select.value = current;
+        }
+
+        async function loadFacets() {
+            const seq = ++facetSeq;
+            try {
+                const facets = await apiRequest(`/jobs/facets?${filterParams().toString()}`, 'GET', null, { timeout: 20000 });
+                if (seq !== facetSeq) return;
+                lastFacets = facets;
+                FACET_SELECTS.forEach(k => fillFacetSelect(k, facets));
+                renderGroups();
+            } catch (error) {
+                if (seq !== facetSeq) return;
+                console.error('Failed to load filter counts:', error);
+                document.getElementById('group-strip').innerHTML = `<span class="tag">Couldn't load counts: ${escapeHtml(error.message)}</span>`;
+            }
+        }
+
+        // Group by = the chosen facet as chips; a chip applies that filter, clicking it again clears it.
+        function renderGroups() {
+            const strip = document.getElementById('group-strip');
+            if (!lastFacets) return;
+            const by = document.getElementById('group-by').value;
+            const key = by === 'company' ? 'companies' : FACET_KEY[by];
+            const current = by === 'company'
+                ? (allCompanies.find(c => String(c.id) === document.getElementById('company-filter').value) || {}).name || ''
+                : document.getElementById('f-' + by).value;
+            const groups = facetOptions(lastFacets, key).filter(o => o.count > 0)
+                .sort((a, b) => b.count - a.count).slice(0, by === 'company' ? 40 : 60);
+            strip.innerHTML = groups.length
+                ? groups.map(o => `<button type="button" class="group-chip${o.value === current ? ' active' : ''}" data-value="${escapeHtml(o.value)}">${escapeHtml(o.label)} <b>${Number(o.count).toLocaleString()}</b></button>`).join('')
+                : '<span class="tag">No jobs</span>';
+            strip.querySelectorAll('.group-chip').forEach(chip => chip.addEventListener('click', () => {
+                const value = chip.dataset.value === current ? '' : chip.dataset.value;
+                if (by === 'company') {
+                    const match = allCompanies.find(c => c.name === value);
+                    document.getElementById('company-filter').value = match ? String(match.id) : '';
+                } else {
+                    setSelectValue('f-' + by, value);
+                }
+                resetAndLoad();
+            }));
         }
 
         async function loadCompanies() {
@@ -887,32 +948,29 @@
         async function loadJobs() {
             const tableBody = document.getElementById('jobs-table-body');
             const seq = ++loadSeq;
-            const f = getFilters();
-            const pageSize = clientFiltering(f) ? CLIENT_FILTER_PAGE_SIZE : PAGE_SIZE;
-
-            const params = new URLSearchParams({
-                all: 'true',
-                active_only: 'true',
-                limit: String(pageSize),
-                offset: String(currentPage * pageSize),
-                description_chars: '300',
-            });
-            if (f.status) params.set('status', f.status);
-            if (f.source) params.set('source', f.source);
-            if (f.companyId) params.set('company_id', f.companyId);
-            if (timeFilterDays > 0) params.set('posted_within_hours', String(timeFilterDays * 24));
+            const params = filterParams();
+            params.set('all', 'true');
+            params.set('limit', String(PAGE_SIZE));
+            params.set('offset', String(currentPage * PAGE_SIZE));
+            params.set('description_chars', '300');
 
             tableBody.innerHTML = '<tr><td colspan="7" class="loading" style="text-align:center;padding:40px;">Loading jobs...</td></tr>';
             document.getElementById('prev-page').disabled = true;
             document.getElementById('next-page').disabled = true;
             syncUrl();
+            loadFacets();
 
             try {
                 const response = await apiRequest(`/jobs?${params.toString()}`);
                 if (seq !== loadSeq) return; // a newer request superseded this one
-                currentPageJobs = Array.isArray(response) ? response : (response.jobs || []);
-                serverTotal = Number(response.total ?? currentPageJobs.length);
-                renderCurrentPage(pageSize);
+                const jobs = Array.isArray(response) ? response : (response.jobs || []);
+                serverTotal = Number(response.total ?? jobs.length);
+                if (!jobs.length && currentPage > 0 && serverTotal > 0) {  // page past the end after a filter change
+                    currentPage = Math.max(0, Math.ceil(serverTotal / PAGE_SIZE) - 1);
+                    return loadJobs();
+                }
+                renderJobs(jobs);
+                renderRange(jobs.length);
             } catch (error) {
                 if (seq !== loadSeq) return;
                 console.error('Failed to load jobs:', error);
@@ -921,39 +979,11 @@
             }
         }
 
-        // Search and job type are not supported by GET /api/jobs, so they filter
-        // only the rows of the current (server) page.
-        function applyClientFilters(jobs) {
-            const f = getFilters();
-            const q = f.q.toLowerCase();
-            return jobs.filter(job => {
-                const companyName = job.company_name || (job.company ? job.company.name : '') || '';
-                const matchesType = !f.type || getJobType(job.title) === f.type;
-                const matchesSearch = !q ||
-                    (job.title || '').toLowerCase().includes(q) ||
-                    companyName.toLowerCase().includes(q) ||
-                    (job.location || '').toLowerCase().includes(q);
-                return matchesType && matchesSearch;
-            });
-        }
-
-        function renderCurrentPage(pageSize) {
-            const f = getFilters();
-            const rows = applyClientFilters(currentPageJobs);
-            renderJobs(rows);
-
-            const start = serverTotal === 0 ? 0 : currentPage * pageSize + 1;
-            const end = Math.min(serverTotal, currentPage * pageSize + currentPageJobs.length);
-            const rangeEl = document.getElementById('jobs-range');
-            const hint = document.getElementById('filter-hint');
-            if (clientFiltering(f)) {
-                rangeEl.textContent = `${rows.length.toLocaleString()} match${rows.length === 1 ? '' : 'es'} in jobs ${start.toLocaleString()}–${end.toLocaleString()} of ${serverTotal.toLocaleString()}`;
-                hint.style.display = '';
-                hint.textContent = `Search and job type are matched within each batch of ${CLIENT_FILTER_PAGE_SIZE} jobs (the API can't filter by them yet). Use Next to scan further.`;
-            } else {
-                rangeEl.textContent = serverTotal ? `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${serverTotal.toLocaleString()} jobs` : '';
-                hint.style.display = 'none';
-            }
+        function renderRange(count) {
+            const start = serverTotal === 0 ? 0 : currentPage * PAGE_SIZE + 1;
+            const end = Math.min(serverTotal, currentPage * PAGE_SIZE + count);
+            document.getElementById('jobs-range').textContent = serverTotal
+                ? `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${serverTotal.toLocaleString()} jobs` : '';
             document.getElementById('prev-page').disabled = currentPage === 0;
             document.getElementById('next-page').disabled = end >= serverTotal;
         }
@@ -972,14 +1002,15 @@
             const tbody = document.getElementById('jobs-table-body');
 
             if (jobs.length === 0) {
-                const filtered = Object.values(getFilters()).some(Boolean) || timeFilterDays;
+                const filtered = anyFilter();
                 tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${filtered ? 'No jobs match these filters.' : 'No jobs found. Import jobs from a company above!'}</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = jobs.map(job => {
-                const level = Math.min(5, Math.max(0, Number(job.excitement_level) || 3));
-                const excitement = '★'.repeat(level) + '☆'.repeat(5 - level);
+                const role = taxonomy.role_category[job.role_category] || '';
+                const level = taxonomy.seniority[job.seniority] || '';
+                const domain = taxonomy.domain[job.company_domain] || '';
                 const jobUrl = safeUrl(job.job_url || job.url);
                 const externalLink = jobUrl ? ` <a href="${jobUrl}" target="_blank" rel="noopener noreferrer" class="external-link" title="Open original posting">↗</a>` : '';
                 const companyName = job.company_name || (job.company ? job.company.name : null) || '-';
@@ -990,8 +1021,8 @@
                         <td>${escapeHtml(companyName)}</td>
                         <td>${escapeHtml(job.location || '-')}</td>
                         <td>${getSourceBadge(job.source)}</td>
-                        <td>${getStatusBadge(job.status)}</td>
-                        <td>${excitement}</td>
+                        <td><span class="tag">${escapeHtml(role || '-')}</span>${level ? `<br><span class="tag">${escapeHtml(level)}</span>` : ''}</td>
+                        <td><span class="tag">${escapeHtml(domain || '-')}</span></td>
                         <td><a href="${detail}" class="btn btn-secondary btn-small">View</a></td>
                     </tr>
                 `;
@@ -1385,13 +1416,20 @@
             if (!requireAdmin()) return;
             initAdminLayout('jobs', 'Jobs Management');
 
-            ['status-filter', 'source-filter', 'company-filter'].forEach(id =>
+            ['status-filter', 'company-filter', 'f-visa_ok', ...FACET_SELECTS.map(k => 'f-' + k)].forEach(id =>
                 document.getElementById(id).addEventListener('change', resetAndLoad));
-            // Type filter is client-side, but switching modes changes the page size.
-            document.getElementById('type-filter').addEventListener('change', resetAndLoad);
-            document.getElementById('search-input').addEventListener('input', () => {
+            ['search-input', 'f-location'].forEach(id => document.getElementById(id).addEventListener('input', () => {
                 clearTimeout(searchTimer);
                 searchTimer = setTimeout(resetAndLoad, 350);
+            }));
+            document.getElementById('group-by').addEventListener('change', () => { syncUrl(); renderGroups(); });
+            document.getElementById('clear-filters').addEventListener('click', () => {
+                document.getElementById('search-input').value = '';
+                document.getElementById('f-location').value = '';
+                document.getElementById('f-visa_ok').checked = false;
+                ['status-filter', 'company-filter', ...FACET_SELECTS.map(k => 'f-' + k)].forEach(id => setSelectValue(id, ''));
+                setTimeFilter(0, false);
+                resetAndLoad();
             });
             document.getElementById('prev-page').addEventListener('click', () => { if (currentPage > 0) { currentPage--; loadJobs(); } });
             document.getElementById('next-page').addEventListener('click', () => { currentPage++; loadJobs(); });
@@ -1410,16 +1448,14 @@
 
             applyUrlFilters();
 
-            // First paint: 3 parallel requests — the jobs page, the scraper status
-            // list and the summary counts. The company dropdown and job-type counts
-            // follow. ?company=<name> needs the company list before the jobs query.
+            // First paint: the labels, then the jobs page (which also asks for its filter
+            // counts), the scraper status list and the summary counts in parallel.
+            // ?company=<name> needs the company list before the jobs query.
+            await loadTaxonomy();
             if (pendingCompanyParam) {
                 await Promise.allSettled([loadCompanies().then(() => loadJobs()), loadScraperStatus(), loadStats()]);
-                loadJobTypeCounts();
             } else {
-                await Promise.allSettled([loadJobs(), loadScraperStatus(), loadStats()]);
-                loadCompanies();
-                loadJobTypeCounts();
+                await Promise.allSettled([loadJobs(), loadScraperStatus(), loadStats(), loadCompanies()]);
             }
         });
     </script>
