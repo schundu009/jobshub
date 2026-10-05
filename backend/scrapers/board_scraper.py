@@ -20,6 +20,7 @@ from scrapers.custom.remaining_scrapers import (
     SmartRecruitersMixin,
     WorkdayMixin,
 )
+from scrapers.custom.jobdiva import JobDivaMixin, jobdiva_parts, jobdiva_portal_url
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ _MIXINS = {
     "ashby": AshbyMixin,
     "smartrecruiters": SmartRecruitersMixin,
     "workday": WorkdayMixin,
+    "jobdiva": JobDivaMixin,
 }
 SUPPORTED_ATS = tuple(_MIXINS)
 
@@ -54,6 +56,10 @@ def api_url(ats: str, board: str) -> Optional[str]:
     if ats == "workday":
         parts = workday_parts(board)
         return f"https://{parts[0]}/wday/cxs/{parts[1]}/{parts[2]}/jobs" if parts else None
+    if ats == "jobdiva":
+        # One API for every firm; the key keeps each board's URL distinct.
+        parts = jobdiva_parts(board)
+        return f"https://ws.jobdiva.com/candPortal/rest/job/searchjobsportal?a={parts[1]}" if parts else None
     if not _TOKEN.fullmatch(board or ""):
         return None
     if ats == "greenhouse":
@@ -72,6 +78,8 @@ def board_careers_url(ats: str, board: str) -> Optional[str]:
     if ats == "workday":
         parts = workday_parts(board)
         return f"https://{parts[0]}/{parts[2]}" if parts else None
+    if ats == "jobdiva":
+        return jobdiva_portal_url(board)
     return {
         "greenhouse": f"https://job-boards.greenhouse.io/{board}",
         "lever": f"https://jobs.lever.co/{board}",

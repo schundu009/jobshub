@@ -33,7 +33,7 @@ _WORKDAY_HOST = re.compile(r"([a-z0-9\-]+)\.wd\d+\.myworkdayjobs\.com")
 _LOCALE = re.compile(r"[a-z]{2}[-_][A-Za-z]{2}")
 # ATS links in a page: href/src values and script strings, absolute or protocol-relative.
 _ATS_LINK = re.compile(
-    r"(?:https?:)?//(?:[a-z0-9\-]+\.)*(?:greenhouse\.io|lever\.co|ashbyhq\.com|smartrecruiters\.com|myworkdayjobs\.com)"
+    r"(?:https?:)?//(?:[a-z0-9\-]+\.)*(?:greenhouse\.io|lever\.co|ashbyhq\.com|smartrecruiters\.com|myworkdayjobs\.com|jobdiva\.com)"
     r"[^\s\"'<>\\)]*",
     re.IGNORECASE,
 )
@@ -87,6 +87,12 @@ def match_url(url: str) -> Optional[tuple[str, str]]:
         board = _token(segs[2])
         return ("smartrecruiters", board) if board else None
 
+    if host in ("www1.jobdiva.com", "www2.jobdiva.com") and lower[:1] in (["portal"], ["candidates"]):
+        from scrapers.custom.jobdiva import jobdiva_parts
+        key = (parse_qs(parsed.query.replace("&amp;", "&")).get("a") or [""])[0]
+        board = f"{host.split('.')[0]}.{key}"
+        return ("jobdiva", board) if jobdiva_parts(board) else None
+
     m = _WORKDAY_HOST.fullmatch(host)
     if m:
         if lower[:2] == ["wday", "cxs"] and len(segs) > 3:
@@ -132,8 +138,30 @@ def _fetch_page(url: str) -> Optional[tuple[str, str]]:
     return None
 
 
+def _probe_jobdiva(board: str) -> int:
+    """JobDiva needs the portal's anonymous token first (scrapers.custom.jobdiva)."""
+    from scrapers.custom.jobdiva import JOBDIVA_PORTAL_AUTH, JOBDIVA_WS, jobdiva_parts, jobdiva_search_form
+    parts = jobdiva_parts(board)
+    if not parts:
+        return 0
+    try:
+        with httpx.Client(timeout=TIMEOUT, headers={"User-Agent": USER_AGENT}) as client:
+            auth = client.get(f"{JOBDIVA_WS}/auth/a", headers={
+                "a": parts[1], "compid": "-1", "portalid": "1", "Authorization": JOBDIVA_PORTAL_AUTH}).json()
+            if not auth.get("token"):
+                return 0
+            resp = client.post(f"{JOBDIVA_WS}/job/searchjobsportal", data=jobdiva_search_form(1, 1), headers={
+                "a": parts[1], "compid": "-1", "portalid": str(auth.get("portalID") or 1), "token": auth["token"]})
+            return int(resp.json().get("total") or 0) if resp.status_code == 200 else 0
+    except Exception as e:
+        logger.info(f"ats_detect: probe jobdiva/{board} failed: {type(e).__name__}: {e}")
+        return 0
+
+
 def probe(ats: str, board: str) -> int:
     """How many jobs the board's public API lists (0 when it answers with none or fails)."""
+    if ats == "jobdiva":
+        return _probe_jobdiva(board)
     url = api_url(ats, board)
     if not url:
         return 0

@@ -58,6 +58,10 @@ def add_board(db, slug="acmeboard", ats="greenhouse", board="acme", name="Acme B
     ("https://careers.smartrecruiters.com/Acme1", ("smartrecruiters", "Acme1")),
     ("https://acme.wd5.myworkdayjobs.com/Acme_Careers", ("workday", "acme.wd5.myworkdayjobs.com/acme/Acme_Careers")),
     ("https://acme.wd1.myworkdayjobs.com/en-US/External/job/x_R1", ("workday", "acme.wd1.myworkdayjobs.com/acme/External")),
+    ("https://www2.jobdiva.com/portal/?a=tmjdnw195lqt8n1w5asw8r4q3j2ixr002cwt3sf&amp;compid=0#/",
+     ("jobdiva", "www2.tmjdnw195lqt8n1w5asw8r4q3j2ixr002cwt3sf")),
+    ("https://www1.jobdiva.com/candidates/myjobs/searchjobsdone.jsp?a=qfjdnwj6ytav36y4wncfts29u9d&compid=-1",
+     ("jobdiva", "www1.qfjdnwj6ytav36y4wncfts29u9d")),
     ("https://acme.wd1.myworkdayjobs.com/en-US", None),
     ("https://boards.greenhouse.io/embed/job_board", None),
     ("https://www.acme.com/careers", None),
@@ -251,6 +255,32 @@ def test_board_with_max_age_keeps_only_recent_postings(boards_db, monkeypatch):
     boards_db.expire_all()
     active = {j.external_job_id for j in boards_db.query(Job).filter(Job.source == "acmeboard", Job.is_active == True)}  # noqa: E712
     assert active == {"3"}
+
+
+def test_jobdiva_board_scrapes_with_the_portal_token(monkeypatch):
+    """JobDiva: anonymous portal token first, then the paged job search."""
+    import asyncio
+    board = "www2.tmjdnw195lqt8n1w5asw8r4q3j2ixr002cwt3sf"
+    cls = build_scraper_class({"slug": "divaco", "company_name": "Diva Co", "ats": "jobdiva",
+                               "board": board, "careers_url": None})
+    assert cls.config.careers_url == "https://www2.jobdiva.com/portal/?a=tmjdnw195lqt8n1w5asw8r4q3j2ixr002cwt3sf"
+    assert api_url("jobdiva", "www3.bad") is None
+    calls = []
+
+    async def request(self, method, url, read, **kwargs):
+        calls.append((method, url.rsplit("/", 2)[-2:], kwargs.get("headers", {}).get("token")))
+        if url.endswith("/auth/a"):
+            return {"token": "T1", "portalID": 44}
+        return {"total": 1, "data": [{"id": 7, "title": "DevOps Engineer", "location": "Austin, TX",
+                                      "postDate": 1789488443000, "jobDescription": "Kubernetes.",
+                                      "positionType": "Contract"}]}
+    monkeypatch.setattr(BoardScraper, "_request", request)
+    result = asyncio.run(cls().scrape())
+    assert result.success and result.complete and result.jobs_found == 1
+    job = result.jobs[0]
+    assert job.job_url.endswith("#/jobs/7") and job.employment_type_raw == "Contract"
+    assert job.posted_date == datetime(2026, 9, 15, 16, 7, 23)
+    assert calls[0][2] is None and calls[1][2] == "T1"  # token only on the search
 
 
 # ------------------------------------------------------------------ admin routes
