@@ -69,6 +69,7 @@ except Exception:
     redis_service = None
 
 MAX_SCORING_CANDIDATES = 3000  # most recent title-matched jobs scored per request
+LOCATION_FACET_LIMIT = 400  # most common location strings, for the country / state / city pickers
 MAX_RANK_ONLY_CANDIDATES = 50000  # rank_only scores every filtered job (~25k titles take ~0.6s; cached)
 CACHE_TTL_JOBS = 300  # Cache job lists for 5 minutes (scoring is expensive)
 MIN_ANNUAL_SALARY = 10000  # salary filters ignore pay figures below this (hourly / monthly)
@@ -462,12 +463,13 @@ def _firm_filter_conditions(
         cond = _search_condition(q, q_description)
         if cond is not None:
             conds["q"] = cond
-    if location and location.strip():
-        aliases = fm.resolve_location(location)
-        if aliases:
-            conds["location"] = or_(*[_contains_ci(Job.location, a) for a in aliases])
-        else:
-            conds["location"] = _contains_ci(Job.location, location.strip())
+    places = [p.strip() for p in (location or "").split("|") if p.strip()][:20]
+    if places:  # "|"-separated: any of them (metro labels expand to their cities)
+        parts = []
+        for place in places:
+            aliases = fm.resolve_location(place)
+            parts.extend(_contains_ci(Job.location, a) for a in (aliases or [place]))
+        conds["location"] = or_(*parts)
     types = [t for t in (x.lower() for x in _csv(work_type)) if t in fm.WORK_TYPES]
     if types:
         conds["work_type"] = Job.work_type.in_(types)
@@ -534,6 +536,20 @@ def _base_conditions(
     if posted_within_hours:
         conds.append(_effective_cutoff_filter(datetime.utcnow() - timedelta(hours=posted_within_hours)))
     return conds
+
+
+LIST_ORDERS = ("salary_high", "salary_low", "company")
+
+
+def _list_order(sort: Optional[str]):
+    if sort == "salary_high":
+        return (func.coalesce(Job.salary_max, Job.salary_min).desc().nullslast(), *_recent_order())
+    if sort == "salary_low":
+        return (func.coalesce(Job.salary_min, Job.salary_max).asc().nullslast(), *_recent_order())
+    if sort == "company":
+        return (select(Company.name).where(Company.id == Job.company_id).scalar_subquery().asc().nullslast(),
+                *_recent_order())
+    return _recent_order()
 
 
 def _recent_order():
@@ -608,7 +624,7 @@ def get_jobs(
     # Full-time page filters (named in the response's applied_filters when used)
     q: Optional[str] = Query(None, max_length=200, description="Search: every word must match title, company, department or tech stack (words of 3 letters or fewer match whole words)"),
     q_description: bool = Query(False, description="Also search the job description with q"),
-    location: Optional[str] = Query(None, max_length=200, description="US metro label or key (e.g. 'San Francisco Bay Area', 'sf') matched by its cities, else a location substring"),
+    location: Optional[str] = Query(None, max_length=1000, description="'|'-separated, any of: US metro label or key (e.g. 'San Francisco Bay Area', 'sf') matched by its cities, else a location substring"),
     work_type: Optional[str] = Query(None, description="Comma-separated: remote,hybrid,onsite"),
     salary_min: Optional[int] = Query(None, ge=0, description="Annual USD: keep jobs whose pay range reaches at least this"),
     salary_max: Optional[int] = Query(None, ge=0, description="Annual USD: keep jobs whose pay range starts at or below this"),
@@ -674,8 +690,8 @@ def get_jobs(
     """
     if sort is not None:
         sort = sort.strip().lower() or None
-        if sort not in (None, "match", "recent"):
-            raise HTTPException(status_code=400, detail="sort must be 'match' or 'recent'")
+        if sort not in (None, "match", "recent", *LIST_ORDERS):
+            raise HTTPException(status_code=400, detail="sort must be match, recent, " + ", ".join(LIST_ORDERS))
     viewer_country = resolve_viewer_country(country, current_user)
     if include_evergreen is None:
         include_evergreen = bool(current_user and current_user_is_admin(current_user))
@@ -719,7 +735,7 @@ def get_jobs(
     def recent_listing(extra: Optional[dict] = None) -> dict:
         query = db.query(Job).options(joinedload(Job.company)).filter(*conds)
         total = query.count()
-        q_ = query.order_by(*_recent_order()).offset(offset)
+        q_ = query.order_by(*_list_order(sort)).offset(offset)
         if limit:
             q_ = q_.limit(limit)
         result = {
@@ -734,8 +750,8 @@ def get_jobs(
         return result
 
     # If all=true, return without relevance scoring
-    if all:
-        return recent_listing({"_api_version": "v2.1_with_descriptions", "sort": "recent"})
+    if all or sort in LIST_ORDERS:
+        return recent_listing({"_api_version": "v2.1_with_descriptions", "sort": sort if sort in LIST_ORDERS else "recent"})
 
     profile = fm.build_profile(",".join(role_slugs), skills, seniority)
     if not profile.active:
@@ -904,6 +920,10 @@ def job_facets(
             unknown += n
         for c in parsed:
             by_country[c] += n
+    locations = (
+        db.query(Job.location, func.count(Job.id)).filter(*where("location"), Job.location.isnot(None), Job.location != "")
+        .group_by(Job.location).order_by(func.count(Job.id).desc(), Job.location).limit(LOCATION_FACET_LIMIT).all()
+    )
     with_salary = db.query(func.count(Job.id)).filter(
         *where("salary"), or_(Job.salary_min.isnot(None), Job.salary_max.isnot(None))).scalar() or 0
     visa_ok_count = db.query(func.count(Job.id)).filter(
@@ -918,6 +938,7 @@ def job_facets(
         "countries": [{"code": c, "count": n} for c, n in sorted(by_country.items(), key=lambda kv: (-kv[1], kv[0]))],
         "unknown_country": unknown,
         "companies": [{"name": name, "count": int(n)} for name, n in companies if name],
+        "locations": [{"name": name, "count": int(n)} for name, n in locations],
         "work_type": work_types,
         "employment_type": employment,
         "with_salary": int(with_salary),

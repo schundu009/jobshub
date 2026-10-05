@@ -110,3 +110,14 @@ def test_rank_only_orders_without_narrowing(client, mix):
     assert body["jobs"][0]["title"] == "Site Reliability Engineer"
     scores = [j["match_score"] for j in body["jobs"]]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_location_any_of_and_list_orders(client, db, mix):
+    assert titles(client.get(f"{BASE}&location=London|Austin")) == sorted(
+        ["Senior Backend Engineer", "Site Reliability Engineer", "Staff Data Engineer", "Software Engineer Intern"])
+    assert titles(client.get(f"{BASE}&location=London")) == ["Site Reliability Engineer"]
+    names = [j["company_name"] for j in client.get("/api/jobs?country=ALL&include_evergreen=false&sort=company").json()["jobs"]]
+    assert names == sorted(names)
+    assert client.get("/api/jobs?sort=bogus").status_code == 400
+    locs = client.get("/api/jobs/facets?country=ALL&location=London").json()["locations"]
+    assert {loc["name"]: loc["count"] for loc in locs} == {"Austin, TX": 3, "London": 1}  # own filter left out
