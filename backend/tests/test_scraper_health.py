@@ -103,7 +103,7 @@ def test_alert_lists_the_boards_that_broke(db, history, monkeypatch):
     sent = []
     monkeypatch.setattr(maintenance_tasks, "get_db", lambda: Session(bind=db.get_bind()))
     monkeypatch.setattr(maintenance_tasks, "_send_alert_email", lambda to, subject, body: sent.append((subject, body)))
-    monkeypatch.setattr(scraper_health, "datetime", SimpleNamespace(utcnow=lambda: NOW))
+    monkeypatch.setattr(maintenance_tasks, "datetime", SimpleNamespace(utcnow=lambda: NOW))
     run(db, "fresh", 0, jobs=10)
     db.commit()
     report = maintenance_tasks.check_scraper_health_and_notify()

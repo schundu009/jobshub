@@ -162,13 +162,14 @@ def check_scraper_health_and_notify() -> dict:
 
     db = get_db()
     try:
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        now = datetime.utcnow()  # one clock for the 24h window and the board report
+        cutoff = now - timedelta(hours=24)
         total_runs = db.query(func.count(ScraperRun.id)).filter(ScraperRun.run_at > cutoff).scalar() or 0
         new_jobs = db.query(func.coalesce(func.sum(ScraperRun.jobs_new), 0)).filter(
             ScraperRun.run_at > cutoff, ScraperRun.success == True).scalar() or 0  # noqa: E712
         active_jobs = db.query(func.count(Job.id)).filter(Job.is_active == True).scalar() or 0  # noqa: E712
 
-        health = health_report(db)
+        health = health_report(db, now=now)
         failing = health["failing"]
         failing_slugs = {r["slug"] for r in failing}
         stale = [r for r in health["stale"] if r["slug"] not in failing_slugs]
