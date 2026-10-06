@@ -391,7 +391,7 @@
         .status-row .value.offline { color: #ef4444; }
 
         /* Task List */
-        .task-list { max-height: 200px; overflow-y: auto; }
+        .task-list { max-height: 360px; overflow-y: auto; }
 
         .task-item {
             display: flex;
@@ -479,6 +479,43 @@
         .progress-bar { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #1967d2, #185abc); border-radius: 3px; transition: width 0.3s; }
         .progress-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+        /* Overview */
+        .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+        @media (max-width: 1100px) { .grid-6 { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px) { .grid-6 { grid-template-columns: repeat(2, 1fr); } }
+        .svc { background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .svc .svc-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+        .svc .svc-value { font-size: 18px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .svc .svc-meta { font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .svc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex: none; }
+        .svc-dot.ok { background: #22c55e; }
+        .svc-dot.warn { background: #f59e0b; }
+        .svc-dot.bad { background: #ef4444; }
+        .stat-box .sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; font-family: var(--font-mono); }
+        .head-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .muted { color: var(--text-muted); }
+        .num { font-family: var(--font-mono); font-size: 12px; }
+        .split-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 900px) { .split-2 { grid-template-columns: 1fr; } }
+
+        /* Scrapers toolbar, history, add */
+        .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .toolbar .input { width: 200px; padding: 7px 10px; font-size: 12px; }
+        .toolbar .select { font-size: 12px; padding: 6px 10px; }
+        .src-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; }
+        .row-actions { white-space: nowrap; text-align: right; }
+        .history-row td { background: var(--bg-secondary); padding: 8px 12px 12px; }
+        .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .history-table th { text-align: left; font-weight: 500; color: var(--text-muted); font-size: 11px; padding: 4px 8px; }
+        .history-table td { padding: 4px 8px; border-top: 1px solid var(--border-subtle); }
+        .ok-text { color: #22c55e; }
+        .bad-text { color: #ef4444; }
+        .add-grid { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; align-items: center; }
+        @media (max-width: 700px) { .add-grid { grid-template-columns: 1fr; } }
+        .health.disabled { background: var(--bg-tertiary); color: var(--text-secondary); }
+        a.co-link { color: var(--text-primary); text-decoration: none; }
+        a.co-link:hover { color: var(--accent-primary); text-decoration: underline; }
     </style>
     <meta name="robots" content="noindex,nofollow">
     <link rel="stylesheet" href="/jobs/admin/css/cariara.css?v=202609291817">
@@ -489,7 +526,11 @@
         <div class="settings-container">
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('ai')" data-tab="ai">
+                <button class="tab active" onclick="switchTab('overview')" data-tab="overview">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Overview
+                </button>
+                <button class="tab" onclick="switchTab('ai')" data-tab="ai">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     AI Config
                 </button>
@@ -507,8 +548,92 @@
                 </button>
             </div>
 
+            <!-- Overview Tab -->
+            <div id="tab-overview" class="tab-panel active">
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Services</span>
+                        <div class="head-controls">
+                            <span id="ov-updated" class="inline-status"></span>
+                            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+                                <input type="checkbox" id="ov-auto" onchange="toggleOverviewAuto()"> Auto 30s
+                            </label>
+                            <button class="btn btn-ghost btn-sm" onclick="loadOverview()">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-5">
+                            <div class="svc"><div class="svc-head"><span id="svc-api-dot" class="svc-dot"></span>API</div><div id="svc-api" class="svc-value">--</div><div id="svc-api-meta" class="svc-meta"></div></div>
+                            <div class="svc"><div class="svc-head"><span id="svc-db-dot" class="svc-dot"></span>Database</div><div id="svc-db" class="svc-value">--</div><div id="svc-db-meta" class="svc-meta"></div></div>
+                            <div class="svc"><div class="svc-head"><span id="svc-redis-dot" class="svc-dot"></span>Redis</div><div id="svc-redis" class="svc-value">--</div><div id="svc-redis-meta" class="svc-meta"></div></div>
+                            <div class="svc"><div class="svc-head"><span id="svc-workers-dot" class="svc-dot"></span>Workers</div><div id="svc-workers" class="svc-value">--</div><div id="svc-workers-meta" class="svc-meta"></div></div>
+                            <div class="svc"><div class="svc-head"><span id="svc-queue-dot" class="svc-dot"></span>Queued</div><div id="svc-queue" class="svc-value">--</div><div id="svc-queue-meta" class="svc-meta"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">API traffic <span class="muted" style="font-weight:400;font-size:12px;">since restart</span></span>
+                        <span id="ov-metrics-status" class="inline-status"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-6" style="margin-bottom: 14px;">
+                            <div class="stat-box"><div class="value" id="m-requests">--</div><div class="label">Requests</div></div>
+                            <div class="stat-box"><div class="value" id="m-errors">--</div><div class="label">5xx rate</div><div class="sub" id="m-errors-sub"></div></div>
+                            <div class="stat-box"><div class="value" id="m-4xx">--</div><div class="label">4xx rate</div></div>
+                            <div class="stat-box"><div class="value" id="m-p50">--</div><div class="label">p50</div></div>
+                            <div class="stat-box"><div class="value" id="m-p95">--</div><div class="label">p95</div></div>
+                            <div class="stat-box"><div class="value" id="m-cache">--</div><div class="label">Cache hits</div><div class="sub" id="m-cache-sub"></div></div>
+                        </div>
+                        <div class="table-wrap">
+                            <div class="table-scroll" style="max-height: 300px;">
+                                <table class="table">
+                                    <thead><tr><th>Endpoint</th><th>Requests</th><th>Errors</th><th>p95</th></tr></thead>
+                                    <tbody id="m-endpoints"><tr><td colspan="4" class="muted" style="text-align:center;padding:20px;">Loading...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="split-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Board freshness</span>
+                            <span id="fresh-checked" class="inline-status"></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid-3" style="margin-bottom: 14px;">
+                                <div class="stat-box"><div class="value" id="fresh-boards">--</div><div class="label">Boards</div></div>
+                                <div class="stat-box warning"><div class="value" id="fresh-stale">--</div><div class="label" id="fresh-stale-label">Stale</div></div>
+                                <div class="stat-box danger"><div class="value" id="fresh-failing">--</div><div class="label" id="fresh-failing-label">Failing</div></div>
+                            </div>
+                            <table class="table">
+                                <thead><tr><th>ATS</th><th>Boards</th><th>Fresh</th><th>Stale</th><th>Failing</th></tr></thead>
+                                <tbody id="fresh-ats"><tr><td colspan="5" class="muted" style="text-align:center;padding:20px;">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Failing boards</span>
+                            <button class="btn btn-ghost btn-sm" onclick="switchTab('scrapers')">All scrapers</button>
+                        </div>
+                        <div class="table-wrap">
+                            <div class="table-scroll" style="max-height: 330px;">
+                                <table class="table">
+                                    <thead><tr><th>Company</th><th>Failures</th><th>Last success</th><th></th></tr></thead>
+                                    <tbody id="fresh-failing-list"><tr><td colspan="4" class="muted" style="text-align:center;padding:20px;">Loading...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- AI Config Tab -->
-            <div id="tab-ai" class="tab-panel active">
+            <div id="tab-ai" class="tab-panel">
                 <div class="card">
                     <div class="card-header">
                         <span class="card-title">
@@ -555,24 +680,33 @@
 
             <!-- Scrapers Tab -->
             <div id="tab-scrapers" class="tab-panel">
-                <div class="grid-4" style="margin-bottom: 16px;">
+                <div class="grid-6" style="margin-bottom: 16px;">
                     <div class="stat-box"><div class="value" id="scraper-total">--</div><div class="label">Total</div></div>
                     <div class="stat-box success"><div class="value" id="scraper-healthy">--</div><div class="label">Healthy</div></div>
                     <div class="stat-box warning"><div class="value" id="scraper-warning">--</div><div class="label">Warning</div></div>
                     <div class="stat-box danger"><div class="value" id="scraper-critical">--</div><div class="label">Critical</div></div>
+                    <div class="stat-box"><div class="value" id="scraper-disabled">--</div><div class="label">Disabled</div></div>
+                    <div class="stat-box"><div class="value" id="scraper-jobs">--</div><div class="label">Active jobs</div><div class="sub" id="scraper-jobs-sub"></div></div>
                 </div>
 
-                <div class="card">
+                <div class="card" style="margin-bottom: 16px;">
                     <div class="card-header">
-                        <span class="card-title">Scraper Status</span>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <select id="scraper-filter" class="select" onchange="filterScrapers()" style="font-size: 12px;">
+                        <span class="card-title">Scraper Status <span id="scraper-shown" class="muted" style="font-weight:400;font-size:12px;"></span></span>
+                        <div class="toolbar">
+                            <input id="scraper-search" class="input" type="search" placeholder="Search company or slug" oninput="filterScrapers()">
+                            <select id="scraper-source" class="select" onchange="filterScrapers()">
+                                <option value="all">All sources</option>
+                                <option value="boards">Added boards</option>
+                                <option value="coded">Coded</option>
+                            </select>
+                            <select id="scraper-filter" class="select" onchange="filterScrapers()">
                                 <option value="all">All</option>
                                 <option value="warning">Warning</option>
                                 <option value="critical">Critical</option>
                                 <option value="healthy">Healthy</option>
                                 <option value="disabled">Disabled</option>
                             </select>
+                            <button class="btn btn-ghost btn-sm" onclick="exportScrapersCsv()">CSV</button>
                             <button class="btn btn-secondary btn-sm" onclick="runAllWarningScrapers(this)">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
                                 Run Warning
@@ -580,23 +714,42 @@
                         </div>
                     </div>
                     <div class="table-wrap">
-                        <div class="table-scroll">
+                        <div class="table-scroll" style="max-height: 560px;">
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>Company</th>
                                         <th>Status</th>
                                         <th>Last Success</th>
+                                        <th>Last Run</th>
                                         <th>Failures</th>
                                         <th>Jobs</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody id="scraper-table-body">
-                                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading...</td></tr>
+                                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading...</td></tr>
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Add company</span>
+                        <span class="muted" style="font-size:12px;">Greenhouse · Lever · Ashby · SmartRecruiters · Workday</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="add-grid">
+                            <input id="add-name" class="input" placeholder="Company name" maxlength="255">
+                            <input id="add-url" class="input mono" placeholder="https://company.com/careers" maxlength="500">
+                            <div style="display:flex;gap:8px;">
+                                <button id="add-detect-btn" class="btn btn-secondary" onclick="detectBoard()">Detect</button>
+                                <button id="add-btn" class="btn btn-primary" onclick="addCompany()">Add</button>
+                            </div>
+                        </div>
+                        <div id="add-result" class="inline-status" style="display:block;margin-top:10px;"></div>
                     </div>
                 </div>
             </div>
@@ -617,10 +770,28 @@
                 <div class="card" style="margin-bottom: 16px;">
                     <div class="card-header">
                         <span class="card-title">Queue Depths</span>
-                        <div id="celery-status-badge" class="badge badge-neutral"><span class="badge-dot"></span>Checking</div>
+                        <div class="head-controls">
+                            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+                                <input type="checkbox" id="workers-auto" onchange="toggleWorkersAuto()"> Auto 15s
+                            </label>
+                            <div id="celery-status-badge" class="badge badge-neutral"><span class="badge-dot"></span>Checking</div>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div id="celery-queues-info" class="queue-grid">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 16px;">
+                    <div class="card-header">
+                        <span class="card-title">Workers</span>
+                        <span id="workers-capacity" class="inline-status"></span>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead><tr><th>Host</th><th>Active</th><th>Concurrency</th><th>Scrapes done</th><th>Queues</th></tr></thead>
+                            <tbody id="workers-table"><tr><td colspan="5" class="muted" style="text-align:center;padding:20px;">Loading...</td></tr></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -630,26 +801,47 @@
                     </div>
                     <div class="card-body">
                         <div class="action-grid">
-                            <button class="action-btn" onclick=\"triggerCeleryTask('scrape_all_companies', this)\">
+                            <button class="action-btn" onclick="triggerCeleryTask('scrape_all_companies', this)">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
                                 <span class="text">Run All Scrapers</span>
                             </button>
-                            <button class="action-btn" onclick=\"triggerCeleryTask('cleanup_old_scraper_runs', this)\">
+                            <button class="action-btn" onclick="triggerCeleryTask('cleanup_old_scraper_runs', this)">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></div>
                                 <span class="text">Cleanup Runs</span>
                             </button>
-                            <button class="action-btn" onclick=\"triggerCeleryTask('mark_stale_jobs_inactive', this)\">
+                            <button class="action-btn" onclick="triggerCeleryTask('mark_stale_jobs_inactive', this)">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
                                 <span class="text">Mark Stale</span>
                             </button>
-                            <button class="action-btn" onclick=\"triggerCeleryTask('fetch_missing_descriptions', this)\">
+                            <button class="action-btn" onclick="triggerCeleryTask('fetch_missing_descriptions', this)">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
                                 <span class="text">Fetch Descriptions</span>
                             </button>
-                            <button class="action-btn" onclick=\"triggerCeleryTask('process_pending_applications', this)\">
+                            <button class="action-btn" onclick="triggerCeleryTask('process_pending_applications', this)">
                                 <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
                                 <span class="text">Process Apply</span>
                             </button>
+                            <button class="action-btn" onclick="triggerCeleryTask('apply_nightly_matching', this)">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></div>
+                                <span class="text">Rebuild Matches</span>
+                            </button>
+                            <button class="action-btn" onclick="triggerCeleryTask('apply_prepare_auto', this)">
+                                <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+                                <span class="text">Prepare Auto Apply</span>
+                            </button>
+                        </div>
+                        <div class="row" style="margin-top: 8px;">
+                            <span class="row-label">Scrape one category</span>
+                            <div class="row-controls">
+                                <select id="scrape-category" class="select">
+                                    <option value="big_tech">Big tech</option>
+                                    <option value="enterprise">Enterprise</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="custom">Custom</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <button class="btn btn-secondary btn-sm" onclick="triggerCategoryScrape(this)">Run</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -680,12 +872,25 @@
                             <label class="toggle"><input type="checkbox" id="description-fetch-enabled" checked><div class="toggle-track"><div class="toggle-thumb"></div></div></label>
                         </div>
                     </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead><tr><th>Beat entry</th><th>Task</th><th>Runs</th><th>Last run</th><th>State</th></tr></thead>
+                            <tbody id="beat-table"><tr><td colspan="5" class="muted" style="text-align:center;padding:20px;">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">Recent Tasks</span>
-                        <button class="btn btn-ghost btn-sm" onclick="loadRecentTasks()">Refresh</button>
+                        <span class="card-title">Recent Tasks <span id="tasks-summary" class="muted" style="font-weight:400;font-size:12px;"></span></span>
+                        <div class="head-controls">
+                            <select id="tasks-filter" class="select" style="font-size:12px;padding:6px 10px;" onchange="renderRecentTasks()">
+                                <option value="all">All</option>
+                                <option value="failed">Failed</option>
+                                <option value="ok">Succeeded</option>
+                            </select>
+                            <button class="btn btn-ghost btn-sm" onclick="loadRecentTasks()">Refresh</button>
+                        </div>
                     </div>
                     <div class="table-wrap">
                         <div id="recent-tasks-container" class="task-list">
@@ -770,12 +975,13 @@
     <script>
         // Each tab's data loads on first open (keeps first paint to <= 3 API calls).
         const TAB_LOADERS = {
+            overview: () => loadOverview(),
             ai: () => loadAIConfig(),
-            scrapers: () => loadScraperStatus(),
+            scrapers: () => Promise.allSettled([loadScraperStatus(), loadScraperMeta()]),
             workers: () => Promise.allSettled([loadCeleryStatus(), loadCelerySchedules(), loadRecentTasks()]),
             data: () => Promise.allSettled([loadJobAgeFilter(), loadMissingDescriptions()]),
         };
-        const TAB_ALIASES = { celery: 'workers', worker: 'workers', scraper: 'scrapers' };
+        const TAB_ALIASES = { celery: 'workers', worker: 'workers', scraper: 'scrapers', health: 'overview', metrics: 'overview' };
         const loadedTabs = new Set();
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -785,7 +991,7 @@
             document.getElementById('api-key-input').addEventListener('keypress', e => { if (e.key === 'Enter') saveApiKey(); });
 
             const hashTab = (window.location.hash || '').slice(1).toLowerCase();
-            switchTab(TAB_LOADERS[TAB_ALIASES[hashTab] || hashTab] ? (TAB_ALIASES[hashTab] || hashTab) : 'ai', false);
+            switchTab(TAB_LOADERS[TAB_ALIASES[hashTab] || hashTab] ? (TAB_ALIASES[hashTab] || hashTab) : 'overview', false);
         });
 
         // Tab switching (lazy-loads the panel's data the first time it's shown)
@@ -793,6 +999,11 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${tabId}`));
             if (updateHash) history.replaceState(null, '', `#${tabId}`);
+            // Auto-refresh only runs while its tab is on screen.
+            if (tabId !== 'overview') stopTimer('overview');
+            if (tabId !== 'workers') stopTimer('workers');
+            if (tabId === 'overview' && document.getElementById('ov-auto').checked) toggleOverviewAuto();
+            if (tabId === 'workers' && document.getElementById('workers-auto').checked) toggleWorkersAuto();
             if (!loadedTabs.has(tabId) && TAB_LOADERS[tabId]) {
                 loadedTabs.add(tabId);
                 TAB_LOADERS[tabId]();
@@ -824,6 +1035,229 @@
         function setInlineStatus(el, text, level) {
             el.textContent = text;
             el.style.color = level === 'ok' ? 'var(--c-green)' : level === 'error' ? 'var(--c-red)' : 'var(--c-ink-2)';
+        }
+
+        // ============== Overview ==============
+        // Service health (/health, /health/db, /health/redis are public),
+        // workers and queues (/api/celery/status), API traffic from the
+        // Prometheus text at /metrics (admin bearer; per API process, reset on
+        // deploy) and board freshness (/api/scrapers/health).
+        const timers = {};
+        function stopTimer(key) { clearInterval(timers[key]); timers[key] = null; }
+
+        function toggleOverviewAuto() {
+            stopTimer('overview');
+            if (document.getElementById('ov-auto').checked) timers.overview = setInterval(loadOverview, 30000);
+        }
+
+        function toggleWorkersAuto() {
+            stopTimer('workers');
+            if (document.getElementById('workers-auto').checked) {
+                timers.workers = setInterval(() => { loadCeleryStatus(); loadRecentTasks(); }, 15000);
+            }
+        }
+
+        // GET a path on the backend root (outside /api); returns {ok, status, body, ms}.
+        async function rootFetch(path, { text = false, auth = false, retry = true } = {}) {
+            const headers = {};
+            if (auth) { const t = getAccessToken(); if (t) headers.Authorization = `Bearer ${t}`; }
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 15000);
+            const started = performance.now();
+            try {
+                const res = await fetch(`${BACKEND_URL}${path}`, { headers, signal: controller.signal, cache: 'no-store' });
+                const ms = performance.now() - started;
+                if (res.status === 401 && auth && retry && await refreshAccessToken()) return rootFetch(path, { text, auth, retry: false });
+                const body = text ? await res.text() : await res.json().catch(() => null);
+                return { ok: res.ok, status: res.status, body, ms };
+            } finally { clearTimeout(timer); }
+        }
+
+        function setSvc(id, level, value, meta) {
+            document.getElementById(`svc-${id}-dot`).className = 'svc-dot' + (level ? ` ${level}` : '');
+            document.getElementById(`svc-${id}`).textContent = value;
+            const m = document.getElementById(`svc-${id}-meta`);
+            m.textContent = meta || '';
+            m.title = meta || '';
+        }
+
+        const fmtMs = ms => ms == null || !isFinite(ms) ? '--' : ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
+        const fmtPct = (n, d) => d ? `${(100 * n / d).toFixed(n / d < 0.1 ? 1 : 0)}%` : '--';
+        const fmtNum = n => Number(n || 0).toLocaleString();
+
+        async function loadOverview() {
+            await Promise.allSettled([loadServices(), loadMetrics(), loadFreshness()]);
+            document.getElementById('ov-updated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        }
+
+        async function loadServices() {
+            const [api, db, redis, celery] = await Promise.allSettled([
+                rootFetch('/health'), rootFetch('/health/db'), rootFetch('/health/redis'), apiRequest('/celery/status'),
+            ]);
+
+            if (api.status === 'fulfilled' && api.value.ok) {
+                setSvc('api', 'ok', api.value.body?.version ? `v${api.value.body.version}` : 'Up', `${fmtMs(api.value.ms)} round trip`);
+            } else setSvc('api', 'bad', 'Down', api.reason?.message || `HTTP ${api.value?.status}`);
+
+            if (db.status === 'fulfilled' && db.value.ok && db.value.body?.status === 'ok') {
+                const ms = Number(db.value.body.latency_ms);
+                setSvc('db', ms > 100 ? 'warn' : 'ok', `${ms} ms`, 'SELECT 1 latency');
+            } else setSvc('db', 'bad', 'Down', db.value?.body?.status || db.reason?.message || 'unreachable');
+
+            if (redis.status === 'fulfilled' && redis.value.body?.status === 'healthy') {
+                const r = redis.value.body;
+                setSvc('redis', 'ok', r.used_memory_human || 'Up', `v${r.redis_version || '?'} · ${fmtNum(r.connected_clients)} clients`);
+            } else setSvc('redis', 'bad', 'Down', redis.value?.body?.error || redis.reason?.message || 'unreachable');
+
+            if (celery.status === 'fulfilled') {
+                const s = celery.value || {};
+                const workers = s.workers || [];
+                const queues = s.queues || [];
+                const slots = workers.reduce((a, w) => a + Number(w.concurrency || 0), 0);
+                const busy = workers.reduce((a, w) => a + Number(w.active_tasks || 0), 0);
+                setSvc('workers', workers.length ? 'ok' : 'bad', String(workers.length), workers.length ? `${busy}/${slots} slots busy` : 'none online');
+                const queued = queues.reduce((a, q) => a + Number(q.messages || 0), 0);
+                const orphan = workers.length ? queues.filter(q => Number(q.consumers || 0) === 0).map(q => q.name) : [];
+                const top = queues.slice().sort((a, b) => b.messages - a.messages)[0];
+                setSvc('queue', orphan.length ? 'warn' : queued > 500 ? 'warn' : 'ok', fmtNum(queued),
+                    orphan.length ? `no consumer: ${orphan.join(', ')}` : top && top.messages ? `${top.name}: ${fmtNum(top.messages)}` : 'all queues empty');
+            } else {
+                setSvc('workers', 'bad', '--', celery.reason?.message);
+                setSvc('queue', 'bad', '--', celery.reason?.message);
+            }
+        }
+
+        // Prometheus text format -> [{name, labels, value}]
+        function parseProm(text) {
+            const out = [];
+            for (const line of String(text || '').split('\n')) {
+                if (!line || line[0] === '#') continue;
+                const m = line.match(/^([a-zA-Z_:][\w:]*)(?:\{(.*)\})?\s+(\S+)/);
+                if (!m) continue;
+                const labels = {};
+                if (m[2]) m[2].replace(/(\w+)="((?:[^"\\]|\\.)*)"/g, (_, k, v) => { labels[k] = v; });
+                out.push({ name: m[1], labels, value: Number(m[3]) });
+            }
+            return out;
+        }
+
+        // Quantile (seconds) from cumulative histogram buckets {le: count}.
+        function bucketQuantile(buckets, q) {
+            const les = Object.keys(buckets).map(le => ({ le: le === '+Inf' ? Infinity : Number(le), c: buckets[le] })).sort((a, b) => a.le - b.le);
+            const total = les.length ? les[les.length - 1].c : 0;
+            if (!total) return null;
+            const target = q * total;
+            let prevLe = 0, prevC = 0;
+            for (const b of les) {
+                if (b.c >= target) {
+                    if (b.le === Infinity) return prevLe;
+                    return prevLe + (b.le - prevLe) * ((target - prevC) / Math.max(b.c - prevC, 1));
+                }
+                prevLe = b.le; prevC = b.c;
+            }
+            return prevLe;
+        }
+
+        const isProbe = ep => /^\/(health|metrics)/.test(ep || '');
+
+        async function loadMetrics() {
+            const status = document.getElementById('ov-metrics-status');
+            const tbody = document.getElementById('m-endpoints');
+            try {
+                const res = await rootFetch('/metrics', { text: true, auth: true });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                if (/not available/i.test(res.body)) {
+                    setInlineStatus(status, 'Metrics are off on the API');
+                    tbody.innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center;padding:20px;">No metrics</td></tr>';
+                    return;
+                }
+                const samples = parseProm(res.body);
+                let total = 0, e5 = 0, e4 = 0;
+                const eps = {};
+                const allBuckets = {};
+                const ep = l => `${l.method || ''} ${l.endpoint || ''}`;
+                for (const s of samples) {
+                    if (s.name === 'http_requests_total' && !isProbe(s.labels.endpoint)) {
+                        const code = String(s.labels.status_code || '');
+                        total += s.value;
+                        if (code[0] === '5') e5 += s.value;
+                        if (code[0] === '4') e4 += s.value;
+                        const r = eps[ep(s.labels)] ||= { n: 0, e5: 0, e4: 0, buckets: {} };
+                        r.n += s.value;
+                        if (code[0] === '5') r.e5 += s.value;
+                        if (code[0] === '4') r.e4 += s.value;
+                    } else if (s.name === 'http_request_duration_seconds_bucket' && !isProbe(s.labels.endpoint)) {
+                        allBuckets[s.labels.le] = (allBuckets[s.labels.le] || 0) + s.value;
+                        const r = eps[ep(s.labels)] ||= { n: 0, e5: 0, e4: 0, buckets: {} };
+                        r.buckets[s.labels.le] = (r.buckets[s.labels.le] || 0) + s.value;
+                    }
+                }
+                const sum = name => samples.filter(s => s.name === name).reduce((a, s) => a + s.value, 0);
+                const hits = sum('cache_hits_total'), misses = sum('cache_misses_total');
+
+                document.getElementById('m-requests').textContent = fmtNum(total);
+                const errEl = document.getElementById('m-errors');
+                errEl.textContent = fmtPct(e5, total);
+                errEl.style.color = total && e5 / total > 0.01 ? '#ef4444' : '';
+                document.getElementById('m-errors-sub').textContent = e5 ? `${fmtNum(e5)} errors` : '';
+                document.getElementById('m-4xx').textContent = fmtPct(e4, total);
+                document.getElementById('m-p50').textContent = fmtMs(bucketQuantile(allBuckets, 0.5) * 1000);
+                const p95 = bucketQuantile(allBuckets, 0.95);
+                const p95El = document.getElementById('m-p95');
+                p95El.textContent = fmtMs(p95 * 1000);
+                p95El.style.color = p95 > 1 ? '#f59e0b' : '';
+                document.getElementById('m-cache').textContent = fmtPct(hits, hits + misses);
+                document.getElementById('m-cache-sub').textContent = hits + misses ? `${fmtNum(hits)}/${fmtNum(hits + misses)}` : '';
+
+                const rows = Object.entries(eps).filter(([, r]) => r.n > 0).sort((a, b) => b[1].n - a[1].n).slice(0, 15);
+                tbody.innerHTML = rows.length ? rows.map(([name, r]) => {
+                    const p = bucketQuantile(r.buckets, 0.95);
+                    return `<tr>
+                        <td class="num">${escapeHtml(name)}</td>
+                        <td class="num">${fmtNum(r.n)}</td>
+                        <td class="num${r.e5 ? ' bad-text' : ''}">${r.e5 ? `${fmtNum(r.e5)} (${fmtPct(r.e5, r.n)})` : '0'}${r.e4 ? ` <span class="muted">· ${fmtNum(r.e4)} 4xx</span>` : ''}</td>
+                        <td class="num"${p > 1 ? ' style="color:#f59e0b;"' : ''}>${p == null ? '--' : fmtMs(p * 1000)}</td>
+                    </tr>`;
+                }).join('') : '<tr><td colspan="4" class="muted" style="text-align:center;padding:20px;">No traffic yet</td></tr>';
+                setInlineStatus(status, '');
+            } catch (e) {
+                setInlineStatus(status, `Couldn't load metrics: ${e.message}`, 'error');
+                tbody.innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center;padding:20px;">--</td></tr>';
+            }
+        }
+
+        async function loadFreshness() {
+            const ats = document.getElementById('fresh-ats');
+            const list = document.getElementById('fresh-failing-list');
+            try {
+                const h = await apiRequest('/scrapers/health', 'GET', null, { timeout: 30000 });
+                document.getElementById('fresh-boards').textContent = fmtNum(h.boards);
+                document.getElementById('fresh-stale').textContent = fmtNum((h.stale || []).length);
+                document.getElementById('fresh-failing').textContent = fmtNum((h.failing || []).length);
+                document.getElementById('fresh-stale-label').textContent = `Stale >${h.stale_hours || 48}h`;
+                document.getElementById('fresh-failing-label').textContent = `Failing ${h.failing_after || 3}+`;
+                document.getElementById('fresh-checked').textContent = h.checked_at ? `Checked ${formatRelativeTime(parseUtc(h.checked_at))}` : '';
+
+                const byAts = Object.entries(h.by_ats || {}).sort((a, b) => b[1].boards - a[1].boards);
+                ats.innerHTML = byAts.length ? byAts.map(([name, c]) => `<tr>
+                    <td><strong>${escapeHtml(name)}</strong></td>
+                    <td class="num">${fmtNum(c.boards)}</td>
+                    <td class="num ok-text">${fmtPct(c.boards - c.stale, c.boards)}</td>
+                    <td class="num">${c.stale ? fmtNum(c.stale) : '0'}</td>
+                    <td class="num${c.failing ? ' bad-text' : ''}">${fmtNum(c.failing)}</td>
+                </tr>`).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:20px;">No boards</td></tr>';
+
+                const failing = h.failing || [];
+                list.innerHTML = failing.length ? failing.slice(0, 50).map(b => `<tr title="${escapeHtml(b.last_error || '')}">
+                    <td><strong>${escapeHtml(b.company_name || b.slug)}</strong><br><span class="muted num">${escapeHtml(b.slug)} · ${escapeHtml(b.ats || '')}</span></td>
+                    <td class="num bad-text">${fmtNum(b.consecutive_failures)}</td>
+                    <td class="muted" style="font-size:12px;">${b.last_success_at ? formatRelativeTime(parseUtc(b.last_success_at)) : 'Never'}</td>
+                    <td class="row-actions"><button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(b.slug)}', this)">Run</button> <button type="button" class="btn btn-ghost btn-xs" onclick="redetectBoard('${jsAttr(b.slug)}', this)">Re-detect</button></td>
+                </tr>`).join('') : '<tr><td colspan="4" class="ok-text" style="text-align:center;padding:20px;">No failing boards</td></tr>';
+            } catch (e) {
+                ats.innerHTML = `<tr><td colspan="5" class="bad-text" style="text-align:center;padding:20px;">Couldn't load: ${escapeHtml(e.message)}</td></tr>`;
+                list.innerHTML = '';
+            }
         }
 
         // ============== AI Provider Functions ==============
@@ -990,6 +1424,9 @@
         // GET /scrapers/status returns a bare list; health is computed client-side
         // by summarizeScraperHealth() in app.js (same rules as /scrapers/run-warning).
         let allScrapers = [];
+        let scraperMeta = {};          // slug -> {category, scraper_type, careers_url, ats} from GET /scrapers/
+        const openHistory = new Set();
+        const historyCache = {};
 
         async function loadScraperStatus() {
             try {
@@ -1001,43 +1438,211 @@
                 document.getElementById('scraper-healthy').textContent = h.healthy.toLocaleString();
                 document.getElementById('scraper-warning').textContent = h.warning.toLocaleString();
                 document.getElementById('scraper-critical').textContent = h.critical.toLocaleString();
+                document.getElementById('scraper-disabled').textContent = h.disabled.toLocaleString();
+                const active = allScrapers.reduce((a, s) => a + Number(s.active_jobs || 0), 0);
+                const total = allScrapers.reduce((a, s) => a + Number(s.total_jobs || 0), 0);
+                document.getElementById('scraper-jobs').textContent = active.toLocaleString();
+                document.getElementById('scraper-jobs-sub').textContent = total ? `${total.toLocaleString()} stored` : '';
 
                 renderScraperTable();
             } catch (e) {
-                document.getElementById('scraper-table-body').innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--c-red);padding:30px;">Couldn't load scrapers: ${escapeHtml(e.message)}</td></tr>`;
+                document.getElementById('scraper-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--c-red);padding:30px;">Couldn't load scrapers: ${escapeHtml(e.message)}</td></tr>`;
             }
+        }
+
+        async function loadScraperMeta() {
+            try {
+                const list = await apiRequest('/scrapers/', 'GET', null, { timeout: 30000 });
+                scraperMeta = Object.fromEntries((list || []).map(m => [m.slug, m]));
+                if (allScrapers.length) renderScraperTable();
+            } catch (e) { console.error(e); }
         }
 
         function filterScrapers() { renderScraperTable(); }
 
-        function renderScraperTable() {
-            const filter = document.getElementById('scraper-filter').value;
-            const tbody = document.getElementById('scraper-table-body');
-            const order = { critical: 0, warning: 1, disabled: 2, healthy: 3 };
+        const scraperSlug = s => s.company_slug || s.slug || '';
+        const isBoard = slug => (scraperMeta[slug] || {}).category === 'boards';
 
-            const filtered = (filter === 'all' ? allScrapers.slice() : allScrapers.filter(s => s.health === filter))
+        function visibleScrapers() {
+            const filter = document.getElementById('scraper-filter').value;
+            const source = document.getElementById('scraper-source').value;
+            const q = document.getElementById('scraper-search').value.trim().toLowerCase();
+            const order = { critical: 0, warning: 1, disabled: 2, healthy: 3 };
+            return allScrapers
+                .filter(s => filter === 'all' || s.health === filter)
+                .filter(s => source === 'all' || (source === 'boards') === isBoard(scraperSlug(s)))
+                .filter(s => !q || `${s.company_name || ''} ${scraperSlug(s)}`.toLowerCase().includes(q))
                 .sort((a, b) => (order[a.health] - order[b.health]) || (a.company_name || '').localeCompare(b.company_name || ''));
+        }
+
+        function renderScraperTable() {
+            const tbody = document.getElementById('scraper-table-body');
+            const filtered = visibleScrapers();
+            document.getElementById('scraper-shown').textContent = allScrapers.length ? `${filtered.length.toLocaleString()} of ${allScrapers.length.toLocaleString()}` : '';
 
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--c-ink-2);padding:30px;">No scrapers</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--c-ink-2);padding:30px;">No scrapers</td></tr>';
                 return;
             }
 
             tbody.innerHTML = filtered.map(s => {
-                const slug = s.company_slug || s.slug || '';
+                const slug = scraperSlug(s);
+                const meta = scraperMeta[slug] || {};
                 const lastSuccess = s.last_success_at || s.last_success;
                 const tip = s.disabled_reason || s.last_error;
                 const err = tip ? ` title="${escapeHtml(tip)}"` : '';
-                return `
+                const url = safeUrl(meta.careers_url);
+                const name = escapeHtml(s.company_name || slug);
+                const source = isBoard(slug) ? (meta.ats || 'board') : (meta.category || '');
+                const lastRun = s.last_run_success == null ? '<span class="muted">--</span>'
+                    : `<span class="${s.last_run_success ? 'ok-text' : 'bad-text'}"${s.last_run_note || s.last_error_type ? ` title="${escapeHtml(s.last_run_note || s.last_error_type)}"` : ''}>${s.last_run_success ? '✓' : '✕'}</span> ${Number(s.last_run_jobs_found || 0).toLocaleString()} found`;
+                const failures = Number(s.consecutive_failures || 0);
+                const codeOff = !!s.disabled_reason;
+                const actions = [
+                    slug && !codeOff && s.is_enabled !== false ? `<button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(slug)}', this)">Run</button>` : '',
+                    slug ? `<button type="button" class="btn btn-ghost btn-xs" onclick="toggleHistory('${jsAttr(slug)}', this)">${openHistory.has(slug) ? 'Hide' : 'History'}</button>` : '',
+                    slug && failures > 0 && !codeOff ? `<button type="button" class="btn btn-ghost btn-xs" title="Set failures to 0 and enable" onclick="resetFailures('${jsAttr(slug)}', this)">Reset</button>` : '',
+                    slug && !codeOff ? `<button type="button" class="btn btn-ghost btn-xs" onclick="setScraperEnabled('${jsAttr(slug)}', ${s.is_enabled === false}, this)">${s.is_enabled === false ? 'Enable' : 'Disable'}</button>` : '',
+                    slug && s.health === 'critical' ? `<button type="button" class="btn btn-ghost btn-xs" title="Find the company's current job board" onclick="redetectBoard('${jsAttr(slug)}', this)">Re-detect</button>` : '',
+                    slug && isBoard(slug) ? `<button type="button" class="btn btn-ghost btn-xs bad-text" onclick="deleteBoard('${jsAttr(slug)}', this)">Delete</button>` : '',
+                ].filter(Boolean).join(' ');
+                const row = `
                 <tr>
-                    <td><strong>${escapeHtml(s.company_name || slug)}</strong><br><span style="font-size:11px;color:var(--c-ink-2);font-family:var(--font-mono);">${escapeHtml(slug)}</span></td>
+                    <td><strong>${url ? `<a class="co-link" href="${url}" target="_blank" rel="noopener noreferrer">${name}</a>` : name}</strong><br><span style="font-size:11px;color:var(--c-ink-2);font-family:var(--font-mono);">${escapeHtml(slug)}</span>${source ? ` <span class="src-tag">${escapeHtml(source)}</span>` : ''}</td>
                     <td><span class="health ${escapeHtml(s.health)}"${err}>${escapeHtml(s.health)}</span></td>
                     <td style="font-size:12px;color:var(--c-ink-2);">${lastSuccess ? formatRelativeTime(parseUtc(lastSuccess)) : 'Never'}</td>
-                    <td style="font-family:var(--font-mono);font-size:12px;">${Number(s.consecutive_failures || 0)}</td>
-                    <td style="font-family:var(--font-mono);font-size:12px;">${Number(s.active_jobs || 0).toLocaleString()}</td>
-                    <td style="white-space:nowrap;">${slug && !s.disabled_reason ? `<button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(slug)}', this)">Run</button>` : ''}${slug && s.health === 'critical' ? ` <button type="button" class="btn btn-ghost btn-xs" title="Find the company's current job board" onclick="redetectBoard('${jsAttr(slug)}', this)">Re-detect</button>` : ''}</td>
+                    <td style="font-size:12px;white-space:nowrap;">${lastRun}</td>
+                    <td class="num${failures >= 5 ? ' bad-text' : ''}">${failures}</td>
+                    <td class="num">${Number(s.active_jobs || 0).toLocaleString()}<span class="muted"> / ${Number(s.total_jobs || 0).toLocaleString()}</span></td>
+                    <td class="row-actions">${actions}</td>
                 </tr>`;
+                return row + (openHistory.has(slug) ? historyRow(slug) : '');
             }).join('');
+        }
+
+        function historyRow(slug) {
+            const runs = historyCache[slug];
+            let inner;
+            if (!runs) inner = '<span class="muted">Loading...</span>';
+            else if (runs.error) inner = `<span class="bad-text">Couldn't load runs: ${escapeHtml(runs.error)}</span>`;
+            else if (!runs.length) inner = '<span class="muted">No runs</span>';
+            else {
+                const ok = runs.filter(r => r.success).length;
+                const durs = runs.map(r => r.duration_seconds).filter(d => d != null);
+                const avg = durs.length ? durs.reduce((a, b) => a + b, 0) / durs.length : null;
+                inner = `<div class="muted" style="font-size:11px;margin-bottom:6px;">Last ${runs.length}: ${ok} ok · ${runs.length - ok} failed${avg != null ? ` · avg ${avg.toFixed(1)} s` : ''}</div>
+                <table class="history-table"><thead><tr><th>When</th><th>Result</th><th>Found</th><th>New</th><th>Updated</th><th>Duration</th><th>Error</th></tr></thead><tbody>
+                ${runs.map(r => `<tr>
+                    <td>${r.run_at ? escapeHtml(parseUtc(r.run_at).toLocaleString()) : '--'}</td>
+                    <td class="${r.success ? 'ok-text' : 'bad-text'}">${r.success ? 'ok' : escapeHtml(r.error_type || 'failed')}</td>
+                    <td class="num">${Number(r.jobs_found || 0).toLocaleString()}</td>
+                    <td class="num">${Number(r.jobs_new || 0).toLocaleString()}</td>
+                    <td class="num">${Number(r.jobs_updated || 0).toLocaleString()}</td>
+                    <td class="num">${r.duration_seconds != null ? `${Number(r.duration_seconds).toFixed(1)} s` : '--'}</td>
+                    <td class="muted" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(r.error_message || '')}">${escapeHtml(r.error_message || '')}</td>
+                </tr>`).join('')}</tbody></table>`;
+            }
+            return `<tr class="history-row"><td colspan="7">${inner}</td></tr>`;
+        }
+
+        async function toggleHistory(slug) {
+            if (openHistory.has(slug)) { openHistory.delete(slug); return renderScraperTable(); }
+            openHistory.add(slug);
+            delete historyCache[slug];
+            renderScraperTable();
+            try {
+                historyCache[slug] = await apiRequest(`/scrapers/${encodeURIComponent(slug)}/runs?limit=10`);
+            } catch (e) { historyCache[slug] = { error: e.message }; }
+            renderScraperTable();
+        }
+
+        async function setScraperEnabled(slug, enable, btn) {
+            if (!enable && !confirm(`Disable ${slug}? The scheduler skips it until enabled.`)) return;
+            if (btn) btn.disabled = true;
+            try {
+                await apiRequest(`/scrapers/${encodeURIComponent(slug)}/${enable ? 'enable' : 'disable'}`, 'POST');
+                showAlert(`${slug} ${enable ? 'enabled' : 'disabled'}`);
+                await loadScraperStatus();
+            } catch (e) { showAlert(`${slug}: ${e.message}`, 'error'); if (btn) btn.disabled = false; }
+        }
+
+        async function resetFailures(slug, btn) {
+            if (btn) btn.disabled = true;
+            try {
+                const res = await apiRequest(`/scrapers/${encodeURIComponent(slug)}/reset-failures`, 'POST');
+                showAlert((res && res.message) || `Reset ${slug}`);
+                await loadScraperStatus();
+            } catch (e) { showAlert(`${slug}: ${e.message}`, 'error'); if (btn) btn.disabled = false; }
+        }
+
+        async function deleteBoard(slug, btn) {
+            if (!confirm(`Delete the ${slug} board and its run history? Its jobs stay.`)) return;
+            if (btn) btn.disabled = true;
+            try {
+                await apiRequest(`/scrapers/custom/${encodeURIComponent(slug)}`, 'DELETE');
+                showAlert(`${slug} deleted`);
+                openHistory.delete(slug);
+                await Promise.allSettled([loadScraperStatus(), loadScraperMeta()]);
+            } catch (e) { showAlert(`${slug}: ${e.message}`, 'error'); if (btn) btn.disabled = false; }
+        }
+
+        function exportScrapersCsv() {
+            const rows = visibleScrapers();
+            if (!rows.length) return showAlert('Nothing to export', 'error');
+            const cols = ['company_name', 'company_slug', 'source', 'health', 'is_enabled', 'consecutive_failures', 'total_runs', 'last_success_at', 'last_failure_at', 'last_run_success', 'last_run_jobs_found', 'active_jobs', 'total_jobs', 'careers_url', 'last_error', 'disabled_reason'];
+            const cell = v => { const t = v == null ? '' : String(v); return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; };
+            const lines = [cols.join(',')].concat(rows.map(s => {
+                const slug = scraperSlug(s);
+                const meta = scraperMeta[slug] || {};
+                const rec = { ...s, company_slug: slug, source: isBoard(slug) ? (meta.ats || 'board') : (meta.category || ''), careers_url: meta.careers_url || '' };
+                return cols.map(c => cell(rec[c])).join(',');
+            }));
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+            a.download = `scrapers-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+
+        // Add company: POST /scrapers/custom/detect previews the board,
+        // /custom/add saves a job_boards row and queues its first scrape.
+        function addInputs() {
+            return { name: document.getElementById('add-name').value.trim(), url: document.getElementById('add-url').value.trim() };
+        }
+
+        async function detectBoard() {
+            const { url } = addInputs();
+            const out = document.getElementById('add-result');
+            if (!/^https?:\/\//i.test(url)) return setInlineStatus(out, 'Enter the careers page URL', 'error');
+            const btn = document.getElementById('add-detect-btn');
+            btn.disabled = true;
+            setInlineStatus(out, 'Detecting...');
+            try {
+                const r = await apiRequest('/scrapers/custom/detect', 'POST', { careers_url: url }, { timeout: 60000 });
+                if (r && r.valid) setInlineStatus(out, `${r.board_type} · ${Number(r.job_count || 0).toLocaleString()} jobs${r.api_url ? ` · ${r.api_url}` : ''}`, 'ok');
+                else setInlineStatus(out, (r && r.error) || 'No supported board found', 'error');
+            } catch (e) { setInlineStatus(out, e.message, 'error'); }
+            finally { btn.disabled = false; }
+        }
+
+        async function addCompany() {
+            const { name, url } = addInputs();
+            const out = document.getElementById('add-result');
+            if (name.length < 2) return setInlineStatus(out, 'Enter the company name', 'error');
+            if (!/^https?:\/\//i.test(url)) return setInlineStatus(out, 'Enter the careers page URL', 'error');
+            const btn = document.getElementById('add-btn');
+            btn.disabled = true;
+            setInlineStatus(out, 'Adding...');
+            try {
+                const r = await apiRequest('/scrapers/custom/add', 'POST', { company_name: name, careers_url: url }, { timeout: 60000 });
+                setInlineStatus(out, (r && r.message) || 'Added', 'ok');
+                document.getElementById('add-name').value = '';
+                document.getElementById('add-url').value = '';
+                await Promise.allSettled([loadScraperStatus(), loadScraperMeta()]);
+            } catch (e) { setInlineStatus(out, e.message, 'error'); }
+            finally { btn.disabled = false; }
         }
 
         async function runScraper(slug, btn) {
@@ -1106,6 +1711,7 @@
 
                 workers.textContent = workerList.length;
                 workers.className = 'value ' + (workerList.length > 0 ? 'online' : 'offline');
+                renderWorkers(workerList);
 
                 if (queueList.length > 0) {
                     queues.innerHTML = queueList.map(q => {
@@ -1167,6 +1773,7 @@
                 }
                 if (autoApply != null) document.getElementById('auto-apply-enabled').checked = !!autoApply;
                 if (descFetch != null) document.getElementById('description-fetch-enabled').checked = !!descFetch;
+                renderBeat(schedules);
             } catch (e) {
                 console.error(e);
                 showAlert("Couldn't load schedules: " + e.message, 'error');
@@ -1194,26 +1801,80 @@
             finally { if (btn) btn.disabled = false; }
         }
 
+        let recentTasks = [];
+
         async function loadRecentTasks() {
             const container = document.getElementById('recent-tasks-container');
             try {
-                const tasks = await apiRequest('/celery/tasks/recent?limit=15');
-                if (!tasks || tasks.length === 0) {
-                    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-ink-2);">No tasks</div>';
-                    return;
-                }
-                container.innerHTML = tasks.map(t => `
-                    <div class="task-item"${t.error ? ` title="${escapeHtml(t.error)}"` : ''}>
-                        <div>
-                            <div class="name">${escapeHtml(t.name)}</div>
-                            <div class="meta">${t.started_at || t.completed_at ? formatRelativeTime(parseUtc(t.started_at || t.completed_at)) : '--'}</div>
-                        </div>
-                        <span class="badge badge-${t.status === 'SUCCESS' ? 'success' : 'danger'}">${escapeHtml(t.status)}</span>
-                    </div>
-                `).join('');
+                recentTasks = (await apiRequest('/celery/tasks/recent?limit=50')) || [];
+                renderRecentTasks();
             } catch (e) {
                 container.innerHTML = `<div style="padding:20px;text-align:center;color:var(--c-red);">Couldn't load tasks: ${escapeHtml(e.message)}</div>`;
             }
+        }
+
+        function renderRecentTasks() {
+            const container = document.getElementById('recent-tasks-container');
+            const filter = document.getElementById('tasks-filter').value;
+            const ok = recentTasks.filter(t => t.status === 'SUCCESS').length;
+            const failed = recentTasks.filter(t => t.status === 'FAILURE').length;
+            document.getElementById('tasks-summary').textContent = recentTasks.length
+                ? `${ok} ok · ${failed} failed${recentTasks.length ? ` · ${Math.round(100 * ok / recentTasks.length)}% success` : ''}` : '';
+            const shown = recentTasks.filter(t => filter === 'all' || (filter === 'failed' ? t.status !== 'SUCCESS' : t.status === 'SUCCESS'));
+            if (!shown.length) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--c-ink-2);">No tasks</div>';
+                return;
+            }
+            container.innerHTML = shown.map(t => {
+                const start = parseUtc(t.started_at), end = parseUtc(t.completed_at);
+                const dur = start && end && end >= start ? fmtMs(end - start) : '';
+                const when = start || end;
+                const detail = t.error || t.result || '';
+                return `
+                    <div class="task-item"${detail ? ` title="${escapeHtml(detail)}"` : ''}>
+                        <div style="min-width:0;">
+                            <div class="name">${escapeHtml(t.name)}</div>
+                            <div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${when ? formatRelativeTime(when) : '--'}${dur ? ` · ${dur}` : ''}${detail ? ` · ${escapeHtml(detail.slice(0, 140))}` : ''}</div>
+                        </div>
+                        <span class="badge badge-${t.status === 'SUCCESS' ? 'success' : t.status === 'FAILURE' ? 'danger' : 'neutral'}">${escapeHtml(t.status)}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderWorkers(list) {
+            const tbody = document.getElementById('workers-table');
+            const slots = list.reduce((a, w) => a + Number(w.concurrency || 0), 0);
+            const busy = list.reduce((a, w) => a + Number(w.active_tasks || 0), 0);
+            document.getElementById('workers-capacity').textContent = list.length ? `${busy}/${slots} slots busy` : '';
+            tbody.innerHTML = list.length ? list.map(w => `<tr>
+                <td class="num"><span class="svc-dot ok" style="display:inline-block;margin-right:6px;"></span>${escapeHtml(w.hostname)}</td>
+                <td class="num">${Number(w.active_tasks || 0)}</td>
+                <td class="num">${Number(w.concurrency || 0)}</td>
+                <td class="num">${Number(w.processed || 0).toLocaleString()}</td>
+                <td>${(w.queues || []).map(q => `<span class="src-tag">${escapeHtml(q)}</span>`).join(' ') || '<span class="muted">--</span>'}</td>
+            </tr>`).join('') : '<tr><td colspan="5" class="bad-text" style="text-align:center;padding:20px;">No workers online</td></tr>';
+        }
+
+        function renderBeat(schedules) {
+            const tbody = document.getElementById('beat-table');
+            tbody.innerHTML = schedules.length ? schedules.map(b => `<tr>
+                <td><strong>${escapeHtml(b.name)}</strong></td>
+                <td class="num muted">${escapeHtml(String(b.task || '').replace(/^tasks\./, ''))}</td>
+                <td class="num">${escapeHtml(b.schedule || '')}</td>
+                <td style="font-size:12px;" class="muted">${b.last_run ? formatRelativeTime(parseUtc(b.last_run)) : '--'}</td>
+                <td><span class="badge badge-${b.enabled ? 'success' : 'neutral'}">${b.enabled ? 'On' : 'Off'}</span></td>
+            </tr>`).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:20px;">No beat entries</td></tr>';
+        }
+
+        async function triggerCategoryScrape(btn) {
+            const category = document.getElementById('scrape-category').value;
+            if (btn) btn.disabled = true;
+            try {
+                const res = await apiRequest('/celery/tasks/trigger', 'POST', { task_name: 'scrape_by_category', args: [category] });
+                showAlert((res && res.message) || `Scraping ${category}`);
+                setTimeout(() => { loadCeleryStatus(); loadRecentTasks(); }, 2000);
+            } catch (e) { showAlert('Failed: ' + e.message, 'error'); }
+            finally { if (btn) btn.disabled = false; }
         }
 
         // ============== Data Functions ==============
