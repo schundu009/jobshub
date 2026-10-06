@@ -504,7 +504,9 @@
         .toolbar .input { width: 200px; padding: 7px 10px; font-size: 12px; }
         .toolbar .select { font-size: 12px; padding: 6px 10px; }
         .src-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; }
-        .row-actions { white-space: nowrap; text-align: right; }
+        .row-actions { text-align: right; }
+        .row-actions .act { display: inline-flex; flex-wrap: wrap; gap: 2px 4px; justify-content: flex-end; max-width: 230px; }
+        .row-actions .btn-xs { padding: 2px 6px; font-size: 11px; min-height: 0; line-height: 1.6; }
         .history-row td { background: var(--bg-secondary); padding: 8px 12px 12px; }
         .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
         .history-table th { text-align: left; font-weight: 500; color: var(--text-muted); font-size: 11px; padding: 4px 8px; }
@@ -1242,7 +1244,7 @@
                 ats.innerHTML = byAts.length ? byAts.map(([name, c]) => `<tr>
                     <td><strong>${escapeHtml(name)}</strong></td>
                     <td class="num">${fmtNum(c.boards)}</td>
-                    <td class="num ok-text">${fmtPct(c.boards - c.stale, c.boards)}</td>
+                    <td class="num ok-text">${fmtNum(c.boards - c.stale)}</td>
                     <td class="num">${c.stale ? fmtNum(c.stale) : '0'}</td>
                     <td class="num${c.failing ? ' bad-text' : ''}">${fmtNum(c.failing)}</td>
                 </tr>`).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:20px;">No boards</td></tr>';
@@ -1252,7 +1254,7 @@
                     <td><strong>${escapeHtml(b.company_name || b.slug)}</strong><br><span class="muted num">${escapeHtml(b.slug)} · ${escapeHtml(b.ats || '')}</span></td>
                     <td class="num bad-text">${fmtNum(b.consecutive_failures)}</td>
                     <td class="muted" style="font-size:12px;">${b.last_success_at ? formatRelativeTime(parseUtc(b.last_success_at)) : 'Never'}</td>
-                    <td class="row-actions"><button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(b.slug)}', this)">Run</button> <button type="button" class="btn btn-ghost btn-xs" onclick="redetectBoard('${jsAttr(b.slug)}', this)">Re-detect</button></td>
+                    <td class="row-actions"><div class="act"><button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(b.slug)}', this)">Run</button><button type="button" class="btn btn-ghost btn-xs" onclick="redetectBoard('${jsAttr(b.slug)}', this)">Re-detect</button></div></td>
                 </tr>`).join('') : '<tr><td colspan="4" class="ok-text" style="text-align:center;padding:20px;">No failing boards</td></tr>';
             } catch (e) {
                 ats.innerHTML = `<tr><td colspan="5" class="bad-text" style="text-align:center;padding:20px;">Couldn't load: ${escapeHtml(e.message)}</td></tr>`;
@@ -1513,8 +1515,8 @@
                     <td style="font-size:12px;color:var(--c-ink-2);">${lastSuccess ? formatRelativeTime(parseUtc(lastSuccess)) : 'Never'}</td>
                     <td style="font-size:12px;white-space:nowrap;">${lastRun}</td>
                     <td class="num${failures >= 5 ? ' bad-text' : ''}">${failures}</td>
-                    <td class="num">${Number(s.active_jobs || 0).toLocaleString()}<span class="muted"> / ${Number(s.total_jobs || 0).toLocaleString()}</span></td>
-                    <td class="row-actions">${actions}</td>
+                    <td class="num" style="white-space:nowrap;">${Number(s.active_jobs || 0).toLocaleString()}<span class="muted"> / ${Number(s.total_jobs || 0).toLocaleString()}</span></td>
+                    <td class="row-actions"><div class="act">${actions}</div></td>
                 </tr>`;
                 return row + (openHistory.has(slug) ? historyRow(slug) : '');
             }).join('');
