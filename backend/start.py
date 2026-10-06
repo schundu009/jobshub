@@ -31,6 +31,12 @@ if __name__ == "__main__":
         ]
     else:
         print(f"Starting web server on port {PORT}...")
+        # One metrics directory for all uvicorn workers, emptied on boot, so
+        # /metrics reports every worker (observability/metrics.py).
+        import shutil
+        metrics_dir = os.environ.setdefault("PROMETHEUS_MULTIPROC_DIR", "/tmp/prometheus_multiproc")
+        shutil.rmtree(metrics_dir, ignore_errors=True)
+        os.makedirs(metrics_dir, exist_ok=True)
         cmd = [
             "python", "-m", "uvicorn", "main:app",
             "--host", "0.0.0.0",

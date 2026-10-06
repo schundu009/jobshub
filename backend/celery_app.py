@@ -172,8 +172,10 @@ celery_app.conf.update(
             "time_limit": 660,
             "reject_on_worker_lost": False,
         },
+        # Per worker. 10/m made a full pass over ~1,150 boards take ~2h; each
+        # scraper still has its own per-site limiter (scrapers/rate_limiter.py).
         "tasks.scraper_tasks.scrape_company_http": {
-            "rate_limit": "10/m",
+            "rate_limit": "30/m",
             "soft_time_limit": 120,  # HTTP scrapers: 2 min soft
             "time_limit": 180,  # 3 min hard
         },

@@ -46,4 +46,6 @@ EXPOSE 8000
 # Start the application - use PORT env var for Railway, default to 8000.
 # Multiple worker processes so one slow request can't stall the whole API.
 # Startup migrations are guarded by a Postgres advisory lock (one worker runs them).
-CMD ["sh", "-c", "exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3}"]
+# PROMETHEUS_MULTIPROC_DIR: the workers share one metrics directory, emptied
+# on boot, so /metrics reports all of them (observability/metrics.py).
+CMD ["sh", "-c", "export PROMETHEUS_MULTIPROC_DIR=${PROMETHEUS_MULTIPROC_DIR:-/tmp/prometheus_multiproc} && rm -rf \"$PROMETHEUS_MULTIPROC_DIR\" && mkdir -p \"$PROMETHEUS_MULTIPROC_DIR\" && exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-3}"]

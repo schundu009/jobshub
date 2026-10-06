@@ -237,6 +237,11 @@ def get_all_status(
     return statuses
 
 
+# health_report ranks recent runs for every board (~10-20s on ~1,150 boards).
+SCRAPER_HEALTH_CACHE_KEY = "scrapers:health"
+SCRAPER_HEALTH_CACHE_TTL = 120  # seconds
+
+
 @router.get("/health")
 def get_scraper_health(
     current_user: User = Depends(get_current_admin),
@@ -246,8 +251,13 @@ def get_scraper_health(
     Per-board freshness from scraper_runs: boards with no success in 48h
     (stale), boards failing 3+ runs in a row (failing), and counts by ATS.
     """
+    cached = redis_service.cache_get(SCRAPER_HEALTH_CACHE_KEY)
+    if cached is not None:
+        return cached
     from services.scraper_health import health_report
-    return health_report(db)
+    report = health_report(db)
+    redis_service.cache_set(SCRAPER_HEALTH_CACHE_KEY, report, SCRAPER_HEALTH_CACHE_TTL)
+    return report
 
 
 @router.get("/{company_slug}")
@@ -481,6 +491,7 @@ def update_scraper_config(
 
     db.commit()
     redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+    redis_service.cache_delete(SCRAPER_HEALTH_CACHE_KEY)
 
     return {
         "company_slug": company_slug,
@@ -593,6 +604,7 @@ async def add_custom_company(
     ))
     db.commit()
     redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+    redis_service.cache_delete(SCRAPER_HEALTH_CACHE_KEY)
 
     task_id = None
     try:
@@ -634,6 +646,7 @@ def delete_custom_scraper(
     db.query(ScraperConfigDB).filter(ScraperConfigDB.company_slug == company_slug).delete()
     db.commit()
     redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+    redis_service.cache_delete(SCRAPER_HEALTH_CACHE_KEY)
 
     return {"status": "deleted", "slug": company_slug}
 
@@ -722,6 +735,7 @@ async def redetect_job_board(
         config.config_overrides = overrides
     db.commit()
     redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+    redis_service.cache_delete(SCRAPER_HEALTH_CACHE_KEY)
 
     task_id = None
     try:
@@ -805,6 +819,7 @@ async def run_scraper_sync(
 
         await run_in_threadpool(record_scraper_run, db, company_slug, result)
         redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+        redis_service.cache_delete(SCRAPER_HEALTH_CACHE_KEY)
 
         return _response(
             "success" if result.success else "failed",
@@ -848,6 +863,7 @@ def reset_scraper_failures(
 
     db.commit()
     redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+    redis_service.cache_delete(SCRAPER_HEALTH_CACHE_KEY)
 
     return {
         "status": "success",

@@ -4,6 +4,7 @@ Prometheus Metrics for JobTrails Backend.
 Exposes metrics at /metrics endpoint for scraping by Prometheus.
 """
 
+import os
 import time
 from typing import Callable
 from functools import wraps
@@ -55,7 +56,8 @@ class Metrics:
         self.http_requests_in_progress = Gauge(
             "http_requests_in_progress",
             "Number of HTTP requests in progress",
-            ["method", "endpoint"]
+            ["method", "endpoint"],
+            multiprocess_mode="livesum"
         )
 
         # Database metrics
@@ -68,7 +70,8 @@ class Metrics:
 
         self.db_connections_active = Gauge(
             "db_connections_active",
-            "Number of active database connections"
+            "Number of active database connections",
+            multiprocess_mode="livesum"
         )
 
         # Cache metrics
@@ -94,7 +97,8 @@ class Metrics:
         self.scraper_jobs_found = Gauge(
             "scraper_jobs_found",
             "Number of jobs found in last scraper run",
-            ["company"]
+            ["company"],
+            multiprocess_mode="max"
         )
 
         self.scraper_duration_seconds = Histogram(
@@ -108,12 +112,14 @@ class Metrics:
         self.jobs_total = Gauge(
             "jobs_total",
             "Total number of jobs in database",
-            ["status"]
+            ["status"],
+            multiprocess_mode="max"
         )
 
         self.companies_total = Gauge(
             "companies_total",
-            "Total number of companies"
+            "Total number of companies",
+            multiprocess_mode="max"
         )
 
     @property
@@ -202,6 +208,13 @@ class Metrics:
         """Generate Prometheus metrics output."""
         if not self._enabled:
             return b"# Prometheus metrics not available"
+        # uvicorn runs several worker processes, each with its own counters.
+        # With PROMETHEUS_MULTIPROC_DIR set (the web start command does), every
+        # process writes its samples there and this sums all of them.
+        if os.environ.get("PROMETHEUS_MULTIPROC_DIR"):
+            registry = CollectorRegistry()
+            multiprocess.MultiProcessCollector(registry)
+            return generate_latest(registry)
         return generate_latest(REGISTRY)
 
 
