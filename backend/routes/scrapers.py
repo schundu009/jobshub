@@ -665,9 +665,11 @@ def _find_moved_board(board: "JobBoard", careers_url: Optional[str]) -> Optional
         found = ats_detect.detect(url)
         if found:
             return found
-    for ats in ats_detect.SUPPORTED_ATS:
-        if ats == board.ats or ats == "workday":
-            continue
+    # The saved board first: one switched off after a long outage may work again.
+    others = [a for a in ats_detect.SUPPORTED_ATS if a != board.ats]
+    for ats in [board.ats, *others]:
+        if ats not in ("greenhouse", "lever", "ashby", "smartrecruiters"):
+            continue  # boards whose token is not the company name (Workday, iCIMS, …)
         count = ats_detect.probe(ats, board.board)
         if count > 0:
             return {"ats": ats, "board": board.board, "api_url": ats_detect.api_url(ats, board.board), "job_count": count}

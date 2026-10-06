@@ -391,6 +391,21 @@ def test_redetect_moves_a_board_to_its_new_ats(client, db, admin_headers, no_dis
     assert cfg.is_enabled is True and cfg.consecutive_failures == 0 and "auto_disabled" not in cfg.config_overrides
 
 
+def test_redetect_re_enables_a_board_that_works_again(client, db, admin_headers, no_dispatch, monkeypatch):
+    from models import ScraperConfigDB
+    add_board(db, slug="backco", ats="ashby", board="backco")
+    db.add(ScraperConfigDB(company_slug="backco", is_enabled=False, consecutive_failures=575))
+    db.commit()
+    _detected(monkeypatch, None)
+    monkeypatch.setattr(ats_detect, "probe", lambda ats, board: 120 if ats == "ashby" else 0)
+    body = client.post("/api/scrapers/custom/backco/redetect", headers=admin_headers).json()
+    assert body["previous"] == {"ats": "ashby", "board": "backco"} and body["ats"] == "ashby"
+    db.expire_all()
+    cfg = db.query(ScraperConfigDB).filter_by(company_slug="backco").one()
+    assert cfg.is_enabled is True and cfg.consecutive_failures == 0
+    assert no_dispatch == [(["backco"], "scrapers_http")]
+
+
 def test_redetect_refuses_unknown_coded_and_unfindable(client, db, admin_headers, no_dispatch, monkeypatch):
     assert client.post("/api/scrapers/custom/nope/redetect", headers=admin_headers).status_code == 404
     assert client.post("/api/scrapers/custom/circleci/redetect", headers=admin_headers).status_code == 400
