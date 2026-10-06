@@ -845,15 +845,33 @@
             try {
                 const res = await apiRequest('/settings/ai-model');
                 aiProviders = Array.isArray(res && res.providers) ? res.providers : [];
+                if (!aiProviders.length) throw new Error('No providers returned');
                 defaultProvider = (res && res.default_provider) || 'openai';
                 if (!providerById(currentProvider)) currentProvider = defaultProvider;
                 renderAIConfig();
             } catch (e) {
-                const badge = document.getElementById('api-status-badge');
-                badge.className = 'badge badge-danger';
-                badge.innerHTML = '<span class="badge-dot"></span>Error';
-                badge.title = e.message;
+                showAIConfigError(e.message);
             }
+        }
+
+        // The backend unreachable or mid-deploy: say so and offer a retry
+        // instead of leaving the dropdowns on "Loading…".
+        function showAIConfigError(message) {
+            const badge = document.getElementById('api-status-badge');
+            badge.className = 'badge badge-danger';
+            badge.innerHTML = '<span class="badge-dot"></span>Error';
+            badge.title = message;
+            ['ai-provider-select', 'ai-model-select', 'ai-default-select'].forEach(id => {
+                document.getElementById(id).innerHTML = '<option value="">Unavailable</option>';
+            });
+            const chips = document.getElementById('ai-chips');
+            chips.innerHTML = '<span class="ai-key-meta">Could not load providers.</span>';
+            const retry = document.createElement('button');
+            retry.type = 'button';
+            retry.className = 'btn btn-ghost btn-xs';
+            retry.textContent = 'Retry';
+            retry.onclick = loadAIConfig;
+            chips.appendChild(retry);
         }
 
         function renderAIConfig() {
