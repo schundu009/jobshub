@@ -17,7 +17,7 @@ Usage:
 
 from celery import Celery
 from celery.schedules import crontab
-from celery.signals import worker_process_init
+from celery.signals import celeryd_after_setup, worker_process_init
 from kombu import Queue
 
 from config import settings
@@ -233,6 +233,19 @@ celery_app.conf.update(
     # Beat schedule for periodic tasks
     beat_schedule=BEAT_SCHEDULE,
 )
+
+
+# Queues every worker consumes, whatever its -Q says. The Railway worker's start
+# command is set in the service settings and lists its queues without
+# "contracts", so beat's 6-hourly contracts-scrape-all piled up unconsumed in
+# Redis and no staffing-agency job was added from 2026-09-30.
+ALWAYS_CONSUMED_QUEUES = ("contracts",)
+
+
+@celeryd_after_setup.connect
+def _consume_always_queues(sender, instance, **_):
+    for name in ALWAYS_CONSUMED_QUEUES:
+        instance.app.amqp.queues.select_add(name)
 
 
 @worker_process_init.connect
