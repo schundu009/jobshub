@@ -1,5 +1,6 @@
 """
-AI Service Router - Routes AI requests to the appropriate provider (OpenAI or Anthropic).
+AI Service Router - Routes AI requests to the default provider (OpenAI, Anthropic,
+or an OpenAI-compatible one: Gemini, Groq, DeepSeek, Qwen).
 """
 
 
@@ -25,14 +26,19 @@ DEFAULT_PROVIDER = "openai"
 
 def get_default_provider() -> str:
     """The admin's default_ai_provider setting; OpenAI when unset or unrecognized."""
+    from services.providers import PROVIDER_IDS
     provider = get_db_setting("default_ai_provider", DEFAULT_PROVIDER)
-    return provider if provider in ("openai", "anthropic") else DEFAULT_PROVIDER
+    return provider if provider in PROVIDER_IDS else DEFAULT_PROVIDER
 
 
 def get_service():
     """Get the appropriate AI service based on the default provider setting."""
+    from services.providers import COMPAT_PROVIDER_IDS
     provider = get_default_provider()
 
+    if provider in COMPAT_PROVIDER_IDS:
+        from services.compat_service import CompatService
+        return CompatService(provider)
     if provider == "anthropic":
         from services import anthropic_service
         return anthropic_service

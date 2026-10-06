@@ -10,9 +10,12 @@ _cached_api_key = None
 
 # Available Claude models
 CLAUDE_MODELS = {
-    "claude-opus-5-5": "Claude Opus 5.5 (Most Capable)",
-    "claude-sonnet-5-5": "Claude Sonnet 5.5 (Best)",
-    "claude-haiku-4-5-20251001": "Claude Haiku 4.5 (Fast)",
+    "claude-haiku-4-5-20251001": "Claude Haiku 4.5 (Fastest, cheapest)",
+    "claude-sonnet-5-5": "Claude Sonnet 5.5 (Balanced)",
+    "claude-sonnet-5": "Claude Sonnet 5 (Previous Sonnet)",
+    "claude-opus-5-5": "Claude Opus 5.5 (Most capable)",
+    "claude-opus-5": "Claude Opus 5 (Previous Opus)",
+    "claude-fable-5-1": "Claude Fable 5.1 (Deepest reasoning, priciest)",
 }
 DEFAULT_MODEL = "claude-sonnet-5-5"
 
@@ -40,8 +43,22 @@ def resolve_claude_model(model: str) -> str:
     return DEFAULT_MODEL
 
 
+# Models that always think (adaptive thinking cannot be turned off): the
+# thinking tokens count against max_tokens, so they get room on top.
+_ALWAYS_THINKING = ("claude-fable-", "claude-opus-5")
+_THINKING_HEADROOM = 4096
+
+
+def _text(response) -> str:
+    """The answer text: every text block joined (thinking blocks may come first)."""
+    return "".join(getattr(b, "text", "") for b in response.content if getattr(b, "type", "") == "text")
+
+
 def _create_message(anthropic_client, **kwargs):
     """messages.create with a single clear log line when the model id 404s."""
+    model = str(kwargs.get("model") or "")
+    if model.startswith(_ALWAYS_THINKING) and kwargs.get("max_tokens"):
+        kwargs["max_tokens"] = kwargs["max_tokens"] + _THINKING_HEADROOM
     try:
         return anthropic_client.messages.create(**kwargs)
     except anthropic.NotFoundError as e:
@@ -162,7 +179,7 @@ Sincerely,
         system="You are an expert career coach who writes compelling, personalized cover letters that help candidates stand out."
     )
 
-    return response.content[0].text
+    return _text(response)
 
 
 def generate_interview_questions(job_title: str, job_description: str, interview_type: str) -> str:
@@ -206,7 +223,7 @@ Instructions:
         system="You are an experienced hiring manager and interview coach who helps candidates prepare for job interviews."
     )
 
-    return response.content[0].text
+    return _text(response)
 
 
 def analyze_resume_job_match(job_description: str, resume_text: str) -> dict:
@@ -253,7 +270,7 @@ SUMMARY:
         system="You are an expert ATS (Applicant Tracking System) analyst and career coach who helps candidates optimize their resumes for specific jobs."
     )
 
-    content = response.content[0].text
+    content = _text(response)
 
     # Parse the response
     result = {
@@ -348,7 +365,7 @@ Note: Base this on general knowledge. For the most current information, the cand
         system="You are a career coach helping candidates prepare for interviews by researching companies. Provide helpful, accurate information based on general knowledge about well-known companies, and general industry insights for less known companies."
     )
 
-    return response.content[0].text
+    return _text(response)
 
 
 def generate_ats_tailored_resume(resume_text: str, job_title: str, job_description: str, company_name: str = None) -> str:
@@ -388,7 +405,7 @@ Output the complete rewritten resume in a clean, professional format. Do not inc
         system="You are a professional resume writer specializing in ATS optimization. You transform resumes to maximize their chances of passing ATS screening and impressing recruiters for specific job postings."
     )
 
-    return response.content[0].text
+    return _text(response)
 
 
 def complete_text(system: str, prompt: str, max_tokens: int = 1000, feature: str = None) -> str:

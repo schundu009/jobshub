@@ -1,4 +1,5 @@
 import os
+from contextvars import ContextVar
 import logging
 
 import openai
@@ -12,9 +13,12 @@ _cached_api_key = None
 # Selectable models (admin Settings > AI model). Verified on the production key 2026-10-05.
 OPENAI_MODELS = {
     "gpt-5.4-mini": "GPT-5.4 Mini (Default)",
-    "gpt-5.6-luna": "GPT-5.6 Luna (Cheapest, Auto Apply drafting)",
+    "gpt-5.6-luna": "GPT-5.6 Luna (Cheap, Auto Apply drafting)",
+    "gpt-6-luna": "GPT-6 Luna (Newest efficient, cheapest)",
     "gpt-5.6-terra": "GPT-5.6 Terra (Stronger)",
     "gpt-5.4": "GPT-5.4 (Stronger)",
+    "gpt-6.1-sol": "GPT-6.1 Sol (Near-Astra, mid price)",
+    "gpt-6-astra": "GPT-6 Astra (Most capable, priciest)",
 }
 DEFAULT_MODEL = "gpt-5.4-mini"
 
@@ -24,6 +28,10 @@ DEFAULT_MODEL = "gpt-5.4-mini"
 FEATURE_MODELS = {
     "auto_apply_draft": "gpt-5.6-luna",  # high volume, short answers
 }
+
+# Another OpenAI-compatible provider this call runs on (compat_service.py):
+# {"client", "model", "headroom"}. Unset, calls use OpenAI and the settings.
+_bound = ContextVar("openai_compat_target", default=None)
 
 # GPT-5.x may spend completion tokens on reasoning before any visible text, so a
 # max_completion_tokens equal to the old max_tokens could return an empty answer.
@@ -52,6 +60,9 @@ def get_ai_model(feature: str = None) -> str:
 
     A saved id that is no longer offered (e.g. a retired gpt-4o) falls back to DEFAULT_MODEL.
     """
+    bound = _bound.get()
+    if bound:
+        return bound["model"]
     if feature in FEATURE_MODELS:
         return FEATURE_MODELS[feature]
     model = get_db_setting("ai_model", DEFAULT_MODEL)
@@ -61,8 +72,8 @@ def get_ai_model(feature: str = None) -> str:
 
 
 def _is_reasoning_model(model: str) -> bool:
-    """GPT-5.x and o-series: max_completion_tokens only, default temperature only."""
-    return model.startswith(("gpt-5", "o1", "o3", "o4"))
+    """GPT-5.x, GPT-6.x and o-series: max_completion_tokens only, default temperature only."""
+    return model.startswith(("gpt-5", "gpt-6", "o1", "o3", "o4"))
 
 
 def _chat(model: str, messages: list, max_tokens: int, temperature: float = None) -> str:
@@ -72,6 +83,10 @@ def _chat(model: str, messages: list, max_tokens: int, temperature: float = None
     temperature. If the API still rejects one of them, retry once without it.
     """
     kwargs = {"model": model, "messages": messages}
+    bound = _bound.get()
+    if bound and bound.get("headroom"):
+        # Thinking models count their reasoning against max_tokens.
+        max_tokens = max_tokens + bound["headroom"]
     if _is_reasoning_model(model):
         kwargs["max_completion_tokens"] = max_tokens + _REASONING_HEADROOM
     else:
@@ -109,6 +124,10 @@ def get_openai_api_key():
 
 def get_client():
     global client, _cached_api_key
+
+    bound = _bound.get()
+    if bound:
+        return bound["client"]
 
     api_key = get_openai_api_key()
     if not api_key:

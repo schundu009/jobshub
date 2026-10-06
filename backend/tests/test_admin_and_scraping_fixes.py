@@ -272,7 +272,8 @@ def test_ai_model_lists_come_from_services(client, db, admin):
 
 def test_openai_models_and_feature_map(monkeypatch):
     from services import openai_service as svc
-    assert list(svc.OPENAI_MODELS) == ["gpt-5.4-mini", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.4"]
+    assert list(svc.OPENAI_MODELS) == ["gpt-5.4-mini", "gpt-5.6-luna", "gpt-6-luna", "gpt-5.6-terra", "gpt-5.4", "gpt-6.1-sol", "gpt-6-astra"]
+    assert svc._is_reasoning_model("gpt-6.1-sol")
     assert svc.DEFAULT_MODEL == "gpt-5.4-mini"
     assert not any(m.startswith("gpt-4") for m in svc.OPENAI_MODELS)
 

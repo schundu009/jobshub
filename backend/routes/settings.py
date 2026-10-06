@@ -31,16 +31,15 @@ logger = logging.getLogger(__name__)
 # In production, set ALLOW_API_KEY_MODIFICATION=false to prevent API key changes via API
 ALLOW_API_KEY_MODIFICATION = os.getenv("ALLOW_API_KEY_MODIFICATION", "true").lower() == "true"
 
+from services.providers import PROVIDERS, PROVIDER_IDS, default_model, models_for, provider_of_model  # noqa: E402
+
 # Database keys for API key storage
-API_KEY_DB_KEYS = {
-    "openai": "openai_api_key",
-    "anthropic": "anthropic_api_key"
-}
+API_KEY_DB_KEYS = {pid: p["key_setting"] for pid, p in PROVIDERS.items()}
 
 
 class APIKeyRequest(BaseModel):
     api_key: str = Field(..., min_length=20, max_length=200)
-    provider: Optional[str] = Field(default="openai", description="API provider: 'openai' or 'anthropic'")
+    provider: Optional[str] = Field(default="openai", description="API provider: " + ", ".join(PROVIDER_IDS))
 
 
 class APIKeyResponse(BaseModel):
@@ -48,6 +47,18 @@ class APIKeyResponse(BaseModel):
     key_preview: Optional[str] = None
     source: Optional[str] = None
     provider: Optional[str] = None
+
+
+def _provider_or_400(provider: Optional[str]) -> str:
+    provider = (provider or "openai").strip().lower()
+    if provider not in PROVIDERS:
+        raise HTTPException(status_code=400, detail=f"Unknown provider. Valid providers: {list(PROVIDER_IDS)}")
+    return provider
+
+
+def _env_var_set(provider: str) -> Optional[str]:
+    """The environment variable holding the provider's key, if one is set."""
+    return next((v for v in PROVIDERS[provider]["env"] if os.environ.get(v)), None)
 
 
 def get_api_key_from_db(db: Session, provider: str) -> Optional[str]:
@@ -62,10 +73,9 @@ def get_api_key_from_db(db: Session, provider: str) -> Optional[str]:
 def get_current_api_key(provider: str = "openai", db: Session = None) -> Optional[str]:
     """Get current API key from environment or database for the specified provider."""
     # Environment variables take precedence
-    env_var = 'ANTHROPIC_API_KEY' if provider == 'anthropic' else 'OPENAI_API_KEY'
-    env_key = os.environ.get(env_var)
-    if env_key:
-        return env_key
+    env_var = _env_var_set(provider) if provider in PROVIDERS else None
+    if env_var:
+        return os.environ[env_var]
 
     # Fall back to database
     if db:
@@ -73,9 +83,18 @@ def get_current_api_key(provider: str = "openai", db: Session = None) -> Optiona
     return None
 
 
+def _key_status(provider: str, db: Session) -> APIKeyResponse:
+    if get_current_api_key(provider, db):
+        # Security: Only show masked placeholder, never reveal actual key characters
+        preview = f"{PROVIDERS[provider]['key_prefix']}****...****"
+        source = "environment" if _env_var_set(provider) else "database"
+        return APIKeyResponse(is_set=True, key_preview=preview, source=source, provider=provider)
+    return APIKeyResponse(is_set=False, source=None, provider=provider)
+
+
 @router.get("/api-key", response_model=APIKeyResponse)
 def get_api_key_status(
-    provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
+    provider: str = Query(default="openai", description="API provider id"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
@@ -83,22 +102,7 @@ def get_api_key_status(
     Check if API key is configured for the specified provider. Requires authentication.
     Returns whether a key is set (without exposing any part of the key).
     """
-    env_var = 'ANTHROPIC_API_KEY' if provider == 'anthropic' else 'OPENAI_API_KEY'
-    api_key = get_current_api_key(provider, db)
-
-    if api_key:
-        # Security: Only show masked placeholder, never reveal actual key characters
-        preview = "sk-ant-****...****" if provider == 'anthropic' else "sk-****...****"
-
-        # Indicate source of the key
-        if os.environ.get(env_var):
-            source = "environment"
-        else:
-            source = "database"
-
-        return APIKeyResponse(is_set=True, key_preview=preview, source=source, provider=provider)
-
-    return APIKeyResponse(is_set=False, source=None, provider=provider)
+    return _key_status(_provider_or_400(provider), db)
 
 
 @router.post("/api-key")
@@ -119,27 +123,19 @@ def set_api_key(
         )
 
     api_key = request.api_key.strip()
-    provider = request.provider or "openai"
+    provider = _provider_or_400(request.provider)
+    name = PROVIDERS[provider]["name"]
 
     if not api_key:
         raise HTTPException(status_code=400, detail="API key cannot be empty")
 
     # Validate format based on provider
-    if provider == "anthropic":
-        if not api_key.startswith("sk-ant-"):
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid API key format. Anthropic keys start with 'sk-ant-'"
-            )
-    else:
-        if not api_key.startswith("sk-"):
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid API key format. OpenAI keys start with 'sk-'"
-            )
+    prefix = PROVIDERS[provider]["key_prefix"]
+    if not api_key.startswith(prefix):
+        raise HTTPException(status_code=400, detail=f"Invalid API key format. {name} keys start with '{prefix}'")
 
     # Save to database
-    db_key = API_KEY_DB_KEYS.get(provider)
+    db_key = API_KEY_DB_KEYS[provider]
     setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
 
     if setting:
@@ -148,15 +144,15 @@ def set_api_key(
         setting = AppSetting(
             key=db_key,
             value=api_key,
-            description=f"{provider.title()} API key for AI features"
+            description=f"{name} API key for AI features"
         )
         db.add(setting)
 
     db.commit()
-    logger.info(f"{provider.title()} API key saved to database")
+    logger.info(f"{name} API key saved to database")
 
     return {
-        "message": f"{provider.title()} API key saved successfully",
+        "message": f"{name} API key saved successfully",
         "provider": provider,
         "source": "database"
     }
@@ -164,7 +160,7 @@ def set_api_key(
 
 @router.delete("/api-key")
 def remove_api_key(
-    provider: str = Query(default="openai", description="API provider: 'openai' or 'anthropic'"),
+    provider: str = Query(default="openai", description="API provider id"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
@@ -178,24 +174,25 @@ def remove_api_key(
             detail="API key modification is disabled in production."
         )
 
-    env_var = 'ANTHROPIC_API_KEY' if provider == 'anthropic' else 'OPENAI_API_KEY'
+    provider = _provider_or_400(provider)
+    name = PROVIDERS[provider]["name"]
+    env_var = _env_var_set(provider)
 
     # If key was set via environment, we can't remove it
-    if os.environ.get(env_var):
+    if env_var:
         return {
-            "message": f"Cannot remove {provider} API key",
+            "message": f"Cannot remove {name} API key",
             "warning": f"Key is set via environment variable {env_var}. Remove it from server configuration."
         }
 
     # Remove from database
-    db_key = API_KEY_DB_KEYS.get(provider)
-    setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
+    setting = db.query(AppSetting).filter(AppSetting.key == API_KEY_DB_KEYS[provider]).first()
     if setting:
         db.delete(setting)
         db.commit()
-        logger.info(f"{provider.title()} API key removed from database")
+        logger.info(f"{name} API key removed from database")
 
-    return {"message": f"{provider.title()} API key removed successfully"}
+    return {"message": f"{name} API key removed successfully"}
 
 
 # Cheapest current model; count_tokens against it validates the key.
@@ -205,13 +202,13 @@ TEST_CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 # ============== Default AI Provider Settings ==============
 
 class DefaultProviderRequest(BaseModel):
-    provider: Literal["openai", "anthropic"] = Field(..., description="AI provider: 'openai' or 'anthropic'")
+    provider: str = Field(..., description="AI provider id: " + ", ".join(PROVIDER_IDS))
 
 
 def get_default_ai_provider(db: Session) -> str:
     """Get the configured default AI provider from database."""
     setting = db.query(AppSetting).filter(AppSetting.key == "default_ai_provider").first()
-    if setting and setting.value in ["openai", "anthropic"]:
+    if setting and setting.value in PROVIDER_IDS:
         return setting.value
     from services.ai_service import DEFAULT_PROVIDER
     return DEFAULT_PROVIDER
@@ -234,38 +231,28 @@ def set_default_provider(
     current_user: User = Depends(get_current_admin)
 ):
     """Set the default AI provider for AI features."""
+    provider = _provider_or_400(request.provider)
     setting = db.query(AppSetting).filter(AppSetting.key == "default_ai_provider").first()
 
     if setting:
-        setting.value = request.provider
+        setting.value = provider
     else:
         setting = AppSetting(
             key="default_ai_provider",
-            value=request.provider,
+            value=provider,
             description="Default AI provider for AI-powered features"
         )
         db.add(setting)
 
     db.commit()
-    logger.info(f"Default AI provider set to {request.provider}")
+    logger.info(f"Default AI provider set to {provider}")
 
-    return {"provider": request.provider, "message": f"Default provider set to {request.provider}"}
+    return {"provider": provider, "message": f"Default provider set to {provider}"}
 
 
 # ============== AI Model Settings ==============
 
-from services.anthropic_service import (  # noqa: E402  single source of truth
-    CLAUDE_MODELS,
-    DEFAULT_MODEL as DEFAULT_CLAUDE_MODEL,
-    resolve_claude_model,
-)
-from services.openai_service import (  # noqa: E402
-    OPENAI_MODELS,
-    DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
-)
-
-VALID_OPENAI_MODELS = list(OPENAI_MODELS)
-VALID_CLAUDE_MODELS = list(CLAUDE_MODELS)
+from services.anthropic_service import resolve_claude_model  # noqa: E402
 
 
 def _model_options(models: dict) -> list[dict]:
@@ -277,6 +264,16 @@ def _model_options(models: dict) -> list[dict]:
     return options
 
 
+def _saved_model(db: Session, provider: str) -> str:
+    """The provider's chosen model, or its default when unset or no longer offered."""
+    setting = db.query(AppSetting).filter(AppSetting.key == PROVIDERS[provider]["model_setting"]).first()
+    value = setting.value if setting and setting.value else None
+    if provider == "anthropic" and value:
+        # A stale saved id (e.g. a retired Claude 3 model) maps to its successor.
+        return resolve_claude_model(value)
+    return value if value in models_for(provider) else default_model(provider)
+
+
 class AIModelRequest(BaseModel):
     model: str = Field(..., min_length=1, max_length=100, description="AI model to use")
 
@@ -286,19 +283,26 @@ def get_ai_model_setting(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
-    """Get the configured AI models for both providers."""
-    openai_setting = db.query(AppSetting).filter(AppSetting.key == "ai_model").first()
-    claude_setting = db.query(AppSetting).filter(AppSetting.key == "claude_model").first()
-
-    openai_model = openai_setting.value if openai_setting and openai_setting.value in VALID_OPENAI_MODELS else DEFAULT_OPENAI_MODEL
-    # A stale saved id (e.g. a retired Claude 3 model) maps to its successor.
-    claude_model = resolve_claude_model(claude_setting.value) if claude_setting and claude_setting.value else DEFAULT_CLAUDE_MODEL
-
+    """Every provider with its models, chosen model and key status, plus the default provider."""
+    providers = [
+        {
+            "id": pid,
+            "name": PROVIDERS[pid]["name"],
+            "model": _saved_model(db, pid),
+            "models": _model_options(models_for(pid)),
+            "key": _key_status(pid, db).model_dump(),
+        }
+        for pid in PROVIDER_IDS
+    ]
+    by_id = {p["id"]: p for p in providers}
     return {
-        "openai_model": openai_model,
-        "claude_model": claude_model,
-        "openai_models": _model_options(OPENAI_MODELS),
-        "claude_models": _model_options(CLAUDE_MODELS),
+        "default_provider": get_default_ai_provider(db),
+        "providers": providers,
+        # The fields older admin pages read.
+        "openai_model": by_id["openai"]["model"],
+        "claude_model": by_id["anthropic"]["model"],
+        "openai_models": by_id["openai"]["models"],
+        "claude_models": by_id["anthropic"]["models"],
     }
 
 
@@ -308,24 +312,18 @@ def set_ai_model(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
-    """Set the AI model to use for AI features."""
+    """Set a provider's model; the model id says which provider it belongs to."""
     model = request.model.strip()
-
-    # Determine if it's OpenAI or Claude model
-    if model in VALID_OPENAI_MODELS:
-        db_key = "ai_model"
-        provider = "OpenAI"
-    elif model in VALID_CLAUDE_MODELS or model.startswith("claude-3"):
+    if model.startswith("claude-3"):
         # Legacy Claude 3 ids are accepted but stored as their current successor.
         model = resolve_claude_model(model)
-        db_key = "claude_model"
-        provider = "Claude"
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid model. Valid OpenAI models: {VALID_OPENAI_MODELS}. Valid Claude models: {VALID_CLAUDE_MODELS}"
-        )
+    provider = provider_of_model(model)
+    if not provider:
+        valid = {pid: list(models_for(pid)) for pid in PROVIDER_IDS}
+        raise HTTPException(status_code=400, detail=f"Invalid model. Valid models: {valid}")
 
+    db_key = PROVIDERS[provider]["model_setting"]
+    name = PROVIDERS[provider]["name"]
     setting = db.query(AppSetting).filter(AppSetting.key == db_key).first()
 
     if setting:
@@ -334,14 +332,15 @@ def set_ai_model(
         setting = AppSetting(
             key=db_key,
             value=model,
-            description=f"{provider} model for AI-powered features"
+            description=f"{name} model for AI-powered features"
         )
         db.add(setting)
 
     db.commit()
-    logger.info(f"{provider} model set to {model}")
+    logger.info(f"{name} model set to {model}")
 
-    return {"model": model, "provider": provider, "message": f"{provider} model set to {model}"}
+    return {"model": model, "provider": "Claude" if provider == "anthropic" else name, "provider_id": provider,
+            "message": f"{'Claude' if provider == 'anthropic' else name} model set to {model}"}
 
 
 # ============== Job Age Filter Settings ==============
