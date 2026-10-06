@@ -1039,7 +1039,7 @@
                     <td style="font-size:12px;color:var(--c-ink-2);">${lastSuccess ? formatRelativeTime(parseUtc(lastSuccess)) : 'Never'}</td>
                     <td style="font-family:var(--font-mono);font-size:12px;">${Number(s.consecutive_failures || 0)}</td>
                     <td style="font-family:var(--font-mono);font-size:12px;">${Number(s.active_jobs || 0).toLocaleString()}</td>
-                    <td>${slug && !s.disabled_reason ? `<button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(slug)}', this)">Run</button>` : ''}</td>
+                    <td style="white-space:nowrap;">${slug && !s.disabled_reason ? `<button type="button" class="btn btn-ghost btn-xs" onclick="runScraper('${jsAttr(slug)}', this)">Run</button>` : ''}${slug && s.health === 'critical' ? ` <button type="button" class="btn btn-ghost btn-xs" title="Find the company's current job board" onclick="redetectBoard('${jsAttr(slug)}', this)">Re-detect</button>` : ''}</td>
                 </tr>`;
             }).join('');
         }
@@ -1058,6 +1058,18 @@
                 await loadScraperStatus();
             } catch (e) { showAlert(`${slug} failed: ${e.message}`, 'error'); }
             finally { if (btn) { btn.disabled = false; btn.textContent = 'Run'; } }
+        }
+
+        // A failing board whose company moved ATS (Lever to Ashby, say): POST
+        // /scrapers/custom/{slug}/redetect points it at the current board.
+        async function redetectBoard(slug, btn) {
+            if (btn) { btn.disabled = true; btn.textContent = '...'; }
+            try {
+                const data = await apiRequest(`/scrapers/custom/${encodeURIComponent(slug)}/redetect`, 'POST', {});
+                showAlert(data && data.message ? data.message : `${slug} updated`);
+                await loadScraperStatus();
+            } catch (e) { showAlert(`${slug}: ${e.message}`, 'error'); }
+            finally { if (btn) { btn.disabled = false; btn.textContent = 'Re-detect'; } }
         }
 
         // Dispatches Celery tasks via POST /scrapers/run-warning (returns

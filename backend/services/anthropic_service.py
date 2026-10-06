@@ -12,9 +12,7 @@ _cached_api_key = None
 CLAUDE_MODELS = {
     "claude-haiku-4-5-20251001": "Claude Haiku 4.5 (Fastest, cheapest)",
     "claude-sonnet-5-5": "Claude Sonnet 5.5 (Balanced)",
-    "claude-sonnet-5": "Claude Sonnet 5 (Previous Sonnet)",
     "claude-opus-5-5": "Claude Opus 5.5 (Most capable)",
-    "claude-opus-5": "Claude Opus 5 (Previous Opus)",
     "claude-fable-5-1": "Claude Fable 5.1 (Deepest reasoning, priciest)",
 }
 DEFAULT_MODEL = "claude-sonnet-5-5"

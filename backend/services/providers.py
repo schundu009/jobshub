@@ -35,7 +35,6 @@ PROVIDERS = {
         "models": {
             "gemini-3.8-flash": "Gemini 3.8 Flash (Default, fast)",
             "gemini-3.5-flash-lite": "Gemini 3.5 Flash-Lite (Cheapest)",
-            "gemini-2.5-flash": "Gemini 2.5 Flash (Previous Flash)",
             "gemini-3.1-pro-preview": "Gemini 3.1 Pro (Most capable, preview)",
         },
     },
@@ -51,7 +50,6 @@ PROVIDERS = {
             "openai/gpt-oss-20b": "GPT-OSS 20B (Cheapest, fastest)",
             "llama-3.3-70b-versatile": "Llama 3.3 70B (Versatile)",
             "llama-3.1-8b-instant": "Llama 3.1 8B (Instant)",
-            "qwen/qwen3.8-27b": "Qwen 3.8 27B (Preview)",
         },
     },
     "deepseek": {

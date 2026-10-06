@@ -638,6 +638,108 @@ def delete_custom_scraper(
     return {"status": "deleted", "slug": company_slug}
 
 
+class RedetectRequest(BaseModel):
+    careers_url: Optional[str] = Field(default=None, min_length=10, max_length=500)
+
+    @field_validator('careers_url')
+    @classmethod
+    def validate_url(cls, v):
+        if v is None:
+            return v
+        is_valid, error = validate_url_ssrf_safe(v)
+        if not is_valid:
+            raise ValueError(error)
+        return v
+
+
+def _find_moved_board(board: "JobBoard", careers_url: Optional[str]) -> Optional[dict]:
+    """
+    Where a company's board is now: the careers page (given, else saved), then
+    the same board token on every other supported ATS (companies that switch
+    ATS usually keep their name as the token).
+    """
+    from services import ats_detect
+
+    url = careers_url or board.careers_url
+    if url:
+        found = ats_detect.detect(url)
+        if found:
+            return found
+    for ats in ats_detect.SUPPORTED_ATS:
+        if ats == board.ats or ats == "workday":
+            continue
+        count = ats_detect.probe(ats, board.board)
+        if count > 0:
+            return {"ats": ats, "board": board.board, "api_url": ats_detect.api_url(ats, board.board), "job_count": count}
+    return None
+
+
+@router.post("/custom/{company_slug}/redetect")
+async def redetect_job_board(
+    company_slug: str,
+    request: Optional[RedetectRequest] = None,
+    current_user: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Point a failing board at the company's current ATS board (a company that
+    moved from Lever to Ashby, say): update the job_boards row, clear the
+    failure streak, re-enable it and queue a scrape. 400 when no board with
+    jobs is found; 409 when that board is already scraped under another slug.
+    """
+    board = db.query(JobBoard).filter(JobBoard.slug == company_slug).first()
+    if not board:
+        if ScraperRegistry.has_coded(company_slug):
+            raise HTTPException(status_code=400, detail="Only companies added as boards can be re-detected")
+        raise HTTPException(status_code=404, detail="Scraper not found")
+
+    careers_url = request.careers_url if request else None
+    found = await run_in_threadpool(_find_moved_board, board, careers_url)
+    if not found:
+        raise HTTPException(status_code=400, detail="No current job board with jobs was found")
+
+    other = db.query(JobBoard).filter(
+        JobBoard.ats == found["ats"], JobBoard.board == found["board"], JobBoard.slug != company_slug
+    ).first()
+    if other:
+        raise HTTPException(status_code=409, detail=f"This board is already scraped as '{other.slug}'")
+
+    previous = {"ats": board.ats, "board": board.board}
+    board.ats, board.board = found["ats"], found["board"]
+    if careers_url:
+        board.careers_url = careers_url
+    board.enabled = True
+
+    config = db.query(ScraperConfigDB).filter(ScraperConfigDB.company_slug == company_slug).first()
+    if config:
+        config.is_enabled = True
+        config.consecutive_failures = 0
+        overrides = dict(config.config_overrides or {})
+        overrides.pop("auto_disabled", None)
+        overrides.pop("auto_disabled_reason", None)
+        config.config_overrides = overrides
+    db.commit()
+    redis_service.cache_delete(SCRAPER_STATUS_CACHE_KEY)
+
+    task_id = None
+    try:
+        from tasks.scraper_tasks import scrape_company_http
+        task_id = scrape_company_http.apply_async(args=[company_slug], queue="scrapers_http").id
+    except Exception as e:
+        logger.warning(f"Could not queue a scrape of {company_slug} after re-detect: {e}")
+
+    return {
+        "status": "updated",
+        "slug": company_slug,
+        "previous": previous,
+        "ats": found["ats"],
+        "board": found["board"],
+        "job_count": found["job_count"],
+        "task_id": task_id,
+        "message": f"{board.company_name}: {previous['ats']} → {found['ats']} ({found['job_count']} jobs)",
+    }
+
+
 # ============== Synchronous Scraper Endpoints (No Celery) ==============
 
 class SyncScrapeResponse(BaseModel):

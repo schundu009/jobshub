@@ -369,6 +369,42 @@ def test_detect_route_shape(client, admin_headers, monkeypatch):
     assert body["board_type"] == "unknown" and body["valid"] is False
 
 
+def test_redetect_moves_a_board_to_its_new_ats(client, db, admin_headers, no_dispatch, monkeypatch):
+    from models import ScraperConfigDB
+    add_board(db, slug="movedco", ats="lever", board="movedco", name="Moved Co")
+    db.add(ScraperConfigDB(company_slug="movedco", is_enabled=False, consecutive_failures=575,
+                           config_overrides={"auto_disabled": True, "auto_disabled_reason": "404"}))
+    db.commit()
+    # The careers page finds nothing; the same token answers on Ashby.
+    _detected(monkeypatch, None)
+    monkeypatch.setattr(ats_detect, "probe", lambda ats, board: 120 if ats == "ashby" else 0)
+    resp = client.post("/api/scrapers/custom/movedco/redetect", headers=admin_headers)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["previous"] == {"ats": "lever", "board": "movedco"}
+    assert (body["ats"], body["board"], body["job_count"]) == ("ashby", "movedco", 120)
+    assert no_dispatch == [(["movedco"], "scrapers_http")]
+    db.expire_all()
+    row = db.query(JobBoard).filter_by(slug="movedco").one()
+    assert (row.ats, row.board, row.enabled) == ("ashby", "movedco", True)
+    cfg = db.query(ScraperConfigDB).filter_by(company_slug="movedco").one()
+    assert cfg.is_enabled is True and cfg.consecutive_failures == 0 and "auto_disabled" not in cfg.config_overrides
+
+
+def test_redetect_refuses_unknown_coded_and_unfindable(client, db, admin_headers, no_dispatch, monkeypatch):
+    assert client.post("/api/scrapers/custom/nope/redetect", headers=admin_headers).status_code == 404
+    assert client.post("/api/scrapers/custom/circleci/redetect", headers=admin_headers).status_code == 400
+    add_board(db, slug="lostco", ats="lever", board="lostco")
+    _detected(monkeypatch, None)
+    monkeypatch.setattr(ats_detect, "probe", lambda ats, board: 0)
+    assert client.post("/api/scrapers/custom/lostco/redetect", headers=admin_headers).status_code == 400
+    # A board another company already owns is refused.
+    add_board(db, slug="owner", ats="ashby", board="lostco")
+    monkeypatch.setattr(ats_detect, "probe", lambda ats, board: 5 if ats == "ashby" else 0)
+    assert client.post("/api/scrapers/custom/lostco/redetect", headers=admin_headers).status_code == 409
+    assert no_dispatch == []
+
+
 def test_delete_board_only(client, db, admin_headers):
     add_board(db, slug="gone")
     db.add(ScraperRun(company_slug="gone", success=True, jobs_found=1, run_at=datetime.utcnow()))
