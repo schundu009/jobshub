@@ -28,6 +28,60 @@ _VAGUE_LOCATION = re.compile(r"^\s*$|^\s*\d+\s+locations?\s*$|\(\+\d+ more\)", r
 THIN = 400
 
 
+# A job whose fetch failed waits this long before the next try.
+RETRY_HOURS = 12
+
+
+def missing_filter():
+    """SQL for an active job with a URL whose description is missing or thin
+    (the same test as has_description), from a source that can be fetched."""
+    from sqlalchemy import and_, func, or_
+    from models import Job
+
+    return and_(
+        Job.is_active.is_(True),
+        Job.job_url.isnot(None),
+        Job.job_url != '',
+        ~Job.source.in_(SKIP_SOURCES) if SKIP_SOURCES else True,
+        or_(
+            Job.job_description.is_(None),
+            Job.job_description == 'No description available.',
+            func.length(func.trim(Job.job_description)) < THIN,
+            # SmartRecruiters stored with only its Company Description.
+            and_(Job.job_url.like('%smartrecruiters.com/%'),
+                 ~Job.job_description.ilike('%job description%'),
+                 ~Job.job_description.ilike('%qualifications%')),
+        ),
+    )
+
+
+def ready_filter(now: datetime):
+    """Of the missing ones, those the backfill takes now: never tried, or
+    failed more than RETRY_HOURS ago and fewer than MAX_FAILURES times."""
+    from sqlalchemy import and_, func, or_
+    from models import Job
+
+    retry_cutoff = now - timedelta(hours=RETRY_HOURS)
+    return and_(
+        or_(Job.description_fetch_attempted_at.is_(None), Job.description_fetch_attempted_at < retry_cutoff),
+        func.coalesce(Job.description_fetch_failures, 0) < MAX_FAILURES,
+    )
+
+
+def missing_counts(db, now: datetime | None = None) -> dict:
+    """How many active jobs lack a description: ready to fetch, waiting to
+    retry, and given up (MAX_FAILURES reached; the posting is likely gone)."""
+    from sqlalchemy import func
+    from models import Job
+
+    now = now or datetime.utcnow()
+    missing = db.query(Job.id).filter(missing_filter())
+    total = missing.count()
+    ready = missing.filter(ready_filter(now)).count()
+    given_up = missing.filter(func.coalesce(Job.description_fetch_failures, 0) >= MAX_FAILURES).count()
+    return {"missing": total, "ready": ready, "retrying_later": total - ready - given_up, "given_up": given_up}
+
+
 def has_description(job) -> bool:
     text = (job.job_description or "").strip()
     if text == "No description available." or len(text) < THIN:

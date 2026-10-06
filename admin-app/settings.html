@@ -730,6 +730,9 @@
                                     <option value="14">14 days</option>
                                     <option value="30">30 days</option>
                                 </select>
+                                <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+                                    <input type="checkbox" id="cleanup-include-open" onchange="previewCleanup()"> Include open postings
+                                </label>
                                 <button class="btn btn-secondary btn-sm" onclick="previewCleanup()">Preview</button>
                                 <button class="btn btn-danger btn-sm" onclick="executeCleanup()">Delete</button>
                             </div>
@@ -755,13 +758,6 @@
                                     <button id="fetch-desc-btn" class="btn btn-secondary btn-sm" onclick="fetchMissingDescriptions()">Fetch</button>
                                 </div>
                             </div>
-                            <div id="fetch-progress-container" class="progress-wrap">
-                                <div class="progress-bar"><div id="fetch-progress-bar" class="progress-fill" style="width: 0%;"></div></div>
-                                <div class="progress-meta">
-                                    <span id="fetch-progress-status">Processing...</span>
-                                    <span id="fetch-progress-stats">0 / 0</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -777,7 +773,7 @@
             ai: () => loadAIConfig(),
             scrapers: () => loadScraperStatus(),
             workers: () => Promise.allSettled([loadCeleryStatus(), loadCelerySchedules(), loadRecentTasks()]),
-            data: () => loadJobAgeFilter(),
+            data: () => Promise.allSettled([loadJobAgeFilter(), loadMissingDescriptions()]),
         };
         const TAB_ALIASES = { celery: 'workers', worker: 'workers', scraper: 'scrapers' };
         const loadedTabs = new Set();
@@ -1243,111 +1239,117 @@
             }
         }
 
-        async function previewCleanup() {
+        // DELETE /analytics/cleanup/old-jobs (services/job_cleanup.py): only
+        // scraped jobs nobody used; still-listed postings only when asked.
+        function cleanupQuery(dryRun) {
             const days = document.getElementById('cleanup-days').value;
+            const includeOpen = document.getElementById('cleanup-include-open').checked;
+            return `/analytics/cleanup/old-jobs?days=${days}&dry_run=${dryRun}&include_open=${includeOpen}`;
+        }
+
+        function cleanupStat(value, label, color) {
+            return `<div class="cleanup-stat"><div class="value"${color ? ` style="color:${color};"` : ''}>${Number(value || 0).toLocaleString()}</div><div class="label">${label}</div></div>`;
+        }
+
+        async function previewCleanup() {
             const result = document.getElementById('cleanup-result');
             const content = document.getElementById('cleanup-result-content');
             result.style.display = 'block';
             content.innerHTML = '<div style="text-align:center;color:var(--c-ink-2);">Analyzing...</div>';
-
             try {
-                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=true`, 'DELETE', null, { timeout: 60000 });
-                content.innerHTML = `
-                    <div class="cleanup-stat"><div class="value" style="color:var(--c-red);">${Number(res.jobs_count || 0).toLocaleString()}</div><div class="label">Jobs</div></div>
-                    <div class="cleanup-stat"><div class="value">${res.interviews_count}</div><div class="label">Interviews</div></div>
-                    <div class="cleanup-stat"><div class="value">${res.notes_count}</div><div class="label">Notes</div></div>
-                    <div class="cleanup-stat"><div class="value">${res.documents_count}</div><div class="label">Docs</div></div>
-                `;
+                const res = await apiRequest(cleanupQuery(true), 'DELETE', null, { timeout: 90000 });
+                content.innerHTML = cleanupStat(res.jobs_count, 'Will delete', 'var(--c-red)')
+                    + (res.include_open ? cleanupStat(res.still_open_included, 'Open, included') : cleanupStat(res.kept_still_open, 'Kept: still open'))
+                    + cleanupStat(res.kept_with_user_activity, 'Kept: user activity')
+                    + cleanupStat(res.kept_user_added, 'Kept: user added');
+                return res;
             } catch (e) { content.innerHTML = `<div style="color:var(--c-red);">Error: ${escapeHtml(e.message)}</div>`; }
         }
 
         async function executeCleanup() {
-            const days = document.getElementById('cleanup-days').value;
-            if (!confirm(`Delete all jobs older than ${days} days?`)) return;
-
-            const result = document.getElementById('cleanup-result');
+            const preview = await previewCleanup();
+            if (!preview) return;
+            if (!preview.jobs_count) return showAlert('Nothing to delete');
+            if (!confirm(`Delete ${preview.jobs_count.toLocaleString()} jobs?`)) return;
             const content = document.getElementById('cleanup-result-content');
-            result.style.display = 'block';
             content.innerHTML = '<div style="text-align:center;color:var(--c-ink-2);">Deleting...</div>';
-
             try {
-                const res = await apiRequest(`/analytics/cleanup/old-jobs?days=${days}&dry_run=false`, 'DELETE', null, { timeout: 120000 });
-                content.innerHTML = `<div style="color:var(--c-green);font-weight:600;text-align:center;">Deleted ${res.jobs_count} jobs</div>`;
-                showAlert(`Deleted ${res.jobs_count} jobs`);
+                const res = await apiRequest(cleanupQuery(false), 'DELETE', null, { timeout: 300000 });
+                const n = Number(res.deleted || 0).toLocaleString();
+                content.innerHTML = `<div style="color:var(--c-green);font-weight:600;text-align:center;">Deleted ${n} jobs</div>`;
+                showAlert(`Deleted ${n} jobs`);
             } catch (e) { content.innerHTML = `<div style="color:var(--c-red);">Error: ${escapeHtml(e.message)}</div>`; }
         }
 
+        // DELETE /analytics/cleanup/duplicates: same URL, or same company,
+        // title, location and description; never a copy someone used.
         async function cleanupDuplicates() {
             const status = document.getElementById('duplicates-result');
-            status.textContent = 'Scanning...';
+            setInlineStatus(status, 'Scanning...');
             try {
-                const check = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE', null, { timeout: 60000 });
-                if (check.duplicates_count === 0) {
-                    status.textContent = 'None found';
-                    status.style.color = 'var(--c-green)';
-                    return;
+                const check = await apiRequest('/analytics/cleanup/duplicates?dry_run=true', 'DELETE', null, { timeout: 120000 });
+                const found = Number(check.duplicates_count || 0);
+                const detail = `${Number(check.by_url || 0)} same URL · ${Number(check.by_title_and_description || 0)} same posting`;
+                if (!found) return setInlineStatus(status, 'None found', 'ok');
+                if (!confirm(`Remove ${found.toLocaleString()} duplicates (${detail})?`)) {
+                    return setInlineStatus(status, `${found.toLocaleString()} found · ${detail}`);
                 }
-                if (!confirm(`Found ${check.duplicates_count} duplicates. Remove?`)) {
-                    status.textContent = `${check.duplicates_count} found`;
-                    return;
-                }
-                const res = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE', null, { timeout: 120000 });
-                status.textContent = `${res.duplicates_count} removed`;
-                status.style.color = 'var(--c-green)';
-            } catch (e) { status.textContent = 'Error'; status.style.color = 'var(--c-red)'; }
+                const res = await apiRequest('/analytics/cleanup/duplicates?dry_run=false', 'DELETE', null, { timeout: 300000 });
+                setInlineStatus(status, `${Number(res.deleted || 0).toLocaleString()} removed`, 'ok');
+            } catch (e) { setInlineStatus(status, 'Error: ' + e.message, 'error'); }
         }
 
-        let fetchProgressInterval = null;
+        // Missing descriptions: GET /ingest/missing-descriptions counts them
+        // (ready now / retrying later / given up); Fetch queues the Celery
+        // backfill, and the count is re-read until it stops falling.
+        let descPoll = null;
 
-        function finishFetch(text, level) {
-            clearInterval(fetchProgressInterval);
-            fetchProgressInterval = null;
-            setInlineStatus(document.getElementById('descriptions-result'), text, level);
-            document.getElementById('fetch-desc-btn').disabled = false;
-            setTimeout(() => { document.getElementById('fetch-progress-container').classList.remove('visible'); }, 3000);
+        function describeMissing(c) {
+            const parts = [`${Number(c.missing || 0).toLocaleString()} missing`, `${Number(c.ready || 0).toLocaleString()} ready`];
+            if (c.retrying_later) parts.push(`${Number(c.retrying_later).toLocaleString()} retry later`);
+            if (c.given_up) parts.push(`${Number(c.given_up).toLocaleString()} given up`);
+            return parts.join(' · ');
+        }
+
+        async function loadMissingDescriptions() {
+            try {
+                const c = await apiRequest('/ingest/missing-descriptions');
+                setInlineStatus(document.getElementById('descriptions-result'), describeMissing(c), c.missing ? undefined : 'ok');
+                return c;
+            } catch (e) {
+                setInlineStatus(document.getElementById('descriptions-result'), 'Error: ' + e.message, 'error');
+            }
         }
 
         async function fetchMissingDescriptions() {
             const status = document.getElementById('descriptions-result');
             const btn = document.getElementById('fetch-desc-btn');
-            const progress = document.getElementById('fetch-progress-container');
-
-            setInlineStatus(status, 'Starting...');
             btn.disabled = true;
-
+            setInlineStatus(status, 'Queueing...');
             try {
                 const res = await apiRequest('/ingest/fetch-all-descriptions', 'POST', null, { timeout: 60000 });
-                if (res && res.jobs_queued > 0) {
-                    setInlineStatus(status, `${Number(res.jobs_queued).toLocaleString()} queued`);
-                    progress.classList.add('visible');
-                    clearInterval(fetchProgressInterval);
-                    fetchProgressInterval = setInterval(pollFetchProgress, 3000);
-                    pollFetchProgress();
-                } else {
-                    setInlineStatus(status, (res && res.message) || 'No jobs to fetch', 'ok');
+                if (!res || !res.jobs_queued) {
+                    setInlineStatus(status, `${(res && res.message) || 'Nothing ready'} · ${describeMissing(res || {})}`, 'ok');
                     btn.disabled = false;
+                    return;
                 }
+                const start = Number(res.missing || 0);
+                let last = start, still = 0;
+                setInlineStatus(status, `${res.message} · fetching...`);
+                clearInterval(descPoll);
+                descPoll = setInterval(async () => {
+                    const c = await loadMissingDescriptions();
+                    if (!c) return;
+                    const missing = Number(c.missing || 0);
+                    setInlineStatus(status, `${(start - missing).toLocaleString()} fetched · ${describeMissing(c)}`, start - missing > 0 ? 'ok' : undefined);
+                    still = missing === last ? still + 1 : 0;
+                    last = missing;
+                    // Done once the count holds for a minute (the run has finished).
+                    if (still >= 6) { clearInterval(descPoll); descPoll = null; btn.disabled = false; }
+                }, 10000);
             } catch (e) {
                 setInlineStatus(status, 'Error: ' + e.message, 'error');
                 btn.disabled = false;
-            }
-        }
-
-        // GET /ingest/fetch-progress -> {status: idle|running|completed, total, processed, updated, failed}
-        async function pollFetchProgress() {
-            try {
-                const s = await apiRequest('/ingest/fetch-progress');
-                const total = Number(s.total || 0), processed = Number(s.processed || 0);
-                const pct = total > 0 ? Math.round((processed / total) * 100) : 0;
-                document.getElementById('fetch-progress-bar').style.width = `${pct}%`;
-                document.getElementById('fetch-progress-status').textContent = s.status === 'completed' ? 'Done' : 'Processing...';
-                document.getElementById('fetch-progress-stats').textContent = `${processed.toLocaleString()} / ${total.toLocaleString()}`;
-
-                if (s.status === 'completed' || s.status === 'idle') {
-                    finishFetch(`Done: ${Number(s.updated || 0).toLocaleString()} updated${s.failed ? `, ${Number(s.failed).toLocaleString()} failed` : ''}`, 'ok');
-                }
-            } catch (e) {
-                finishFetch("Couldn't check progress: " + e.message, 'error');
             }
         }
     </script>

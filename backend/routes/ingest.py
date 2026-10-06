@@ -9,16 +9,14 @@ Security features:
 - Content type validation
 - User-scoped data access (multi-tenancy)
 """
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import or_
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime, date, timedelta
 import logging
-import json
 import re
-import urllib.request
 
 from database import get_db
 from models import Job, Company, IngestionSource, User
@@ -519,202 +517,36 @@ def refetch_single_job_description(
         raise HTTPException(status_code=500, detail=f"Error fetching description: {str(e)}")
 
 
-# Global progress tracking for description fetch
-fetch_progress = {
-    "status": "idle",
-    "total": 0,
-    "processed": 0,
-    "updated": 0,
-    "failed": 0,
-    "started_at": None,
-}
+# Missing descriptions (Admin › Settings › Data). The work runs in the Celery
+# backfill (tasks.maintenance_tasks.fetch_missing_descriptions), the same one
+# the schedule runs every 30 minutes, so both use one queue, one retry rule
+# and one "missing" test (services.job_descriptions).
 
-
-@router.get("/fetch-progress")
-def get_fetch_progress(current_user: User = Depends(get_current_admin)):
-    """Get current progress of description fetch operation."""
-    return fetch_progress
+@router.get("/missing-descriptions")
+def missing_descriptions(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+):
+    """{missing, ready, retrying_later, given_up}: active jobs with no usable description."""
+    from services import job_descriptions
+    return job_descriptions.missing_counts(db)
 
 
 @router.post("/fetch-all-descriptions")
 def fetch_all_missing_descriptions(
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin)
+    current_user: User = Depends(get_current_admin),
 ):
-    """
-    Fetch descriptions for ALL jobs with missing descriptions.
-    Runs in background and processes all active jobs.
-    """
-    global fetch_progress
-    from datetime import datetime
+    """Queue one backfill run now (up to its batch of ready jobs)."""
+    from services import job_descriptions
+    from tasks.maintenance_tasks import fetch_missing_descriptions
 
-    # Get ALL jobs with missing descriptions (no limit)
-    jobs_to_update = db.query(Job).filter(
-        Job.is_active == True,
-        Job.job_url.isnot(None),
-        Job.job_url != '',
-        or_(
-            Job.job_description.is_(None),
-            Job.job_description == '',
-            Job.job_description == 'No description available.',
-            func.length(Job.job_description) < 100
-        )
-    ).all()
-
-    total_count = len(jobs_to_update)
-
-    if total_count == 0:
-        return {
-            "message": "No jobs with missing descriptions found",
-            "jobs_found": 0
-        }
-
-    job_ids = [j.id for j in jobs_to_update]
-
-    # Initialize progress
-    fetch_progress = {
-        "status": "running",
-        "total": total_count,
-        "processed": 0,
-        "updated": 0,
-        "failed": 0,
-        "started_at": datetime.utcnow().isoformat(),
-    }
-
-    def process_all_jobs():
-        global fetch_progress
-        import time
-        from database import SessionLocal
-        db_session = SessionLocal()
-
-        try:
-            for idx, job_id in enumerate(job_ids):
-                job = db_session.query(Job).get(job_id)
-                if not job or not job.job_url:
-                    fetch_progress["failed"] += 1
-                    fetch_progress["processed"] = idx + 1
-                    continue
-
-                try:
-                    description = ''
-                    job_url = job.job_url.lower()
-
-                    # Eightfold - JS-rendered, needs Playwright
-                    if 'eightfold.ai' in job_url:
-                        try:
-                            description = ingestion_service.fetch_eightfold_description_sync(job.job_url)
-                        except Exception as e:
-                            logger.warning(f"Playwright fetch failed for {job.job_url}: {e}")
-                        if not description or len(description) < 100:
-                            description = ingestion_service._fetch_eightfold_job_description(job.job_url)
-
-                    # Greenhouse - Use API with ?content=true
-                    elif 'greenhouse.io' in job_url:
-                        try:
-                            # Extract job ID from URL: /jobs/{id} or /job/{id}
-                            import re
-                            job_id_match = re.search(r'/jobs?/(\d+)', job.job_url)
-                            if job_id_match:
-                                job_id = job_id_match.group(1)
-                                api_url = f"https://boards-api.greenhouse.io/v1/boards/*/jobs/{job_id}"
-                                # Try to get company slug from URL
-                                slug_match = re.search(r'greenhouse\.io/([^/]+)', job.job_url)
-                                if slug_match:
-                                    slug = slug_match.group(1)
-                                    api_url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs/{job_id}"
-                                    req = urllib.request.Request(api_url, headers={'User-Agent': 'JobTrails/1.0'})
-                                    with urllib.request.urlopen(req, timeout=15, context=ingestion_service.ssl_context) as resp:
-                                        data = json.loads(resp.read().decode('utf-8'))
-                                        description = data.get('content', '')
-                                        if description:
-                                            description = ingestion_service.html_to_text(description)
-                        except Exception as e:
-                            logger.debug(f"Greenhouse API failed for {job.job_url}: {e}")
-                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
-
-                    # Lever - Use API
-                    elif 'lever.co' in job_url:
-                        try:
-                            import re
-                            # Lever URLs: jobs.lever.co/{company}/{job_id}
-                            match = re.search(r'lever\.co/([^/]+)/([a-f0-9-]+)', job.job_url)
-                            if match:
-                                company, job_id = match.groups()
-                                api_url = f"https://api.lever.co/v0/postings/{company}/{job_id}"
-                                req = urllib.request.Request(api_url, headers={'User-Agent': 'JobTrails/1.0'})
-                                with urllib.request.urlopen(req, timeout=15, context=ingestion_service.ssl_context) as resp:
-                                    data = json.loads(resp.read().decode('utf-8'))
-                                    desc_html = data.get('descriptionHtml', '') or data.get('description', '')
-                                    if desc_html:
-                                        description = ingestion_service.html_to_text(desc_html)
-                        except Exception as e:
-                            logger.debug(f"Lever API failed for {job.job_url}: {e}")
-                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
-
-                    # Ashby - Use API
-                    elif 'ashbyhq.com' in job_url:
-                        try:
-                            import re
-                            # Ashby URLs: jobs.ashbyhq.com/{company}/{job_id}
-                            match = re.search(r'ashbyhq\.com/([^/]+)/([a-f0-9-]+)', job.job_url)
-                            if match:
-                                company, job_id = match.groups()
-                                api_url = f"https://api.ashbyhq.com/posting-api/job-board/{company}/posting/{job_id}"
-                                req = urllib.request.Request(api_url, headers={'User-Agent': 'JobTrails/1.0'})
-                                with urllib.request.urlopen(req, timeout=15, context=ingestion_service.ssl_context) as resp:
-                                    data = json.loads(resp.read().decode('utf-8'))
-                                    description = data.get('descriptionHtml', '') or data.get('descriptionPlain', '')
-                                    if description:
-                                        description = ingestion_service.html_to_text(description)
-                        except Exception as e:
-                            logger.debug(f"Ashby API failed for {job.job_url}: {e}")
-                            description = ingestion_service.fetch_job_description_from_url(job.job_url)
-
-                    # SmartRecruiters
-                    elif 'smartrecruiters.com' in job_url:
-                        description = ingestion_service._fetch_smartrecruiters_job_description(job.job_url)
-
-                    # GoHire
-                    elif 'gohire.io' in job_url:
-                        try:
-                            job_data = ingestion_service._fetch_gohire_job_page(job.job_url)
-                            if job_data:
-                                description = job_data.get('job_description', '')
-                        except Exception as e:
-                            logger.debug(f"GoHire fetch failed: {e}")
-
-                    # Generic fallback for other URLs
-                    else:
-                        description = ingestion_service.fetch_job_description_from_url(job.job_url)
-
-                    if description and len(description) > 100:
-                        job.job_description = description[:15000]
-                        job.updated_at = datetime.utcnow()
-                        db_session.commit()
-                        fetch_progress["updated"] += 1
-                    else:
-                        fetch_progress["failed"] += 1
-
-                    # Rate limiting (longer for Playwright)
-                    time.sleep(0.5 if 'eightfold.ai' in job.job_url else 0.3)
-
-                except Exception as e:
-                    logger.error(f"Error fetching description for job {job_id}: {e}")
-                    fetch_progress["failed"] += 1
-                    db_session.rollback()
-
-                fetch_progress["processed"] = idx + 1
-
-        finally:
-            db_session.close()
-            fetch_progress["status"] = "completed"
-            logger.info(f"Description fetch complete: {fetch_progress['updated']} updated, {fetch_progress['failed']} failed out of {len(job_ids)}")
-
-    background_tasks.add_task(process_all_jobs)
-
-    return {
-        "message": f"Started fetching descriptions for {total_count} jobs in background",
-        "jobs_queued": total_count,
-        "mode": "background"
-    }
+    counts = job_descriptions.missing_counts(db)
+    if counts["ready"] == 0:
+        return {**counts, "jobs_queued": 0, "message": "No jobs ready to fetch"}
+    try:
+        task = fetch_missing_descriptions.apply_async()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Could not queue the fetch: {e}")
+    return {**counts, "jobs_queued": min(counts["ready"], 2000), "task_id": task.id,
+            "message": f"Queued {min(counts['ready'], 2000):,} of {counts['ready']:,} ready"}

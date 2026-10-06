@@ -12,7 +12,7 @@ import logging
 import re
 import time
 from datetime import datetime, timedelta
-from sqlalchemy import and_, func, or_
+from sqlalchemy import func
 
 from celery_app import celery_app
 from database import SessionLocal
@@ -307,7 +307,7 @@ def deactivate_non_it_jobs() -> dict:
 
 
 # The description backfill's queue (fetch_missing_descriptions).
-DESCRIPTION_RETRY_HOURS = 12
+DESCRIPTION_RETRY_HOURS = job_descriptions.RETRY_HOURS
 DESCRIPTION_MAX_FAILURES = job_descriptions.MAX_FAILURES
 DESCRIPTION_SKIP_SOURCES = job_descriptions.SKIP_SOURCES
 
@@ -346,26 +346,12 @@ def fetch_missing_descriptions(batch_size: int = 2000, delay_between: float = 0.
         # can be fetched) kept going to the back, and the front filled with
         # closed postings that 404: 200 of 200 failed every run while 10k
         # live jobs waited. The task now keeps its own attempt time.
+        # The missing and ready tests live in job_descriptions, shared with
+        # the Data tab's count (GET /api/ingest/missing-descriptions).
         now = datetime.utcnow()
-        retry_cutoff = now - timedelta(hours=DESCRIPTION_RETRY_HOURS)
         jobs_to_update = db.query(Job).filter(
-            Job.is_active == True,
-            Job.job_url.isnot(None),
-            Job.job_url != '',
-            ~Job.source.in_(DESCRIPTION_SKIP_SOURCES),
-            or_(
-                Job.job_description.is_(None),
-                Job.job_description == 'No description available.',
-                # Empty, or only the list's summary (job_descriptions.THIN).
-                func.length(func.trim(Job.job_description)) < job_descriptions.THIN,
-                # SmartRecruiters stored with only its Company Description.
-                and_(Job.job_url.like('%smartrecruiters.com/%'),
-                     ~Job.job_description.ilike('%job description%'),
-                     ~Job.job_description.ilike('%qualifications%')),
-            ),
-            or_(Job.description_fetch_attempted_at.is_(None),
-                Job.description_fetch_attempted_at < retry_cutoff),
-            func.coalesce(Job.description_fetch_failures, 0) < DESCRIPTION_MAX_FAILURES,
+            job_descriptions.missing_filter(),
+            job_descriptions.ready_filter(now),
         ).order_by(
             Job.description_fetch_attempted_at.asc().nullsfirst(),
             Job.last_seen_at.desc().nullslast(),

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import func, true, text, case, and_
+from sqlalchemy import func, true, case, and_
 from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import Optional
 
 from database import get_db
-from models import Job, Company, Contact, Interview, Note, Document, User
+from models import Job, Company, Contact, Interview, User
 from middleware.auth import get_current_admin
 from services.redis_service import redis_service
 from config import settings
@@ -366,70 +366,24 @@ def get_interview_stats(db: Session = Depends(get_db)):
 
 @router.delete("/cleanup/old-jobs")
 def cleanup_old_jobs(
-    days: int = Query(default=7, ge=1, le=365, description="Delete jobs older than this many days"),
+    days: int = Query(default=7, ge=1, le=365, description="Delete jobs listed more than this many days ago"),
     dry_run: bool = Query(default=True, description="Preview without deleting"),
+    include_open: bool = Query(default=False, description="Also delete postings a scrape still lists"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin)
 ):
     """
-    Delete jobs where posted_date is older than the specified number of days.
+    Delete scraped jobs listed more than `days` ago (services/job_cleanup.py).
 
-    Admin-only endpoint. Related records (interviews, notes, documents) are also deleted.
-    Use dry_run=true to preview before deleting.
-
-    Filters by posted_date (when job was posted on company site), falling back to
-    created_at for jobs without posted_date.
+    Never deletes a job a user added or one with user activity (applications,
+    apply queue, submissions, interviews, notes, documents); postings still
+    listed are kept unless include_open. dry_run=true previews the counts.
     """
-    cutoff_date = datetime.utcnow() - timedelta(days=days)
+    from services import job_cleanup
 
-    # Get jobs to delete - filter by posted_date (when job was posted)
-    # For jobs without posted_date, fall back to created_at
-    from sqlalchemy import or_, and_
-
-    jobs_query = db.query(Job).filter(
-        or_(
-            # Jobs with posted_date older than cutoff
-            and_(Job.posted_date.isnot(None), Job.posted_date < cutoff_date),
-            # Jobs without posted_date, use created_at as fallback
-            and_(Job.posted_date.is_(None), Job.created_at < cutoff_date)
-        )
-    )
-    jobs_to_delete = jobs_query.all()
-    job_ids = [job.id for job in jobs_to_delete]
-
-    result = {
-        "cutoff_date": cutoff_date.isoformat(),
-        "dry_run": dry_run,
-        "jobs_count": len(job_ids),
-        "jobs_with_posted_date": sum(1 for j in jobs_to_delete if j.posted_date),
-        "jobs_without_posted_date": sum(1 for j in jobs_to_delete if not j.posted_date),
-        "interviews_count": 0,
-        "notes_count": 0,
-        "documents_count": 0,
-    }
-
-    if not job_ids:
-        return result
-
-    # Count related records
-    result["interviews_count"] = db.query(Interview).filter(Interview.job_id.in_(job_ids)).count()
-    result["notes_count"] = db.query(Note).filter(Note.job_id.in_(job_ids)).count()
-    result["documents_count"] = db.query(Document).filter(Document.job_id.in_(job_ids)).count()
-
-    if dry_run:
-        return result
-
-    # Delete related records first (those without CASCADE)
-    db.query(Interview).filter(Interview.job_id.in_(job_ids)).delete(synchronize_session=False)
-    db.query(Note).filter(Note.job_id.in_(job_ids)).delete(synchronize_session=False)
-    db.query(Document).filter(Document.job_id.in_(job_ids)).delete(synchronize_session=False)
-
-    # Delete jobs (cascades to job_relevance_scores, application_submissions)
-    db.query(Job).filter(Job.id.in_(job_ids)).delete(synchronize_session=False)
-
-    db.commit()
-    redis_service.cache_delete_pattern(f"{ANALYTICS_CACHE_PREFIX}*")
-
+    result = job_cleanup.old_jobs(db, days, include_open=include_open, apply=not dry_run)
+    if not dry_run and result.get("deleted"):
+        redis_service.cache_delete_pattern(f"{ANALYTICS_CACHE_PREFIX}*")
     return result
 
 
@@ -440,95 +394,14 @@ def cleanup_duplicates(
     current_user: User = Depends(get_current_admin)
 ):
     """
-    Find and remove duplicate jobs using multiple criteria:
-    1. Same company_id + external_job_id (primary method)
-    2. Same job_url (secondary method for jobs without external_job_id)
-
-    Admin-only endpoint. Keeps the oldest job record and deletes newer duplicates.
-    Use dry_run=true to preview before deleting.
+    Remove duplicate scraped jobs: the same URL, or the same company, title,
+    location and description (services/job_cleanup.py). Keeps the copy with
+    user activity, else the open one, else the most recently seen; never
+    deletes a job with user activity. dry_run=true previews the counts.
     """
-    duplicate_ids = set()
+    from services import job_cleanup
 
-    # Method 1: Find duplicates by company_id + external_job_id
-    duplicates_by_external_id = text("""
-        SELECT j.id
-        FROM jobs j
-        INNER JOIN (
-            SELECT company_id, external_job_id, MIN(id) as min_id
-            FROM jobs
-            WHERE external_job_id IS NOT NULL AND external_job_id != ''
-            GROUP BY company_id, external_job_id
-            HAVING COUNT(*) > 1
-        ) dups ON j.company_id = dups.company_id
-              AND j.external_job_id = dups.external_job_id
-              AND j.id > dups.min_id
-    """)
-
-    result1 = db.execute(duplicates_by_external_id)
-    for row in result1.fetchall():
-        duplicate_ids.add(row[0])
-
-    # Method 2: Find duplicates by job_url (for jobs without external_job_id)
-    duplicates_by_url = text("""
-        SELECT j.id
-        FROM jobs j
-        INNER JOIN (
-            SELECT job_url, MIN(id) as min_id
-            FROM jobs
-            WHERE job_url IS NOT NULL AND job_url != ''
-            GROUP BY job_url
-            HAVING COUNT(*) > 1
-        ) dups ON j.job_url = dups.job_url
-              AND j.id > dups.min_id
-    """)
-
-    result2 = db.execute(duplicates_by_url)
-    for row in result2.fetchall():
-        duplicate_ids.add(row[0])
-
-    # Method 3: Find duplicates by title + company_id + location
-    # This catches cases where same job is posted multiple times with different URLs/IDs
-    duplicates_by_title = text("""
-        SELECT j.id
-        FROM jobs j
-        INNER JOIN (
-            SELECT company_id, title, location, MIN(id) as min_id
-            FROM jobs
-            WHERE title IS NOT NULL AND title != ''
-            GROUP BY company_id, title, location
-            HAVING COUNT(*) > 1
-        ) dups ON j.company_id = dups.company_id
-              AND j.title = dups.title
-              AND (j.location = dups.location OR (j.location IS NULL AND dups.location IS NULL))
-              AND j.id > dups.min_id
-    """)
-
-    result3 = db.execute(duplicates_by_title)
-    for row in result3.fetchall():
-        duplicate_ids.add(row[0])
-
-    duplicate_ids = list(duplicate_ids)
-
-    response = {
-        "dry_run": dry_run,
-        "duplicates_count": len(duplicate_ids),
-    }
-
-    if not duplicate_ids:
-        return response
-
-    if dry_run:
-        return response
-
-    # Delete related records first
-    db.query(Interview).filter(Interview.job_id.in_(duplicate_ids)).delete(synchronize_session=False)
-    db.query(Note).filter(Note.job_id.in_(duplicate_ids)).delete(synchronize_session=False)
-    db.query(Document).filter(Document.job_id.in_(duplicate_ids)).delete(synchronize_session=False)
-
-    # Delete duplicate jobs
-    db.query(Job).filter(Job.id.in_(duplicate_ids)).delete(synchronize_session=False)
-
-    db.commit()
-    redis_service.cache_delete_pattern(f"{ANALYTICS_CACHE_PREFIX}*")
-
-    return response
+    result = job_cleanup.duplicates(db, apply=not dry_run)
+    if not dry_run and result.get("deleted"):
+        redis_service.cache_delete_pattern(f"{ANALYTICS_CACHE_PREFIX}*")
+    return result
