@@ -16,13 +16,9 @@ PORT = os.environ.get("PORT", "8000")
 
 if __name__ == "__main__":
     if PROCESS_TYPE == "worker":
-        print("Starting Celery worker...")
-        cmd = [
-            "celery", "-A", "celery_app", "worker",
-            "--loglevel=info",
-            "--concurrency=2",
-            "-Q", "default,scrapers_http,scrapers_orchestrator,maintenance,contracts"
-        ]
+        # The same two workers as worker_entrypoint.sh (contracts on its own).
+        print("Starting Celery workers...")
+        cmd = ["bash", "worker_entrypoint.sh"]
     elif PROCESS_TYPE == "beat":
         print("Starting Celery beat scheduler...")
         cmd = [
