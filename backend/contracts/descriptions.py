@@ -172,10 +172,11 @@ def describe(db, job, fetch: bool = True) -> str:
     job.description = body
     try:
         # Skills from the description help profile matching; keep the listed ones.
-        from contracts.service import extract_skills
+        from contracts.service import extract_skills, fill_pay
         skills = extract_skills(job.title, text or html_to_text(html) or "", job.skills or [])
         if skills:
             job.skills = skills
+        fill_pay(job, body)
         db.commit()
     except Exception as e:
         logger.warning(f"storing fetched description for contract job {job.id} failed: {e}")

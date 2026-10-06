@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 from services import ingestion_service
 from services.it_roles import is_it_role
+from services.salary import fill_salary
 
 MAX_FAILURES = 5
 # An opened job is fetched at most this often, however many people open it
@@ -96,6 +97,7 @@ def store(db, job, status, description: str, info: dict) -> str:
     if description and len(description) > max(100, len((job.job_description or "").strip())):
         job.job_description = description[:15000]
         job.description_fetch_failures = 0
+        fill_salary(job)
         db.commit()
         return "fetched"
     if status in (404, 410):

@@ -112,11 +112,15 @@ def test_ats_label_wins_over_text_but_title_marker_beats_fulltime_default():
     ("Hourly rate: $55.50 - $62.25 an hour", (55.5, 62.25, "hour")),
     ("Pay rate: $70", (70.0, None, "hour")),
     ("$2,000 - $2,500 per week", (2000.0, 2500.0, "week")),
+    ("Compensation will be paid in the range of up to $145,000 - $200,000 base + bonus.", (145000.0, 200000.0, "year")),
+    ("Position Pay Range $26 — $33 USD Working at CarGurus", (26.0, 33.0, "hour")),
     # nonsense / traps
     ("$5/hr", None),
     ("$900 per hour", None),
     ("We raised $50 million in Series B funding.", None),
     ("$5,000 sign-on bonus!", None),
+    ("We match up to $5,000 a year", None),
+    ("a 10% differential, up to an additional $20,000 annually", None),
     ("$1,500 annual learning stipend", None),
     ("Salary $5,000 per year", None),
 ])

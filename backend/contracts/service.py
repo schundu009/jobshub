@@ -59,6 +59,21 @@ def hourly_equivalent(value: Optional[float], period: Optional[str]) -> Optional
     return round(float(value) / _HOURS[period], 2)
 
 
+def fill_pay(job, text: Optional[str] = None) -> bool:
+    """Set a contract job's pay from its description when it has none."""
+    if job.pay_period or job.pay_rate_min or job.pay_rate_max:
+        return False
+    from contracts.classifier import parse_pay, to_text
+    parsed = parse_pay(" \n ".join(p for p in (job.title, to_text(text if text is not None else job.description)) if p))
+    if not parsed:
+        return False
+    lo, hi, period = parsed
+    job.pay_rate_min, job.pay_rate_max, job.pay_period = round(lo, 2), (round(hi, 2) if hi is not None else None), period
+    job.hourly_rate_min = hourly_equivalent(lo, period)
+    job.hourly_rate_max = hourly_equivalent(hi if hi is not None else lo, period)
+    return True
+
+
 def contract_max_age_days(db: Session) -> int:
     try:
         from models import AppSetting

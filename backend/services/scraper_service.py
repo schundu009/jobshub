@@ -21,6 +21,7 @@ from sqlalchemy.exc import DBAPIError, IntegrityError, OperationalError, Pending
 from models import Company, Job
 from scrapers.base import ScrapedJob
 from services.it_roles import is_it_role
+from services.salary import yearly_salary
 from services.job_location import job_countries, to_country_codes
 from services.job_freshness import (
     REPOST_WINDOW_DAYS, apply_freshness, effective_posted_at, evergreen_status, listed_days, normalize_title,
@@ -497,8 +498,7 @@ def save_scraped_jobs(
                 "job_description": _clean_text(scraped_job.job_description),
                 "department": _clean_text(scraped_job.department, _MAX_LEN["department"]),
                 "posted_date": posted,
-                "salary_min": _clean_int(scraped_job.salary_min),
-                "salary_max": _clean_int(scraped_job.salary_max),
+                **_salary(scraped_job),
                 "employment_type": employment_type,
                 "country_codes": to_country_codes(job_countries(scraped_job.location, title)),
             }))
@@ -608,6 +608,14 @@ def save_scraped_jobs(
     log = logger.warning if (stats.saved == 0 and len(jobs) > 0 and not stats.contracts) else logger.info
     log(f"Saved jobs for {company_slug} ({len(jobs)} found): {stats.summary()}")
     return stats
+
+
+def _salary(scraped_job: ScrapedJob) -> dict:
+    """The scraper's salary, else the yearly range its description states."""
+    lo, hi = _clean_int(scraped_job.salary_min), _clean_int(scraped_job.salary_max)
+    if lo is None and hi is None:
+        lo, hi = yearly_salary(scraped_job.job_description)
+    return {"salary_min": lo, "salary_max": hi}
 
 
 _CONTENT_FIELDS = ("title", "company_id", "location", "job_url", "job_description", "department",

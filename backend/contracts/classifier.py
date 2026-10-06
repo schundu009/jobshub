@@ -410,7 +410,10 @@ _PERIOD_RULES = [
     ("year", re.compile(r"^\s*(usd\s*)?(/|per|a|an)\s*(year|yr|annum)\b|^\s*(usd\s*)?(annually|annual|yearly|/yr|pa\b|p\.a\.)", I)),
 ]
 _PAY_NOISE_AFTER = re.compile(r"^\s*(\+\s*)?(million|billion|m\b|b\b|bn\b|in (funding|revenue|sales|annual)|bonus|sign[- ]on|signing|stipend|funding|raised|revenue|equity|in stock|401|reimburse|per (employee|referral|month for|year for)|towards|learning|wellness|allowance|referral|credit)", I)
-_PAY_NOISE_BEFORE = re.compile(r"(bonus|stipend|funding|raised|revenue|valuation|allowance|reimburse\w*|budget|up to|credit|referral|401\(?k\)?|match)\W{0,3}(of\s+)?(up to\s+)?$", I)
+# A bare "up to" is noise only before a single amount ("up to $5,000"); "up to
+# $145,000 - $200,000" is a salary range.
+_PAY_NOISE_BEFORE = re.compile(r"(bonus|additional|differential|stipend|funding|raised|revenue|valuation|allowance|reimburse\w*|budget|credit|referral|401\(?k\)?|match)\W{0,3}(of\s+)?(up to\s+)?$", I)
+_UP_TO_BEFORE = re.compile(r"\bup to\s*$", I)
 _PAY_CONTEXT_BEFORE = re.compile(r"(pay|rate|salary|compensation|comp|wage|range|base|hourly|ote|earn|paying|pays|bill|budget)\b[^$.\n]{0,40}$", I)
 
 
@@ -456,7 +459,7 @@ def parse_pay(text: str) -> Optional[tuple[float, Optional[float], str]]:
         if _PAY_NOISE_AFTER.search(text[m.end():m.end() + 25]):
             continue
         before = text[max(0, m.start() - 60):m.start()]
-        if _PAY_NOISE_BEFORE.search(before):
+        if _PAY_NOISE_BEFORE.search(before) or (hi is None and _UP_TO_BEFORE.search(before)):
             continue
         # A trailing "/hr" inside the range pattern ("$60/hr - $75/hr")
         inner_hour = re.search(r"/\s*(hr|hour|h)\b", m.group(0), I)
@@ -469,7 +472,8 @@ def parse_pay(text: str) -> Optional[tuple[float, Optional[float], str]]:
             ctx = bool(_PAY_CONTEXT_BEFORE.search(before))
             if ref >= 15000 and (hi is not None or ctx or g[2]):
                 period = "year"
-            elif ref <= 500 and ctx and re.search(r"\b(rate|hourly|bill)\b", before[-40:], I):
+            elif ref <= 500 and ctx and (hi is not None or re.search(r"\b(rate|hourly|bill)\b", before[-40:], I)):
+                # "Pay Range $26 - $33": a range that small is hourly.
                 period = "hour"
             else:
                 continue
