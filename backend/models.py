@@ -292,8 +292,11 @@ class Job(Base):
     title = Column(String(500), nullable=False)  # Extended for long job titles
     company_id = Column(Integer, ForeignKey("companies.id"))
     location = Column(String(500))  # Extended for detailed locations
-    salary_min = Column(Integer)
+    salary_min = Column(Integer)  # yearly; an hourly posting stores rate x 2080
     salary_max = Column(Integer)
+    # The rate an hourly posting states ("$27-34/hr"); NULL for a yearly salary.
+    hourly_rate_min = Column(Float, nullable=True)
+    hourly_rate_max = Column(Float, nullable=True)
     job_url = Column(Text)  # Extended to TEXT for long Eightfold URLs
     job_description = Column(Text)
     status = Column(String(50), default="wishlist")

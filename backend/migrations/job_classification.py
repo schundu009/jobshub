@@ -23,6 +23,8 @@ JOB_CLASSIFICATION_COLUMNS = [
     ("description_fetch_attempted_at", "TIMESTAMP", "DATETIME"),
     ("description_fetch_failures", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0"),
     ("missed_runs", "INTEGER DEFAULT 0", "INTEGER DEFAULT 0"),
+    ("hourly_rate_min", "DOUBLE PRECISION", "FLOAT"),
+    ("hourly_rate_max", "DOUBLE PRECISION", "FLOAT"),
 ]
 
 JOB_CLASSIFICATION_INDEXES = [

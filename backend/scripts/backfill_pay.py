@@ -1,7 +1,7 @@
 """
 Fill missing pay from descriptions on existing rows.
 
-jobs:          salary_min / salary_max (yearly range the description states)
+jobs:          salary_min / salary_max / hourly_rate_min / hourly_rate_max (services.salary)
 contract_jobs: pay_rate_min / pay_rate_max / pay_period / hourly_rate_min / hourly_rate_max
 
 Only rows with no pay at all are touched; a stored value is never replaced.
@@ -43,7 +43,7 @@ def _end_batch(db, apply: bool) -> None:
 
 def backfill_jobs(db, apply: bool, batch: int, out) -> dict:
     from models import Job
-    from services.salary import yearly_salary
+    from services.salary import pay_from_text
 
     scanned = filled = 0
     last_id = 0
@@ -59,9 +59,9 @@ def backfill_jobs(db, apply: bool, batch: int, out) -> dict:
         updates = []
         for row in rows:
             scanned += 1
-            lo, hi = yearly_salary(row.job_description)
-            if lo is not None:
-                updates.append({"id": row.id, "salary_min": lo, "salary_max": hi})
+            pay = pay_from_text(row.job_description)
+            if pay["salary_min"] is not None:
+                updates.append({"id": row.id, **pay})
         filled += len(updates)
         last_id = rows[-1].id
         if apply and updates:

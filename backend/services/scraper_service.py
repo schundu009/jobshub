@@ -21,7 +21,7 @@ from sqlalchemy.exc import DBAPIError, IntegrityError, OperationalError, Pending
 from models import Company, Job
 from scrapers.base import ScrapedJob
 from services.it_roles import is_it_role
-from services.salary import yearly_salary
+from services.salary import pay_from_text
 from services.job_location import job_countries, to_country_codes
 from services.job_freshness import (
     REPOST_WINDOW_DAYS, apply_freshness, effective_posted_at, evergreen_status, listed_days, normalize_title,
@@ -611,11 +611,11 @@ def save_scraped_jobs(
 
 
 def _salary(scraped_job: ScrapedJob) -> dict:
-    """The scraper's salary, else the yearly range its description states."""
+    """The scraper's salary, else the pay its description states."""
     lo, hi = _clean_int(scraped_job.salary_min), _clean_int(scraped_job.salary_max)
     if lo is None and hi is None:
-        lo, hi = yearly_salary(scraped_job.job_description)
-    return {"salary_min": lo, "salary_max": hi}
+        return pay_from_text(scraped_job.job_description)
+    return {"salary_min": lo, "salary_max": hi, "hourly_rate_min": None, "hourly_rate_max": None}
 
 
 _CONTENT_FIELDS = ("title", "company_id", "location", "job_url", "job_description", "department",
@@ -637,8 +637,9 @@ def _refresh_existing(existing: Job, fields: dict, company_id: int, now: datetim
     existing.job_description = fields["job_description"] or existing.job_description
     existing.department = fields["department"] or existing.department
     existing.posted_date = new_posted or old_posted
-    existing.salary_min = fields["salary_min"] or existing.salary_min
-    existing.salary_max = fields["salary_max"] or existing.salary_max
+    if fields["salary_min"] or fields["salary_max"]:
+        existing.salary_min, existing.salary_max = fields["salary_min"], fields["salary_max"]
+        existing.hourly_rate_min, existing.hourly_rate_max = fields["hourly_rate_min"], fields["hourly_rate_max"]
     existing.employment_type = fields.get("employment_type") or existing.employment_type
     if "country_codes" in fields:
         existing.country_codes = fields["country_codes"]
