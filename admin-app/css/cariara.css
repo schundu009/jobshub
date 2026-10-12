@@ -1,7 +1,7 @@
 /* Cariara design layer — originally copied from the retired jobs-app (admin-only rules live in admin-cariara.css).
  *
- * The same system cariara.com runs on: Google Sans for display and nav,
- * Roboto for body, the Google four for accents only, #1967d2 for actions,
+ * The same system cariara.com runs on: Laravel's type (Instrument Sans for
+ * every word, Geist Mono for code and numbers), the Google four for accents only, #1967d2 for actions,
  * Cloud Console surfaces (white canvas, 1px #dadce0 hairlines, 8-12px cards)
  * and the Material 3 nav drawer (pill rows, tonal #D3E3FD current page).
  *
@@ -9,7 +9,8 @@
  * page's inline <style>. Legacy variable names are remapped here instead of
  * renamed in the pages, so page scripts keep working untouched.
  */
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+/* Laravel's type, as on cariara.com (owner, 2026-10-11): Instrument Sans for every word, Geist Mono for code and numbers. */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
 /* ── Tokens ─────────────────────────────────────────────────────────── */
 html, html[data-theme="light"] {
@@ -36,9 +37,9 @@ html, html[data-theme="light"] {
   --c-state: rgba(68, 71, 70, .08);
   --c-shadow-1: 0 1px 2px rgba(60, 64, 67, .3), 0 1px 3px 1px rgba(60, 64, 67, .15);
   --c-shadow-2: 0 1px 3px rgba(60, 64, 67, .3), 0 4px 8px 3px rgba(60, 64, 67, .15);
-  --c-font: Roboto, "Google Sans", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  --c-display: "Google Sans", Roboto, system-ui, -apple-system, Arial, sans-serif;
-  --c-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --c-font: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --c-display: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, Arial, sans-serif;
+  --c-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: light;
 }
 html[data-theme="dark"] {
