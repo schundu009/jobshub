@@ -204,6 +204,7 @@ ISO3 = {
     "ARG": "AR", "CHL": "CL", "URY": "UY", "CRI": "CR", "ECU": "EC", "GTM": "GT", "DOM": "DO", "PAN": "PA",
 }
 _ISO3_RX = re.compile(r"(?<![A-Za-z])(" + "|".join(ISO3) + r")(?![A-Za-z])")
+_LEAD_ISO3_RX = re.compile(r"(" + "|".join(ISO3) + r")(?=[\s,-])")
 _SPLIT_RX = re.compile(r"\s*(?:;|\||•|\n|\s/\s|\s+or\s+)\s*", I)
 
 # "Georgia" is a US state far more often than the country in US job boards;
@@ -217,12 +218,19 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
     s = seg.strip()
     if not s:
         return found, None
+    # Office codes that lead with an ISO-3 country ("IND BNGL FL2-3 TWR 3", "IND CHN GA"): the
+    # rest are site, floor and city abbreviations (FL2 is a floor, not Florida; CHN is Chennai).
+    lead = _LEAD_ISO3_RX.match(s)
+    if lead:
+        return {ISO3[lead.group(1)]} | {_COUNTRY_LOOKUP[_key(m.group(1))] for m in _COUNTRY_RX.finditer(s)}, None
     for m in _COUNTRY_RX.finditer(s):
         if re.search(r"\bnew\s+$", s[max(0, m.start() - 4):m.start()], I):
             continue  # New Mexico, New England
         found.add(_COUNTRY_LOOKUP[_key(m.group(1))])
     if _US_TOKEN_RX.search(s):
         found.add("US")
+    iso3 = {ISO3[m.group(1)] for m in _ISO3_RX.finditer(s)}
+    found |= iso3
     has_foreign_country = bool(found - {"US"})
     for m in _CITY_RX.finditer(s):
         found.add(_CITY_LOOKUP[_key(m.group(1))])
@@ -255,8 +263,6 @@ def _segment_countries(seg: str) -> tuple[set, Optional[str]]:
     m = _TRAILING_ISO2_RX.search(s)
     if m and not found and m.group(1) in COUNTRY_NAMES and m.group(1) not in US_STATE_CODES | CA_PROVINCE_CODES:
         found.add(m.group(1))
-    for m in _ISO3_RX.finditer(s):
-        found.add(ISO3[m.group(1)])
     # Ambiguous cities only when nothing else in the segment says where they are.
     for m in _AMBIG_RX.finditer(s):
         name = _key(m.group(1))

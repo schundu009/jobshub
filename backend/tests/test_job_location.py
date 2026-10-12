@@ -180,6 +180,9 @@ def test_country_codes_round_trip():
     ("Thành phố Hồ Chí Minh, Hồ Chí Minh", ["VN"]), ("Ebene", ["MU"]),
     # state/province codes and English-word ISO-3s stay as before
     ("Wilmington, DE", ["US"]), ("Remote (CAN)", []), ("Sanand, GJ", ["IN"]),
+    # office codes led by an ISO-3 country: floors and site abbreviations are not US states or countries
+    ("IND BNGL FL2-3 TWR 3", ["IN"]), ("IND PUNE FL2", ["IN"]), ("IND HYD TX 1", ["IN"]),
+    ("IND CHN GA", ["IN"]), ("USA FL Jacksonville", ["US"]), ("GBR London / IRL Dublin", ["GB", "IE"]),
 ])
 def test_iso3_trailing_iso2_and_more_cities(location, expected):
     assert job_countries(location) == expected
