@@ -128,3 +128,23 @@ def test_short_place_tokens_match_whole_words(client, db):
     add_job(db, title="A", location="Chicago, IL")
     add_job(db, title="B", location="San Jose, CA")
     assert titles(client.get(f"{BASE}&location=CA")) == ["B"]
+
+
+def test_relabel_forward_deployed_moves_only_fde_titles(db):
+    from sqlalchemy import text
+    from migrations.job_taxonomy import relabel_forward_deployed
+    c = Company(name="Palantir")
+    db.add(c)
+    db.commit()
+    fde = add_job(db, title="Forward Deployed Software Engineer", company_id=c.id)
+    swe = add_job(db, title="Software Engineer", company_id=c.id)
+    assert fde.role_category == "forward_deployed"  # new rows are labelled on save
+    # A row labelled before the category existed.
+    db.execute(text("UPDATE jobs SET role_category = 'software' WHERE id = :i"), {"i": fde.id})
+    db.commit()
+    conn = db.connection()
+    assert relabel_forward_deployed(conn) == 1
+    assert relabel_forward_deployed(conn) == 0  # idempotent
+    db.commit()
+    cats = dict(db.execute(text("SELECT id, role_category FROM jobs")).fetchall())
+    assert cats[fde.id] == "forward_deployed" and cats[swe.id] == "software"

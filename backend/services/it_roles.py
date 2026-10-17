@@ -8,9 +8,9 @@ the other for this).
     it_category(title, category=None, department=None, skills=None, ambiguous_default=False) -> str | None
     classify_it(title, category=None, department=None, skills=None) -> ItDecision
 
-Categories (IT_CATEGORIES): software, devops_sre_cloud, data, ml_ai, security,
-network_systems_dba, qa, it_support, embedded_hw, product_program, design_ux,
-tech_writing.
+Categories (IT_CATEGORIES): software, devops_sre_cloud, data, ml_ai,
+forward_deployed, security, network_systems_dba, qa, it_support, embedded_hw,
+product_program, design_ux, tech_writing.
 
 How a title is decided
 ----------------------
@@ -38,7 +38,7 @@ from functools import lru_cache
 from typing import Iterable, Optional
 
 IT_CATEGORIES = (
-    "software", "devops_sre_cloud", "data", "ml_ai", "security", "network_systems_dba",
+    "software", "devops_sre_cloud", "data", "ml_ai", "forward_deployed", "security", "network_systems_dba",
     "qa", "it_support", "embedded_hw", "product_program", "design_ux", "tech_writing",
 )
 
@@ -142,6 +142,12 @@ _RULES_SRC: list[tuple[str, Optional[str], Optional[bool], str]] = [
                         r"consultant|engineering|platform|infrastructure|solutions?|product)s?|"
                         r"applied scientists?|prompt engineers?|research engineers?|(?:algo|algorithm) (?:\w+ )?(?:engineer|researcher|developer|scientist)s?"),
     (AMB, "ml_ai", None, r"researchers?|head of research"),
+    # ---------------------------------------------------------------- IT: forward deployed
+    # Engineers embedded with a customer to build and ship on its systems (Palantir's
+    # FDSE, OpenAI / Anthropic FDEs). Longer than "AI Engineer" / "Software Engineer"
+    # ending at the same place, so "Forward Deployed AI Engineer" lands here, not ml_ai.
+    (IN, "forward_deployed", None, r"forward deployed(?: \w+){0,2} (?:engineer|engineering|developer|architect|"
+                                   r"engineering lead|engineering manager)s?|forward deployed|fdse|fdes?"),
     # ---------------------------------------------------------------- IT: security
     (IN, "security", None, r"(?:cyber ?security|cyber|information security|infosec|it security|application security|"
                            r"appsec|product security|cloud security|network security|data security|security|"
@@ -374,6 +380,10 @@ _RULES = [(verdict, cat, lean, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z
 # win over non-IT words elsewhere ("Senior R&D Software Engineer", "Application
 # Developer-Real Estate & Facilities", "Customer Support Engineer").
 _STRONG_IN_SRC: list[tuple[str, str]] = [
+    # First, so "Forward Deployed Software Engineer" / "AI Forward Deployed Engineer" are
+    # forward deployed, not software or ml_ai.
+    ("forward_deployed", r"forward deployed(?: \w+){0,2} (?:engineer|engineering|developer|architect)s?(?: (?:lead|manager)s?)?|"
+                         r"fdses?|fdes?"),
     ("software", r"software (?:development )?(?:engineer|developer|programmer|architect)s?|software engineering (?:manager|lead|director)s?|"
                  r"sdes?|sdets?|swes?|member of (?:the )?technical staff|"
                  r"(?:application|applications|web|mobile|ios|android|full stack|fullstack|front end|frontend|back end|backend|"
@@ -392,7 +402,6 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
                    r"application packaging (?:engineer|specialist|analyst)s?|(?:msi|sccm|intune) packag\w* (?:engineer|specialist|analyst)s?"),
     ("security", r"(?:data|information|it|cyber|network|cloud|application|identity) security (?:\w+ ){0,3}"
                  r"(?:analyst|engineer|specialist|architect|administrator|consultant)s?"),
-    ("software", r"forward deployed (?:software )?engineers?"),
     ("tech_writing", r"tech writers?|technical writers?"),
     ("design_ux", r"design systems? (?:designer|engineer|lead|manager|architect)s?"),
     ("software", r"(?:solutions?|technical|cloud|software|saas|security|data|network|platform) sales engineers?|"
@@ -404,7 +413,7 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
 _STRONG_IN = [(cat, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])")) for cat, src in _STRONG_IN_SRC]
 # Patterns whose qualifier often sits in a later segment ("Product Manager,
 # Developer Experience", "Warehouse Mgmt. Systems (WMS) Analyst") also run on the full title.
-_STRONG_IN_FULL = [_STRONG_IN[2], _STRONG_IN[-1]]
+_STRONG_IN_FULL = [_STRONG_IN[3], _STRONG_IN[-1]]  # the WMS / MES rule and the last one
 
 
 # Technical Account Managers are IT only with tech context (user decision
@@ -447,7 +456,13 @@ def _tam_verdict(full: str) -> Optional[tuple]:
     return None, "software", "ambiguous", None  # no lean: department / board context decides
 
 
+_FORWARD_DEPLOYED_ANYWHERE = re.compile(r"(?<![a-z0-9])forward deployed(?![a-z0-9])")
+
+
 def _strong_in(primary: str, full: str) -> Optional[str]:
+    # "Software Engineer, Forward Deployed": the role is named in a later segment.
+    if _STRONG_IN[0][1].search(primary) or (_FORWARD_DEPLOYED_ANYWHERE.search(full) and any(rx.search(primary) for _c, rx in _STRONG_IN)):
+        return "forward_deployed"
     for cat, rx in _STRONG_IN:
         if rx.search(primary):
             return cat

@@ -21,6 +21,7 @@ ROLE_CATEGORIES = {
     "devops_sre_cloud": "DevOps, SRE & Cloud",
     "data": "Data Engineering & Analytics",
     "ml_ai": "AI & Machine Learning",
+    "forward_deployed": "Forward Deployed Engineering",
     "security": "Security",
     "network_systems_dba": "Networks, Systems & DBA",
     "qa": "QA & Testing",

@@ -98,6 +98,14 @@ def test_must_out(title):
     ("Technical Program Manager", "product_program"),
     ("UX Designer", "design_ux"),
     ("Technical Writer", "tech_writing"),
+    ("Forward Deployed Engineer", "forward_deployed"),
+    ("Forward Deployed Software Engineer", "forward_deployed"),
+    ("Forward Deployed AI Engineer", "forward_deployed"),
+    ("Senior Forward-Deployed Engineer, Applied AI", "forward_deployed"),
+    ("Software Engineer, Forward Deployed", "forward_deployed"),
+    ("FDE - Federal", "forward_deployed"),
+    ("Staff FDSE", "forward_deployed"),
+    ("Forward Deployed Engineering Manager", "forward_deployed"),
 ])
 def test_category(title, category):
     assert it_category(title) == category
@@ -162,3 +170,9 @@ def test_never_raises_on_odd_input():
     for v in (None, 123, "!!!", "a" * 5000, "C++/C# .NET"):
         is_it_role(v)
         it_category(v)
+
+
+def test_forward_deployed_does_not_swallow_other_roles():
+    assert it_category("Deployment Engineer") == "software"
+    assert it_category("AI Engineer") == "ml_ai"
+    assert not is_it_role("Sales Manager, Forward Deployed Team")

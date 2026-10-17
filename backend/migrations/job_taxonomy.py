@@ -41,7 +41,9 @@ def migrate_job_taxonomy(connection, max_rows: int = 500_000, commit_batches: bo
     backfill_company_domains(connection)
     if commit_batches:
         connection.commit()
-    return backfill_job_taxonomy(connection, max_rows=max_rows, commit_batches=commit_batches)
+    labelled = backfill_job_taxonomy(connection, max_rows=max_rows, commit_batches=commit_batches)
+    relabel_forward_deployed(connection, commit_batches=commit_batches)
+    return labelled
 
 
 def backfill_company_domains(connection) -> int:
@@ -60,6 +62,28 @@ def backfill_company_domains(connection) -> int:
     if n:
         logger.info(f"Backfilled companies.domain on {n} rows")
     return n
+
+
+def relabel_forward_deployed(connection, commit_batches: bool = False) -> int:
+    """Move jobs saved before the forward_deployed category (2026-10-17), labelled software / ml_ai
+    then, to it. Only titles that name the role are read, and only those the classifier now files
+    there change, so a second run changes nothing."""
+    from services.job_taxonomy import role_category
+
+    rows = connection.execute(text(
+        "SELECT id, title, department FROM jobs WHERE role_category IN ('software', 'ml_ai', 'other') AND ("
+        "LOWER(title) LIKE '%forward%deployed%' OR LOWER(title) LIKE '%fde%' OR LOWER(title) LIKE '%fdse%')"
+    )).fetchall()
+    ids = [job_id for job_id, title, department in rows if role_category(title, department) == "forward_deployed"]
+    for i in range(0, len(ids), BATCH):
+        chunk = ids[i:i + BATCH]
+        connection.execute(text(
+            f"UPDATE jobs SET role_category = 'forward_deployed' WHERE id IN ({','.join(str(int(j)) for j in chunk)})"))
+        if commit_batches:
+            connection.commit()
+    if ids:
+        logger.info(f"Relabelled {len(ids)} jobs as forward_deployed")
+    return len(ids)
 
 
 def backfill_job_taxonomy(connection, max_rows: int = 500_000, commit_batches: bool = False) -> int:
