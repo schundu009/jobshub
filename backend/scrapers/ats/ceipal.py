@@ -19,6 +19,8 @@ import asyncio
 import os
 import platform
 import re
+import shutil
+import subprocess
 import time
 from typing import Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -60,6 +62,34 @@ def has_display() -> bool:
     return bool(os.environ.get("DISPLAY")) or platform.system() in ("Darwin", "Windows")
 
 
+_XVFB_DISPLAY = ":99"
+
+
+def ensure_display() -> bool:
+    """
+    Start Xvfb when there is no display and it is installed. The worker's
+    Railway start command runs celery directly (not worker_entrypoint.sh), so
+    the scraper cannot rely on the entrypoint having started it. Forked pool
+    processes share one server: whoever finds its socket just uses it.
+    """
+    if has_display():
+        return True
+    if not shutil.which("Xvfb"):
+        return False
+    sock = f"/tmp/.X11-unix/X{_XVFB_DISPLAY[1:]}"
+    if not os.path.exists(sock):
+        subprocess.Popen(["Xvfb", _XVFB_DISPLAY, "-screen", "0", "1366x900x24", "-nolisten", "tcp"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        for _ in range(50):
+            if os.path.exists(sock):
+                break
+            time.sleep(0.1)
+    if not os.path.exists(sock):
+        return False
+    os.environ["DISPLAY"] = _XVFB_DISPLAY
+    return True
+
+
 class CeipalMixin:
     MAX_JOBS = 1500
     TIME_BUDGET_SECONDS = 240     # the browser queue allows 5 minutes
@@ -70,9 +100,9 @@ class CeipalMixin:
         board = self.BOARD
         if not valid_board(board):
             return ScrapeResult(success=False, jobs=[], jobs_found=0, error_message=f"Bad Ceipal board {board!r}")
-        if not has_display():
+        if not ensure_display():
             return ScrapeResult(success=False, jobs=[], jobs_found=0,
-                                error_message="Ceipal needs a headed browser and there is no DISPLAY (start Xvfb)")
+                                error_message="Ceipal needs a headed browser and there is no DISPLAY (Xvfb missing)")
         try:
             pages, total_pages = await self._read_pages(page_url(board))
         except asyncio.TimeoutError:

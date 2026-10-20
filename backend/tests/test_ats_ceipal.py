@@ -62,10 +62,22 @@ def test_row_builds_a_browser_scraper_that_parses_jobs():
 
 def test_no_display_fails_clearly(monkeypatch):
     monkeypatch.setattr(ceipal, "has_display", lambda: False)
+    monkeypatch.setattr(ceipal.shutil, "which", lambda name: None)
     cls = build_scraper_class(ROW)
     result = asyncio.run(cls().scrape())
     assert not result.success
     assert "DISPLAY" in result.error_message
+
+
+def test_display_uses_a_running_xvfb(monkeypatch):
+    monkeypatch.setattr(ceipal, "has_display", lambda: False)
+    monkeypatch.setattr(ceipal.shutil, "which", lambda name: "/usr/bin/Xvfb")
+    monkeypatch.setattr(ceipal.os.path, "exists", lambda p: p == "/tmp/.X11-unix/X99")
+    monkeypatch.setattr(ceipal.subprocess, "Popen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("started twice")))
+    monkeypatch.delenv("DISPLAY", raising=False)
+    assert ceipal.ensure_display()
+    assert ceipal.os.environ["DISPLAY"] == ":99"
+    monkeypatch.delenv("DISPLAY")
 
 
 def test_scrape_merges_widgets_and_drops_repeats(monkeypatch):
