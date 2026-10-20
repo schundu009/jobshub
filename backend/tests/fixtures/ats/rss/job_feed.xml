@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:job_listing="https://www.example-wpjm.com">
+<channel><title>Example Recruitment</title><link>https://www.example-wpjm.com/</link>
+<item><title>Payroll Specialist</title><link>https://www.example-wpjm.com/job/2005778895358-payroll-specialist-new-york/</link>
+<pubDate>Tue, 20 Oct 2026 00:00:00 +0000</pubDate><guid isPermaLink="false">https://www.example-wpjm.com/?post_type=job_listing&amp;p=69911</guid>
+<description><![CDATA[<p>Location: New York</p><p>Salary: $65,000-$80,000 per year</p>]]></description>
+<job_listing:location><![CDATA[New York, New York]]></job_listing:location><job_listing:job_type><![CDATA[Permanent]]></job_listing:job_type><job_listing:company><![CDATA[Example Recruitment]]></job_listing:company></item>
+<item><RecuiterJobNumber><![CDATA[1769]]></RecuiterJobNumber><title><![CDATA[Senior Data Analyst and Engineer]]></title><link><![CDATA[https://careers.example.com/job/senior-data-analyst-and-engineer/]]></link>
+<PostDate>Wed, 14 Feb 2024 08:04:04 +0000</PostDate><location><![CDATA[United States]]></location><type><![CDATA[]]></type><excerpt><![CDATA[We are seeking a Senior Data Analyst.]]></excerpt></item>
+</channel></rss>

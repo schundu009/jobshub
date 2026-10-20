@@ -1,0 +1,66 @@
+{
+ "name": "Innovaccer Analytics",
+ "description": null,
+ "jobs": [
+  {
+   "title": "01-Software Development Engineer - III",
+   "shortcode": "D1E02E0D44",
+   "code": "HIR-****",
+   "employment_type": "",
+   "telecommuting": false,
+   "department": "Engineering And Analytics",
+   "url": "https://apply.workable.com/j/D1E02E0D44",
+   "shortlink": "https://apply.workable.com/j/D1E02E0D44",
+   "application_url": "https://apply.workable.com/j/D1E02E0D44/apply",
+   "published_on": "2026-09-25",
+   "created_at": "2026-09-25",
+   "country": "India",
+   "city": "Noida",
+   "state": "Uttar Pradesh",
+   "education": "",
+   "experience": "",
+   "function": "",
+   "industry": "",
+   "locations": [
+    {
+     "country": "India",
+     "countryCode": "IN",
+     "city": "Noida",
+     "region": "Uttar Pradesh",
+     "hidden": false
+    }
+   ],
+   "description": "<p><strong>About the Role:<br></strong>As a Software Development Engineer - III at Innovaccer, you'll be a senior technical leader who stays deep in the code. You'll personally design and build complex, high-impact parts of our platform — backend services, data pipelines, and the AI/ML-powered featu"
+  },
+  {
+   "title": "1003-Software Development Engineer-III Full Stack (MVC)",
+   "shortcode": "721CC7CB85",
+   "code": "HIR-1003",
+   "employment_type": "Full-time",
+   "telecommuting": false,
+   "department": "Engineering And Analytics",
+   "url": "https://apply.workable.com/j/721CC7CB85",
+   "shortlink": "https://apply.workable.com/j/721CC7CB85",
+   "application_url": "https://apply.workable.com/j/721CC7CB85/apply",
+   "published_on": "2026-10-07",
+   "created_at": "2026-09-16",
+   "country": "India",
+   "city": "Noida",
+   "state": "Uttar Pradesh",
+   "education": "",
+   "experience": "Mid-Senior level",
+   "function": "",
+   "industry": "",
+   "locations": [
+    {
+     "country": "India",
+     "countryCode": "IN",
+     "city": "Noida",
+     "region": "Uttar Pradesh",
+     "hidden": false
+    }
+   ],
+   "description": "<h3>Engineering at Innovaccer</h3><p>With every line of code, we accelerate our customers' success, turning complex challenges into innovative solutions. Collaboratively, we transform each data point we gather into valuable insights for our customers. Join us and be part of a team that's turning dre"
+  }
+ ]
+}

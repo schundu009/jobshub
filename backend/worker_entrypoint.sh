@@ -9,6 +9,13 @@ MAX_RESTARTS=100
 RESTART_DELAY=5
 restart_count=0
 
+# Ceipal boards are read in a headed browser (scrapers/ats/ceipal.py): give it a virtual display.
+if [ -z "$DISPLAY" ] && command -v Xvfb >/dev/null 2>&1; then
+    Xvfb :99 -screen 0 1366x900x24 -nolisten tcp >/dev/null 2>&1 &
+    export DISPLAY=:99
+    echo "Worker entrypoint: Xvfb on $DISPLAY"
+fi
+
 echo "Worker entrypoint: starting Celery worker with auto-restart (max=$MAX_RESTARTS)"
 
 while [ $restart_count -lt $MAX_RESTARTS ]; do

@@ -1,0 +1,105 @@
+{
+ "widgets": [
+  {
+   "rfk_id": "rfkid_jobs",
+   "type": "content_grid",
+   "used_in": "common_across_pages",
+   "entity": "jobs",
+   "content": [
+    {
+     "bullhorncategory": "IT - Functional - Other",
+     "bullhornidentifier": "76667",
+     "city": "California",
+     "country": "US",
+     "countryid": "1",
+     "description": "<p>Join a dynamic partner support team focused on delivering fast, thoughtful solutions and helping improve the systems behind every interaction. This remote, 6-month opportunity is ideal for someone ",
+     "employmenttype": "Contract",
+     "externalid": "76667",
+     "id": "{A16F95FC-AF3B-48D9-8AC3-103921C522AC}",
+     "industry": "Technology Media & Telecom (TMT)",
+     "isdeleted": false,
+     "isopen": true,
+     "ispublic": true,
+     "jobboardid": "76667",
+     "jobcategory": [
+      "Business strategy"
+     ],
+     "lastpublisheddate": "2026-10-16T21:26:57Z",
+     "lastupdateddate": "2026-10-17T00:00:54Z",
+     "location": "36.778261,-119.4179324",
+     "locationcombo": "California,CA,99999",
+     "remotefilters": [
+      "Remote"
+     ],
+     "source_id": "1188195",
+     "state": "CA",
+     "title": "Partnership Support",
+     "zip": "99999"
+    },
+    {
+     "bullhorncategory": "IT - Functional - Other",
+     "bullhornidentifier": "76665",
+     "city": "Alameda",
+     "country": "US",
+     "countryid": "1",
+     "description": "<p>Bring brand strategy to life in a fast-paced, cross-functional marketing environment where you\u2019ll help shape how internal teams understand, adopt, and activate a cohesive brand experience. This ons",
+     "employmenttype": "Contract",
+     "externalid": "76665",
+     "id": "{2D788C2B-3ED8-48D7-A98D-C8A23930F00F}",
+     "industry": "Healthcare & Life Sciences",
+     "isdeleted": false,
+     "isopen": true,
+     "ispublic": true,
+     "jobboardid": "76665",
+     "jobcategory": [
+      "Business strategy"
+     ],
+     "lastpublisheddate": "2026-10-16T21:25:20Z",
+     "lastupdateddate": "2026-10-16T21:30:56Z",
+     "location": "37.7339032,-122.2483726",
+     "locationcombo": "Alameda,CA,94502",
+     "remotefilters": [
+      "Onsite"
+     ],
+     "source_id": "1188195",
+     "state": "CA",
+     "title": "Product Manager",
+     "zip": "94502"
+    },
+    {
+     "bullhorncategory": "IT - Functional - PM",
+     "bullhornidentifier": "76664",
+     "city": "Maplewood",
+     "country": "US",
+     "countryid": "1",
+     "description": "<p>Step into a high-impact program leadership role supporting a multi-year pricing transformation initiative built around Price Setting and Configure Price Quote (CPQ). This position offers the opport",
+     "employmenttype": "Contract",
+     "externalid": "76664",
+     "id": "{EBD05BC7-700F-41E3-B032-C8D4A7BC0A2C}",
+     "industry": "Manufacturing & Industrial",
+     "isdeleted": false,
+     "isopen": true,
+     "ispublic": true,
+     "jobboardid": "76664",
+     "jobcategory": [
+      "Information technology"
+     ],
+     "lastpublisheddate": "2026-10-16T21:11:09Z",
+     "lastupdateddate": "2026-10-16T21:57:11Z",
+     "location": "44.9508008,-92.9960732",
+     "locationcombo": "Maplewood,Minnesota,55144",
+     "remotefilters": [
+      "Onsite"
+     ],
+     "source_id": "1188195",
+     "state": "Minnesota",
+     "title": "Sr. Program Manager",
+     "zip": "55144"
+    }
+   ],
+   "total_item": 3,
+   "limit": 3,
+   "offset": 0
+  }
+ ]
+}

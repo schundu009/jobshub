@@ -1,0 +1,127 @@
+{
+ "kind": "json",
+ "url": "https://talentdome-api.infojiniconsulting.com/",
+ "payload": {
+  "data": {
+   "getPositionListForGuestUser": {
+    "positionList": [
+     {
+      "jobPositionKey": "In18169023",
+      "jobPositionId": 21522,
+      "title": "HMS Analyst - 737400 - RD",
+      "summary": "Seeking an HMS Analyst to support the HIE Medicaid Services (HMS) program, focusing on enhancing Medicaid quality and population health efforts through improved data exchange (including digital quality measures, health-related social needs data exchange, and care management data sharing).",
+      "description": "Support the implementation, expansion, and ongoing operations of Medicaid data exchange services, with a strong focus on improving Health-Related Social Needs (HRSN) data capture and onboarding early adopters. Translate program and partner needs into technical and workflow requirements, support CCD/ADT data integration efforts, coordinate cross-team activities, and troubleshoot issues to ensure secure and accurate data connections.",
+      "createdAt": "2026-10-19T13:56:09.025Z",
+      "jobDepartment": {
+       "name": "IT"
+      },
+      "primarySkills": [
+       {
+        "name": "EHR"
+       }
+      ],
+      "location": {
+       "address": {
+        "cityName": "Raleigh",
+        "stateName": "North Carolina",
+        "country": "US"
+       }
+      },
+      "payDetails": {
+       "payTypeId": 1,
+       "payRate": {
+        "type": "Range",
+        "value": {
+         "minRate": 40,
+         "maxRate": 45,
+         "totalRate": 0,
+         "showPayRateOnCareerPage": true
+        }
+       }
+      }
+     },
+     {
+      "jobPositionKey": "In17587845",
+      "jobPositionId": 21521,
+      "title": "SAP System Administrator - 737462 - RD",
+      "summary": "Seeking an SAP System Administrator - Expert to serve as the SAP HANA subject matter expert for the enterprise SAP landscape that runs the systems of record, administering and supporting more than 100 production and non-production SAP HANA databases and providing SAP Basis expertise across all SAP products.",
+      "description": "Administer and support over 100 production and non-production SAP HANA databases; provide SAP Basis expertise across all SAP products; coordinate and implement technical changes, patches, and upgrades; participate in the duty manager on-call rotation and daily system checks; support the in-flight migration of the landscape to SAP NS2 (S/4HANA Cloud, Private Edition); execute HANA System Replication, refreshes, and system copies; apply HANA revisions, SAP kernel updates, and support package stacks; monitor database performance and capacity.",
+      "createdAt": "2026-10-19T13:46:27.845Z",
+      "jobDepartment": {
+       "name": "IT"
+      },
+      "primarySkills": [
+       {
+        "name": "SAP"
+       },
+       {
+        "name": "HANA"
+       }
+      ],
+      "location": {
+       "address": {
+        "cityName": "Raleigh",
+        "stateName": "North Carolina",
+        "country": "US"
+       }
+      },
+      "payDetails": {
+       "payTypeId": 1,
+       "payRate": {
+        "type": "Range",
+        "value": {
+         "minRate": 70,
+         "maxRate": 80,
+         "totalRate": 0,
+         "showPayRateOnCareerPage": true
+        }
+       }
+      }
+     },
+     {
+      "jobPositionKey": "In99252822",
+      "jobPositionId": 21520,
+      "title": "QA Analyst Sr / Tricentis Tosca TA - 737392 - MK",
+      "summary": "Seeking a Tricentis Tosca Testing Analyst to support test automation strategy and execution for a large-scale SAP S/4HANA transformation program. The role will develop and maintain automated test assets, execute testing activities, support end-to-end business process validation, and contribute to SIT, UAT, regression testing, defect management, and deployment readiness efforts.",
+      "description": "Key Responsibilities\nDevelop automated test cases using Tricentis Tosca.\nMaintain and execute existing automated test suites.\nPerform test case design and test automation.\nSupport test data management and test execution.\nValidate end-to-end business processes.\nSupport System Integration Testing (SIT).\nSupport User Acceptance Testing (UAT).\nPerform regression testing.\nManage and track defects.\nSupport deployment readiness activities.\nCollaborate with functional and technical teams.",
+      "createdAt": "2026-10-15T21:20:52.823Z",
+      "jobDepartment": {
+       "name": "IT"
+      },
+      "primarySkills": [
+       {
+        "name": "SAP"
+       },
+       {
+        "name": "Test Case"
+       },
+       {
+        "name": "TEST"
+       }
+      ],
+      "location": {
+       "address": {
+        "cityName": "Washington",
+        "stateName": "District of Columbia",
+        "country": "US"
+       }
+      },
+      "payDetails": {
+       "payTypeId": 1,
+       "payRate": {
+        "type": "Single",
+        "value": {
+         "minRate": 0,
+         "maxRate": 0,
+         "totalRate": 35,
+         "showPayRateOnCareerPage": false
+        }
+       }
+      }
+     }
+    ],
+    "totalCount": 20
+   }
+  }
+ }
+}

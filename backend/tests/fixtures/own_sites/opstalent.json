@@ -1,0 +1,71 @@
+{
+ "kind": "json",
+ "url": "https://api.opstalent.com/graphql",
+ "payload": {
+  "data": {
+   "jobOfferSearch": [
+    {
+     "id": "1",
+     "title": {
+      "title_en": "Customer Success Specialist with English"
+     },
+     "subtitle": {
+      "subtitle_en": ""
+     },
+     "jobField": {
+      "description_en": "CX"
+     },
+     "location": {
+      "description_en": "Wrocław, Poland"
+     },
+     "jobType": {
+      "name_en": "Full-time"
+     },
+     "jobCategory": {
+      "name_en": "CX"
+     }
+    },
+    {
+     "id": "6",
+     "title": {
+      "title_en": "Customer Service Specialist with French"
+     },
+     "subtitle": null,
+     "jobField": {
+      "description_en": "CX"
+     },
+     "location": {
+      "description_en": "Wrocław, Poland / Partly remote"
+     },
+     "jobType": {
+      "name_en": "Full-time/Part-time"
+     },
+     "jobCategory": {
+      "name_en": "CX"
+     }
+    },
+    {
+     "id": "14",
+     "title": {
+      "title_en": "D365 F&O Solution Architect"
+     },
+     "subtitle": {
+      "subtitle_en": null
+     },
+     "jobField": {
+      "description_en": "IT"
+     },
+     "location": {
+      "description_en": "Wrocław, Poland / Hybrid"
+     },
+     "jobType": {
+      "name_en": "Full-time"
+     },
+     "jobCategory": {
+      "name_en": "Technology"
+     }
+    }
+   ]
+  }
+ }
+}

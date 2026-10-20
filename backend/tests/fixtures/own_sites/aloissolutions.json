@@ -1,0 +1,255 @@
+{
+ "kind": "json",
+ "url": "https://api.aloissolutions.com/service",
+ "payload": {
+  "type": "response",
+  "endpoint": "",
+  "executor": "",
+  "data": [
+   [
+    {
+     "_id": "6ad72d95582f96e94e0998aa",
+     "id": "z5G7h3l6a1kMvyS65NP3cwGkp6VKTzqJva3fWPA66r8=",
+     "apply_job": "https://candidateportal.ceipal.com/login/rvxSabwnOU_T80Z0FDYTU7H-WfYlDuALGvnQSM-cfXE/uuGaIU_suzdNaLTr-II2LO1Wj60WlDgjtWHecXowgks",
+     "apply_job_without_registration": "https://candidateportal.ceipal.com/job-details/9i6YBse7Q0WEVfo5LO8YYbkoZEYl6gEy7KtKm6zXyjo",
+     "assigned_recruiter": "z5G7h3l6a1kMvyS65NP3c1-hkPa695fVfhC_lVrPHe8=,z5G7h3l6a1kMvyS65NP3cxuKmdxT-SeZt3Reu-jCwTw=,z5G7h3l6a1kMvyS65NP3c3VXGlj9r_Od_prpZ6EYaXg=,z5G7h3l6a1kMvyS65NP3c4vdMKDYQybAevsufc1h3O8=,z5G7h3l6a1kMvyS65NP3c0er-8Cdafz_bfkW5KdS-yU=,z5G7h3l6a1kMvyS65NP3c6i9wI00KubSW9Atoj7dG2Q=,z5G7h3l6a1kMvyS65NP3c2tqHMX0l5r-AEcodsCT0w8=,z5G7h3l6a1kMvyS65NP3c000zWwyKX9xdyuJ7NOLwaE=,z5G7h3l6a1kMvyS65NP3c1rs65OcRdHKoInQMQofw18=,z5G7h3l6a1kMvyS65NP3c1ptNMgVBeKqWotxBsOJ1D8=",
+     "business_unit_id": 1,
+     "city": "",
+     "closing_date": "Open Until Filled",
+     "company": 21237,
+     "country": "Australia",
+     "created": "2026-10-20 04:47:24",
+     "created_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "currency": "AUD",
+     "employment_type": "Contract",
+     "industry": "Information Technology & Services",
+     "is_recycle": 0,
+     "job_category": "",
+     "job_code": "JPC4144",
+     "job_end_date": null,
+     "job_start_date": "2026-10-20",
+     "job_status": "Open",
+     "job_type": "Direct Client",
+     "modified": "2026-10-20 04:47:24",
+     "modified_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "pay_rates": [
+      {
+       "pay_rate_currency": null,
+       "pay_rate": "N/A",
+       "pay_rate_pay_frequency_type": null,
+       "pay_rate_employment_type": null,
+       "min_pay_rate": "",
+       "max_pay_rate": "N/A"
+      }
+     ],
+     "position_title": "IBM OpenPages Workflow Expert",
+     "post_on_careerportal": "No",
+     "postal_code": "",
+     "posted_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "primary_recruiter": "z5G7h3l6a1kMvyS65NP3c0er-8Cdafz_bfkW5KdS-yU=",
+     "priority": "",
+     "public_job_desc": "",
+     "public_job_title": "",
+     "recruitment_manager": "z5G7h3l6a1kMvyS65NP3c6i9wI00KubSW9Atoj7dG2Q=",
+     "remote_opportunities": "No",
+     "requisition_description": "<div>About Us:</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>ALOIS Australia is a leading Talent and Technology Solutions company, focused on helping businesses across the country build stronger teams, smarter processes, and sustainable growth.<br />\r\nWe work with organisations in diverse industries to deliver integrated workforce and technology solutions, from innovative hiring strategies to end-to-end digital transformation. Our approach combines data, insight, and human expertise to help clients solve complex workforce challenges with clarity and confidence.</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>Through our deep industry experience and commitment to excellence, we provide scalable, high-performance solutions that deliver measurable impact. Whether it&rsquo;s onshore project delivery, workforce optimisation, or specialised technology services, ALOIS Australia ensures results that truly make a difference.<br />\r\nFrom Sydney to Perth and everywhere in between, we&rsquo;re driven by one purpose: to empower Australian businesses and professionals to thrive in a rapidly changing world of work. At ALOIS Australia, every challenge is an opportunity to innovate, and every partnership is built on trust, transparency, and long-term success.</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>Job Title &ndash; IBM OpenPages Workflow Expert<br />\r\nJob Location &ndash; Australia<br />\r\nEmployment Type &ndash; Contract/FTC</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>What role you will play in Team:\r\n<p><span style=\"font-size:1",
+     "sales_manager": null,
+     "secondary_cities": "",
+     "secondary_postal_codes": "",
+     "secondary_states": "",
+     "skills": "IBM",
+     "state": "",
+     "tax_terms": "",
+     "updated": "Today",
+     "_region": "APAC"
+    },
+    {
+     "_id": "6ad1fcae582f96e94e099670",
+     "id": "z5G7h3l6a1kMvyS65NP3c3z-VtEIdf-PwQA6RVRTE5k=",
+     "apply_job": "https://candidateportal.ceipal.com/login/Tk-USQGnxkONWxda0Ha29I7BKh4v7GLJN3pxgx0kdIs/Od1hlLeM5FTEJ5hCX7o4MSma9Gf4IaKJJ3wNzdsn41Q",
+     "apply_job_without_registration": "https://candidateportal.ceipal.com/job-details/Qee0iE2Mqd0vEknhRaLedEaVNUA2S5i8AbSTOQMr6Bc",
+     "assigned_recruiter": "z5G7h3l6a1kMvyS65NP3c1-hkPa695fVfhC_lVrPHe8=,z5G7h3l6a1kMvyS65NP3cxuKmdxT-SeZt3Reu-jCwTw=,z5G7h3l6a1kMvyS65NP3c3VXGlj9r_Od_prpZ6EYaXg=,z5G7h3l6a1kMvyS65NP3c4vdMKDYQybAevsufc1h3O8=,z5G7h3l6a1kMvyS65NP3c0er-8Cdafz_bfkW5KdS-yU=,z5G7h3l6a1kMvyS65NP3c6i9wI00KubSW9Atoj7dG2Q=,z5G7h3l6a1kMvyS65NP3c2tqHMX0l5r-AEcodsCT0w8=,z5G7h3l6a1kMvyS65NP3c000zWwyKX9xdyuJ7NOLwaE=,z5G7h3l6a1kMvyS65NP3c1rs65OcRdHKoInQMQofw18=,z5G7h3l6a1kMvyS65NP3c1ptNMgVBeKqWotxBsOJ1D8=",
+     "business_unit_id": 1,
+     "city": "",
+     "closing_date": "Open Until Filled",
+     "company": 21237,
+     "country": "Australia",
+     "created": "2026-10-16 06:18:40",
+     "created_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "currency": "AUD",
+     "employment_type": "Contract",
+     "industry": "Consulting",
+     "is_recycle": 0,
+     "job_category": "",
+     "job_code": "JPC4142",
+     "job_end_date": null,
+     "job_start_date": "2026-10-16",
+     "job_status": "Open",
+     "job_type": "Direct Client",
+     "modified": "2026-10-16 06:18:40",
+     "modified_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "pay_rates": [
+      {
+       "pay_rate_currency": null,
+       "pay_rate": "N/A",
+       "pay_rate_pay_frequency_type": null,
+       "pay_rate_employment_type": null,
+       "min_pay_rate": "",
+       "max_pay_rate": "N/A"
+      }
+     ],
+     "position_title": "Network Security BA",
+     "post_on_careerportal": "Yes",
+     "postal_code": "",
+     "posted_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "primary_recruiter": "z5G7h3l6a1kMvyS65NP3c0er-8Cdafz_bfkW5KdS-yU=",
+     "priority": "",
+     "public_job_desc": "",
+     "public_job_title": "",
+     "recruitment_manager": "z5G7h3l6a1kMvyS65NP3c6i9wI00KubSW9Atoj7dG2Q=",
+     "remote_opportunities": "No",
+     "requisition_description": "<div>About Us:</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>ALOIS Australia is a leading Talent and Technology Solutions company, focused on helping businesses across the country build stronger teams, smarter processes, and sustainable growth.<br />\r\nWe work with organisations in diverse industries to deliver integrated workforce and technology solutions, from innovative hiring strategies to end-to-end digital transformation. Our approach combines data, insight, and human expertise to help clients solve complex workforce challenges with clarity and confidence.</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>Through our deep industry experience and commitment to excellence, we provide scalable, high-performance solutions that deliver measurable impact. Whether it&rsquo;s onshore project delivery, workforce optimisation, or specialised technology services, ALOIS Australia ensures results that truly make a difference.<br />\r\nFrom Sydney to Perth and everywhere in between, we&rsquo;re driven by one purpose: to empower Australian businesses and professionals to thrive in a rapidly changing world of work. At ALOIS Australia, every challenge is an opportunity to innovate, and every partnership is built on trust, transparency, and long-term success.</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>Job Title &ndash; Network Security BA<br />\r\nJob Location &ndash; Sydney&nbsp;<br />\r\nEmployment Type &ndash; Contract/FTC</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>What role you will play in Team:\r\n<p><span style=\"font-size:11pt\"><s",
+     "sales_manager": null,
+     "secondary_cities": "",
+     "secondary_postal_codes": "",
+     "secondary_states": "",
+     "skills": "Network Security",
+     "state": "",
+     "tax_terms": "",
+     "updated": "Yesterday",
+     "_region": "APAC"
+    },
+    {
+     "_id": "6ad1fcae582f96e94e099671",
+     "id": "z5G7h3l6a1kMvyS65NP3c5uou5VPeiWvlnsXpDKThaw=",
+     "apply_job": "https://candidateportal.ceipal.com/login/yZCmEKPfYK7dPj8mQaesmqsW7Yr9kDwRjLORuHK6-v0/fq-xSLbAGmtFu6GH1-BCLioyrFHjrxfYjCb8xR1RmpY",
+     "apply_job_without_registration": "https://candidateportal.ceipal.com/job-details/TrlfqP96gEv95LFhN8uOsdPYe4rwzgpnkQ2QX2NdE7U",
+     "assigned_recruiter": "z5G7h3l6a1kMvyS65NP3c1-hkPa695fVfhC_lVrPHe8=,z5G7h3l6a1kMvyS65NP3cxuKmdxT-SeZt3Reu-jCwTw=,z5G7h3l6a1kMvyS65NP3c3VXGlj9r_Od_prpZ6EYaXg=,z5G7h3l6a1kMvyS65NP3c4vdMKDYQybAevsufc1h3O8=,z5G7h3l6a1kMvyS65NP3c0er-8Cdafz_bfkW5KdS-yU=,z5G7h3l6a1kMvyS65NP3c6i9wI00KubSW9Atoj7dG2Q=,z5G7h3l6a1kMvyS65NP3c2tqHMX0l5r-AEcodsCT0w8=,z5G7h3l6a1kMvyS65NP3c000zWwyKX9xdyuJ7NOLwaE=,z5G7h3l6a1kMvyS65NP3c1rs65OcRdHKoInQMQofw18=,z5G7h3l6a1kMvyS65NP3c1ptNMgVBeKqWotxBsOJ1D8=",
+     "business_unit_id": 1,
+     "city": "",
+     "closing_date": "Open Until Filled",
+     "company": 21237,
+     "country": "Australia",
+     "created": "2026-10-16 06:16:41",
+     "created_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "currency": "AUD",
+     "employment_type": "Contract",
+     "industry": "Consulting",
+     "is_recycle": 0,
+     "job_category": "",
+     "job_code": "JPC4141",
+     "job_end_date": null,
+     "job_start_date": "2026-10-16",
+     "job_status": "Open",
+     "job_type": "Direct Client",
+     "modified": "2026-10-16 06:16:41",
+     "modified_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "pay_rates": [
+      {
+       "pay_rate_currency": null,
+       "pay_rate": "N/A",
+       "pay_rate_pay_frequency_type": null,
+       "pay_rate_employment_type": null,
+       "min_pay_rate": "",
+       "max_pay_rate": "N/A"
+      }
+     ],
+     "position_title": "Active Directory/IAM BA",
+     "post_on_careerportal": "Yes",
+     "postal_code": "",
+     "posted_by": "z5G7h3l6a1kMvyS65NP3c05v4edwREx08VS82Hd4aC4=",
+     "primary_recruiter": "z5G7h3l6a1kMvyS65NP3c0er-8Cdafz_bfkW5KdS-yU=",
+     "priority": "",
+     "public_job_desc": "",
+     "public_job_title": "",
+     "recruitment_manager": "z5G7h3l6a1kMvyS65NP3c6i9wI00KubSW9Atoj7dG2Q=",
+     "remote_opportunities": "No",
+     "requisition_description": "<div>About Us:</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>ALOIS Australia is a leading Talent and Technology Solutions company, focused on helping businesses across the country build stronger teams, smarter processes, and sustainable growth.<br />\r\nWe work with organisations in diverse industries to deliver integrated workforce and technology solutions, from innovative hiring strategies to end-to-end digital transformation. Our approach combines data, insight, and human expertise to help clients solve complex workforce challenges with clarity and confidence.</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>Through our deep industry experience and commitment to excellence, we provide scalable, high-performance solutions that deliver measurable impact. Whether it&rsquo;s onshore project delivery, workforce optimisation, or specialised technology services, ALOIS Australia ensures results that truly make a difference.<br />\r\nFrom Sydney to Perth and everywhere in between, we&rsquo;re driven by one purpose: to empower Australian businesses and professionals to thrive in a rapidly changing world of work. At ALOIS Australia, every challenge is an opportunity to innovate, and every partnership is built on trust, transparency, and long-term success.</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>Job Title &ndash;Active Directory/IAM BA<br />\r\nJob Location &ndash; Sydney&nbsp;<br />\r\nEmployment Type &ndash; Contract/FTC</div>\r\n\r\n<div>&nbsp;</div>\r\n\r\n<div>What role you will play in Team:\r\n<p><span style=\"font-size:11pt\"",
+     "sales_manager": null,
+     "secondary_cities": "",
+     "secondary_postal_codes": "",
+     "secondary_states": "",
+     "skills": "IAM",
+     "state": "",
+     "tax_terms": "",
+     "updated": "Yesterday",
+     "_region": "APAC"
+    }
+   ]
+  ],
+  "metadata": {
+   "company": [
+    {
+     "name": "",
+     "licence": [
+      {
+       "moduleName": "",
+       "isAccesible": true,
+       "permissions": [
+        {
+         "subModuleName": "",
+         "create": true,
+         "read": true,
+         "update": true,
+         "delete": true
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "user": {
+    "firstName": "",
+    "lastName": "",
+    "email": "",
+    "contact": "",
+    "licence": [
+     {
+      "moduleName": "",
+      "isAccesible": true,
+      "permissions": [
+       {
+        "subModuleName": "",
+        "create": true,
+        "read": true,
+        "update": true,
+        "delete": true,
+        "customeFilter": [
+         {
+          "filter": {
+           "team": "jignesh"
+          },
+          "create": true,
+          "read": true,
+          "update": true,
+          "delete": true
+         },
+         {
+          "filter": {
+           "UserName": "Akash"
+          },
+          "create": true,
+          "read": true,
+          "update": true,
+          "delete": true
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "data": {
+    "options": {
+     "sortBy": "desc",
+     "populate": "",
+     "limit": 10,
+     "page": 1
+    },
+    "filter": [
+     {}
+    ]
+   }
+  }
+ }
+}

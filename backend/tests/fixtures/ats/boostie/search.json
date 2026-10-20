@@ -1,0 +1,37 @@
+{
+ "data": {
+  "items": [
+   {
+    "id": 772506,
+    "atsId": "24696",
+    "applyPageId": null,
+    "jobTitle": "Hardware Engineer Mid.",
+    "jobSummaryShort": "Integrate SoC IPs and RTL, 7+ years experience required.",
+    "employmentType": "Contract",
+    "shifts": [],
+    "compensation": null,
+    "location": "REMOTE, CO",
+    "jobPageUrl": "/job/24696-hardware-engineer-mid-centennial-co",
+    "isPublished": true,
+    "isOpen": true,
+    "dateJobSaved": null
+   },
+   {
+    "id": 772493,
+    "atsId": "24695",
+    "applyPageId": null,
+    "jobTitle": "Structural Engineer III",
+    "jobSummaryShort": "Design advanced structural products for mission payloads, aircraft, and orbital systems-senior role, 6+ years experience.",
+    "employmentType": "Contract",
+    "shifts": [],
+    "compensation": null,
+    "location": "Hagerstown, MD",
+    "jobPageUrl": "/job/24695-structural-engineer-iii-hagerstown-md",
+    "isPublished": true,
+    "isOpen": true,
+    "dateJobSaved": null
+   }
+  ],
+  "count": 32
+ }
+}

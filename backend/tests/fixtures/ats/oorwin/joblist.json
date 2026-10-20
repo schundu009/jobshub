@@ -1,0 +1,60 @@
+{
+ "success": 1,
+ "message": "success",
+ "data": {
+  "list_details": {
+   "total": 113,
+   "current_page": 1,
+   "data": [
+    {
+     "title": "Onsite_Vermilion Reporting Specialist  --Newark, NJ",
+     "experience_range": "",
+     "code": "OOJ - 27691",
+     "cp_published_on": "2026-10-20 15:14:54.000",
+     "remote_status": "OnSite",
+     "cp_published_by": 373,
+     "id": 29647,
+     "computed_sha1_job_id": "74ca3335a695f9a800248609952972b7b661896e",
+     "city": "NEWARK",
+     "country": 1,
+     "state": "30",
+     "allow_referral_in_cp": 1,
+     "job_type": "Contractual",
+     "placement_type": "Contractual",
+     "state_format_name": "New Jersey",
+     "country_format_name": "USA",
+     "encid": 29647
+    },
+    {
+     "title": "Onsite _PLC programmer_ Houston, TX",
+     "experience_range": "",
+     "code": "OOJ - 27690",
+     "cp_published_on": "2026-10-20 14:36:18.000",
+     "remote_status": "OnSite",
+     "cp_published_by": 373,
+     "id": 29646,
+     "computed_sha1_job_id": "37bdbc4c87d0696cc23fe6c9de9c84e0244af673",
+     "city": "HOUSTON",
+     "country": 1,
+     "state": "43",
+     "allow_referral_in_cp": 1,
+     "job_type": "Contractual",
+     "placement_type": "Contractual",
+     "state_format_name": "Texas",
+     "country_format_name": "USA",
+     "encid": 29646
+    }
+   ],
+   "last_page": 8,
+   "columns_data_type": {
+    "code": "text",
+    "title": "text",
+    "job_type": "select",
+    "experience_range": "range",
+    "remote_status": "radio",
+    "placement_type": "select"
+   }
+  }
+ },
+ "status": 1
+}

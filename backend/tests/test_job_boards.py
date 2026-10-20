@@ -205,6 +205,19 @@ def test_scrape_all_includes_boards(boards_db, monkeypatch):
     assert dispatched == [("scrapers_http", "acmeboard")]
 
 
+def test_scrape_all_sends_browser_boards_to_the_browser_queue(boards_db, monkeypatch):
+    from tasks import scraper_tasks
+    add_board(boards_db)
+    add_board(boards_db, slug="acmeceipal", ats="ceipal", board="acme.com/careers/", name="Acme Ceipal")
+    monkeypatch.setattr(scraper_tasks, "_interval_gate", lambda force: None)
+    monkeypatch.setattr(scraper_tasks.ScraperRegistry, "get_all", classmethod(lambda cls: {}))
+    dispatched = []
+    monkeypatch.setattr(scraper_tasks, "_dispatch_staggered",
+                        lambda sigs, queue: dispatched.extend((queue, s.args[0]) for s in sigs))
+    scraper_tasks.scrape_all_companies(force=True)
+    assert sorted(dispatched) == [("scrapers_browser", "acmeceipal"), ("scrapers_http", "acmeboard")]
+
+
 def test_scrape_company_http_saves_and_records_a_board(boards_db, monkeypatch):
     from tasks import scraper_tasks
     add_board(boards_db)

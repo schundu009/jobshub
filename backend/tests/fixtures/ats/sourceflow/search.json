@@ -1,0 +1,167 @@
+{
+ "total_size": 2,
+ "results": [
+  {
+   "job": {
+    "id": "8955991e-9697-48b3-86d8-cedf484aa343",
+    "title": "Founding Engineer, Mobile & Web",
+    "description": "<p><strong>About the Company</strong></p>\n\n<p>Our client is building AI-powered software that helps organizations protect and operate complex physical environments. The platform brings operational data, security systems, and real-time intelligence together so teams can understand what\u2019s happening and respond quickly.</p>\n\n<p>The company has secured institutional funding, built a functional MVP, an",
+    "addresses": [
+     "Bellevue, Washington"
+    ],
+    "original_location": "Bellevue, Washington",
+    "url_slug": "founding-engineer-mobile-web-5696",
+    "salary_package": "$178,000 - $195,000 Annually",
+    "salary_low": 0.0,
+    "salary_high": 0.0,
+    "published_at": 1792170579,
+    "external_reference": "5696",
+    "categories": [
+     {
+      "id": "93a0bb71-f58c-42c2-9f8b-305f5455a9ac",
+      "name": "Recruiter",
+      "values": [
+       {
+        "id": "d27912d2-dd6b-4a8b-9ebd-f890c985f0c6",
+        "name": "Shauna Swerland",
+        "_order": null
+       }
+      ]
+     },
+     {
+      "id": "7d2be276-ca56-4bd0-8dec-dd524c446a80",
+      "name": "Meet the Team/Consultants",
+      "values": [
+       {
+        "id": "08675d3f-97cd-4ae7-8886-19c5e99546fe",
+        "name": "Albert Squiers",
+        "_order": 1
+       }
+      ]
+     },
+     {
+      "id": "48c36150-7c45-4d7a-9b63-58fc5264eadf",
+      "name": "Employment Type",
+      "values": [
+       {
+        "id": "08ac50a1-beda-4f6d-a126-3f0e74754b97",
+        "name": "Full Time",
+        "_order": null
+       }
+      ]
+     },
+     {
+      "id": "e06275dc-5658-478f-8e5b-083d8d74e716",
+      "name": "By Location",
+      "values": [
+       {
+        "id": "784bc8ce-b9b3-4910-ab91-a0c721ce5aa8",
+        "name": "On-Site",
+        "_order": null
+       }
+      ]
+     }
+    ],
+    "derived_info": {
+     "locations": [
+      {
+       "location_type": "STREET_ADDRESS",
+       "postal_address": {
+        "region_code": "US",
+        "postal_code": "98004",
+        "administrative_area": "WA",
+        "locality": "Bellevue",
+        "address_lines": [
+         "500 108th Ave NE Unit 1100, Bellevue, WA 98004, USA"
+        ]
+       },
+       "lat_lng": {
+        "latitude": 47.6151541,
+        "longitude": -122.1957786
+       },
+       "radius_miles": 7.429069132945096e-05
+      }
+     ],
+     "job_categories": [
+      "COMPUTER_AND_IT"
+     ]
+    }
+   },
+   "summary": "About the Company Our client is building AI-powered software that helps organizations protect and operate complex physical environments. The platform brings operational data, security systems, and real-time intelligence together so teams can understand what\u2019s happening and respond quickly. The company has secured institutional funding, built a functional MVP, and is working with early customers...",
+   "title_snippet": "Founding Engineer, Mobile & Web",
+   "text_snippet": "About the Company Our client is building AI-powered software that helps organizations protect and operate complex physical environments. The platform brings operational data, security systems, and real-time intelligence together so teams can understand what\u2019s happening and respond quickly. The company has secured institutional funding, built a functional MVP, and is working with early customers...",
+   "commute_info": {}
+  },
+  {
+   "job": {
+    "id": "ba5ccd3f-4aaa-4257-8d6a-04ed51f3d742",
+    "title": "Inference Engineering Lead",
+    "description": "<h1>Inference Engineering Lead</h1>\n\n<p><strong>Location:</strong> Remote, North America<br>\n<strong>Compensation:</strong> $290,000\u2013$340,000 base salary</p>\n\n<h2>About the Opportunity</h2>\n\n<p>Fuel Talent is partnering with a growing AI technology company seeking an experienced <strong>Inference Engineering Lead</strong> to own the technical direction, architecture, and performance of its AI infe",
+    "addresses": [],
+    "original_location": null,
+    "url_slug": "inference-engineering-lead-5694",
+    "salary_package": "$290,000 - $340,000 Annually",
+    "salary_low": 0.0,
+    "salary_high": 0.0,
+    "published_at": 1792046344,
+    "external_reference": "5694",
+    "categories": [
+     {
+      "id": "93a0bb71-f58c-42c2-9f8b-305f5455a9ac",
+      "name": "Recruiter",
+      "values": [
+       {
+        "id": "d27912d2-dd6b-4a8b-9ebd-f890c985f0c6",
+        "name": "Shauna Swerland",
+        "_order": null
+       }
+      ]
+     },
+     {
+      "id": "7d2be276-ca56-4bd0-8dec-dd524c446a80",
+      "name": "Meet the Team/Consultants",
+      "values": [
+       {
+        "id": "08675d3f-97cd-4ae7-8886-19c5e99546fe",
+        "name": "Albert Squiers",
+        "_order": 1
+       }
+      ]
+     },
+     {
+      "id": "48c36150-7c45-4d7a-9b63-58fc5264eadf",
+      "name": "Employment Type",
+      "values": [
+       {
+        "id": "08ac50a1-beda-4f6d-a126-3f0e74754b97",
+        "name": "Full Time",
+        "_order": null
+       }
+      ]
+     },
+     {
+      "id": "e06275dc-5658-478f-8e5b-083d8d74e716",
+      "name": "By Location",
+      "values": [
+       {
+        "id": "75c47325-c40d-4de6-82ac-24ca0a7223e4",
+        "name": "Remote",
+        "_order": 0
+       }
+      ]
+     }
+    ],
+    "derived_info": {
+     "job_categories": [
+      "COMPUTER_AND_IT",
+      "SCIENCE_AND_ENGINEERING"
+     ]
+    }
+   },
+   "summary": "Inference Engineering Lead Location: Remote, North America Compensation: $290,000\u2013$340,000 base salary About the Opportunity Fuel Talent is partnering with a growing AI technology company seeking an experienced Inference Engineering Lead to own the technical direction, architecture, and performance of its AI inference infrastructure. This is a highly technical leadership opportunity for someone...",
+   "title_snippet": "Inference Engineering Lead",
+   "text_snippet": "Inference Engineering Lead Location: Remote, North America Compensation: $290,000\u2013$340,000 base salary About the Opportunity Fuel Talent is partnering with a growing AI technology company seeking an experienced Inference Engineering Lead to own the technical direction, architecture, and performance of its AI inference infrastructure. This is a highly technical leadership opportunity for someone...",
+   "commute_info": {}
+  }
+ ]
+}

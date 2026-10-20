@@ -576,7 +576,8 @@ def scrape_all_companies(force: bool = False) -> dict:
                 else:
                     browser_tasks.append(scrape_company_browser.s(slug))
 
-            # Companies added as data (job_boards rows) run like any HTTP scraper.
+            # Companies added as data (job_boards rows) run like the coded scrapers:
+            # HTTP boards on the HTTP queue, boards read in a real browser (Ceipal) on the browser queue.
             for slug in ScraperRegistry.list_board_slugs():
                 try:
                     if not is_scraper_enabled(db, slug):
@@ -584,7 +585,11 @@ def scrape_all_companies(force: bool = False) -> dict:
                         continue
                 except Exception as e:
                     logger.warning(f"Error checking board {slug}, including it anyway: {e}")
-                http_tasks.append(scrape_company_http.s(slug))
+                meta = ScraperRegistry.get_metadata(slug) or {}
+                if meta.get("scraper_type") == ScraperType.PLAYWRIGHT.value:
+                    browser_tasks.append(scrape_company_browser.s(slug))
+                else:
+                    http_tasks.append(scrape_company_http.s(slug))
 
             # Dispatch, staggered DISPATCH_STAGGER_SECONDS apart so ~250 tasks
             # don't all sit unacked on the broker at once.

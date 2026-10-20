@@ -1,0 +1,42 @@
+{
+ "response_text": "",
+ "top_results": [
+  {
+   "id": "29493582",
+   "reference": "26-02694",
+   "score": 0.0,
+   "last_updated": "2026-10-20T10:43:12",
+   "title": "IT Infrastructure Engineer",
+   "city": "Orlando",
+   "state": "FL",
+   "payrate_min": 0.0,
+   "payrate_max": 0.0,
+   "payrate_per": "Hour",
+   "salary_currency": "USD",
+   "salary_symbol": "$",
+   "priority": "B",
+   "remote_pct": 50,
+   "industry": "Hospitality & Travel",
+   "summary": "Site Infrastructure Engineer supporting technology deployments and integrations across fulfillment facilities"
+  },
+  {
+   "id": "29437252",
+   "reference": "26-02610",
+   "score": 0.0,
+   "last_updated": "2026-10-20T10:36:48",
+   "title": "Records Retention Specialist/Courier",
+   "city": "Tampa",
+   "state": "FL",
+   "payrate_min": 0.0,
+   "payrate_max": 0.0,
+   "payrate_per": "Hour",
+   "salary_currency": "USD",
+   "salary_symbol": "$",
+   "priority": "C",
+   "remote_pct": 0,
+   "industry": "Utilities",
+   "summary": "Records management specialist providing customer support, system administration, and courier services with hands-on document handling and inventory management"
+  }
+ ],
+ "related_results": []
+}

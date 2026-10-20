@@ -1,0 +1,65 @@
+{
+ "version": "1.0",
+ "fetchedAt": "2026-10-20T19:01:45+02:00",
+ "itemsTotalCount": 1025,
+ "items": [
+  {
+   "jobReqId": "33718",
+   "title": "Service Tekniker - Norrland",
+   "postStartDate": "2024-11-05T09:05:15+01:00",
+   "created": "2024-11-05T08:54:09+01:00",
+   "applicationUrl": "https://career2.successfactors.eu/career?career_ns=job_application&company=assaabloya&career_job_req_id=33718&selected_lang=en_US",
+   "evergreen": true,
+   "jobFunction": {
+    "category": "Construction"
+   },
+   "locations": [
+    {
+     "address": "Servicegatan 6",
+     "region": "Europe",
+     "country": "Sweden",
+     "city": "Skellefteå",
+     "state": null
+    },
+    {
+     "address": "Lärlingsgatan 29b",
+     "region": "Europe",
+     "country": "Sweden",
+     "city": "Umeå",
+     "state": null
+    }
+   ],
+   "experienceLevel": {
+    "name": "Entry level",
+    "value": 3
+   },
+   "expiresAt": null
+  },
+  {
+   "jobReqId": "34039",
+   "title": "Servicetechniker (m/w/d) Norddeutschland [ST]",
+   "postStartDate": "2024-11-15T13:29:09+01:00",
+   "created": "2024-11-15T13:21:46+01:00",
+   "applicationUrl": "https://career2.successfactors.eu/career?career_ns=job_application&company=assaabloya&career_job_req_id=34039&selected_lang=en_US",
+   "evergreen": true,
+   "jobFunction": {
+    "category": "Construction"
+   },
+   "locations": [
+    {
+     "address": "Lagerstrasse 45",
+     "region": "Europe",
+     "country": "Germany",
+     "city": "Dieburg",
+     "state": "Hesse"
+    }
+   ],
+   "experienceLevel": {
+    "name": "Associate",
+    "value": 4
+   },
+   "expiresAt": "2025-11-15T23:59:59+01:00",
+   "applicationDueDate": "2025-11-15T23:59:59+01:00"
+  }
+ ]
+}

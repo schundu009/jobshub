@@ -11,7 +11,9 @@ scraper has the slug.
 import logging
 import re
 from typing import Optional
+from urllib.parse import quote
 
+from scrapers import ats as ats_types
 from scrapers.base import HTTPScraper, ScraperConfig, ScraperType
 from scrapers.custom.remaining_scrapers import (
     AshbyMixin,
@@ -38,9 +40,16 @@ _MIXINS = {
     "icims": ICIMSMixin,
     "successfactors": SuccessFactorsMixin,
 }
+# The systems ats_detect can find and probe; scrapers.ats adds more that rows may name.
 SUPPORTED_ATS = tuple(_MIXINS)
 
+
+def board_ats_names() -> tuple[str, ...]:
+    """Every ats a job_boards row may name."""
+    return SUPPORTED_ATS + tuple(ats_types.load_all())
+
 _TOKEN = re.compile(r"[A-Za-z0-9_.\-]{1,120}")
+_ASHBY_ORG = re.compile(r"[A-Za-z0-9_.\-]+(?: [A-Za-z0-9_.\-]+){0,5}")
 _WORKDAY_HOST = re.compile(r"[a-z0-9\-]+\.wd\d+\.myworkdayjobs\.com")
 _ICIMS_HOST = re.compile(r"[a-z0-9\-]+\.icims\.com")
 # A SuccessFactors Career Site Builder site, usually on the company's own domain.
@@ -60,6 +69,9 @@ def workday_parts(board: str) -> Optional[tuple[str, str, str]]:
 
 def api_url(ats: str, board: str) -> Optional[str]:
     """The ATS's public job-list API for a board, or None when ats/board is not usable."""
+    extra = ats_types.get(ats) if ats not in _MIXINS else None
+    if extra:
+        return extra.start_url(board) if board and extra.valid(board) else None
     if ats == "workday":
         parts = workday_parts(board)
         return f"https://{parts[0]}/wday/cxs/{parts[1]}/{parts[2]}/jobs" if parts else None
@@ -71,6 +83,9 @@ def api_url(ats: str, board: str) -> Optional[str]:
         # One API for every firm; the key keeps each board's URL distinct.
         parts = jobdiva_parts(board)
         return f"https://ws.jobdiva.com/candPortal/rest/job/searchjobsportal?a={parts[1]}" if parts else None
+    if ats == "ashby" and len(board or "") <= 120 and _ASHBY_ORG.fullmatch(board or ""):
+        # Ashby org names may hold spaces ("Grindr LLC"); the API takes them URL-encoded.
+        return f"https://api.ashbyhq.com/posting-api/job-board/{quote(board)}"
     if not _TOKEN.fullmatch(board or ""):
         return None
     if ats == "greenhouse":
@@ -86,6 +101,9 @@ def api_url(ats: str, board: str) -> Optional[str]:
 
 def board_careers_url(ats: str, board: str) -> Optional[str]:
     """The public board page, for rows saved without a careers URL."""
+    extra = ats_types.get(ats) if ats not in _MIXINS else None
+    if extra:
+        return extra.careers_url(board) if board and extra.valid(board) else None
     if ats == "workday":
         parts = workday_parts(board)
         return f"https://{parts[0]}/{parts[2]}" if parts else None
@@ -96,7 +114,7 @@ def board_careers_url(ats: str, board: str) -> Optional[str]:
     return {
         "greenhouse": f"https://job-boards.greenhouse.io/{board}",
         "lever": f"https://jobs.lever.co/{board}",
-        "ashby": f"https://jobs.ashbyhq.com/{board}",
+        "ashby": f"https://jobs.ashbyhq.com/{quote(board or '')}",
         "smartrecruiters": f"https://jobs.smartrecruiters.com/{board}",
     }.get(ats)
 
@@ -117,7 +135,9 @@ def build_scraper_class(board: dict) -> Optional[type]:
     """
     ats = board.get("ats")
     url = api_url(ats, board.get("board"))
-    if ats not in _MIXINS or not url:
+    extra = ats_types.get(ats) if ats not in _MIXINS else None
+    mixin = _MIXINS.get(ats) or (extra.mixin if extra else None)
+    if not mixin or not url:
         return None
     key = (board["slug"], board["company_name"], ats, board["board"], board.get("careers_url"))
     if key in _class_cache:
@@ -127,7 +147,7 @@ def build_scraper_class(board: dict) -> Optional[type]:
             company_slug=board["slug"],
             company_name=board["company_name"],
             careers_url=board.get("careers_url") or board_careers_url(ats, board["board"]) or url,
-            scraper_type=ScraperType.HTTP,
+            scraper_type=ScraperType.PLAYWRIGHT if extra and extra.browser else ScraperType.HTTP,
             rate_limit=30,
             max_pages=20,
         ),
@@ -142,8 +162,10 @@ def build_scraper_class(board: dict) -> Optional[type]:
         attrs["ICIMS_HOST"] = board["board"]
     if ats == "successfactors":
         attrs["SF_HOST"] = board["board"]
+    if extra:
+        attrs.update(extra.attrs(board["board"]))
     name = re.sub(r"[^A-Za-z0-9]", "", board["slug"].title()) or "Board"
-    cls = type(f"{name}BoardScraper", (_MIXINS[ats], BoardScraper), attrs)
+    cls = type(f"{name}BoardScraper", (mixin, BoardScraper), attrs)
     _class_cache[key] = cls
     return cls
 
@@ -154,7 +176,7 @@ def board_metadata(board: dict) -> dict:
     return {
         "category": BOARD_CATEGORY,
         "company_name": board["company_name"],
-        "scraper_type": ScraperType.HTTP.value,
+        "scraper_type": (cls.config.scraper_type if cls else ScraperType.HTTP).value,
         "careers_url": cls.config.careers_url if cls else (board.get("careers_url") or ""),
         "rate_limit": 30,
         "ats": board.get("ats"),

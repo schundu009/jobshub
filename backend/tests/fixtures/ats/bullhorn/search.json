@@ -1,0 +1,67 @@
+{
+ "total": 3,
+ "start": 0,
+ "count": 3,
+ "data": [
+  {
+   "employmentType": "Contract",
+   "dateLastPublished": 1792184217737,
+   "payRate": 0.0,
+   "publicDescription": "<p><strong>Title:</strong> Senior Windows Server Engineer</p><p><strong>Location:</strong> Jersey City, NJ</p><p><strong>Pay:</strong> $ 63.00/hour + optional medical, dental, vision</p>",
+   "publishedCategory": {
+    "id": 2000243,
+    "name": "Infrastructure & Security"
+   },
+   "id": 32932,
+   "address": {
+    "zip": "07310",
+    "city": "Jersey City",
+    "state": "New Jersey",
+    "countryID": 1
+   },
+   "title": "Senior Windows Server Engineer",
+   "salary": 0.0,
+   "salaryUnit": ""
+  },
+  {
+   "employmentType": "Contract",
+   "dateLastPublished": 1792180051080,
+   "payRate": 0.0,
+   "publicDescription": "<p>Scrum Master for an agile delivery team.</p>",
+   "publishedCategory": {
+    "id": 2000242,
+    "name": "Managed Services and Support"
+   },
+   "id": 32929,
+   "address": {
+    "zip": "15222",
+    "city": "Pittsburgh",
+    "state": "Pennsylvania",
+    "countryID": 1
+   },
+   "title": "Scrum Master",
+   "salary": 0.0,
+   "salaryUnit": ""
+  },
+  {
+   "employmentType": "Contract",
+   "dateLastPublished": 1792157177463,
+   "payRate": 18.0,
+   "publicDescription": "<p>Member services for a health plan.</p><p><strong>Pay Rate:</strong> $18.00 per Hour</p>",
+   "publishedCategory": {
+    "id": 2000120,
+    "name": " Clinical"
+   },
+   "id": 25845,
+   "address": {
+    "zip": null,
+    "city": "Dallas",
+    "state": "TX",
+    "countryID": 1
+   },
+   "title": "Member Services Specialist",
+   "salary": 0.0,
+   "salaryUnit": "Per Hour"
+  }
+ ]
+}

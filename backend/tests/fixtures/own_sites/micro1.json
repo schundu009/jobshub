@@ -1,0 +1,94 @@
+{
+ "kind": "json",
+ "url": "https://prod-api.micro1.ai/api/v1/job/portal",
+ "payload": {
+  "status": true,
+  "message": "All jobs fetched successfully",
+  "statusCode": 200,
+  "total": 249,
+  "data": [
+   {
+    "job_id": "345daaa5-4cbe-4af3-af6f-4e27382d6d41",
+    "ideal_monthly_salary_min": null,
+    "ideal_monthly_salary_max": null,
+    "ideal_hourly_rate": {
+     "max": 70,
+     "min": 50
+    },
+    "ideal_yearly_compensation": null,
+    "job_name": "Certified Inpatient Coder",
+    "company_name": "micro1",
+    "engagement_type": null,
+    "location_type": null,
+    "date_posted": "2026-10-20 17:16:53",
+    "skills": [
+     "Inpatient Coding",
+     "Inpatient Records",
+     "ICD-10"
+    ],
+    "job_tags": null,
+    "role_type": "generalist",
+    "domain_slug": "medicine",
+    "job_type": "REGULAR",
+    "company_logo": "https://micro1-portal-data.s3.amazonaws.com/assets/1744082236915-95e6b5c0-2d84-4d83-aac0-672c6abd08d0-micro1-single-logo.png",
+    "apply_url": "https://jobs.micro1.ai/post/345daaa5-4cbe-4af3-af6f-4e27382d6d41?utm_source=micro1&utm_medium=job_portal",
+    "is_micro1_account": true
+   },
+   {
+    "job_id": "a0417769-16cd-43a1-a5c7-1226f2b10932",
+    "ideal_monthly_salary_min": null,
+    "ideal_monthly_salary_max": null,
+    "ideal_hourly_rate": {
+     "max": 70,
+     "min": 50
+    },
+    "ideal_yearly_compensation": null,
+    "job_name": "Certified Coding Specialist (CCS)",
+    "company_name": "micro1",
+    "engagement_type": null,
+    "location_type": null,
+    "date_posted": "2026-10-20 16:58:08",
+    "skills": [
+     "ICD-10",
+     "CCS",
+     "Inpatient Records"
+    ],
+    "job_tags": [],
+    "role_type": "generalist",
+    "domain_slug": "medicine",
+    "job_type": "REGULAR",
+    "company_logo": "https://micro1-portal-data.s3.amazonaws.com/assets/1744082236915-95e6b5c0-2d84-4d83-aac0-672c6abd08d0-micro1-single-logo.png",
+    "apply_url": "https://jobs.micro1.ai/post/a0417769-16cd-43a1-a5c7-1226f2b10932?utm_source=micro1&utm_medium=job_portal",
+    "is_micro1_account": true
+   },
+   {
+    "job_id": "6fe1b365-e42d-4a8f-a474-89801118311e",
+    "ideal_monthly_salary_min": null,
+    "ideal_monthly_salary_max": null,
+    "ideal_hourly_rate": {
+     "max": 115,
+     "min": 100
+    },
+    "ideal_yearly_compensation": null,
+    "job_name": "Inpatient Care Physician (MD/DO)",
+    "company_name": "micro1",
+    "engagement_type": null,
+    "location_type": null,
+    "date_posted": "2026-10-20 10:49:17",
+    "skills": [
+     "Patient Assessment & Diagnosis",
+     "Inpatient Clinical Care",
+     "Clinical Decision-Making"
+    ],
+    "job_tags": null,
+    "role_type": "expert",
+    "domain_slug": "medicine",
+    "job_type": "REGULAR",
+    "company_logo": "https://micro1-portal-data.s3.amazonaws.com/assets/1744082236915-95e6b5c0-2d84-4d83-aac0-672c6abd08d0-micro1-single-logo.png",
+    "apply_url": "https://jobs.micro1.ai/post/6fe1b365-e42d-4a8f-a474-89801118311e?utm_source=micro1&utm_medium=job_portal",
+    "is_micro1_account": true
+   }
+  ],
+  "company_settings": null
+ }
+}

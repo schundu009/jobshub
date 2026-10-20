@@ -1,0 +1,11 @@
+{"jobs": [
+ {"id": 8691, "slug": "noc-engineer---systems-integrator-8691", "url": "/candidates/job/noc-engineer---systems-integrator-8691/", "reference": "1752235",
+  "title": "NOC Engineer - Systems Integrator", "description": "Looking for a role with plenty of growth opportunities?...", "postDate": "2026-10-20T00:00:00.000Z",
+  "salaryMaximum": "60000", "salaryMinimum": "0", "salaryText": "$60,000", "salaryCurrency": "USD",
+  "location": {"address": "Anchorage, Alaska, United States", "lat": 61.2, "lng": -149.9}, "jobTypes": ["Permanent", "60000\r\n"],
+  "remoteWorking": false, "customFields": {"salaryper": "YEARLY"}},
+ {"id": 8702, "slug": "contract-network-engineer", "url": "/candidates/job/contract-network-engineer/", "reference": "1752300",
+  "title": "Contract Network Engineer", "description": "Six month contract...", "postDate": "2026-10-19T00:00:00.000Z",
+  "salaryMaximum": "550", "salaryMinimum": "500", "salaryText": "£500 - £550 per day", "salaryCurrency": "GBP",
+  "location": {"address": "", "lat": null, "lng": null}, "jobTypes": ["Contract"], "remoteWorking": true, "customFields": {"salaryper": "DAILY"}}
+], "totalCount": 2, "nextPageToken": null, "succeeded": true, "count": 2}

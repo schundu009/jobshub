@@ -1,0 +1,101 @@
+{
+ "kind": "json",
+ "url": "https://www.htcinc.com/wp-content/themes/himalayas-child/job-api-proxy-us.php",
+ "payload": {
+  "data": {
+   "display_data": "",
+   "display_msg": true,
+   "jobs": [
+    {
+     "from_number": 1,
+     "job_codes": [
+      "245752",
+      "245779",
+      "245755"
+     ],
+     "job_description": "Job Title: Data Engineer II – GCP & AI\n\nOverview / Summary\n\nWe are seeking a Data Engineer II with 4+ years of data engineering experience to design, build, and maintain scalable data infrastructure, pipelines, and platforms. The ideal candidate...",
+     "job_title": "Data Engineer II – Google Cloud Platform (GCP) & AI",
+     "location_name": "Dearborn",
+     "location_names_list": [
+      "Allen Park",
+      "Bloomington",
+      "Brooklyn"
+     ],
+     "posted_date": "10/20/2026",
+     "requisition_number": "245752",
+     "state_code": "MI",
+     "state_name": "Michigan",
+     "state_names_list": [
+      "California",
+      "Florida",
+      "Illinois"
+     ],
+     "to_number": 112,
+     "total_jobs": 112,
+     "zipcode": "48120"
+    },
+    {
+     "from_number": 1,
+     "job_codes": [
+      "245752",
+      "245779",
+      "245755"
+     ],
+     "job_description": "Job Title: ServiceNow Administrator / Developer\nPosition Overview\nWork on a large-scale ServiceNow platform supporting IT service management, workflow automation, integrations, and multi-cloud resource provisioning and governance. This role focuses...",
+     "job_title": "Software Architect",
+     "location_name": "Columbia",
+     "location_names_list": [
+      "Allen Park",
+      "Bloomington",
+      "Brooklyn"
+     ],
+     "posted_date": "10/20/2026",
+     "requisition_number": "245779",
+     "state_code": "SC",
+     "state_name": "South Carolina",
+     "state_names_list": [
+      "California",
+      "Florida",
+      "Illinois"
+     ],
+     "to_number": 112,
+     "total_jobs": 112,
+     "zipcode": "29210"
+    },
+    {
+     "from_number": 1,
+     "job_codes": [
+      "245752",
+      "245779",
+      "245755"
+     ],
+     "job_description": "Software Engineer – C++ / Java / React / Teamcenter\n\nJob Overview\n\nWe are seeking a Software Engineer to design, develop, test, and maintain software applications and products. The role involves working across the software development lifecycle,...",
+     "job_title": "Teamcenter Software Engineer",
+     "location_name": "Dearborn",
+     "location_names_list": [
+      "Allen Park",
+      "Bloomington",
+      "Brooklyn"
+     ],
+     "posted_date": "10/20/2026",
+     "requisition_number": "245755",
+     "state_code": "MI",
+     "state_name": "Michigan",
+     "state_names_list": [
+      "California",
+      "Florida",
+      "Illinois"
+     ],
+     "to_number": 112,
+     "total_jobs": 112,
+     "zipcode": "48120"
+    }
+   ],
+   "jobs_per_page": 1000,
+   "radius": "30",
+   "total_jobs": 112
+  },
+  "message": "success",
+  "status": "OK"
+ }
+}

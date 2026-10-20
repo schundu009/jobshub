@@ -1,0 +1,261 @@
+[
+ {
+  "id": 35011,
+  "date": "2026-10-20T09:14:08",
+  "date_gmt": "2026-10-20T09:14:08",
+  "link": "https://rgp.com/careers/job-openings/lovable-system-administrator/",
+  "title": {
+   "rendered": "Lovable System Administrator"
+  },
+  "content": {
+   "rendered": "<div>Our client is seeking a hands-on <strong>Lovable System Administrator</strong> to support the configuration, administration, and ongoing maintenance of its Lovable application environment during a critical Accounts Receivable transformation initiative. In this role, you will help keep the platform stable, secure, and aligned with evolving business needs while partnering with O2C, AR, Finance, IT, project leadership, developers, and transformation teams.</div>\n<div></div>\n<div>You will be successful in this role if you combine practical business-application administration experience with strong troubleshooting skills, sound judgment, and the ability to translate business requirements int"
+  },
+  "class_list": [
+   "post-35011",
+   "rgp_job_opening",
+   "type-rgp_job_opening",
+   "status-publish"
+  ],
+  "_embedded": {
+   "wp:term": [
+    [
+     {
+      "id": 1505,
+      "name": "Arlington",
+      "slug": "arlington",
+      "taxonomy": "rgp_job_city"
+     }
+    ],
+    [
+     {
+      "id": 314,
+      "name": "Texas",
+      "slug": "texas",
+      "taxonomy": "rgp_job_state"
+     }
+    ],
+    [
+     {
+      "id": 315,
+      "name": "United States",
+      "slug": "united-states",
+      "taxonomy": "rgp_job_country"
+     }
+    ],
+    [
+     {
+      "id": 316,
+      "name": "Consulting",
+      "slug": "consulting",
+      "taxonomy": "rgp_job_category"
+     }
+    ],
+    [
+     {
+      "id": 317,
+      "name": "On Demand Talent",
+      "slug": "on-demand-talent",
+      "taxonomy": "rgp_job_business_unit"
+     }
+    ],
+    [
+     {
+      "id": 1506,
+      "name": "System Selection",
+      "slug": "system-selection",
+      "taxonomy": "rgp_job_solution"
+     }
+    ],
+    [
+     {
+      "id": 322,
+      "name": "Full time",
+      "slug": "full-time",
+      "taxonomy": "rgp_full_or_part_time"
+     }
+    ],
+    [
+     {
+      "id": 704,
+      "name": "Systems Administration Professional",
+      "slug": "systems-administration-professional",
+      "taxonomy": "rgp_job_role"
+     }
+    ],
+    [
+     {
+      "id": 323,
+      "name": "Hybrid up to 3 Days Onsite",
+      "slug": "hybrid-up-to-3-days-onsite",
+      "taxonomy": "rgp_job_worksite"
+     }
+    ],
+    [
+     {
+      "id": 378,
+      "name": "Job",
+      "slug": "job",
+      "taxonomy": "rgp_job_record_type"
+     }
+    ],
+    [
+     {
+      "id": 379,
+      "name": "Salesforce",
+      "slug": "salesforce",
+      "taxonomy": "rgp_job_requisition_source"
+     }
+    ],
+    [
+     {
+      "id": 1507,
+      "name": "Database Administration",
+      "slug": "database-administration",
+      "taxonomy": "rgp_job_skill"
+     }
+    ],
+    [
+     {
+      "id": 321,
+      "name": "Project-Based",
+      "slug": "project-based",
+      "taxonomy": "rgp_job_role_flexibility"
+     }
+    ],
+    [
+     {
+      "id": 747,
+      "name": "Mid Level",
+      "slug": "mid-level",
+      "taxonomy": "rgp_job_work_experience"
+     }
+    ]
+   ]
+  }
+ },
+ {
+  "id": 710,
+  "date": "2026-09-03T20:47:29",
+  "date_gmt": "2026-09-03T20:47:29",
+  "link": "https://heartcentrix.com/jobs/full-stack-net-developer-3065/",
+  "title": {
+   "rendered": "Full Stack .NET Developer"
+  },
+  "content": {
+   "rendered": " <ul class=\"matador-job-meta matador-job-meta-job-710 matador-job-meta-default\"> <li class=\"matador-job-meta-field matador-job-field-job_general_location matador-job-field-value-phoenix-az\"> <span class=\"matador-job-meta-label\">Location:</span> <span class=\"matador-job-meta-value\">Phoenix, AZ</span> </li> <li class=\"matador-job-meta-field matador-job-field-isRemote matador-job-field-value-hybrid\"> <span class=\"matador-job-meta-label\">Remote:</span> <span class=\"matador-job-meta-value\">Hybrid</span> </li> <li class=\"matador-job-meta-field matador-job-field-employmentType matador-job-field-value-contract\"> <span class=\"matador-job-meta-label\">Type:</span> <span class=\"matador-job-meta-value\">C"
+  },
+  "meta": {
+   "_coblocks_attr": "",
+   "_coblocks_dimensions": "",
+   "_coblocks_responsive_height": "",
+   "_coblocks_accordion_ie_support": "",
+   "_matador_source_id": "3065"
+  },
+  "class_list": [
+   "post-710",
+   "matador-job-listings",
+   "type-matador-job-listings",
+   "status-publish",
+   "hentry",
+   "matador-categories-software-developer",
+   "matador-locations-hybrid",
+   "matador-locations-phoenix",
+   "matador-types-contract",
+   "no-post-thumbnail"
+  ],
+  "_embedded": {
+   "wp:term": [
+    [
+     {
+      "id": 37,
+      "name": "Software Developer",
+      "slug": "software-developer",
+      "taxonomy": "matador-categories"
+     }
+    ],
+    [
+     {
+      "id": 38,
+      "name": "Hybrid",
+      "slug": "hybrid",
+      "taxonomy": "matador-locations"
+     },
+     {
+      "id": 52,
+      "name": "Phoenix",
+      "slug": "phoenix",
+      "taxonomy": "matador-locations"
+     }
+    ],
+    [
+     {
+      "id": 35,
+      "name": "Contract",
+      "slug": "contract",
+      "taxonomy": "matador-types"
+     }
+    ]
+   ]
+  }
+ },
+ {
+  "id": 71580,
+  "date": "2026-10-17T01:01:37",
+  "date_gmt": "2026-10-17T00:01:37",
+  "link": "https://storm2.com/jobs/director-of-regulatory-compliance/0117102026/",
+  "title": {
+   "rendered": "Director of Regulatory Compliance"
+  },
+  "content": {
+   "rendered": "<h2>Director of Regulatory Compliance</h2>\n<p><strong>Location:</strong> San Francisco (Hybrid) preferred, remote considered</p>\n<h3>The Opportunity</h3>\n<p>A fast-growing payments company is looking for a Regulatory / Compliance professional to strengthen its compliance function. This is a brand-new role, created by company and team growth. You will help the business operate safely in higher-risk areas of payments and take real ownership of regulatory priorities.</p>\n<h3>Key Responsibilities</h3>\n<ul>\n<li>Advise on regulatory requirements for payments products and customer types.\n\t</li>\n<li>Support compliance across higher-risk merchant and customer segments.\n\t</li>\n<li>Review and improve p"
+  },
+  "meta": {
+   "_acf_changed": false,
+   "_coblocks_attr": "",
+   "_coblocks_dimensions": "",
+   "_coblocks_responsive_height": "",
+   "_coblocks_accordion_ie_support": "",
+   "_promoted": "",
+   "_job_location": "California, United States",
+   "_application": "catherine.bell@storm2.com",
+   "_company_name": "Storm2",
+   "_company_website": "",
+   "_company_tagline": "",
+   "_company_twitter": "",
+   "_company_video": "",
+   "_filled": 0,
+   "_featured": 0,
+   "_remote_position": 0,
+   "_job_salary": "180000",
+   "_job_salary_currency": "$",
+   "_job_salary_unit": "YEAR"
+  },
+  "class_list": [
+   "post-71580",
+   "job_listing",
+   "type-job_listing",
+   "status-publish",
+   "job-type-payments"
+  ],
+  "_embedded": {
+   "wp:term": [
+    [
+     {
+      "id": 569,
+      "name": "Compliance",
+      "slug": "compliance",
+      "taxonomy": "job_listing_category"
+     }
+    ],
+    [
+     {
+      "id": 514,
+      "name": "Payments",
+      "slug": "payments",
+      "taxonomy": "job_listing_type"
+     }
+    ]
+   ]
+  }
+ }
+]

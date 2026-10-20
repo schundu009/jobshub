@@ -1,0 +1,35 @@
+{
+ "status": "Success",
+ "timestamp": "2026-10-20T17:12:37.796564Z",
+ "data": {
+  "totalCount": 104,
+  "requisitions": [
+   {
+    "requisitionId": 11638,
+    "postingEffectiveDate": "10/20/2026",
+    "postingExpirationDate": "11/1/2026",
+    "displayJobTitle": "Senior Deal Desk Analyst - Costa Rica",
+    "locations": [
+     {
+      "city": "Heredia",
+      "country": "CR"
+     }
+    ],
+    "externalDescription": " Senior Deal Desk Analyst Reports to the Deal Desk Manager Role Overview As a Senior Deal Desk Analyst, you will serve as a trusted commercial advisor supporting the company's most complex, high-value"
+   },
+   {
+    "requisitionId": 11637,
+    "postingEffectiveDate": "10/20/2026",
+    "postingExpirationDate": "11/1/2026",
+    "displayJobTitle": "Senior Manager, Payroll Accounting",
+    "locations": [
+     {
+      "city": "Heredia",
+      "country": "CR"
+     }
+    ],
+    "externalDescription": " Job Title: Senior Manager, Payroll Accounting Location: Costa Rica Company Overview: Cornerstone OnDemand (CSOD) is at a critically important juncture in the company’s lifecycle. CSOD is the world’s "
+   }
+  ]
+ }
+}

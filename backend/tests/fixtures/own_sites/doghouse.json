@@ -1,0 +1,199 @@
+{
+ "kind": "json",
+ "url": "https://www.doghouse.nl/api/jobs",
+ "payload": {
+  "metadata": {
+   "count": 69
+  },
+  "data": [
+   {
+    "seo": [
+     {
+      "attributes": null,
+      "content": "Site Reliability Engineer",
+      "tag": "title"
+     },
+     {
+      "attributes": {
+       "property": "og:title",
+       "content": "Site Reliability Engineer"
+      },
+      "content": null,
+      "tag": "meta"
+     },
+     {
+      "attributes": {
+       "name": "twitter:title",
+       "content": "Site Reliability Engineer"
+      },
+      "content": null,
+      "tag": "meta"
+     }
+    ],
+    "id": "CgosmpfuS6ORNL413PjgRw",
+    "_publishedAt": "2026-10-20T11:17:16+01:00",
+    "title": "Site Reliability Engineer",
+    "introduction": "",
+    "content": [
+     {
+      "id": "fFl-rz1STv6Nf8w-Ksfdcg",
+      "heading": "",
+      "paragraph": "<p></p><p>Staff Site Reliability Engineer – Bare Metal Linux \\| Kernel \\| Python / Go \\| Remote US \\[$300K Total Compensation\\] \\[AI Cloud Infrastructure\\] </p><p>Our client is an AI cloud provider that designs and builds its own data centres, powered by NVIDIA GPUs and engineered for AI/ML workloads. They offer the full stack, from GPU clusters and storage to managed Kubernetes and inference, on infrastructure where reliability needs to be engineered, not “handled”. Publicly listed and headquartered in Europe, they have around 2,000 people worldwide, and are scaling fast. </p><p>We are seeking a Staff SRE who will own production reliability end-to-end for our client: define SLIs/SLOs, run error budget conversations, and ship changes that reduce incidents and improve latency (p95/p99). You will build automation to kill toil, improve deployment safety (canary/rollback), and turn observability into signal rather than noise. </p><p>This is a bare-metal environment: think Linux, data centres, physical fleets and real hardware constraints, not managed services. You will work close to the metal on Linux performance (CPU/memory/IO contention), kernel tuning, and network debugging (DNS/TCP/TLS, packet loss, congestion). On-call is part of the job, but success is measured by how much you reduce it. </p><p>You will join our client’s Infrastructure organisation, in the Hardware or the Network team depending on your background, and report to a team lead in Europe. This is a staff level r"
+     }
+    ],
+    "linkedin": "",
+    "jobTags": [],
+    "slug": "site-reliability-engineer",
+    "member": {
+     "id": "PuxQTHbTRNmBOei3r8YSew",
+     "firstname": "Sander",
+     "lastname": "van de Riet",
+     "jobtitle": "Senior Recruiter",
+     "email": "sander@doghouse-recruitment.nl",
+     "phone": "+31646727148",
+     "linkedin": "https://www.linkedin.com/in/sander-van-de-riet/",
+     "image": {
+      "id": "WIJnXnNuSFWRdwnFQu6ZiQ",
+      "responsiveImage": {
+       "srcSet": "https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?dpr=0.25 322w,https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?dpr=0.5 645w,https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?dpr=0.75 968w,https://www.datocms-assets.com/60302/1781680434-sander_v3.webp 1291w",
+       "webpSrcSet": "https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?dpr=0.25&fm=webp 322w,https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?dpr=0.5&fm=webp 645w,https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?dpr=0.75&fm=webp 968w,https://www.datocms-assets.com/60302/1781680434-sander_v3.webp?fm=webp 1291w",
+       "sizes": "(max-width: 1291px) 100vw, 1291px",
+       "src": "https://www.datocms-assets.com/60302/1781680434-sander_v3.webp",
+       "width": 1291,
+       "height": 1291,
+       "aspectRatio": 1,
+       "alt": null,
+       "title": null,
+       "bgColor": "#458cbe",
+       "base64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAoHBwgHBgoIDxQSDRUWDhgNDQ0NDxINCg0OFxcZGBYVFhUaHysjGh0oHSEWJTUlKC0vMjIyGSI4PTcwPCsxMi8BCgsLDg0OHA0QHDUcFhw7Ly8vLy8vNS8vLy8vNTUvLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vL//AABEIABgAGAMBIgACEQEDEQH/xAAZAAACAwEAAAAAAAAAAAAAAAAABgEDBQT/xAAfEAABBAICAwAAAAAAAAAAAAAAAQIDBAURYXESEyL/xAAWAQEBAQAAAAAAAAAAAAAAAAAEBQP/xAAbEQACAgMBAAAAAAAAAAAAAAAAAQIRAyIyBP/aAAwDAQACEQMRAD8AX8dXSRyKbFqP11ivDVmtZs1rcDZKi9FX0T2NZZ1YsL9t0BfE1qSq0BmOeqERzKjvxa7rmv47ouXgkCb6eiI27FFJNXXJyQADMfIqLdH/2Q=="
+      },
+      "video": null
+     }
+    },
+    "references": [],
+    "jobAddress": {
+     "address": "",
+     "city": "",
+     "stateCode": "",
+     "zip": "",
+     "countryCode": "US"
+    }
+   },
+   {
+    "seo": [
+     {
+      "attributes": null,
+      "content": "Senior Infrastructure Engineer",
+      "tag": "title"
+     },
+     {
+      "attributes": {
+       "property": "og:title",
+       "content": "Senior Infrastructure Engineer"
+      },
+      "content": null,
+      "tag": "meta"
+     },
+     {
+      "attributes": {
+       "name": "twitter:title",
+       "content": "Senior Infrastructure Engineer"
+      },
+      "content": null,
+      "tag": "meta"
+     }
+    ],
+    "id": "cY8uLkuxTRu_a1rPOCaJkw",
+    "_publishedAt": "2026-10-14T15:25:14+01:00",
+    "title": "Senior Infrastructure Engineer",
+    "introduction": "",
+    "content": [
+     {
+      "id": "GZDaanjQRsGJ-9OOAuP0Tg",
+      "heading": "",
+      "paragraph": "<p><strong>Senior Infrastructure Engineer | Randstad | Kubernetes / Terraform / Azure | €100k</strong></p><p></p><p>Ready to shape the hybrid infrastructure of a 24/7 energy trading firm?</p><p>My client is an independent energy trading company, active on European power and gas markets. It is a tech-driven firm of around 100 people, data engineers, data scientists and software engineers who develop their own tools for the traders. These tools and systems run 24/7, so stability and security come first.</p><p></p><p>As <strong>Senior Infrastructure Engineer</strong>, you join a small infrastructure team that runs the platforms developers build and run their applications on. The environment is hybrid: roughly half on-prem on Azure Local, half in Azure. You split your time between building (about 60%) and running and administering the platform (40%).</p><p></p><p><strong>Your responsibilities:</strong></p><ul><li>Managing the infrastructure code with Terraform: building and running the platform</li><li>Running and further developing the Kubernetes (AKS) environment</li><li>Managing monitoring and observability (Grafana, Prometheus, Loki)</li><li>Platform administration: helping developers, handling incidents and root-cause analysis, and joining a light on-call rotation</li></ul><p><strong>Your profile:</strong></p><ul><li>5+ years as an Infrastructure, Platform or DevOps Engineer</li><li>3+ years of hands-on experience with Kubernetes</li><li>3+ years of experience with Grafana, "
+     }
+    ],
+    "linkedin": "",
+    "jobTags": [],
+    "slug": "senior-infrastructure-engineer",
+    "member": {
+     "id": "bgclJnChT9yiM_ELWbyYBg",
+     "firstname": "Jan",
+     "lastname": "van Baalen",
+     "jobtitle": "Senior Recruiter",
+     "email": "",
+     "phone": "",
+     "linkedin": "https://www.linkedin.com/in/jan-van-baalen-069283149/",
+     "image": {
+      "id": "RLWLc_DhSgO4-sViQwIDlA",
+      "responsiveImage": {
+       "srcSet": "https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?dpr=0.25 369w,https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?dpr=0.5 739w,https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?dpr=0.75 1108w,https://www.datocms-assets.com/60302/1781680338-jan_v3.webp 1478w",
+       "webpSrcSet": "https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?dpr=0.25&fm=webp 369w,https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?dpr=0.5&fm=webp 739w,https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?dpr=0.75&fm=webp 1108w,https://www.datocms-assets.com/60302/1781680338-jan_v3.webp?fm=webp 1478w",
+       "sizes": "(max-width: 1478px) 100vw, 1478px",
+       "src": "https://www.datocms-assets.com/60302/1781680338-jan_v3.webp",
+       "width": 1478,
+       "height": 1478,
+       "aspectRatio": 1,
+       "alt": null,
+       "title": null,
+       "bgColor": "#774eb1",
+       "base64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAoHBwgHBgoIExAJDggQDg8NBwcRDRENFgcNFxUZGBYVFhUaHysjGh0oHRUiJDUlKC0vMjIyGSI4PTcwPCsxMi8BCgsLDg4OHA0NHC8dFhw7Oy8vLy8vNS8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vLy8vL//AABEIABgAGAMBIgACEQEDEQH/xAAYAAEBAQEBAAAAAAAAAAAAAAAABAUGAv/EABwQAAIDAQADAAAAAAAAAAAAAAABAgMEBQYUFf/EABgBAAIDAAAAAAAAAAAAAAAAAAMFAgQG/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAEDEwIEMf/aAAwDAQACEQMRAD8A57JRKdSRVswSjmUjK+r69SPevyJyxoYbUqsRdRoWUTfOSBHm67twgdQSKtA2zM286apI78co5EAZLZydiJF/PoaxAAeQZOtAX0//2Q=="
+      },
+      "video": null
+     }
+    },
+    "references": [],
+    "jobAddress": null
+   },
+   {
+    "seo": [
+     {
+      "attributes": null,
+      "content": "Artificial Intelligence Engineer",
+      "tag": "title"
+     },
+     {
+      "attributes": {
+       "property": "og:title",
+       "content": "Artificial Intelligence Engineer"
+      },
+      "content": null,
+      "tag": "meta"
+     },
+     {
+      "attributes": {
+       "name": "twitter:title",
+       "content": "Artificial Intelligence Engineer"
+      },
+      "content": null,
+      "tag": "meta"
+     }
+    ],
+    "id": "VYZOpqZgQfOXd5H0KBf2ig",
+    "_publishedAt": "2026-10-13T10:23:10+01:00",
+    "title": "Artificial Intelligence Engineer",
+    "introduction": "",
+    "content": [
+     {
+      "id": "StuaWMwVSXylodBUiprlVg",
+      "heading": "",
+      "paragraph": "<h1>Artificial Intelligence Engineer</h1><p>We back ambitious management teams of well-positioned mid-sized companies and help them grow profitably, organically and through acquisitions. This role turns data and models into sharper investment judgment and faster operational improvement. You will sit close to deal teams and portfolio leaders, so the systems you build change real decisions—not slide decks.</p><h2>Performance Objectives</h2><ul><li>Stand up a repeatable AI workflow that screens inbound and sourced opportunities and flags strategic and operational upside within days, not weeks.</li><li>Build diligence tools that synthesize financial, commercial, and operational evidence into clear findings investment partners can challenge and use.</li><li>Deliver portfolio analytics that track profitability drivers and growth levers, and surface actions management teams can act on each quarter.</li><li>Design acquisition-support models that compare targets, integration risks, and value-creation cases on a consistent basis.</li><li>Embed ESG signals into investment and ownership workflows so material risks and improvement opportunities are visible before and after close.</li><li>Set data standards, model documentation, and human review so outputs are auditable, explainable, and trusted by investment professionals.</li><li>Prove impact: shorter cycle times, higher signal-to-noise in memos, and at least one adopted use case per major investment process within the first year.</li></"
+     }
+    ],
+    "linkedin": "",
+    "jobTags": [],
+    "slug": "artificial-intelligence-engineer",
+    "member": null,
+    "references": [],
+    "jobAddress": {
+     "address": "",
+     "city": "Amsterdam",
+     "stateCode": "NH",
+     "zip": "",
+     "countryCode": "NL"
+    }
+   }
+  ]
+ }
+}

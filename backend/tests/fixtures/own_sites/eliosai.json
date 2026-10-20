@@ -1,0 +1,223 @@
+{
+ "kind": "json",
+ "url": "https://api.eliosinsights.com/api/job-postings",
+ "payload": {
+  "data": [
+   {
+    "title": "Forward Deployed Engineer (AI) — Brazil (Remote)",
+    "id": "1f1c71c3-f0cd-6910-b0a7-73a0f785662e",
+    "createdAt": "2026-10-13T15:51:16.141Z",
+    "updatedAt": "2026-10-13T15:51:16.141Z",
+    "slug": "forward-deployed-engineer-ai-brazil-remote",
+    "details": {
+     "type": "doc",
+     "content": [
+      {
+       "type": "paragraph",
+       "attrs": {
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "Forward Deployed Engineer (AI) — Brazil (Remote)",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "type": "paragraph",
+       "attrs": {
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "Full-time, permanent · Fully remote within Brazil · São Paulo preferred",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "type": "paragraph",
+       "attrs": {
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "We help companies put AI to work. We’re looking for a hands-on engineer with consulting experience who can understand a client’s business, build the right solution, and get it into production.",
+         "type": "text"
+        }
+       ]
+      }
+     ]
+    },
+    "employmentType": "FULL_TIME",
+    "minTenureYears": null,
+    "preferredSkills": [],
+    "requiredSkills": [
+     "Software Engineering"
+    ],
+    "publishedAt": "2026-10-13T15:51:16.141Z",
+    "sector": "TECHNOLOGY",
+    "positionType": "PERMANENT",
+    "workplaceType": "REMOTE",
+    "fromCompensation": null,
+    "toCompensation": null,
+    "location": {
+     "city": null,
+     "id": "1f1c71de-c81e-61f0-94fa-3298a39d0258",
+     "createdAt": "2026-10-13T15:51:16.111Z",
+     "updatedAt": "2026-10-13T15:51:16.111Z",
+     "region": null,
+     "country": "BR"
+    }
+   },
+   {
+    "title": "Forward Deployed Engineer (AI) — Houston",
+    "id": "1f1c25d8-ad92-6880-b422-da5d53f8282c",
+    "createdAt": "2026-10-07T14:58:49.242Z",
+    "updatedAt": "2026-10-07T14:58:49.242Z",
+    "slug": "forward-deployed-engineer-ai-houston",
+    "details": {
+     "type": "doc",
+     "content": [
+      {
+       "type": "heading",
+       "attrs": {
+        "level": 2,
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "Forward Deployed Engineer (AI) — Houston",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "type": "paragraph",
+       "attrs": {
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "Full-time, permanent · Remote, Houston-based · Moderate client travel",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "type": "paragraph",
+       "attrs": {
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "We help companies put AI to work. We’re looking for a hands-on engineer with consulting experience who can understand a client’s business, build the right solution, and get it into production.",
+         "type": "text"
+        }
+       ]
+      }
+     ]
+    },
+    "employmentType": "FULL_TIME",
+    "minTenureYears": null,
+    "preferredSkills": [],
+    "requiredSkills": [
+     "Software Engineering"
+    ],
+    "publishedAt": "2026-10-07T14:58:49.242Z",
+    "sector": "TECHNOLOGY",
+    "positionType": "PERMANENT",
+    "workplaceType": "REMOTE",
+    "fromCompensation": null,
+    "toCompensation": null,
+    "location": {
+     "city": null,
+     "id": "1f1c25f9-a592-6090-8996-636604f84051",
+     "createdAt": "2026-10-07T14:58:49.241Z",
+     "updatedAt": "2026-10-07T14:58:49.241Z",
+     "region": null,
+     "country": "US"
+    }
+   },
+   {
+    "title": "Paramedic (EMT-P / LP)",
+    "id": "1f1a2291-8a39-65d0-ab61-cb648dfec14d",
+    "createdAt": "2026-08-27T15:11:43.362Z",
+    "updatedAt": "2026-08-27T15:11:43.362Z",
+    "slug": "paramedic-emt-p-lp",
+    "details": {
+     "type": "doc",
+     "content": [
+      {
+       "type": "heading",
+       "attrs": {
+        "level": 1,
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "Transfer Paramedic (EMT-P / LP) - Greater Houston Area",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "type": "paragraph",
+       "attrs": {
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "Location: Greater Houston area (in person)",
+         "type": "text"
+        }
+       ]
+      },
+      {
+       "type": "heading",
+       "attrs": {
+        "level": 2,
+        "textAlign": null
+       },
+       "content": [
+        {
+         "text": "About the Role",
+         "type": "text"
+        }
+       ]
+      }
+     ]
+    },
+    "employmentType": "FULL_TIME",
+    "minTenureYears": null,
+    "preferredSkills": [
+     "MICU Transport",
+     "Ventilator Management",
+     "Critical Care Transport"
+    ],
+    "requiredSkills": [
+     "Advanced Life Support (ALS)",
+     "Patient Assessment",
+     "IV/IO Access"
+    ],
+    "publishedAt": "2026-08-27T15:11:43.362Z",
+    "sector": "HEALTHCARE",
+    "positionType": "PERMANENT",
+    "workplaceType": "ON-SITE",
+    "fromCompensation": null,
+    "toCompensation": null,
+    "location": {
+     "city": "Houston",
+     "id": "1f1a2299-ccdd-6510-a6c4-7e617ca96be0",
+     "createdAt": "2026-08-27T15:11:43.329Z",
+     "updatedAt": "2026-08-27T15:11:43.329Z",
+     "region": "TX",
+     "country": "US"
+    }
+   }
+  ],
+  "total": 64,
+  "hasMore": false
+ }
+}

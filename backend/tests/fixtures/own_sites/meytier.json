@@ -1,0 +1,247 @@
+{
+ "kind": "json",
+ "url": "https://api-uat-trip.meytier.com/portalUniversalSearch/search",
+ "payload": {
+  "status": true,
+  "data": [
+   {
+    "id": "3457",
+    "job_id": "3581",
+    "job_metadata": {
+     "jobUrl": "3581-onsite-client-contact-delivery-partner-data-center-exit-program",
+     "industry": [
+      "IT Services"
+     ],
+     "jobTitle": "Onsite Client Contact & Delivery Partner – Data Center Exit Program",
+     "keywords": [
+      "communication",
+      "data center",
+      "data centers"
+     ],
+     "locations": [
+      {
+       "lat": 40.6702217,
+       "lon": -74.4273911,
+       "zip": "",
+       "city": "Berkeley Heights",
+       "text": "Berkeley Heights, NJ, USA",
+       "state": "New Jersey",
+       "country": "United States",
+       "is_city": true,
+       "is_state": false,
+       "is_country": false,
+       "state_code": "NJ",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "nearByHexCodes": [
+        "842a107ffffffff",
+        "842a105ffffffff",
+        "842a12bffffffff"
+       ],
+       "loc_h3_hex_res4": "842a107ffffffff",
+       "isLocationResolved": true
+      }
+     ],
+     "seniority": "Director",
+     "clientName": "Mphasis",
+     "hiringFunction": [
+      "Operations"
+     ],
+     "otherLocations": [
+      {
+       "lat": 40.0583238,
+       "lon": -74.4056612,
+       "zip": "",
+       "city": "",
+       "text": "New Jersey, USA",
+       "state": "New Jersey",
+       "country": "United States",
+       "is_city": false,
+       "is_state": true,
+       "is_country": false,
+       "state_code": "NJ",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "isLocationResolved": true
+      },
+      {
+       "lat": 34.0746204,
+       "lon": -84.29228619999999,
+       "zip": "",
+       "city": "Alpharetta",
+       "text": "Alpharetta, GA, USA",
+       "state": "Georgia",
+       "country": "United States",
+       "is_city": true,
+       "is_state": false,
+       "is_country": false,
+       "state_code": "GA",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "nearByHexCodes": [
+        "8444c13ffffffff",
+        "8444c11ffffffff",
+        "8444c17ffffffff"
+       ],
+       "loc_h3_hex_res4": "8444c13ffffffff",
+       "isLocationResolved": true
+      }
+     ],
+     "portalJobTitle": "Onsite Client Contact & Delivery Partner – Data Center Exit Program",
+     "locationDisplay": "Berkeley Heights / New Jersey / Alpharetta",
+     "portalPublishDate": "2026-08-07T00:00:00+00",
+     "functional_mapping": []
+    },
+    "updated_at": "2026-08-17T20:43:13.159Z",
+    "relevance": 0,
+    "is_bookmark": false,
+    "total_count": "12",
+    "isClientConfidential": true
+   },
+   {
+    "id": "3471",
+    "job_id": "3594",
+    "job_metadata": {
+     "jobUrl": "3594-delivery-manager-infrastructure-patch-management",
+     "industry": [
+      "IT Services"
+     ],
+     "jobTitle": "Delivery Manager - Infrastructure Patch Management",
+     "keywords": [
+      "CCNA",
+      "data centre",
+      "infrastructure"
+     ],
+     "locations": [
+      {
+       "lat": 32.7766642,
+       "lon": -96.79698789999999,
+       "zip": "",
+       "city": "Dallas",
+       "text": "Dallas, TX, USA",
+       "state": "Texas",
+       "country": "United States",
+       "is_city": true,
+       "is_state": false,
+       "is_country": false,
+       "state_code": "TX",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "nearByHexCodes": [
+        "8426cb9ffffffff",
+        "8426c87ffffffff",
+        "8426cbdffffffff"
+       ],
+       "loc_h3_hex_res4": "8426cb9ffffffff",
+       "isLocationResolved": true
+      }
+     ],
+     "seniority": "Mid / Senior",
+     "clientName": "Mphasis",
+     "hiringFunction": [
+      "Operations"
+     ],
+     "otherLocations": [
+      {
+       "lat": 40.0583238,
+       "lon": -74.4056612,
+       "zip": "",
+       "city": "",
+       "text": "New Jersey, USA",
+       "state": "New Jersey",
+       "country": "United States",
+       "is_city": false,
+       "is_state": true,
+       "is_country": false,
+       "state_code": "NJ",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "isLocationResolved": true
+      }
+     ],
+     "portalJobTitle": "Delivery Manager - Infrastructure Patch Management",
+     "locationDisplay": "Dallas / New Jersey",
+     "portalPublishDate": "2026-07-29T00:00:00+00",
+     "functional_mapping": []
+    },
+    "updated_at": "2026-08-25T12:21:45.087Z",
+    "relevance": 0,
+    "is_bookmark": false,
+    "total_count": "12",
+    "isClientConfidential": true
+   },
+   {
+    "id": "3375",
+    "job_id": "3563",
+    "job_metadata": {
+     "jobUrl": "3563-delivery-account-manager-infrastructure-services",
+     "industry": [
+      "IT Services"
+     ],
+     "jobTitle": "Delivery / Account Manager – Infrastructure Services",
+     "keywords": [
+      "accounts",
+      "capital markets",
+      "digital"
+     ],
+     "locations": [
+      {
+       "lat": 40.7127753,
+       "lon": -74.0059728,
+       "zip": "",
+       "city": "New York",
+       "text": "New York, NY, USA",
+       "state": "New York",
+       "country": "United States",
+       "is_city": true,
+       "is_state": false,
+       "is_country": false,
+       "state_code": "NY",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "nearByHexCodes": [
+        "842a107ffffffff",
+        "842a105ffffffff",
+        "842a12bffffffff"
+       ],
+       "loc_h3_hex_res4": "842a107ffffffff",
+       "isLocationResolved": true
+      }
+     ],
+     "seniority": "Mid / Senior",
+     "clientName": "Mphasis",
+     "hiringFunction": [
+      "operations"
+     ],
+     "otherLocations": [
+      {
+       "lat": 40.0583238,
+       "lon": -74.4056612,
+       "zip": "",
+       "city": "",
+       "text": "New Jersey, USA",
+       "state": "New Jersey",
+       "country": "United States",
+       "is_city": false,
+       "is_state": true,
+       "is_country": false,
+       "state_code": "NJ",
+       "countryCode": "US",
+       "isLocationSet": true,
+       "isLocationResolved": true
+      }
+     ],
+     "portalJobTitle": "Delivery / Account Manager – Infrastructure Services",
+     "locationDisplay": "New York / New Jersey",
+     "portalPublishDate": "2026-07-21T15:37:08+00",
+     "functional_mapping": []
+    },
+    "updated_at": "2026-08-18T18:27:10.937Z",
+    "relevance": 0,
+    "is_bookmark": false,
+    "total_count": "12",
+    "isClientConfidential": true
+   }
+  ]
+ }
+}

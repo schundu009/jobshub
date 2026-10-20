@@ -1,0 +1,45 @@
+{
+ "jobSearchResult": [
+  {
+   "response": {
+    "unifiedStandardEnd": "12/31/26",
+    "supportedLocales": [
+     "en_US"
+    ],
+    "custprimecity": "Beijing",
+    "unifiedUrlTitle": "Administrator-Wireless-Networking",
+    "unifiedStandardStart": "10/20/26",
+    "currency": [
+     "CNY"
+    ],
+    "id": "157085",
+    "unifiedStandardTitle": "Administrator - Wireless Networking",
+    "custCountryRegion": [
+     "China"
+    ],
+    "urlTitle": "Administrator-Wireless-Networking"
+   }
+  },
+  {
+   "response": {
+    "unifiedStandardEnd": "12/31/26",
+    "supportedLocales": [
+     "en_US"
+    ],
+    "custprimecity": "Beijing",
+    "unifiedUrlTitle": "Administrator-Wireless-Networking",
+    "unifiedStandardStart": "10/20/26",
+    "currency": [
+     "CNY"
+    ],
+    "id": "157056",
+    "unifiedStandardTitle": "Administrator - Wireless Networking",
+    "custCountryRegion": [
+     "China"
+    ],
+    "urlTitle": "Administrator-Wireless-Networking"
+   }
+  }
+ ],
+ "totalJobs": 15071
+}

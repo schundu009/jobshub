@@ -1,0 +1,52 @@
+[
+ {
+  "name": "Platform Engineer",
+  "department": "Platform",
+  "email": "Dario.Health.4E.07E@applynow.io",
+  "email_alias": null,
+  "url_comeet_hosted_page": "https://www.comeet.com/jobs/Dario.Health/34.006/platform-engineer/4E.07E",
+  "url_recruit_hosted_page": "https://www.comeet.com/jobs/Dario.Health/34.006/platform-engineer/4E.07E",
+  "url_active_page": "https://www.dariohealth.com/career-position/?uid=4E.07E",
+  "employment_type": "Full-time",
+  "experience_level": null,
+  "uid": "4E.07E",
+  "location": {
+   "name": "United States (Remote)",
+   "country": "US",
+   "city": "New York",
+   "state": "NY",
+   "postal_code": "10011",
+   "street_name": "18 West 18th Street",
+   "arrival_instructions": "",
+   "street_number": null,
+   "timezone": "America/New_York",
+   "location_uid": "64.306",
+   "is_remote": true
+  },
+  "internal_use_custom_id": null,
+  "is_consent_needed": false,
+  "is_sms_consent_needed": false,
+  "referrals_reward": null,
+  "is_reward": false,
+  "is_company_reward": true,
+  "company_referrals_reward": "$1000",
+  "url_detected_page": "https://www.dariohealth.com/career-position/?uid=4E.07E",
+  "picture_url": null,
+  "time_updated": "2026-10-20T16:18:32Z",
+  "company_name": "DarioHealth",
+  "is_internal": false,
+  "linkedin_job_posting_id": null,
+  "workplace_type": "Remote",
+  "position_url": "https://www.comeet.co/careers-api/2.0/company/34.006/positions/4E.07E?token=436150E150E0CA221B01D7A21B043621B0",
+  "details": [
+   {
+    "name": "Description",
+    "value": "<p><strong>At Dario, Every Day is a New Opportunity to Make a Difference.</strong></p><p><strong>﻿</strong>We are on a mission to make better health easy. Every day our employees contribute to this mi"
+   },
+   {
+    "name": "Requirements",
+    "value": "<ul><li>Three or more years of experience in DevOps, cloud infrastructure, systems administration, or IT operations.</li><li>Hands-on experience with AWS services such as EC2, S3, VPC, IAM, CloudWatch"
+   }
+  ]
+ }
+]

@@ -1,0 +1,82 @@
+[
+ {
+  "id": 144646,
+  "title": "Senior Software - Workato",
+  "description": "<div><strong>Position: Senior Software - Workato</strong></div><div><strong>Location: Bangalore</strong></div><div><br></div><div><strong>Job Summary</strong></div><div>We are seeking an experienced W",
+  "departmentIdentifier": "9122a19d-d974-485b-b1dc-085487b498f6",
+  "departmentName": "Digital Transformation",
+  "excerpt": "Position: Senior Software - WorkatoLocation: BangaloreJob SummaryWe are seeking an experienced Workato Engineer with 5+ years of experience in integration development, workflow automation, and enterprise application integration. The ideal candidate will have strong hands-on expertise in Workato, API integrations, REST/SOAP web services, and enterprise automation solutions. The candidate will be responsible for designing, developing, testing, and maintaining scalable integrations across multiple business applications while ensuring performance, reliability, and data integrity.ResponsibilitiesDesign, develop, and maintain integration workflows and automation solutions using the Workato platform.Build and manage Workato recipes, callable recipes, custom connectors, and reusable integration components.Integrate enterprise applications such as Salesforce, Workday, NetSuite, ServiceNow, SAP, and other SaaS platforms.Develop and troubleshoot integrations using REST APIs, SOAP APIs, webhooks, JSON, XML, and authentication protocols such as OAuth 2.0.Implement data mapping, transformation, validation, error handling, retry mechanisms, and exception management.Collaborate with business stakeholders, solution architects, and technical teams to understand integration requirements and translate them into scalable solutions.Monitor integration workflows, troubleshoot production issues, and optimize performance and reliability.Follow integration development best practices, security standards, and governance policies.Prepare technical documentation, solution designs, deployment plans, and operational support guides.Support testing, deployment, production releases, and ongoing maintenance of integration solutions.Required SkillsMust have minimum 5+ years of experience in integration development, middleware, enterprise application integration, or workflow automation.Strong hands-on experience with Workato iPaaS, including recipe development, triggers, actions, callable recipes, and error handling.Experience developing integrations using REST APIs, SOAP web services, webhooks, and API authentication mechanisms.Proficiency in JSON, XML, data mapping, transformation, and payload validation.Experience integrating enterprise applications such as Salesforce, Workday, NetSuite, ServiceNow, or SAP.Knowledge of API security, OAuth 2.0, token-based authentication, and secure credential management.Experience with integration testing, debugging, monitoring, and production issue resolution.Strong analytical, problem-solving, communication, and stakeholder management skills.Preferred QualificationsWorkato certifications or relevant iPaaS platform certifications",
+  "jobLocations": [
+   {
+    "id": 3308,
+    "name": "Bengaluru, KA, IN",
+    "city": "Bengaluru",
+    "state": "KA",
+    "countryCode": "IN",
+    "countryName": "India"
+   }
+  ],
+  "jobType": 2,
+  "experience": "5+",
+  "jobNumber": "2026-1742",
+  "salaryRange": {
+   "currency": "INR",
+   "salaryPeriod": 0,
+   "cultureInfo": "en-IN"
+  },
+  "salaryRangeFormat": "",
+  "publishedOn": "2026-10-15T07:11:28.23Z",
+  "publishedSinceDays": 5,
+  "skillNames": [
+   "Rest API",
+   "Workato iPaaS,",
+   "Soap"
+  ]
+ },
+ {
+  "id": 144417,
+  "title": "Senior Consultant Oracle- EDMCS",
+  "description": "<div style=\"text-align: justify;\"><strong>Job Summary</strong></div><div style=\"text-align: justify;\">We are looking for an experienced Oracle EDMCS Techno-Functional Consultant with 5+ years of relev",
+  "departmentIdentifier": "96da714e-a2fe-4331-8cc6-c9d8f3642107",
+  "departmentName": "Revenue and Sales",
+  "excerpt": "Job SummaryWe are looking for an experienced Oracle EDMCS Techno-Functional Consultant with 5+ years of relevant experience in Oracle EPM technologies, enterprise data management, and master data governance. The candidate will be responsible for understanding business requirements, designing and implementing EDMCS solutions, managing metadata and hierarchies, configuring applications, and supporting integrations with Oracle EPM and other enterprise systems.Key ResponsibilitiesGather and analyze business requirements related to enterprise data management, master data, and metadata governance.Design, configure, and maintain Oracle EDMCS applications, viewpoints, dimensions, node types, properties, and hierarchies.Develop and manage application registrations, viewpoints, subscriptions, imports, exports, and data transformation processes.Configure validation rules, node-level validations, properties, and workflow policies to ensure data quality and consistency.Manage change requests, approvals, data governance workflows, and metadata lifecycle processes.Integrate EDMCS with Oracle EPM applications such as Planning, Financial Consolidation and Close (FCCS), and other downstream systems.Work with metadata files, flat files, extracts, and REST APIs to facilitate data imports, exports, and integrations.Perform impact analysis, data mapping, reconciliation, and troubleshooting of metadata and hierarchy-related issues.Collaborate with finance, business, and technical teams to translate functional requirements into technical solutions.Prepare functional specifications, technical design documents, configuration documents, and test scenarios.Support unit testing, system integration testing (SIT), user acceptance testing (UAT), deployment, and production support.Troubleshoot application issues and implement enhancements, process improvements, and best practices.Support data governance initiatives and ensure compliance with enterprise data standards.Required Skills and Qualifications5+ years of experience in Oracle EPM Cloud and/or enterprise performance management solutions, with relevant experience in EDMCS.Strong understanding of Oracle Enterprise Data Management Cloud Service (EDMCS) concepts and functionalities.Hands-on experience in configuring EDMCS applications, dimensions, viewpoints, node types, properties, and hierarchies.Knowledge of metadata management, master data management, data governance, and hierarchy maintenance.Experience with data imports, exports, extracts, subscriptions, and application registrations.Understanding of integration between EDMCS and Oracle EPM Cloud applications.Knowledge of REST APIs, JSON, CSV, and flat-file processing for integrations and automation.Familiarity with Oracle EPM security, access controls, workflow approvals, and validation rules.Strong analytical, problem-solving, communication, and stakeholder-management skills.Ability to work independently and collaborate effectively with functional and technical teams.EducationBachelor’s degree in Computer Science, Information Technology, Finance, or a related discipline.",
+  "jobLocations": [
+   {
+    "id": 3308,
+    "name": "Bengaluru, KA, IN",
+    "city": "Bengaluru",
+    "state": "KA",
+    "countryCode": "IN",
+    "countryName": "India"
+   },
+   {
+    "id": 17674,
+    "name": "Hyderabad, TG, IN",
+    "city": "Hyderabad",
+    "state": "TG",
+    "countryCode": "IN",
+    "countryName": "India"
+   },
+   {
+    "id": 23824,
+    "name": "Pune, MH, IN",
+    "city": "Pune",
+    "state": "MH",
+    "countryCode": "IN",
+    "countryName": "India"
+   }
+  ],
+  "jobType": 2,
+  "experience": "5+ Years",
+  "jobNumber": "2026-1741",
+  "salaryRange": {
+   "currency": "INR",
+   "salaryPeriod": 0,
+   "cultureInfo": "en-IN"
+  },
+  "salaryRangeFormat": "",
+  "publishedOn": "2026-10-14T08:44:17.45Z",
+  "publishedSinceDays": 6,
+  "skillNames": []
+ }
+]

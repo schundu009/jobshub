@@ -1,0 +1,102 @@
+{
+ "totalRecords": 3012,
+ "response": [
+  {
+   "organizationUnitComplete": "LT-Larsen & Toubro Limited>RCF-Residential, Commercial Buildings & Factories>RCF-Residential, Commercial Buildings & Factories>RCF16-IC Common>RCF16-IC Common>RCF05021-RCF HQ, CHENNAI>LE22D141-HR, HQ>LE22D141-HR, HQ",
+   "jobPostedDate": "2026-10-20",
+   "locationHierarchyComplete": "India>Gujarat>Ahmedabad",
+   "jobDetailUrl": "https://larsentoubrocareers.peoplestrong.com/job/detail/LNT_SA_1900432",
+   "designation": "M1-B",
+   "designationID": 662346,
+   "hrOrgUnitID": 38524147,
+   "functionalAreaID": null,
+   "worksiteID": 625181,
+   "targetNationalityID": null,
+   "promoteEmirates": false,
+   "jurisdictionTypeID": null,
+   "authorityTypeID": null,
+   "jurisdictionType": null,
+   "authorityType": null,
+   "requisitionId": 1900432,
+   "jobTitle": "Site Architect",
+   "jobCode": "LNT/SA/1900432",
+   "openings": 1,
+   "organizationUnit": "RCF-Residential, Commercial Buildings & Factories",
+   "industry": null,
+   "functionalArea": null,
+   "role": null,
+   "jobClosureDate": "2027-04-18",
+   "locationHierarchy": "Ahmedabad",
+   "expRange": "12-20 years",
+   "CTCRange": "1500000.0000-2500000.0000",
+   "skills": {
+    "mustTohave": [],
+    "goodtohave": [
+     "Architect"
+    ]
+   },
+   "applied": false,
+   "programType": "Design & Engineering",
+   "roleType": "Design & Engineering",
+   "roleContributionType": null,
+   "employmentTenureType": null,
+   "minBudgetSalary": 0.0,
+   "maxBudgetSalary": 0.0,
+   "DepartmentID": null,
+   "TargetNationality": null
+  },
+  {
+   "organizationUnitComplete": "LT-Larsen & Toubro Limited>MIPD-Construction Equipment & Industrial Product Design Development>MI01-Construction Machinery>MIAV-CONSTRUCTION AND MINING BUSINESS>MIAV-CONSTRUCTION AND MINING BUSINESS>MIAV-CONSTRUCTION AND MINING BUSINESS>60003776-CEB - Central >NG9004-CED-NAGPUR",
+   "jobPostedDate": "2026-10-20",
+   "locationHierarchyComplete": "India>Madhya Pradesh>Indore",
+   "jobDetailUrl": "https://larsentoubrocareers.peoplestrong.com/job/detail/LNT_CS-I-R_1900427",
+   "designation": "M1-C",
+   "designationID": 662348,
+   "hrOrgUnitID": 1905178,
+   "functionalAreaID": 43100,
+   "worksiteID": 625264,
+   "targetNationalityID": null,
+   "promoteEmirates": false,
+   "jurisdictionTypeID": null,
+   "authorityTypeID": null,
+   "jurisdictionType": null,
+   "authorityType": null,
+   "requisitionId": 1900427,
+   "jobTitle": "CEB Sales - INDORE - REQ 30",
+   "jobCode": "LNT/CS-I-R/1900427",
+   "openings": 1,
+   "organizationUnit": "MIPD-Construction Equipment & Industrial Product Design Development",
+   "industry": "Sales",
+   "functionalArea": null,
+   "role": null,
+   "jobClosureDate": "2027-04-18",
+   "locationHierarchy": "Indore",
+   "expRange": "20-25 years",
+   "CTCRange": "1500000.0000-2500000.0000",
+   "skills": {
+    "mustTohave": [],
+    "goodtohave": [
+     "Sales",
+     "Market Development",
+     "Negotation Skills",
+     "Business Development"
+    ]
+   },
+   "applied": false,
+   "programType": "Sales & Marketing",
+   "roleType": "Sales & Marketing",
+   "roleContributionType": null,
+   "employmentTenureType": "\tManager",
+   "minBudgetSalary": 0.0,
+   "maxBudgetSalary": 0.0,
+   "DepartmentID": null,
+   "TargetNationality": null
+  }
+ ],
+ "messageCode": {
+  "code": 200,
+  "messages": "success"
+ },
+ "campusHiring": 0,
+ "solrSearch": false
+}

@@ -1,0 +1,90 @@
+{
+ "offers": [
+  {
+   "position": 1092,
+   "city": "Princeton ",
+   "location": "Princeton , New Jersey, United States",
+   "guid": "8vtd1",
+   "options_photo": "off",
+   "cover_image": null,
+   "max_hours_per_week": null,
+   "locations": [
+    {
+     "id": 264091,
+     "name": "Hybrid - Princeton, New Jersey ",
+     "state": "New Jersey",
+     "country": "United States",
+     "city": "Princeton ",
+     "translations": {
+      "en": {
+       "name": "Hybrid - Princeton, New Jersey ",
+       "city": "Princeton ",
+       "postal_code": null,
+       "street": null,
+       "note": null
+      }
+     },
+     "country_code": "US",
+     "state_code": "NJ",
+     "postal_code": null,
+     "street": null,
+     "note": null
+    }
+   ],
+   "highlight": "<p>Senior PM role owning a product area on an AI-native talent and skills platform. 7+ years in PM, HR tech/LMS a plus. Hybrid in Princeton, NJ. US-based candidates only.</p><p style=\"min-height: 1.7em;\"></p>",
+   "min_hours_per_week": null,
+   "experience_code": "experienced",
+   "requirements": "<p><strong>What you bring</strong></p><ul><li><p>7+ years of product management experience, with a track record of owning a product area end to end, ideally at an HR tech, LMS, or talent platform comp",
+   "category_code": "technical",
+   "mailbox_email": "job.8vtd1@infoprolearning.recruitee.com",
+   "location_question_visible": false,
+   "published_at": "2026-10-07 21:44:32 UTC",
+   "options_title": "off",
+   "options_cover_letter": "optional",
+   "tags": [
+    "OneGuru",
+    "Q4 - 2026"
+   ],
+   "max_hours": null,
+   "department": null,
+   "slug": "senior-product-manager-hr-tech-lms-talent-platforms-hybrid-princeton-nj-open-to-us-based-candidates-only",
+   "updated_at": "2026-10-07 21:44:32 UTC",
+   "education_code": "high_school",
+   "country": "United States",
+   "created_at": "2026-10-07 21:32:47 UTC",
+   "state_name": "New Jersey",
+   "min_hours": null,
+   "sharing_title": "Senior Product Manager | HR Tech, LMS & Talent Platforms | Hybrid, Princeton, NJ | Open to US-based candidates only",
+   "careers_apply_url": "https://infoprolearning.recruitee.com/o/senior-product-manager-hr-tech-lms-talent-platforms-hybrid-princeton-nj-open-to-us-based-candidates-only/c/new",
+   "description": "<h4>Senior Product Manager | HR Tech, LMS &amp; Talent Platforms | Hybrid, Princeton, NJ | Open to US-based candidates only</h4><p>Location: Princeton, NJ (Hybrid, 3 days per week onsite)<br>Full-Time",
+   "options_salutation": "off",
+   "salary": {
+    "max": "180000",
+    "min": "140000",
+    "period": "year",
+    "currency": "USD"
+   },
+   "dynamic_fields": [],
+   "close_at": null,
+   "company_name": "Infopro Learning",
+   "state_code": "NJ",
+   "careers_url": "https://infoprolearning.recruitee.com/o/senior-product-manager-hr-tech-lms-talent-platforms-hybrid-princeton-nj-open-to-us-based-candidates-only",
+   "options_cv": "required",
+   "remote": false,
+   "hybrid": true,
+   "on_site": false,
+   "employment_type_code": "fulltime_permanent",
+   "id": 2775419,
+   "options_phone": "required",
+   "country_code": "US",
+   "postal_code": null,
+   "locations_question_required": true,
+   "sharing_description": "Senior Product Manager | HR Tech, LMS &amp; Talent Platforms | Hybrid, Princeton, NJ | Open to US-based candidates onlyLocation: Princeton, NJ (Hybrid, 3 days per week onsite)Full-Time, ExemptWe're bu",
+   "locations_question_type": "multiple_choice",
+   "title": "Senior Product Manager | HR Tech, LMS & Talent Platforms | Hybrid, Princeton, NJ | Open to US-based candidates only",
+   "locations_question": "What is your preferred work location?",
+   "status": "published",
+   "sharing_image": null
+  }
+ ]
+}

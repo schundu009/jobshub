@@ -1,0 +1,10 @@
+{"more": false, "total": 2, "items": [
+ {"id": "287886", "job_title": "Technical Support Specialist", "job_type": "PERMANENT", "employment_type": "FULL_TIME",
+  "location": {"address": "Dallas, TX, USA", "city": "Dallas", "state": "TX", "location_name": "Dallas, TX", "country": "United States"},
+  "salary_from": "80000.0", "salary_to": "100000.0", "salary_type": "ANNUAL", "pay_rate": "0.0",
+  "published_date": "2026-10-19T14:00:00.000Z", "public_description": "<p>Support our Dallas branch.</p>"},
+ {"id": "36064", "job_title": "Senior Research Scientist", "job_type": "CONTRACT", "employment_type": "FULL_TIME", "location": null,
+  "salary_from": "0.0", "salary_to": "0.0", "salary_type": "HOURLY", "pay_rate": "95.0",
+  "published_date": "2026-08-06T20:19:54.559Z",
+  "public_description": "<p><strong>Salary:</strong> negotiable</p><p><strong>Location:</strong> Remote across the US or hybrid in San Francisco.</p>"}
+]}

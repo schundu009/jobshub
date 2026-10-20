@@ -1,0 +1,60 @@
+{
+ "kind": "json",
+ "url": "https://careers.emapta.com/screenservices/Careers_UI/MainFlow/JobCards_LandingPage/DataActionGetJobs",
+ "payload": {
+  "versionInfo": {
+   "hasModuleVersionChanged": false,
+   "hasApiVersionChanged": false
+  },
+  "data": {
+   "Jobs": {
+    "List": [
+     {
+      "JobList": {
+       "JobTitle": "Estimating Assistant",
+       "Engagement": "Regular",
+       "Site": "Philippines, 5F St Francis Sq Building (MD1)",
+       "WorkArrangement": "Work From Home",
+       "PostedDateTime": "2026-10-20T08:09:20.091Z",
+       "JobFamily": "",
+       "JobId": "01a1585b-9910-7936-b223-f84b7815ab7e",
+       "Description": "",
+       "JobCode": "JOB-1792483758938499",
+       "CountryCode": "PH"
+      }
+     },
+     {
+      "JobList": {
+       "JobTitle": "Bid Manager",
+       "Engagement": "Regular",
+       "Site": "Philippines, 6F Asean Drive Alabang (MA1)",
+       "WorkArrangement": "Work From Home",
+       "PostedDateTime": "2026-10-20T05:15:51.154Z",
+       "JobFamily": "",
+       "JobId": "01a157bc-c54c-7a09-94a2-b30511c10db7",
+       "Description": "",
+       "JobCode": "JOB-1792473351163471",
+       "CountryCode": "PH"
+      }
+     },
+     {
+      "JobList": {
+       "JobTitle": "Oracle HCM Functional Consultant",
+       "Engagement": "Regular",
+       "Site": "Philippines, HUB 7, Unit 401,403 SM CITY CLARK EXPANSION",
+       "WorkArrangement": "Onsite",
+       "PostedDateTime": "2026-10-20T04:09:34.866Z",
+       "JobFamily": "",
+       "JobId": "01a15780-1b85-790a-8bec-1c022708fbda",
+       "Description": "",
+       "JobCode": "JOB-1792469374834609",
+       "CountryCode": "PH"
+      }
+     }
+    ]
+   },
+   "IsLoading": false
+  },
+  "rolesInfo": ","
+ }
+}

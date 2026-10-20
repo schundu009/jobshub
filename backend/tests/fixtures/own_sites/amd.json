@@ -1,0 +1,528 @@
+{
+ "kind": "json",
+ "url": "https://careers.amd.com/api/jobs",
+ "payload": {
+  "jobs": [
+   {
+    "data": {
+     "slug": "93495",
+     "language": "en-us",
+     "languages": [
+      "en-us"
+     ],
+     "client_code": "amd",
+     "req_id": "93495",
+     "title": "Sr. Staff Physical Design Engineer",
+     "description": "<p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\"><strong>ADVANCE YOUR CAREER. ADVANCE THE WORLD. </strong></span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\">At AMD, we believe technology has the power to solve the world’s most important challenges. From advancing healthcare and scientific discovery to powering AI and the technologies people rely on every day, innovation at AMD is shaping the future. </span></p><p style=\"margin: 0px;\"> </p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\">Whether you’re designing next-gen processors, enabling AI breakthroughs, or bringing leading edge products to market, every role at AMD contributes to something bigger — technology that moves the world forward. Join us and, together, we’ll advance your career.</span></p> <p style=\"margin: 5.0pt 0in 5.0pt 0in;\"> </p><p style=\"margin: 5.0pt 0in 5.0pt 0in;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"><strong>THE ROLE:</strong></span></p><div><div><ul><li style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">Join an experienced physical design team working on AMD graphics IP for next-generation AI data center chips. In this role, you will own and drive complex physical design work for multi-million-gate blocks, delivering design",
+     "location_name": "CA,BC,Vancouver",
+     "street_address": "2930 Virtual Way\nSte. 300",
+     "city": "VANCOUVER",
+     "state": "British Columbia",
+     "country": "Canada",
+     "country_code": "CA",
+     "postal_code": "V5M 4X6",
+     "location_type": "LAT_LNG",
+     "latitude": 49.24966,
+     "longitude": -123.11934,
+     "categories": [
+      {
+       "name": "Engineering"
+      }
+     ],
+     "tags1": [
+      "No"
+     ],
+     "tags2": [
+      "CAD $135,800.00/Yr."
+     ],
+     "tags3": [
+      "CAD $194,000.00/Yr."
+     ],
+     "tags4": [
+      "Canada Careers (External)"
+     ],
+     "tags5": [
+      "CAD $155,200.00/Yr."
+     ],
+     "tags6": [
+      "CAD $232,800.00/Yr."
+     ],
+     "tags7": [
+      "155200"
+     ],
+     "tags8": [
+      "232800"
+     ],
+     "department": "",
+     "salary_value": 0,
+     "salary_min_value": 0,
+     "salary_max_value": 0,
+     "employment_type": "FULL_TIME",
+     "qualifications": "<p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: 'Arial',sans-serif; color: black;\">Benefits offered are described:&nbsp; </span></em><span style=\"font-family: 'Arial',sans-serif; color: black;\"><a href=\"https://www.amd.com/en/corporate/careers/benefits.html\" target=\"_blank\" rel=\"noopener\">AMD benefits at a glance</a>.</span></span></p><p style=\"margin: 0px;\"><span style=\"color: black; font-size: 12pt;\">&nbsp;</span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: 'Arial',sans-serif; color: black;\">AMD does not accept unsolicited resumes from headhunters, recruitment agencies, or fee-based recruitment services. AMD and its subsidiaries are equal opportunity, inclusive employers and will consider all applicants without regard to age, ancestry, color, marital status, medical condition, mental or physical disability, national origin, race, religion, political and/or third-party affiliation, sex, pregnancy, sexual orientation, gender identity, military or veteran status, or any other characteristic protected by law.&nbsp;&nbsp; We encourage applications from all qualified candidates and will accommodate applicants&rsquo; needs under the respective laws throughout all stages of the recruitment and selection process.</span></em></span></p><p style=\"margin: 0px;\"><span style=\"color: black; font-size: 12pt;\">&nbsp;</span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: ",
+     "hiring_organization": "Advanced Micro Devices, Inc",
+     "hiring_organization_logo": "https://www.amd.com/content/dam/code/images/header/amd-header-logo.svg",
+     "responsibilities": "<p style=\"margin: 5.0pt 0in 5.0pt 0in;\">&nbsp;</p><p style=\"margin: 5.0pt 0in 5.0pt 0in;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"><strong>THE ROLE:</strong></span></p><div><div><ul><li style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">Join an experienced physical design team working on AMD graphics IP for next-generation AI data center chips. In this role, you will own and drive complex physical design work for multi-million-gate blocks, delivering designs against challenging performance, power, and area targets using advanced process technologies.&nbsp;You will work closely with RTL design and other engineering partners throughout the project lifecycle, from floorplanning, synthesis, and placement through clock tree synthesis, routing, timing closure, extraction, physical verification, and final signoff. The role also provides opportunities to lead technical execution, establish design methodologies, improve automated design flows, and mentor other engineers.</span></li></ul><p style=\"font-family: arial, helvetica, sans-serif;\">&nbsp;</p></div></div><p style=\"margin: 5.0pt 0in 5.0pt 0in;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"><strong>THE PERSON:</strong></span></p><ul><li style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"><div><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\"",
+     "posted_date": "2026-10-20T15:10:00+0000",
+     "apply_url": "https://canadacareers-amd.icims.com/jobs/93495/login",
+     "internal": false,
+     "external": false,
+     "searchable": true,
+     "applyable": true,
+     "li_easy_applyable": true,
+     "ats_code": "icims",
+     "hiring_flow_name": "iCIMS ATS Hiring Flow",
+     "isFrontLineAIJob": false,
+     "isApplyFlowJob": false,
+     "meta_data": {
+      "mongo": {
+       "mongo_created": true
+      },
+      "openingjobs": {
+       "openingJobId": "000041f6b4f382abec0ee3a25673131b04c9"
+      },
+      "icims": {
+       "jps_is_public": true,
+       "primary_posted_site_object": {
+        "site": "canadacareers-amd",
+        "siteId": "fc63c3db-2668-45b9-a655-6244445a94c0",
+        "datePosted": "2026-10-20T15:10:00+0000"
+       },
+       "date_updated": "2026-10-20T15:20:39Z",
+       "config_keys": {
+        "jobposting.external.company.name": "Advanced Micro Devices, Inc",
+        "jobposting.external.indeed.screenerquestions": "1",
+        "icims.external.xml.feeds": "icims.careerarc.xml.enabled,icims.indeed.xml.enabled,icims.resume-library.xml.enabled,icims.direct-employers.xml.enabled,icims.monster.xml.enabled,icims.adzuna.xml.enabled,icims.careerbuilder.xml.enabled,icims.ziprecruiter.xml.enabled,icims.craigslist.xml.enabled,icims.itjobscafe.xml.enabled,icims.recruitnet.xml.enabled,icims.upward.xml.enabled,icims.jobbio.xml.enabled,icims.propellum.xml.enabled,icims.snagajob.xml.enabled,icims.inhersight.xml.enabled,icims.pallet-labs.xml.enabled,icims.qkly.xml.enabled,icims.cv-library.xml.enabled,icims.linkedin.xml.enabled,icims.zippia.xml.enabled,icims.puck.xml.enabled,icims.offerup.xml.enabled,icims.jobted.xml.enabled,icims.edtech.xml.enabled,icims.jobgether.xml.enabled,icims.referio.xml.enabled,icims.careerjet.xml.enabled,icims.advantageai.xml.enabled,icims.unpostedjobs.xml.enabled,icims.allyenergy.xml.enabled,icims.stealthstartup.xml.enabled,icims.hiringcafe.xml.enabled,icims.nexxt.xml.enabled",
+        "icims.config.web.apply.jobpost": "1",
+        "portal.id": "750004",
+        "jobposting.external.parent.organization.name": "Advanced Micro Devices, Inc",
+        "ccc.attract.portal.url": "https://careers.amd.com",
+        "icims.config.web.indeed.easy.apply": "0"
+       },
+       "revision_int": 2,
+       "uuid": "442c0add-15da-4a4d-8b85-48e3611eab7a"
+      },
+      "ats_job_hash": "9db5fdead5d29e2571f0845ff83ce0e5",
+      "googlejobs": {
+       "jobName": "projects/helpful-passage-853/tenants/cb22eb5b-7e00-0000-0000-007edad744d3/jobs/104467244972417734"
+      },
+      "import_id": "ae7df279-a2a1-4645-a734-49e12f035b2a",
+      "redirectOnApply": true,
+      "questionservice": {
+       "id": "46823768"
+      },
+      "canonical_url": "https://careers.amd.com/jobs/93495?lang=en-us",
+      "gdpr": false,
+      "last_mod": "2026-10-20T15:21:31+0000",
+      "elasticsearch": {
+       "es_created": false
+      },
+      "opensearch": {
+       "hit_score": "NaN",
+       "hit_explanation": null,
+       "hit_matched_queries": [
+        "internal",
+        "applyable",
+        "term-language"
+       ],
+       "hit_index": "jobs",
+       "hit_shard": null
+      },
+      "import_source": "ImporterService",
+      "client_code": "amd"
+     },
+     "update_date": "2026-10-20T15:21:31+0000",
+     "create_date": "2026-10-20T15:11:30+0000",
+     "category": [
+      " Engineering"
+     ],
+     "full_location": "VANCOUVER, Canada",
+     "short_location": "VANCOUVER, Canada",
+     "multipleLocations": false
+    }
+   },
+   {
+    "data": {
+     "slug": "93698",
+     "language": "en-us",
+     "languages": [
+      "en-us"
+     ],
+     "client_code": "amd",
+     "req_id": "93698",
+     "title": "Senior Graphics Machine Learning  Engineer",
+     "description": "<strong class=\"jdheading\"></strong><br><br><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\"><strong>ADVANCE YOUR CAREER. ADVANCE THE WORLD. </strong></span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\">At AMD, we believe technology has the power to solve the world’s most important challenges. From advancing healthcare and scientific discovery to powering AI and the technologies people rely on every day, innovation at AMD is shaping the future. </span></p><p style=\"margin: 0px;\"> </p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\">Whether you’re designing next-gen processors, enabling AI breakthroughs, or bringing leading edge products to market, every role at AMD contributes to something bigger — technology that moves the world forward. Join us and, together, we’ll advance your career.</span></p> <br><strong class=\"jdheading\"></strong><br><br><h2><strong>THE ROLE:</strong></h2><p style=\"margin: 0px;\">A seasoned Machine Learning Engineer to develop and optimize machine learning models for graphics, rendering, and visual computing applications. The ideal candidate will have deep expertise in machine learning and neural network architectures, combined with a solid understanding of real-time graphics technologies and GPU-accelerated workloads. This role involves close collaboration with research and engineering teams to deliver",
+     "location_name": "DE,Munich",
+     "street_address": "2 O.G. Willy Brandt Allee",
+     "city": "Munich",
+     "country": "Germany",
+     "country_code": "DE",
+     "postal_code": "D-81929",
+     "location_type": "LAT_LNG",
+     "latitude": 48.1408,
+     "longitude": 11.6366,
+     "categories": [
+      {
+       "name": "Engineering"
+      }
+     ],
+     "tags1": [
+      "No"
+     ],
+     "tags2": [
+      "EUR €78,680.00/Yr."
+     ],
+     "tags3": [
+      "EUR €112,400.00/Yr."
+     ],
+     "tags4": [
+      "Global Careers (do not use for US or Canada)"
+     ],
+     "department": "",
+     "salary_value": 0,
+     "salary_min_value": 0,
+     "salary_max_value": 0,
+     "employment_type": "FULL_TIME",
+     "qualifications": "<p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: 'Arial',sans-serif; color: black;\">Benefits offered are described:&nbsp; </span></em><span style=\"font-family: 'Arial',sans-serif; color: black;\"><a href=\"https://www.amd.com/en/corporate/careers/benefits.html\" target=\"_blank\" rel=\"noopener\">AMD benefits at a glance</a>.</span></span></p><p style=\"margin: 0px;\"><span style=\"color: black; font-size: 12pt;\">&nbsp;</span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: 'Arial',sans-serif; color: black;\">AMD does not accept unsolicited resumes from headhunters, recruitment agencies, or fee-based recruitment services. AMD and its subsidiaries are equal opportunity, inclusive employers and will consider all applicants without regard to age, ancestry, color, marital status, medical condition, mental or physical disability, national origin, race, religion, political and/or third-party affiliation, sex, pregnancy, sexual orientation, gender identity, military or veteran status, or any other characteristic protected by law.&nbsp;&nbsp; We encourage applications from all qualified candidates and will accommodate applicants&rsquo; needs under the respective laws throughout all stages of the recruitment and selection process.</span></em></span></p><p style=\"margin: 0px;\"><span style=\"color: black; font-size: 12pt;\">&nbsp;</span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: ",
+     "hiring_organization": "Advanced Micro Devices, Inc",
+     "hiring_organization_logo": "https://www.amd.com/content/dam/code/images/header/amd-header-logo.svg",
+     "responsibilities": "<h2><strong>THE ROLE:</strong></h2><p style=\"margin: 0px;\">A seasoned Machine Learning Engineer to develop and optimize machine learning models for graphics, rendering, and visual computing applications. The ideal candidate will have deep expertise in machine learning and neural network architectures, combined with a solid understanding of real-time graphics technologies and GPU-accelerated workloads. This role involves close collaboration with research and engineering teams to deliver innovative ML solutions that enhance visual quality, rendering efficiency, and user experiences.</p><h2><strong>THE PERSON:</strong></h2><p style=\"margin: 0px;\">The ideal candidate should be passionate about machine learning and its application to graphics and visual computing. They should possess strong problem-solving skills, be able to drive complex technical issues to resolution, and communicate effectively while collaborating across multidisciplinary teams. The Applied Research and Engineering team is looking for the following:</p><h2><strong>KEY RESPONSIBILITIES:</strong></h2><ul><li>Proficiency in machine learning and neural network architectures.</li><li>Experience developing, training, and optimizing machine learning models using modern ML frameworks.</li><li>Strong programming skills in Python and C++.</li><li>Understanding of machine learning techniques and their application to graphics, rendering, and visual computing problems.</li><li>Solid understanding of real-time graphics funda",
+     "posted_date": "2026-10-20T13:08:00+0000",
+     "apply_url": "https://global-external-amd.icims.com/jobs/93698/login",
+     "internal": false,
+     "external": false,
+     "searchable": true,
+     "applyable": true,
+     "li_easy_applyable": true,
+     "ats_code": "icims",
+     "hiring_flow_name": "iCIMS ATS Hiring Flow",
+     "isFrontLineAIJob": false,
+     "isApplyFlowJob": false,
+     "meta_data": {
+      "mongo": {
+       "mongo_created": true
+      },
+      "openingjobs": {
+       "openingJobId": "000068d5d1dfa9e293470c7590f77f3ac663"
+      },
+      "icims": {
+       "jps_is_public": true,
+       "primary_posted_site_object": {
+        "site": "global-external-amd",
+        "siteId": "6245c1b1-1919-49a5-9362-f476371d191b",
+        "datePosted": "2026-10-20T13:08:00+0000"
+       },
+       "date_updated": "2026-10-20T13:24:26Z",
+       "config_keys": {
+        "jobposting.external.company.name": "Advanced Micro Devices, Inc",
+        "jobposting.external.indeed.screenerquestions": "1",
+        "icims.external.xml.feeds": "icims.adzuna.xml.enabled,icims.aeroemploiformation.xml.enabled,icims.apec.xml.enabled,icims.careerbuilder.xml.enabled,icims.careerarc.xml.enabled,icims.careerlink.xml.enabled,icims.clearbold.xml.enabled,icims.constructionjobs.xml.enabled,icims.craigslist.xml.enabled,icims.cv-library.xml.enabled,icims.cvaden.xml.enabled,icims.direct-employers.xml.enabled,icims.hireheroesusa.xml.enabled,icims.hireahero.xml.enabled,icims.hirepurpose.xml.enabled,icims.hospitalcareers.xml.enabled,icims.iberempleos.xml.enabled,icims.indeed.xml.enabled,icims.inhersight.xml.enabled,icims.irishjobs.xml.enabled,icims.itjobscafe.xml.enabled,icims.jobbio.xml.enabled,icims.jobcase.xml.enabled,icims.jobsite.xml.enabled,icims.linkedin.xml.enabled,icims.monster.xml.enabled,icims.msep.xml.enabled,icims.nijobs.xml.enabled,icims.oneten.xml.enabled,icims.pallet-labs.xml.enabled,icims.paradox.xml.enabled,icims.practicematch.xml.enabled,icims.prideatwork.xml.enabled,icims.professionaldiversitynetwork.xml.enabled,icims.propellum.xml.enabled,icims.qkly.xml.enabled,icims.radancy.xml.enabled,icims.recruitnet.xml.enabled,icims.recruitmilitary.xml.enabled,icims.regionsjob.xml.enabled,icims.resume-library.xml.enabled,icims.snagajob.xml.enabled,icims.upward.xml.enabled,icims.vonq.xml.enabled,icims.webengineering.xml.enabled,icims.webscribble.xml.enabled,icims.ziprecruiter.xml.enabled,icims.zippia.xml.enabled,icims.nexxt.xml.enabled",
+        "icims.config.web.apply.jobpost": "1",
+        "portal.id": "204",
+        "jobposting.external.parent.organization.name": "Advanced Micro Devices, Inc",
+        "ccc.attract.portal.url": "https://careers.amd.com",
+        "icims.config.web.indeed.easy.apply": "0"
+       },
+       "revision_int": 2,
+       "uuid": "6b9c5f73-df02-4027-ab2d-b66cd7350bd5"
+      },
+      "ats_job_hash": "9ac36c041057bb33567b5ddb35c1d172",
+      "googlejobs": {
+       "jobName": "projects/helpful-passage-853/tenants/cb22eb5b-7e00-0000-0000-007edad744d3/jobs/88168359480173254"
+      },
+      "import_id": "354dbcdb-4f2e-40d4-b6fc-a7ebab90306d",
+      "redirectOnApply": true,
+      "questionservice": {
+       "id": "46821556"
+      },
+      "canonical_url": "https://careers.amd.com/jobs/93698?lang=en-us",
+      "gdpr": true,
+      "last_mod": "2026-10-20T13:24:37+0000",
+      "elasticsearch": {
+       "es_created": false
+      },
+      "opensearch": {
+       "hit_score": "NaN",
+       "hit_explanation": null,
+       "hit_matched_queries": [
+        "internal",
+        "applyable",
+        "term-language"
+       ],
+       "hit_index": "jobs",
+       "hit_shard": null
+      },
+      "import_source": "ImporterService",
+      "client_code": "amd"
+     },
+     "update_date": "2026-10-20T13:24:37+0000",
+     "create_date": "2026-10-20T13:09:37+0000",
+     "category": [
+      " Engineering"
+     ],
+     "full_location": "Munich, Germany",
+     "short_location": "Munich, Germany",
+     "multipleLocations": false
+    }
+   },
+   {
+    "data": {
+     "slug": "92510",
+     "language": "en-us",
+     "languages": [
+      "en-us"
+     ],
+     "client_code": "amd",
+     "req_id": "92510",
+     "title": "Regional Marketing Manager",
+     "description": "<strong class=\"jdheading\"></strong><br><br><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\"><strong>ADVANCE YOUR CAREER. ADVANCE THE WORLD. </strong></span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\">At AMD, we believe technology has the power to solve the world’s most important challenges. From advancing healthcare and scientific discovery to powering AI and the technologies people rely on every day, innovation at AMD is shaping the future. </span></p><p style=\"margin: 0px;\"> </p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt; font-family: arial, helvetica, sans-serif;\">Whether you’re designing next-gen processors, enabling AI breakthroughs, or bringing leading edge products to market, every role at AMD contributes to something bigger — technology that moves the world forward. Join us and, together, we’ll advance your career.</span></p> <br><strong class=\"jdheading\"></strong><br><br><h2 style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">THE ROLE:</span></h2><p style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">AMD is seeking a marketing professional to plan and execute AMD-led marketing activities for our Embedded B2B business across EMEA. This role will support brand awareness, demand generation, and revenue growth across Industrial & Vision, Aerospace & Defenc",
+     "location_name": "IE,Dublin",
+     "street_address": "Logic Drive, Bianconi Avenue, Citywest",
+     "city": "Dublin",
+     "state": "Dublin",
+     "country": "Ireland",
+     "country_code": "IE",
+     "postal_code": "D24 T683",
+     "location_type": "LAT_LNG",
+     "latitude": 53.33306,
+     "longitude": -6.24889,
+     "categories": [
+      {
+       "name": "Sales / Marketing"
+      }
+     ],
+     "tags1": [
+      "No"
+     ],
+     "tags2": [
+      "EUR €49,490.00/Yr."
+     ],
+     "tags3": [
+      "EUR €70,700.00/Yr."
+     ],
+     "tags4": [
+      "Global Careers (do not use for US or Canada)"
+     ],
+     "department": "",
+     "salary_value": 0,
+     "salary_min_value": 0,
+     "salary_max_value": 0,
+     "employment_type": "FULL_TIME",
+     "qualifications": "<p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: 'Arial',sans-serif; color: black;\">Benefits offered are described:&nbsp; </span></em><span style=\"font-family: 'Arial',sans-serif; color: black;\"><a href=\"https://www.amd.com/en/corporate/careers/benefits.html\" target=\"_blank\" rel=\"noopener\">AMD benefits at a glance</a>.</span></span></p><p style=\"margin: 0px;\"><span style=\"color: black; font-size: 12pt;\">&nbsp;</span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: 'Arial',sans-serif; color: black;\">AMD does not accept unsolicited resumes from headhunters, recruitment agencies, or fee-based recruitment services. AMD and its subsidiaries are equal opportunity, inclusive employers and will consider all applicants without regard to age, ancestry, color, marital status, medical condition, mental or physical disability, national origin, race, religion, political and/or third-party affiliation, sex, pregnancy, sexual orientation, gender identity, military or veteran status, or any other characteristic protected by law.&nbsp;&nbsp; We encourage applications from all qualified candidates and will accommodate applicants&rsquo; needs under the respective laws throughout all stages of the recruitment and selection process.</span></em></span></p><p style=\"margin: 0px;\"><span style=\"color: black; font-size: 12pt;\">&nbsp;</span></p><p style=\"margin: 0px;\"><span style=\"font-size: 12pt;\"><em><span style=\"font-family: ",
+     "hiring_organization": "Advanced Micro Devices, Inc",
+     "hiring_organization_logo": "https://www.amd.com/content/dam/code/images/header/amd-header-logo.svg",
+     "responsibilities": "<h2 style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">THE ROLE:</span></h2><p style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">AMD is seeking a marketing professional to plan and execute AMD-led marketing activities for our Embedded B2B business across EMEA. This role will support brand awareness, demand generation, and revenue growth across Industrial &amp; Vision, Aerospace &amp; Defence, Automotive, Consumer, and Healthcare markets.</span></p><p style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">The successful candidate will work closely with distributors, system integrators, OEMs, ecosystem partners, internal teams, agencies, vendors, and service providers to deliver impactful co-marketing initiatives, demand generation campaigns, account-based marketing programs, and events across the region.</span></p><p style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">This role would suit someone who is highly organized, self-directed, comfortable working across multiple stakeholders, and able to manage several marketing programs concurrently.</span></p><h2 style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size: 12pt;\">THE PERSON:</span></h2><p style=\"text-align: justify;\"><span style=\"font-family: arial, helvetica, sans-serif; font-size",
+     "posted_date": "2026-10-20T12:20:00+0000",
+     "apply_url": "https://global-external-amd.icims.com/jobs/92510/login",
+     "internal": false,
+     "external": false,
+     "searchable": true,
+     "applyable": true,
+     "li_easy_applyable": true,
+     "ats_code": "icims",
+     "hiring_flow_name": "iCIMS ATS Hiring Flow",
+     "isFrontLineAIJob": false,
+     "isApplyFlowJob": false,
+     "meta_data": {
+      "mongo": {
+       "mongo_created": true
+      },
+      "openingjobs": {
+       "openingJobId": "0000505d1d2c7aff3e98962c6ca3003dff25"
+      },
+      "icims": {
+       "jps_is_public": true,
+       "primary_posted_site_object": {
+        "site": "global-external-amd",
+        "siteId": "6245c1b1-1919-49a5-9362-f476371d191b",
+        "datePosted": "2026-10-20T12:20:00+0000"
+       },
+       "date_updated": "2026-10-20T14:20:46Z",
+       "config_keys": {
+        "jobposting.external.company.name": "Advanced Micro Devices, Inc",
+        "jobposting.external.indeed.screenerquestions": "1",
+        "icims.external.xml.feeds": "icims.adzuna.xml.enabled,icims.aeroemploiformation.xml.enabled,icims.apec.xml.enabled,icims.careerbuilder.xml.enabled,icims.careerarc.xml.enabled,icims.careerlink.xml.enabled,icims.clearbold.xml.enabled,icims.constructionjobs.xml.enabled,icims.craigslist.xml.enabled,icims.cv-library.xml.enabled,icims.cvaden.xml.enabled,icims.direct-employers.xml.enabled,icims.hireheroesusa.xml.enabled,icims.hireahero.xml.enabled,icims.hirepurpose.xml.enabled,icims.hospitalcareers.xml.enabled,icims.iberempleos.xml.enabled,icims.indeed.xml.enabled,icims.inhersight.xml.enabled,icims.irishjobs.xml.enabled,icims.itjobscafe.xml.enabled,icims.jobbio.xml.enabled,icims.jobcase.xml.enabled,icims.jobsite.xml.enabled,icims.linkedin.xml.enabled,icims.monster.xml.enabled,icims.msep.xml.enabled,icims.nijobs.xml.enabled,icims.oneten.xml.enabled,icims.pallet-labs.xml.enabled,icims.paradox.xml.enabled,icims.practicematch.xml.enabled,icims.prideatwork.xml.enabled,icims.professionaldiversitynetwork.xml.enabled,icims.propellum.xml.enabled,icims.qkly.xml.enabled,icims.radancy.xml.enabled,icims.recruitnet.xml.enabled,icims.recruitmilitary.xml.enabled,icims.regionsjob.xml.enabled,icims.resume-library.xml.enabled,icims.snagajob.xml.enabled,icims.upward.xml.enabled,icims.vonq.xml.enabled,icims.webengineering.xml.enabled,icims.webscribble.xml.enabled,icims.ziprecruiter.xml.enabled,icims.zippia.xml.enabled,icims.nexxt.xml.enabled",
+        "icims.config.web.apply.jobpost": "1",
+        "portal.id": "204",
+        "jobposting.external.parent.organization.name": "Advanced Micro Devices, Inc",
+        "ccc.attract.portal.url": "https://careers.amd.com",
+        "icims.config.web.indeed.easy.apply": "0"
+       },
+       "revision_int": 3,
+       "uuid": "5082c9c3-d58a-45d4-bcf2-81f4bc93f62d"
+      },
+      "ats_job_hash": "ea02651dbdd4eb53d911a72fde5a7410",
+      "googlejobs": {
+       "jobName": "projects/helpful-passage-853/tenants/cb22eb5b-7e00-0000-0000-007edad744d3/jobs/101669262757634758"
+      },
+      "import_id": "4dc73e57-717c-4f21-95f2-c87fa7b56ff5",
+      "redirectOnApply": true,
+      "questionservice": {
+       "id": "46808739"
+      },
+      "canonical_url": "https://careers.amd.com/jobs/92510?lang=en-us",
+      "gdpr": true,
+      "last_mod": "2026-10-20T14:21:39+0000",
+      "elasticsearch": {
+       "es_created": true
+      },
+      "opensearch": {
+       "hit_score": "NaN",
+       "hit_explanation": null,
+       "hit_matched_queries": [
+        "internal",
+        "applyable",
+        "term-language"
+       ],
+       "hit_index": "jobs",
+       "hit_shard": null
+      },
+      "import_source": "ImporterService",
+      "client_code": "amd"
+     },
+     "update_date": "2026-10-20T14:21:39+0000",
+     "create_date": "2026-10-20T14:21:39+0000",
+     "category": [
+      " Sales / Marketing"
+     ],
+     "full_location": "Dublin, Ireland",
+     "short_location": "Dublin, Ireland",
+     "multipleLocations": false
+    }
+   }
+  ],
+  "locations": [],
+  "totalCount": 1283,
+  "request_id": false,
+  "meta_data": false,
+  "count": 1283,
+  "languageCounts": {
+   "en-us": {
+    "displayName": "English",
+    "count": 1283
+   }
+  },
+  "filter": {
+   "facetList": {
+    "city": [
+     {
+      "term": "Austin",
+      "count": 265
+     },
+     {
+      "term": "Bangalore",
+      "count": 119
+     },
+     {
+      "term": "Beijing",
+      "count": 4
+     }
+    ],
+    "country": [
+     {
+      "term": "Armenia",
+      "count": 2
+     },
+     {
+      "term": "Belgium",
+      "count": 1
+     },
+     {
+      "term": "Canada",
+      "count": 127
+     }
+    ],
+    "tags1": [
+     {
+      "term": "No",
+      "count": 1241
+     },
+     {
+      "term": "Yes",
+      "count": 42
+     }
+    ]
+   },
+   "displayLimit": 10,
+   "brands": {
+    "all": [],
+    "shortlist": []
+   },
+   "categories": {
+    "all": [
+     {
+      "category": "Accounting/Finance",
+      "numJobs": 8
+     },
+     {
+      "category": "Customer Service/Support",
+      "numJobs": 2
+     },
+     {
+      "category": "Engineering",
+      "numJobs": 985
+     }
+    ],
+    "shortlist": [
+     {
+      "category": "Accounting/Finance",
+      "numJobs": 8
+     },
+     {
+      "category": "Customer Service/Support",
+      "numJobs": 2
+     },
+     {
+      "category": "Engineering",
+      "numJobs": 985
+     }
+    ]
+   },
+   "locations": {
+    "all": [
+     {
+      "city": "Austin",
+      "state": "Texas",
+      "country": "United States",
+      "count": 265
+     },
+     {
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "country": "India",
+      "count": 119
+     },
+     {
+      "city": "Beijing",
+      "state": "Beijing",
+      "country": "China",
+      "count": 4
+     }
+    ],
+    "shortlist": [
+     {
+      "city": "Austin",
+      "state": "Texas",
+      "country": "United States",
+      "count": 265
+     },
+     {
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "country": "India",
+      "count": 119
+     },
+     {
+      "city": "Beijing",
+      "state": "Beijing",
+      "country": "China",
+      "count": 4
+     }
+    ]
+   },
+   "experienceLevels": {
+    "all": [],
+    "shortlist": []
+   }
+  }
+ }
+}

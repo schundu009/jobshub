@@ -1,0 +1,115 @@
+{
+ "version": "https://jsonfeed.org/version/1.1",
+ "title": "Strativ Group",
+ "home_page_url": "https://careers.strativgroup.com/jobs",
+ "feed_url": "https://careers.strativgroup.com/jobs.json",
+ "items": [
+  {
+   "id": "403fa88e-7b2c-4549-96a5-8a4e761b8f23",
+   "title": "Recruitment Manager - Software Engineering (AI)",
+   "url": "https://careers.strativgroup.com/jobs/7057328-recruitment-manager-software-engineering-ai",
+   "date_published": "2026-01-15T10:00:53+00:00",
+   "content_html": "<p><strong>Job Title: </strong>Software Engineering Recruitment Manager</p><p><strong>Location: </strong>Manchester (Hybrid)</p><p><strong>Reporting to: </strong>Senior AI Recruitment Manager</p><p>&n",
+   "_jobposting": {
+    "@context": "http://schema.org/",
+    "@type": "JobPosting",
+    "title": "Recruitment Manager - Software Engineering (AI)",
+    "description": "<p><strong>Job Title: </strong>Software Engineering Recruitment Manager</p><p><strong>Location: </st",
+    "identifier": {
+     "@type": "PropertyValue",
+     "name": "Strativ Group",
+     "value": 7057328
+    },
+    "datePosted": "2026-01-15T10:00:53+00:00",
+    "hiringOrganization": {
+     "@type": "Organization",
+     "name": "Strativ Group",
+     "sameAs": "https://careers.strativgroup.com"
+    },
+    "jobLocation": [
+     {
+      "@type": "Place",
+      "address": {
+       "@type": "PostalAddress",
+       "streetAddress": "Corner Block",
+       "addressLocality": "Manchester",
+       "postalCode": "M3",
+       "addressCountry": "GB",
+       "addressRegion": "United Kingdom"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "93b07980-144d-4908-bf50-a86b60c93021",
+   "title": "Embedded Talent Partner",
+   "url": "https://careers.strativgroup.com/jobs/5697694-embedded-talent-partner",
+   "date_published": "2025-03-18T17:00:01+00:00",
+   "content_html": "<p><strong>Company:</strong><span> </span>Strativ Group</p><p><strong>Location:</strong><span> </span>Flexible, remote possible, with visits to our UK offices cyclically</p><p><strong>Start Date: Ongo",
+   "_jobposting": {
+    "@context": "http://schema.org/",
+    "@type": "JobPosting",
+    "title": "Embedded Talent Partner",
+    "description": "<p><strong>Company:</strong><span> </span>Strativ Group</p><p><strong>Location:</strong><span> </spa",
+    "identifier": {
+     "@type": "PropertyValue",
+     "name": "Strativ Group",
+     "value": 5697694
+    },
+    "datePosted": "2025-03-18T17:00:01+00:00",
+    "hiringOrganization": {
+     "@type": "Organization",
+     "name": "Strativ Group",
+     "sameAs": "https://careers.strativgroup.com"
+    },
+    "jobLocation": [
+     {
+      "@type": "Place",
+      "address": {
+       "@type": "PostalAddress",
+       "streetAddress": "Sovereign House South Parade",
+       "addressLocality": "Leeds",
+       "postalCode": "LS1",
+       "addressCountry": "GB",
+       "addressRegion": "United Kingdom"
+      }
+     },
+     {
+      "@type": "Place",
+      "address": {
+       "@type": "PostalAddress",
+       "streetAddress": null,
+       "addressLocality": "Leeds",
+       "postalCode": null,
+       "addressCountry": "GB",
+       "addressRegion": null
+      }
+     },
+     {
+      "@type": "Place",
+      "address": {
+       "@type": "PostalAddress",
+       "streetAddress": "Corner Block",
+       "addressLocality": "Manchester",
+       "postalCode": "M3",
+       "addressCountry": "GB",
+       "addressRegion": "United Kingdom"
+      }
+     },
+     {
+      "@type": "Place",
+      "address": {
+       "@type": "PostalAddress",
+       "streetAddress": "131 Finsbury Pavement",
+       "addressLocality": "London",
+       "postalCode": "EC2A 1NT",
+       "addressCountry": "GB",
+       "addressRegion": "United Kingdom"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}
