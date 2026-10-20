@@ -91,6 +91,7 @@ def ensure_display() -> bool:
 
 
 class CeipalMixin:
+    OWN_BROWSER = True            # launches its own headed Chromium, not the shared headless pool
     MAX_JOBS = 1500
     TIME_BUDGET_SECONDS = 240     # the browser queue allows 5 minutes
     FIRST_PAGE_TIMEOUT = 45

@@ -388,18 +388,17 @@ def scrape_company_browser(self, company_slug: str) -> dict:
     from services.browser_pool import get_browser_pool
 
     async def run_with_browser():
-        browser_pool = await get_browser_pool()
-        scraper = get_scraper(
-            company_slug,
-            rate_limiter=rate_limiter,
-            browser_pool=browser_pool,
-        )
+        scraper = get_scraper(company_slug, rate_limiter=rate_limiter)
 
         if not scraper:
             return None, "scraper_not_found"
 
         if scraper.config.scraper_type != ScraperType.PLAYWRIGHT:
             return None, "wrong_scraper_type"
+
+        # Scrapers that launch their own browser (Ceipal's headed Chromium) skip the shared pool.
+        if not getattr(scraper, "OWN_BROWSER", False):
+            scraper.browser_pool = await get_browser_pool()
 
         return await scraper.run(), None
 
