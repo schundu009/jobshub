@@ -6,6 +6,7 @@ Tasks:
 - mark_stale_jobs_inactive: Mark jobs not seen recently as inactive
 - compute_relevance_scores: Recompute relevance scores for new jobs
 - fetch_missing_descriptions: Fetch descriptions for jobs that have empty ones
+- nightly_jobs_cleanup: Delete jobs older than a week, then duplicates
 """
 
 import logging
@@ -73,6 +74,33 @@ def cleanup_old_scraper_runs(days: int = 30) -> dict:
             "error": str(e),
         }
 
+    finally:
+        db.close()
+
+
+@celery_app.task
+def nightly_jobs_cleanup(days: int = 7) -> dict:
+    """
+    The Data tab's Cleanup, run nightly: delete jobs listed more than `days`
+    ago, then remove duplicates (services/job_cleanup.py, the same rules as
+    the buttons: never a user-added job, one with user activity, or a posting
+    a scrape still lists).
+    """
+    from services import job_cleanup
+    from services.redis_service import redis_service
+
+    db = get_db()
+    try:
+        old = job_cleanup.old_jobs(db, days, include_open=False, apply=True)
+        dupes = job_cleanup.duplicates(db, apply=True)
+        if old.get("deleted") or dupes.get("deleted"):
+            redis_service.cache_delete_pattern("analytics:*")
+        logger.info(f"Nightly cleanup: {old.get('deleted', 0)} old jobs, {dupes.get('deleted', 0)} duplicates deleted")
+        return {"status": "success", "old_jobs": old, "duplicates": dupes}
+    except Exception as e:
+        logger.error(f"Nightly cleanup failed: {e}")
+        db.rollback()
+        return {"status": "error", "error": str(e)}
     finally:
         db.close()
 

@@ -53,6 +53,13 @@ BEAT_SCHEDULE = {
         "schedule": crontab(minute=0, hour=3),
         "options": {"queue": "maintenance"},
     },
+    # The Data tab's Cleanup (old jobs past 7 days, then duplicates) daily at
+    # 09:30 UTC (2:30 AM Pacific), the quietest hour; off the :00 scrape.
+    "nightly-jobs-cleanup": {
+        "task": "tasks.maintenance_tasks.nightly_jobs_cleanup",
+        "schedule": crontab(minute=30, hour=9),
+        "options": {"queue": "maintenance"},
+    },
     # Mark stale jobs as inactive daily at 4 AM
     "mark-stale-jobs": {
         "task": "tasks.maintenance_tasks.mark_stale_jobs_inactive",
@@ -194,6 +201,11 @@ celery_app.conf.update(
             "reject_on_worker_lost": False,
         },
         "tasks.maintenance_tasks.fetch_missing_descriptions": {
+            "soft_time_limit": 1500,
+            "time_limit": 1800,
+            "reject_on_worker_lost": False,
+        },
+        "tasks.maintenance_tasks.nightly_jobs_cleanup": {
             "soft_time_limit": 1500,
             "time_limit": 1800,
             "reject_on_worker_lost": False,
