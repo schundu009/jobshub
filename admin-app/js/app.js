@@ -439,7 +439,7 @@ function renderUserMenu() {
     // Skip if page has its own #user-menu element (handled by page-specific initUserMenu)
     if (document.getElementById('user-menu')) return;
     // The shared admin shell renders its own account block and sign-out.
-    if (document.querySelector('.admin-sidebar, .sidebar')) return;
+    if (document.querySelector('.admin-sidebar, .sidebar, .wm-head')) return;
 
     const user = getCurrentUser();
     const navContainer = document.querySelector('nav');

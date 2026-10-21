@@ -1,0 +1,266 @@
+/* Cariara Admin in cariara.com's Waymo register (owner, 2026-10-21: "waymo
+ * style admin jobs page - it's still old design (google one)").
+ *
+ * Loaded LAST on every admin page, over cariara.css / admin-cariara.css (the
+ * Material 3 / Cloud Console layer): the same tokens re-pointed at cariara.com's
+ * values, then the shell (js/admin-sidebar.js: one header row, no drawer) and
+ * the shared pieces. What the site does, measured on cariara.com/jobs:
+ *   header   white, 72px, the lockup left, sections 15px regular in ink-2,
+ *            the current one ink with a 4px ink bar on the window's top edge
+ *   page     a 36px regular title, a lot of space, regular weights
+ *   cards    white, 1px hairline, 16px corners, no shadow, no coloured strips
+ *   chips    solid tints (blue, mint, lime), the selected one filled
+ *   actions  solid #0062D6 pills; secondary white pills with a hairline
+ *   dark     the night ladder: page #0B0E13, panels #12161C, cards #1C222B,
+ *            accent #5AA2FF on #06121F
+ * :root:root:root body outranks cariara.css's :root:root body rules. */
+
+/* ── Tokens ─────────────────────────────────────────────────────────── */
+html, html[data-theme="light"] {
+  --c-canvas: #ffffff;
+  --c-surface: #ffffff;
+  --c-surface-2: #f6f7f9;
+  --c-surface-3: #eef0f3;
+  --c-line: #e3e6ea;
+  --c-line-soft: #edeff2;
+  --c-ink: #1f2328;
+  --c-ink-2: #474f58;
+  --c-ink-3: #6b7280;
+  --c-outline: #8b93a0;
+  --c-blue: #0062d6;
+  --c-blue-hover: #0052b4;
+  --c-blue-press: #00459a;
+  --c-on-blue: #ffffff;
+  --c-blue-tint: #e8f1ff;
+  --c-nav-on: #e8f1ff;
+  --c-nav-on-ink: #0062d6;
+  --c-mint: #00876a;  --c-mint-tint: #e2f6ef;
+  --c-lime: #4e7a06;  --c-lime-tint: #eef7da;
+  --c-red: #c5221f;   --c-red-tint: #fdecea;
+  --c-yellow: #a85400; --c-yellow-tint: #fef4e2;
+  --c-green: #0d7a45; --c-green-tint: #e2f6ef;
+  --c-state: rgba(31, 35, 40, .05);
+  --c-shadow-1: none;
+  --c-shadow-2: 0 12px 32px -16px rgba(16, 24, 40, .28);
+  --wm-col: 1376px;
+  --wm-gutter: 32px;
+}
+html[data-theme="dark"] {
+  --c-canvas: #0b0e13;
+  --c-surface: #12161c;
+  --c-surface-2: #1c222b;
+  --c-surface-3: #262d38;
+  --c-line: rgba(255, 255, 255, .09);
+  --c-line-soft: rgba(255, 255, 255, .07);
+  --c-ink: #e8eaed;
+  --c-ink-2: #b6bcc6;
+  --c-ink-3: #8b93a0;
+  --c-outline: #6b7280;
+  --c-blue: #5aa2ff;
+  --c-blue-hover: #7cb6ff;
+  --c-blue-press: #9ac8ff;
+  --c-on-blue: #06121f;
+  --c-blue-tint: rgba(90, 162, 255, .14);
+  --c-nav-on: rgba(90, 162, 255, .14);
+  --c-nav-on-ink: #8ab8ff;
+  --c-mint: #6ee2bf;  --c-mint-tint: rgba(110, 226, 191, .13);
+  --c-lime: #c8eb6e;  --c-lime-tint: rgba(200, 235, 110, .13);
+  --c-red: #ff8a80;   --c-red-tint: rgba(255, 138, 128, .13);
+  --c-yellow: #ffcc66; --c-yellow-tint: rgba(255, 204, 102, .13);
+  --c-green: #6ee2bf; --c-green-tint: rgba(110, 226, 191, .13);
+  --c-state: rgba(255, 255, 255, .06);
+  --c-shadow-1: none;
+  --c-shadow-2: 0 16px 40px -16px rgba(0, 0, 0, .8);
+}
+
+:root:root:root body { background: var(--c-canvas) !important; color: var(--c-ink); }
+
+/* ── Shell: one header row, no drawer ───────────────────────────────── */
+:root:root:root body .admin-layout.wm-layout { display: block !important; min-height: 100vh; }
+:root:root:root body .wm-layout .admin-main {
+  margin-left: 0 !important; width: 100% !important; max-width: none !important; background: transparent !important;
+}
+:root:root:root body .wm-head {
+  position: sticky; top: 0; z-index: 60;
+  background: var(--c-canvas); border-bottom: 1px solid var(--c-line);
+}
+:root:root:root body .wm-head-in {
+  max-width: var(--wm-col); margin: 0 auto; padding: 0 var(--wm-gutter);
+  height: 72px; display: flex; align-items: center; gap: 48px;
+}
+:root:root:root body .wm-brand { display: inline-flex; align-items: center; gap: 14px; text-decoration: none; flex: none; }
+:root:root:root body .wm-brand img { height: 34px; width: auto; display: block; }
+/* The lockup's word is ink; dark mode shows the copy with light ink. */
+:root:root:root body .wm-brand .wm-logo-dark { display: none; }
+html[data-theme="dark"]:root:root body .wm-brand .wm-logo-light { display: none; }
+html[data-theme="dark"]:root:root body .wm-brand .wm-logo-dark { display: block; }
+:root:root:root body .wm-brand-tag {
+  font: 400 15px/1 var(--c-font); color: var(--c-ink-3);
+  padding-left: 14px; border-left: 1px solid var(--c-line); height: 20px; display: inline-flex; align-items: center;
+}
+:root:root:root body .wm-nav { display: flex; align-items: stretch; gap: 36px; height: 72px; }
+:root:root:root body .wm-nav-a {
+  position: relative; display: inline-flex; align-items: center;
+  font: 400 15px/1 var(--c-font); color: var(--c-ink-2); text-decoration: none; white-space: nowrap;
+  transition: color .15s;
+}
+:root:root:root body .wm-nav-a:hover { color: var(--c-ink); }
+:root:root:root body .wm-nav-a[aria-current="page"] { color: var(--c-ink); font-weight: 500; }
+/* The current section: a 4px ink bar on the window's top edge (Waymo). */
+:root:root:root body .wm-nav-a[aria-current="page"]::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--c-ink);
+}
+:root:root:root body .wm-nav-a:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 4px; border-radius: 4px; }
+:root:root:root body .wm-head-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+:root:root:root body .wm-icon-btn {
+  width: 40px; height: 40px; border-radius: 999px; border: 0; background: transparent; color: var(--c-ink-2);
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none;
+}
+:root:root:root body .wm-icon-btn:hover { background: var(--c-surface-2); color: var(--c-ink); }
+:root:root:root body .wm-icon-btn svg { width: 20px; height: 20px; }
+:root:root:root body .wm-account { display: flex; align-items: center; gap: 10px; margin-left: 6px; }
+:root:root:root body .wm-avatar {
+  width: 34px; height: 34px; border-radius: 999px; background: var(--c-blue); color: var(--c-on-blue);
+  display: inline-flex; align-items: center; justify-content: center; font: 600 13px/1 var(--c-font);
+}
+:root:root:root body .wm-signout {
+  height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--c-line);
+  background: var(--c-surface); color: var(--c-ink); font: 500 14px/1 var(--c-font); cursor: pointer;
+}
+:root:root:root body .wm-signout:hover { background: var(--c-surface-2); }
+:root:root:root body .wm-menu-btn { display: none; }
+
+/* The page title over the content, on the same column as the header. */
+:root:root:root body .wm-page-head { max-width: var(--wm-col); margin: 0 auto; padding: 40px var(--wm-gutter) 8px; }
+:root:root:root body .wm-page-head .admin-topbar-title {
+  margin: 0; font: 400 36px/1.15 var(--c-display) !important; letter-spacing: -0.015em; color: var(--c-ink) !important;
+}
+:root:root:root body .wm-page-head .admin-topbar-breadcrumb { font-size: 14px; color: var(--c-ink-3); margin-bottom: 8px; }
+:root:root:root body .wm-page-head .admin-topbar-breadcrumb a { color: var(--c-ink-2); text-decoration: none; }
+:root:root:root body .wm-page-head .admin-topbar-breadcrumb a:hover { color: var(--c-blue); }
+:root:root:root body .wm-layout .admin-content {
+  max-width: var(--wm-col) !important; margin: 0 auto !important; padding: 24px var(--wm-gutter) 80px !important; background: transparent !important;
+}
+:root:root:root body .wm-layout .admin-content > .container,
+:root:root:root body .wm-layout .admin-content > main { max-width: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+
+@media (max-width: 900px) {
+  :root:root:root body { --wm-gutter: 16px; }
+  :root:root:root body .wm-head-in { gap: 16px; height: 64px; }
+  :root:root:root body .wm-brand img { height: 28px; }
+  :root:root:root body .wm-menu-btn { display: inline-flex; }
+  :root:root:root body .wm-signout { display: none; }
+  /* The sections drop down under the header row, full width. */
+  :root:root:root body .wm-nav {
+    display: none; position: absolute; left: 0; right: 0; top: 64px; height: auto;
+    flex-direction: column; gap: 0; padding: 8px var(--wm-gutter) 16px;
+    background: var(--c-canvas); border-bottom: 1px solid var(--c-line); box-shadow: var(--c-shadow-2);
+  }
+  :root:root:root body .wm-head.is-open .wm-nav { display: flex; }
+  :root:root:root body .wm-nav-a { height: 48px; font-size: 16px; }
+  :root:root:root body .wm-nav-a[aria-current="page"]::before { top: 12px; bottom: 12px; left: calc(-1 * var(--wm-gutter)); right: auto; width: 4px; height: auto; }
+  :root:root:root body .wm-head.is-open .wm-nav .wm-nav-a + .wm-nav-a { border-top: 1px solid var(--c-line-soft); }
+  :root:root:root body .wm-page-head { padding-top: 24px; }
+  :root:root:root body .wm-page-head .admin-topbar-title { font-size: 28px !important; }
+}
+
+/* ── Cards: white, hairline, 16px, no strips or shadows ─────────────── */
+:root:root:root body :is(.card, .chart-card, .metric-card, .admin-stat-card, .stat-card, .admin-card, .section-card,
+  .settings-card, .panel, .import-section, .tracked-card) {
+  background: var(--c-surface) !important; border: 1px solid var(--c-line) !important;
+  border-radius: 16px !important; box-shadow: none !important;
+}
+:root:root:root body :is(.metric-card, .admin-stat-card, .stat-card)::before { display: none !important; content: none !important; }
+:root:root:root body :is(.card, .chart-card, .metric-card, .admin-stat-card, .stat-card):hover { box-shadow: none !important; }
+:root:root:root body :is(.card-header, .admin-card-header) { border-bottom: 1px solid var(--c-line-soft) !important; }
+:root:root:root body :is(.card-title, .admin-card-title, .card h3, .admin-card h3, .section-title) {
+  font: 500 18px/1.3 var(--c-display) !important; letter-spacing: -0.01em; color: var(--c-ink) !important;
+}
+/* Small labels read as words, not shouted caps. */
+:root:root:root body :is(.metric-label, .admin-stat-label, .stat-box .label, .svc-head, .stat-mini .label, .sys-label, .row-label, .label) {
+  text-transform: none !important; letter-spacing: 0 !important; font-weight: 500 !important; color: var(--c-ink-3) !important;
+}
+:root:root:root body :is(.metric-value, .admin-stat-value, .stat-box .value, .svc-value, .sys-value, .num) {
+  font-family: var(--c-display) !important; font-weight: 500 !important; letter-spacing: -0.02em; color: var(--c-ink);
+}
+/* Tiles inside a card: a quiet fill, no outline. */
+:root:root:root body :is(.stat-box, .stat-mini, .svc, .sys-row, .status-item, .pipeline-stage, .metric-row > div) {
+  background: var(--c-surface-2) !important; border: 0 !important; border-radius: 12px !important; box-shadow: none !important;
+}
+:root:root:root body :is(.metric-icon, .admin-stat-icon) { background: var(--c-surface-2) !important; border-radius: 12px !important; color: var(--c-ink-2) !important; }
+
+/* ── Buttons: solid #0062D6 pills; secondary white pills ────────────── */
+:root:root:root body :is(.btn, button.btn, a.btn) {
+  border-radius: 999px !important; font: 500 14px/1 var(--c-font) !important; min-height: 40px; padding: 0 18px !important;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none !important;
+  transition: background .15s, border-color .15s, color .15s;
+}
+:root:root:root body :is(.btn-primary, .btn.primary) {
+  background: var(--c-blue) !important; color: var(--c-on-blue) !important; border: 1px solid var(--c-blue) !important;
+}
+:root:root:root body :is(.btn-primary, .btn.primary):hover:not(:disabled) { background: var(--c-blue-hover) !important; border-color: var(--c-blue-hover) !important; }
+:root:root:root body :is(.btn-secondary, .btn-ghost, .btn-outline, .action-btn, .btn:not(.btn-primary):not(.btn-danger):not(.primary)) {
+  background: var(--c-surface) !important; color: var(--c-ink) !important; border: 1px solid var(--c-line) !important;
+}
+:root:root:root body :is(.btn-secondary, .btn-ghost, .btn-outline, .action-btn, .btn:not(.btn-primary):not(.btn-danger):not(.primary)):hover:not(:disabled) {
+  background: var(--c-surface-2) !important;
+}
+:root:root:root body .btn-danger { background: var(--c-red) !important; color: #fff !important; border: 1px solid var(--c-red) !important; }
+:root:root:root body :is(.btn-sm, .btn-small) { min-height: 34px; padding: 0 14px !important; font-size: 13px !important; }
+:root:root:root body .btn-xs { min-height: 28px; padding: 0 10px !important; font-size: 12px !important; }
+:root:root:root body :is(.btn, .action-btn):disabled { opacity: .5; cursor: default; }
+
+/* ── Tabs and chips: solid tints, the selected one filled ───────────── */
+:root:root:root body :is(.tabs, .import-tabs, .time-filter, .tab-navigation, .tab-bar) {
+  display: flex !important; flex-wrap: wrap; gap: 8px !important; background: transparent !important;
+  border: 0 !important; padding: 0 !important; box-shadow: none !important;
+}
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn) {
+  border: 0 !important; border-radius: 999px !important; padding: 9px 18px !important; min-height: 40px;
+  font: 600 14px/1.2 var(--c-font) !important; box-shadow: none !important; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--c-blue-tint) !important; color: var(--c-blue) !important;
+}
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn):nth-child(3n+2) { background: var(--c-mint-tint) !important; color: var(--c-mint) !important; }
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn):nth-child(3n) { background: var(--c-lime-tint) !important; color: var(--c-lime) !important; }
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn):hover { filter: brightness(.97); }
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn).active {
+  background: var(--c-blue) !important; color: var(--c-on-blue) !important;
+}
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn):nth-child(3n+2).active { background: var(--c-mint) !important; color: #fff !important; }
+:root:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn):nth-child(3n).active { background: var(--c-lime) !important; color: #fff !important; }
+:root:root:root html[data-theme="dark"] body :is(.tab, .import-tab, .time-pill, .tab-btn).active,
+html[data-theme="dark"]:root:root body :is(.tab, .import-tab, .time-pill, .tab-btn).active { color: #06121f !important; }
+:root:root:root body .tab-btn.active::after { display: none !important; }
+:root:root:root body :is(.tab, .tab-btn) svg { width: 16px; height: 16px; }
+
+/* ── Tables ─────────────────────────────────────────────────────────── */
+:root:root:root body :is(.table-wrap, .table-container, .table-scroll) { border: 1px solid var(--c-line) !important; border-radius: 16px !important; overflow: auto; background: var(--c-surface) !important; }
+:root:root:root body table th {
+  font: 500 13px/1.3 var(--c-font) !important; color: var(--c-ink-3) !important; text-transform: none !important;
+  letter-spacing: 0 !important; background: transparent !important; border-bottom: 1px solid var(--c-line) !important;
+}
+:root:root:root body table td { border-bottom: 1px solid var(--c-line-soft) !important; color: var(--c-ink); }
+:root:root:root body table tbody tr:hover td { background: var(--c-surface-2) !important; }
+
+/* ── Fields ─────────────────────────────────────────────────────────── */
+:root:root:root body :is(input[type="text"], input[type="search"], input[type="url"], input[type="email"], input[type="number"],
+  input[type="password"], input:not([type]), select, textarea) {
+  border-radius: 12px !important; border: 1px solid var(--c-line) !important; background: var(--c-surface) !important;
+  color: var(--c-ink) !important; font-family: var(--c-font) !important; box-shadow: none !important;
+}
+:root:root:root body :is(input, select):not([type="checkbox"]):not([type="radio"]) { min-height: 40px; }
+:root:root:root body :is(input, select, textarea):focus {
+  border-color: var(--c-blue) !important; outline: 0 !important; box-shadow: 0 0 0 3px var(--c-blue-tint) !important;
+}
+:root:root:root body :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--c-blue); }
+
+/* ── Badges, modals, links ──────────────────────────────────────────── */
+:root:root:root body :is(.badge, .tag, .queue-pill, .status-badge) { border-radius: 999px !important; }
+:root:root:root body :is(.modal, .ai-modal) { border-radius: 16px !important; border: 1px solid var(--c-line) !important; box-shadow: var(--c-shadow-2) !important; background: var(--c-surface) !important; }
+:root:root:root body .modal-overlay { background: rgba(11, 14, 19, .45) !important; }
+:root:root:root body .wm-layout .admin-content a:not(.btn):not(.wm-nav-a):not(.tab) { color: var(--c-blue); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root:root:root body :is(.wm-nav-a, .btn, .tab, .import-tab, .time-pill) { transition: none !important; }
+}
