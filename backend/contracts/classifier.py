@@ -848,15 +848,10 @@ def contract_routing(title: Optional[str], description: Optional[str] = None, ra
     if et in ROUTED_TYPES:
         return True, et
     if et is None:
-        # A staffing source quoting an hourly / daily rate ("Rate: $60/hr") or saying
-        # "Contract" ("Remote Contract", "Contract/ FTE") is placing a contract.
-        try:
-            full = f"{title or ''} \n {to_text(description)}"
-            pay = parse_pay(full)
-            if (pay and pay[2] in ("hour", "day")) or _has_contract_wording(full):
-                return True, "contract"
-        except Exception:
-            pass
+        # A staffing source's req that names no type (no description yet, or one
+        # that never says) is a contract placement: vendors' reqs stay off the
+        # full-time board unless they say full-time (owner, 2026-10-21).
+        return True, "contract"
     if et == "temporary":
         if staffing:
             return True, et

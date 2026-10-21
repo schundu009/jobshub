@@ -126,3 +126,6 @@ def test_staffing_vendors_route_their_contract_reqs():
                             None, staffing=True) == (True, "contract")
     assert contract_routing("Backend Engineer", "Full time role with benefits, $150K-$180K a year.", None,
                             staffing=True)[0] is False
+    # A vendor's req with no description, or one that names no type, is a contract (Yochana's on the full-time board).
+    assert contract_routing("Azure Cloud Architect", None, None, staffing=True) == (True, "contract")
+    assert contract_routing("C++ Dev with SRE", "C++ and SRE on a trading platform.", None, staffing=True) == (True, "contract")

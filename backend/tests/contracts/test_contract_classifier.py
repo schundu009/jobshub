@@ -391,10 +391,11 @@ def test_boilerplate_keeps_real_contract_sentences():
     "Contracts Systems Analyst", "Government Contracts Manager", "Contract Negotiation Lead",
     "Contract Review Attorney", "Contract Lifecycle Manager", "CLM Contract Administrator", "CLM Developer",
 ])
-@pytest.mark.parametrize("staffing", [False, True])
-def test_contract_work_titles_are_not_contract_terms(title, staffing):
-    route, et = contract_routing(title, "", None, staffing=staffing)
+def test_contract_work_titles_are_not_contract_terms(title):
+    route, et = contract_routing(title, "", None)
     assert not route and et is None
+    # A staffing vendor's req that names no type is a contract whatever its title.
+    assert contract_routing(title, "", None, staffing=True) == (True, "contract")
 
 
 @pytest.mark.parametrize("title, expected", [
