@@ -86,3 +86,24 @@ def backfill_pay_key(connection, max_rows: int = 1_000_000, commit_batches: bool
     if keyed:
         logger.info(f"Keyed {keyed} jobs by title, place and pay")
     return keyed
+
+def rekey_office_code_titles(connection) -> int:
+    """Re-key rows whose title ends in a parenthesised code ("(MTV)"), so pay_key's
+    office-code rule reaches rows keyed before it. Only rows whose key changes are written."""
+    from services.job_dedup import pay_key
+
+    if not inspect(connection).has_table("jobs"):
+        return 0
+    rows = connection.execute(text(
+        "SELECT id, title, company_id, location, salary_min, salary_max, pay_key FROM jobs "
+        "WHERE pay_key IS NOT NULL AND title ~ '[(\\[][A-Z]{2,4}[)\\]]\\s*$'"
+    )).fetchall()
+    changed = 0
+    for job_id, title, company_id, location, salary_min, salary_max, old in rows:
+        key = pay_key(title, company_id, location, salary_min, salary_max)
+        if key and key != old:
+            connection.execute(text("UPDATE jobs SET pay_key = :k WHERE id = :id"), {"k": key, "id": job_id})
+            changed += 1
+    if changed:
+        logger.info(f"Re-keyed {changed} jobs whose titles end in an office code")
+    return changed

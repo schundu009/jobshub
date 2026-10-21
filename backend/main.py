@@ -774,9 +774,12 @@ def run_migrations():
 
         # jobs.dedup_key, so a posting listed more than once shows once
         try:
-            from migrations.job_dedup import backfill_dedup_key, backfill_pay_key
+            from migrations.job_dedup import backfill_dedup_key, backfill_pay_key, rekey_office_code_titles
             backfill_pay_key(conn, commit_batches=True)
             conn.commit()
+            if conn.dialect.name == "postgresql":
+                rekey_office_code_titles(conn)
+                conn.commit()
             backfill_dedup_key(conn, commit_batches=True)
             conn.commit()
         except Exception as e:

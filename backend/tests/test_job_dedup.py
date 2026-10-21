@@ -73,6 +73,13 @@ def test_pay_key_rules():
     assert key != pay_key("Forward Deployed Engineer", 1, "Mountain View, California", 202500, 274000)  # another level
     assert key != pay_key("Forward Deployed Engineer", 1, "New York, New York", 171000, 231500)
     assert key != pay_key("Forward Deployed Engineer", 2, "Mountain View, California", 171000, 231500)
+    # An office code after the title is the same req: "(MTV)" on a Mountain View posting, "(NYC)".
+    assert key == pay_key("Forward Deployed Engineer (MTV)", 1, "Mountain View, California", 171000, 231500)
+    ny = pay_key("Forward Deployed Engineer", 1, "New York, New York", 170500, 231000)
+    assert ny == pay_key("Forward Deployed Engineer (NYC)", 1, "New York, New York", 170500, 231000)
+    # A role word in parentheses is part of the role.
+    assert key != pay_key("Forward Deployed Engineer (AI)", 1, "Mountain View, California", 171000, 231500)
+    assert key != pay_key("Forward Deployed Engineer (Payments)", 1, "Mountain View, California", 171000, 231500)
     # No pay range: the title alone is too broad to merge on.
     assert pay_key("Software Engineer", 1, "Mountain View, California", None, None) is None
     assert pay_key("", 1, "x", 1, 2) is None

@@ -44,6 +44,32 @@ def dedup_key(title: Optional[str], company_id: Optional[int], location: Optiona
     return hashlib.sha1(basis.encode("utf-8")).hexdigest()
 
 
+_TRAILING_CODE = re.compile(r"\s*[(\[]\s*([A-Za-z]{2,4})\s*[)\]]\s*$")
+# Office codes employers append to a req's title ("Forward Deployed Engineer (MTV)").
+_OFFICE_CODES = frozenset((
+    "NYC", "NY", "SF", "SFO", "SFBA", "MTV", "PAO", "SJC", "SEA", "LA", "LAX", "ATX", "AUS", "BOS", "CHI", "DC",
+    "DEN", "ATL", "DAL", "PHX", "RDU", "SV", "BLR", "HYD", "PNQ", "LON", "LDN", "TOR", "YYZ", "DUB", "BER", "SYD",
+))
+# Parenthesised role words are part of the role, never an office.
+_ROLE_CODES = frozenset(("AI", "ML", "QA", "UI", "UX", "BI", "IT", "HR", "AR", "VR", "SRE", "SDE", "SDET", "API", "GPU", "IOS"))
+
+
+def _in_order(code: str, text: str) -> bool:
+    it = iter(text)
+    return all(ch in it for ch in code)
+
+
+def _without_office_code(title: Optional[str], location: Optional[str]) -> Optional[str]:
+    """The title without a trailing office code: "(MTV)" on a Mountain View req, "(NYC)"."""
+    m = _TRAILING_CODE.search(title or "")
+    if not m or not m.group(1).isupper() or m.group(1) in _ROLE_CODES:
+        return title
+    code, place = m.group(1).lower(), _NON_WORD.sub("", (location or "").lower())
+    if m.group(1) in _OFFICE_CODES or (place and place[0] == code[0] and _in_order(code, place)):
+        return title[:m.start()]
+    return title
+
+
 def pay_key(title: Optional[str], company_id: Optional[int], location: Optional[str],
             salary_min: Optional[int], salary_max: Optional[int]) -> Optional[str]:
     """jobs.pay_key: one company's same title, place and pay range, or None without a pay range.
@@ -53,7 +79,7 @@ def pay_key(title: Optional[str], company_id: Optional[int], location: Optional[
     description, differing in a team paragraph, so dedup_key keeps them apart.
     To a job seeker they are one listing. Without a pay range the title alone is
     too broad ("Software Engineer" at a big company is many roles), so no key."""
-    t = _norm(title)
+    t = _norm(_without_office_code(title, location))
     if not t or not company_id or not (salary_min or salary_max):
         return None
     basis = f"p|{t}|{company_id}|{_norm(location)}|{salary_min or ''}|{salary_max or ''}"
