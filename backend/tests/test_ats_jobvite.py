@@ -2,6 +2,7 @@ import asyncio
 import json
 from pathlib import Path
 
+from scrapers.ats.jobvite import jobvite_rows
 from scrapers.board_scraper import api_url, board_careers_url, build_scraper_class
 
 FIX = Path(__file__).parent / "fixtures" / "ats"
@@ -46,3 +47,12 @@ def test_jobvite_board_redirected_to_company_page_reads_plain_list():
     result = asyncio.run(s.scrape())
     assert asked[:2] == ["https://jobs.jobvite.com/simaai/jobs", "https://jobs.jobvite.com/simaai/jobs?nl=1"]
     assert len(result.jobs) == 2
+
+
+def test_jobvite_plain_list_title_is_the_name_only():
+    html = ('<a href="/simaai/job/oI18zfwa" class="flex-row"><div class="jv-job-list-name">Sr. Principal SoC Architect (AI2501)'
+            '</div><div class="jv-job-list-location">San Jose,\n California</div></a>')
+    rows, nxt = jobvite_rows(html, "https://jobs.jobvite.com/simaai/jobs")
+    assert nxt is None
+    assert rows[0]["title"] == "Sr. Principal SoC Architect (AI2501)"
+    assert rows[0]["location"] == "San Jose, California"

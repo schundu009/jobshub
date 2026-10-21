@@ -28,12 +28,14 @@ def jobvite_rows(html: str, base_url: str) -> tuple[List[dict], Optional[str]]:
     rows, seen = [], set()
     for link in soup.select("a[href*='/job/']"):
         m = _JOB_HREF.search(link.get("href") or "")
-        title = " ".join(link.get_text(" ", strip=True).split())
+        # The plain list (?nl=1) puts the name and the location inside the link.
+        name_el = link.select_one(".jv-job-list-name")
+        title = " ".join((name_el or link).get_text(" ", strip=True).split())
         if not m or not title or m.group(1) in seen:
             continue
         seen.add(m.group(1))
         row = link.find_parent("tr") or link.find_parent("li")
-        loc_el = row.select_one(".jv-job-list-location") if row else None
+        loc_el = (row.select_one(".jv-job-list-location") if row else None) or link.select_one(".jv-job-list-location")
         location = " ".join(loc_el.get_text(" ", strip=True).split()) if loc_el else ""
         parts = [p.strip() for p in location.split(",") if p.strip()]
         location = ", ".join(dict.fromkeys(parts))
