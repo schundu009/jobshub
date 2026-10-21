@@ -93,8 +93,8 @@ class BrowserPool:
                     "--disable-default-apps",
                     "--disable-sync",
                     "--disable-translate",
-                    "--single-process",
-                    "--no-zygote",
+                    # No --single-process/--no-zygote: Chromium in single-process mode closes
+                    # when a second context opens a page, and the pool opens several.
                     "--js-flags=--max-old-space-size=256",
                 ],
             )
