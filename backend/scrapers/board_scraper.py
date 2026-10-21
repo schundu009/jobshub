@@ -67,6 +67,17 @@ def workday_parts(board: str) -> Optional[tuple[str, str, str]]:
     return host, tenant, site
 
 
+LEVER_EU_PREFIX = "eu:"
+
+
+def lever_eu_token(board: Optional[str]) -> Optional[str]:
+    """"eu:acme" (a board on Lever's EU host) -> "acme"; None for any other board."""
+    if not (board or "").startswith(LEVER_EU_PREFIX):
+        return None
+    token = board[len(LEVER_EU_PREFIX):]
+    return token if _TOKEN.fullmatch(token) else None
+
+
 def api_url(ats: str, board: str) -> Optional[str]:
     """The ATS's public job-list API for a board, or None when ats/board is not usable."""
     extra = ats_types.get(ats) if ats not in _MIXINS else None
@@ -86,6 +97,9 @@ def api_url(ats: str, board: str) -> Optional[str]:
     if ats == "ashby" and len(board or "") <= 120 and _ASHBY_ORG.fullmatch(board or ""):
         # Ashby org names may hold spaces ("Grindr LLC"); the API takes them URL-encoded.
         return f"https://api.ashbyhq.com/posting-api/job-board/{quote(board)}"
+    if ats == "lever" and lever_eu_token(board):
+        # Lever's EU tenants (jobs.eu.lever.co) answer only on the EU API.
+        return f"https://api.eu.lever.co/v0/postings/{lever_eu_token(board)}?mode=json"
     if not _TOKEN.fullmatch(board or ""):
         return None
     if ats == "greenhouse":
@@ -111,6 +125,8 @@ def board_careers_url(ats: str, board: str) -> Optional[str]:
         return jobdiva_portal_url(board)
     if ats in ("icims", "successfactors"):
         return api_url(ats, board)
+    if ats == "lever" and lever_eu_token(board):
+        return f"https://jobs.eu.lever.co/{lever_eu_token(board)}"
     return {
         "greenhouse": f"https://job-boards.greenhouse.io/{board}",
         "lever": f"https://jobs.lever.co/{board}",

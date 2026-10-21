@@ -32,3 +32,17 @@ def test_jobvite_board_and_list():
     assert job.job_url == "https://jobs.jobvite.com/ninjaone/job/oi3ZAfwE"
     assert job.location == "Hybrid Remote, Bandung Wetan, Kota Bandung, Jawa Barat"
     assert job.department == "Accounting & Finance" and job.remote_type == "hybrid"
+
+
+def test_jobvite_board_redirected_to_company_page_reads_plain_list():
+    # SiMa.ai: /jobs redirects to the company's iframe page; ?nl=1 is the list.
+    s = scraper("jobvite", "simaai")
+    asked = []
+
+    async def fetch_html(url, params=None):
+        asked.append(url)
+        return fixture("jobvite/jobs.html") if url.endswith("?nl=1") else "<html><iframe></iframe></html>"
+    s.fetch_html = fetch_html
+    result = asyncio.run(s.scrape())
+    assert asked[:2] == ["https://jobs.jobvite.com/simaai/jobs", "https://jobs.jobvite.com/simaai/jobs?nl=1"]
+    assert len(result.jobs) == 2

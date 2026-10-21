@@ -66,12 +66,12 @@ def match_url(url: str) -> Optional[tuple[str, str]]:
         board = _token(board)
         return ("greenhouse", board.lower()) if board else None
 
-    if host == "jobs.lever.co" and segs:
+    if host in ("jobs.lever.co", "jobs.eu.lever.co") and segs:
         board = _token(segs[0])
-        return ("lever", board) if board else None
-    if host == "api.lever.co" and lower[:2] == ["v0", "postings"] and len(segs) > 2:
+        return ("lever", ("eu:" if ".eu." in host else "") + board) if board else None
+    if host in ("api.lever.co", "api.eu.lever.co") and lower[:2] == ["v0", "postings"] and len(segs) > 2:
         board = _token(segs[2])
-        return ("lever", board) if board else None
+        return ("lever", ("eu:" if ".eu." in host else "") + board) if board else None
 
     if host == "jobs.ashbyhq.com" and segs:
         board = _token(segs[0])

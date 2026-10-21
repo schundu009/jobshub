@@ -53,6 +53,7 @@ def add_board(db, slug="acmeboard", ats="greenhouse", board="acme", name="Acme B
     ("https://boards.greenhouse.io/embed/job_board?for=acme", ("greenhouse", "acme")),
     ("https://boards-api.greenhouse.io/v1/boards/acme/jobs", ("greenhouse", "acme")),
     ("https://jobs.lever.co/acme/abc-123", ("lever", "acme")),
+    ("https://jobs.eu.lever.co/cirrus/abc-123", ("lever", "eu:cirrus")),
     ("https://jobs.ashbyhq.com/acme", ("ashby", "acme")),
     ("https://jobs.smartrecruiters.com/WesternDigital", ("smartrecruiters", "WesternDigital")),
     ("https://careers.smartrecruiters.com/Acme1", ("smartrecruiters", "Acme1")),
@@ -133,6 +134,8 @@ def test_ingestion_detect_ats_type_delegates():
 def test_api_urls():
     assert api_url("greenhouse", "acme") == "https://boards-api.greenhouse.io/v1/boards/acme/jobs"
     assert api_url("lever", "acme") == "https://api.lever.co/v0/postings/acme?mode=json"
+    assert api_url("lever", "eu:cirrus") == "https://api.eu.lever.co/v0/postings/cirrus?mode=json"
+    assert api_url("lever", "eu:a/b") is None
     assert api_url("smartrecruiters", "Acme") == "https://api.smartrecruiters.com/v1/companies/Acme/postings"
     assert api_url("workday", "acme.wd5.myworkdayjobs.com/acme/Careers") == \
         "https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Careers/jobs"

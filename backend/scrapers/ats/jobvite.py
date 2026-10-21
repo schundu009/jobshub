@@ -53,6 +53,10 @@ class JobviteMixin:
         url, raw, seen, pages = self.API_URL, [], set(), 0
         while url and pages < self.MAX_PAGES and len(raw) < self.MAX_JOBS:
             rows, url = jobvite_rows(await self.fetch_html(url), self.API_URL)
+            if not rows and pages == 0:
+                # Some boards send /jobs to the company's own iframe page (SiMa.ai);
+                # ?nl=1 is Jobvite's plain list, without that redirect.
+                rows, url = jobvite_rows(await self.fetch_html(f"{self.API_URL}?nl=1"), self.API_URL)
             pages += 1
             fresh = [r for r in rows if r["id"] not in seen]
             seen.update(r["id"] for r in fresh)
