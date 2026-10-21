@@ -144,6 +144,30 @@ def test_traps(title, expected):
     assert is_it_role(title) is expected, classify_it(title)
 
 
+# Life-sciences employers: computational roles are IT (data), wet lab and clinical operations are not.
+@pytest.mark.parametrize("title,expected", [
+    ("Bioinformatics Scientist", True),
+    ("Senior Bioinformatician", True),
+    ("Computational Biologist", True),
+    ("Research Scientist, Computational Biology", True),
+    ("Postdoctoral Researcher in Computational Chemistry", True),
+    ("Clinical Data Manager", True),
+    ("Genomics Data Scientist", True),
+    ("LIMS Administrator", True),
+    ("Pharmacometrician", True),
+    ("Research Scientist, Immunology", False),
+    ("Clinical Research Associate", False),
+    ("Clinical Trial Manager", False),
+    ("Lab Technician, Bioinformatics Core", False),
+    ("Medicinal Chemist", False),
+    ("Scientific Coordinator", False),
+])
+def test_life_sciences(title, expected):
+    assert is_it_role(title) is expected, classify_it(title)
+    if expected:
+        assert it_category(title) in ("data", "software"), classify_it(title)
+
+
 def test_ambiguous_uses_context_then_default():
     # generic "Specialist"/"Consultant" with nothing else: undecided
     assert classify_it("Consultant").is_it is None

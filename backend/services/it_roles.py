@@ -376,6 +376,25 @@ _RULES_SRC: list[tuple[str, Optional[str], Optional[bool], str]] = [
 _RULES = [(verdict, cat, lean, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])"))
           for verdict, cat, lean, src in _RULES_SRC]
 
+_COMPUTATIONAL_SCIENCE = (
+    r"(?:bio|chem|chemo|health|clinical|medical|neuro|immuno|imaging|research) ?informatic(?:s|ians?)|informaticians?|"
+    r"computational (?:\w+ )?(?:biolog\w*|chemist\w*|scientists?|genomic\w*|neuroscien\w*|patholog\w*|biophysic\w*|"
+    r"immunolog\w*|toxicolog\w*|drug (?:discovery|design)|medicine|oncology|science)|"
+    r"clinical (?:data|statistical|sas) (?:\w+ )?(?:manager|management|engineer|engineering|analyst|scientist|"
+    r"programmer|programming|architect|specialist|lead|associate|standards|science)s?|clinical programmers?|"
+    r"(?:genomic|genomics|omics|multi omics|proteomics|metabolomics|sequencing|ngs|imaging|biomedical|real world|rwd|rwe) "
+    r"data (?:\w+ )?(?:scientist|engineer|analyst|manager|architect|specialist)s?|"
+    r"scientific (?:software|computing|programmer|data) (?:\w+ )?(?:engineer|developer|scientist|analyst|lead|specialist|architect)s?|"
+    r"scientific programmers?|research software (?:engineer|developer)s?|pharmacometrici?ans?|pharmacometrics (?:\w+ )?scientists?|"
+    r"lims (?:\w+ )?(?:administrator|admin|analyst|developer|engineer|specialist|consultant|lead|architect|manager)s?"
+)
+# "Research Scientist, Computational Biology": a science role whose computational area is a later segment.
+_COMPUTATIONAL_SCIENCE_ROLE = (
+    r"(?:scientists?|researchers?|postdoc\w*|post doc\w*|fellows?|engineers?|analysts?|developers?|investigators?|"
+    r"leads?|managers?|directors?|interns?|phd \w+|students?) (?:\w+ ){0,4}?(?:in )?(?:"
+    r"(?:bio|chem|chemo|health|clinical|medical|neuro|immuno|imaging) ?informatics|computational \w+)"
+)
+
 # Unmistakable tech head nouns. Checked first, on the title's main segment: they
 # win over non-IT words elsewhere ("Senior R&D Software Engineer", "Application
 # Developer-Real Estate & Facilities", "Customer Support Engineer").
@@ -394,6 +413,9 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
                  r"(?: \w+)? (?:analyst|developer|engineer|consultant|administrator|architect|specialist|lead)s?"),
     ("devops_sre_cloud", r"(?:devops|cloud|platform|site reliability|infrastructure) engineers?"),
     ("data", r"(?:data|analytics|big data|etl|bi) (?:engineer|developer|architect|scientist)s?"),
+    # Science that is software and data (user decision 2026-10-20: life-sciences employers'
+    # computational roles count; wet lab, clinical operations and admin stay out).
+    ("data", _COMPUTATIONAL_SCIENCE),
     ("ml_ai", r"(?:machine learning|ml|ai|deep learning|computer vision|nlp) (?:engineer|developer|scientist|researcher|architect)s?"),
     ("security", r"(?:cyber ?security|information security|application security|cloud security|network security) (?:engineer|analyst|architect)s?"),
     ("embedded_hw", r"(?:firmware|embedded|fpga|asic|rtl) (?:software )?(?:engineer|developer|designer)s?|"
@@ -413,7 +435,8 @@ _STRONG_IN_SRC: list[tuple[str, str]] = [
 _STRONG_IN = [(cat, re.compile(r"(?<![a-z0-9])(?:" + src + r")(?![a-z0-9])")) for cat, src in _STRONG_IN_SRC]
 # Patterns whose qualifier often sits in a later segment ("Product Manager,
 # Developer Experience", "Warehouse Mgmt. Systems (WMS) Analyst") also run on the full title.
-_STRONG_IN_FULL = [_STRONG_IN[3], _STRONG_IN[-1]]  # the WMS / MES rule and the last one
+_STRONG_IN_FULL = [_STRONG_IN[3], _STRONG_IN[-1],  # the WMS / MES rule and the last one
+                   ("data", re.compile(r"(?<![a-z0-9])(?:" + _COMPUTATIONAL_SCIENCE_ROLE + r")(?![a-z0-9])"))]
 
 
 # Technical Account Managers are IT only with tech context (user decision
