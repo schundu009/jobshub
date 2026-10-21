@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 
 from models import Company, Job
-from services.job_dedup import dedup_key
+from services.job_dedup import dedup_key, pay_key
 from contracts.classifier import contract_routing
 from contracts.vendors import is_contract_vendor
 
@@ -67,6 +67,46 @@ def test_list_and_facets_show_a_posting_once(client, db):
     assert sorted(j["title"] for j in ny) == ["Other role", "Staff Data Platform Engineer"]
 
 
+def test_pay_key_rules():
+    key = pay_key("Forward Deployed Engineer", 1, "Mountain View, California", 171000, 231500)
+    assert key == pay_key("forward  deployed engineer", 1, "Mountain View, California", 171000, 231500)
+    assert key != pay_key("Forward Deployed Engineer", 1, "Mountain View, California", 202500, 274000)  # another level
+    assert key != pay_key("Forward Deployed Engineer", 1, "New York, New York", 171000, 231500)
+    assert key != pay_key("Forward Deployed Engineer", 2, "Mountain View, California", 171000, 231500)
+    # No pay range: the title alone is too broad to merge on.
+    assert pay_key("Software Engineer", 1, "Mountain View, California", None, None) is None
+    assert pay_key("", 1, "x", 1, 2) is None
+
+
+def test_one_role_opened_several_times_shows_once(client, db):
+    intuit = company(db, "Intuit")
+    pay = dict(title="Forward Deployed Engineer", location="Mountain View, California",
+               salary_min=171000, salary_max=231500)
+    first = add_job(db, 1, intuit, job_description=JD + " Team: invoicing.", **pay)
+    add_job(db, 2, intuit, job_description=JD + " Team: payments.", **pay)
+    add_job(db, 3, intuit, job_description=JD + " Team: payroll.", **pay)
+    other_level = add_job(db, 4, intuit, job_description=JD + " Team: tax.",
+                          **{**pay, "salary_min": 202500, "salary_max": 274000})
+    no_pay = add_job(db, 5, intuit, title="Software Engineer", job_description=JD + " A.")
+    add_job(db, 6, intuit, title="Software Engineer", job_description=JD + " B.")
+    assert first.pay_key and first.pay_key == pay_key(pay["title"], intuit.id, pay["location"], 171000, 231500)
+    body = client.get("/api/jobs?all=true&no_cache=true").json()
+    ids = sorted(j["id"] for j in body["jobs"])
+    # One card per level; the no-pay "Software Engineer" postings differ in text, so both stay.
+    assert ids == sorted([first.id, other_level.id, no_pay.id, no_pay.id + 1])
+    assert body["total"] == 4
+    assert client.get("/api/jobs/facets?no_cache=true").json()["total"] == 4
+
+
+def test_save_hook_refreshes_the_pay_key(db):
+    job = add_job(db, 1, company(db, "Intuit"), salary_min=100000, salary_max=150000)
+    before = job.pay_key
+    assert before
+    job.salary_max = 160000
+    db.commit()
+    assert job.pay_key and job.pay_key != before
+
+
 def test_staffing_vendors_route_their_contract_reqs():
     assert is_contract_vendor("Akraya, Inc.") and is_contract_vendor("VDart") and is_contract_vendor("yochana")
     assert not is_contract_vendor("Michael Page") and not is_contract_vendor("Target") and not is_contract_vendor(None)
@@ -75,5 +115,7 @@ def test_staffing_vendors_route_their_contract_reqs():
     assert contract_routing("HubSpot Marketing Specialist", rate, None, staffing=False)[0] is False
     c2c = "Remote. Subcon rate $60/hr C2C / $50 W2. Release management for a bank."
     assert contract_routing("IT Release Manager", c2c, None, staffing=True)[0] is True
+    assert contract_routing("OnBase Developer", "Senior Lead Onbase Hyland Developer Remote Contract JD Creates objects.",
+                            None, staffing=True) == (True, "contract")
     assert contract_routing("Backend Engineer", "Full time role with benefits, $150K-$180K a year.", None,
                             staffing=True)[0] is False
