@@ -542,14 +542,17 @@ def _base_conditions(
 
 
 def _distinct(conds: list) -> list:
-    """conds plus: one row per jobs.dedup_key (the lowest id) among the rows conds keep.
+    """conds plus: one row per jobs.dedup_key and per jobs.pay_key (the lowest id of
+    each) among the rows conds keep.
 
     Deduplicating inside the filtered set means a filter that keeps only one copy
-    (a city, a company) still finds it."""
-    key = func.coalesce(Job.dedup_key, cast(Job.id, String))
-    rn = func.row_number().over(partition_by=key, order_by=Job.id).label("rn")
-    ranked = select(Job.id.label("id"), rn).where(*conds).subquery()
-    return [*conds, Job.id.in_(select(ranked.c.id).where(ranked.c.rn == 1))]
+    (a city, a company) still finds it. A row dropped by one key is a copy of a
+    row the other key still compares, so every listing keeps one card."""
+    own = cast(Job.id, String)
+    rn = func.row_number().over(partition_by=func.coalesce(Job.dedup_key, own), order_by=Job.id).label("rn")
+    rn_pay = func.row_number().over(partition_by=func.coalesce(Job.pay_key, own), order_by=Job.id).label("rn_pay")
+    ranked = select(Job.id.label("id"), rn, rn_pay).where(*conds).subquery()
+    return [*conds, Job.id.in_(select(ranked.c.id).where(ranked.c.rn == 1, ranked.c.rn_pay == 1))]
 
 
 LIST_ORDERS = ("salary_high", "salary_low", "company")

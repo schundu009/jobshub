@@ -26,6 +26,7 @@ JOB_CLASSIFICATION_COLUMNS = [
     ("hourly_rate_min", "DOUBLE PRECISION", "FLOAT"),
     ("hourly_rate_max", "DOUBLE PRECISION", "FLOAT"),
     ("dedup_key", "VARCHAR(40)", "VARCHAR(40)"),
+    ("pay_key", "VARCHAR(40)", "VARCHAR(40)"),
 ]
 
 JOB_CLASSIFICATION_INDEXES = [
@@ -33,6 +34,7 @@ JOB_CLASSIFICATION_INDEXES = [
     ("ix_jobs_active_effective_posted", "jobs(is_active, effective_posted_at)"),
     ("ix_jobs_country_codes", "jobs(country_codes)"),
     ("ix_jobs_dedup_key", "jobs(dedup_key)"),
+    ("ix_jobs_pay_key", "jobs(pay_key)"),
 ]
 
 

@@ -7,8 +7,12 @@ jobs.dedup_key: one posting listed more than once shares a key, so lists show it
 - Without: the title, the company and the location, so a board that lists the
   same opening twice with no text shows it once.
 
-Lists keep the lowest id of each key among the rows that pass their own filters
-(routes.jobs._distinct), so a city filter still finds that city's copy.
+jobs.pay_key (pay_key below) catches what the description cannot: one employer's
+several reqs for the same role, place and pay, each with its own team paragraph.
+
+Lists keep a row only when it has the lowest id of its dedup_key AND of its
+pay_key among the rows that pass their own filters (routes.jobs._distinct), so a
+city filter still finds that city's copy.
 """
 from __future__ import annotations
 
@@ -37,4 +41,20 @@ def dedup_key(title: Optional[str], company_id: Optional[int], location: Optiona
         basis = f"d|{t}|{d}"
     else:
         basis = f"l|{t}|{company_id or ''}|{_norm(location)}"
+    return hashlib.sha1(basis.encode("utf-8")).hexdigest()
+
+
+def pay_key(title: Optional[str], company_id: Optional[int], location: Optional[str],
+            salary_min: Optional[int], salary_max: Optional[int]) -> Optional[str]:
+    """jobs.pay_key: one company's same title, place and pay range, or None without a pay range.
+
+    An employer that opens several reqs for one role (Intuit's five "Forward
+    Deployed Engineer, Mountain View, $171K-$232K") writes each its own
+    description, differing in a team paragraph, so dedup_key keeps them apart.
+    To a job seeker they are one listing. Without a pay range the title alone is
+    too broad ("Software Engineer" at a big company is many roles), so no key."""
+    t = _norm(title)
+    if not t or not company_id or not (salary_min or salary_max):
+        return None
+    basis = f"p|{t}|{company_id}|{_norm(location)}|{salary_min or ''}|{salary_max or ''}"
     return hashlib.sha1(basis.encode("utf-8")).hexdigest()
