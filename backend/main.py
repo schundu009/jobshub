@@ -772,6 +772,29 @@ def run_migrations():
             logger.warning(f"Could not add/backfill job taxonomy: {e}")
             conn.rollback()
 
+        # jobs.dedup_key, so a posting listed more than once shows once
+        try:
+            from migrations.job_dedup import backfill_dedup_key
+            backfill_dedup_key(conn, commit_batches=True)
+            conn.commit()
+        except Exception as e:
+            logger.warning(f"Could not backfill jobs.dedup_key: {e}")
+            conn.rollback()
+
+        # IT staffing vendors' contract reqs saved to jobs before contracts.vendors: move them out
+        try:
+            from database import SessionLocal
+            from contracts.scripts.migrate_contract_rows import migrate as migrate_contract_rows
+            vendor_db = SessionLocal()
+            try:
+                moved = migrate_contract_rows(vendor_db, apply=True, vendors_only=True, out=lambda *_: None)
+                if moved["deactivated"]:
+                    logger.info(f"Moved {moved['deactivated']} staffing-vendor contract rows out of jobs")
+            finally:
+                vendor_db.close()
+        except Exception as e:
+            logger.warning(f"Could not move staffing-vendor contract rows: {e}")
+
         # Add new ingestion sources
         try:
             new_sources = [

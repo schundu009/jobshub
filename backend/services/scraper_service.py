@@ -441,6 +441,9 @@ def save_scraped_jobs(
         resolver=resolver,
     )
     company_id = company.id
+    # An IT staffing vendor's board: its reqs route on the staffing rule (contracts.vendors).
+    from contracts.vendors import is_contract_vendor
+    vendor = is_contract_vendor(company_name) or is_contract_vendor(company.name)
 
     stats.max_age_days = _max_job_age_days(db)
     now = datetime.utcnow()
@@ -474,7 +477,8 @@ def save_scraped_jobs(
             if board_cutoff and posted is not None and posted < board_cutoff:
                 stats.skipped_old += 1
                 continue
-            route, employment_type = contract_routing(title, scraped_job.job_description, _raw_fields(scraped_job))
+            route, employment_type = contract_routing(title, scraped_job.job_description, _raw_fields(scraped_job),
+                                                      staffing=vendor)
             if route:
                 detected[id(scraped_job)] = employment_type
                 contract_type_by_ext[external_id] = employment_type

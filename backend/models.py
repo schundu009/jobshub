@@ -329,6 +329,8 @@ class Job(Base):
     evergreen_reason = Column(String(40), nullable=True)  # talent_pool | long_listed | reposted
     effective_posted_at = Column(DateTime, nullable=True)  # earlier of posted_date / first_seen_at ("listed since")
     country_codes = Column(String(200), nullable=True)  # ",US,GB," (services.job_location); NULL = unknown
+    # One posting listed more than once shares this (services.job_dedup); lists show the lowest id per key.
+    dedup_key = Column(String(40), nullable=True, index=True)
     # remote | hybrid | onsite (services.firm_matching.derive_work_type, set on save); NULL = unknown
     work_type = Column(String(10), nullable=True)
     # services.job_taxonomy, set on save: ROLE_CATEGORIES / SENIORITIES slugs
@@ -824,6 +826,25 @@ def _job_work_type_on_save(mapper, connection, target):
         from services.firm_matching import derive_work_type
         target.work_type = derive_work_type(loaded.get("title"), loaded.get("location"), loaded.get("job_description"))
     except Exception:  # never block a save over a label
+        pass
+
+
+@event.listens_for(Job, "before_insert")
+@event.listens_for(Job, "before_update")
+def _job_dedup_key_on_save(mapper, connection, target):
+    """Keep jobs.dedup_key in step with title / company / location / description."""
+    state = sa_inspect(target)
+    loaded = state.dict
+    if state.persistent:
+        changed = any(state.attrs[a].history.has_changes()
+                      for a in ("title", "company_id", "location", "job_description"))
+        if (not changed and loaded.get("dedup_key")) or "job_description" not in loaded:
+            return
+    try:
+        from services.job_dedup import dedup_key
+        target.dedup_key = dedup_key(loaded.get("title"), loaded.get("company_id"),
+                                     loaded.get("location"), loaded.get("job_description"))
+    except Exception:  # never block a save over a key
         pass
 
 

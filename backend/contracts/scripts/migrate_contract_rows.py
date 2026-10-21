@@ -4,6 +4,7 @@ Move contract roles that were stored in jobs into contract_jobs.
     cd backend
     python -m contracts.scripts.migrate_contract_rows            # dry run (default)
     python -m contracts.scripts.migrate_contract_rows --apply
+    python -m contracts.scripts.migrate_contract_rows --apply --vendors-only   # also at startup (main.py)
 
 Scans active shared jobs (user_id IS NULL) by id in batches of 1000; a row that
 contracts.classifier calls contract / contract_to_hire / temporary / freelance
@@ -28,26 +29,36 @@ AGGREGATOR_SOURCES = {"themuse", "remoteok", "arbeitnow", "linkedin", "indeed", 
                       "apify_linkedin", "apify_indeed"}
 
 
-def migrate(db, apply: bool = False, batch: int = BATCH, out=print) -> dict:
+def migrate(db, apply: bool = False, batch: int = BATCH, out=print, vendors_only: bool = False) -> dict:
+    """vendors_only: scan only the IT staffing vendors' rows (contracts.vendors), cheap enough for startup."""
     from contracts.classifier import contract_routing
     from contracts.service import contract_max_age_days, save_contract_jobs
-    from models import Job
+    from contracts.vendors import is_contract_vendor
+    from models import Company, Job
     from scrapers.base import ScrapedJob
+
+    vendor_ids = {cid for cid, name in db.query(Company.id, Company.name).all() if is_contract_vendor(name)}
+    if vendors_only and not vendor_ids:
+        return {"mode": "apply" if apply else "dry-run", "scanned": 0, "contract_rows": 0, "by_type": {},
+                "moved": 0, "skipped_old": 0, "deactivated": 0}
 
     found: Counter = Counter()
     moved = skipped_old = deactivated = scanned = 0
     last_id = 0
     while True:
-        rows = (db.query(Job).filter(Job.id > last_id, Job.is_active == True, Job.user_id.is_(None))  # noqa: E712
-                .order_by(Job.id).limit(batch).all())
+        query = db.query(Job).filter(Job.id > last_id, Job.is_active == True, Job.user_id.is_(None))  # noqa: E712
+        if vendors_only:
+            query = query.filter(Job.company_id.in_(vendor_ids))
+        rows = query.order_by(Job.id).limit(batch).all()
         if not rows:
             break
         by_source = defaultdict(list)
         for job in rows:
             scanned += 1
             # jobs.employment_type is our own earlier (text-based) label, not the
-            # ATS field, so it is not passed: company-board rows route on the title.
-            route, et = contract_routing(job.title, job.job_description)
+            # ATS field, so it is not passed: company-board rows route on the title,
+            # a staffing vendor's on its description too.
+            route, et = contract_routing(job.title, job.job_description, staffing=job.company_id in vendor_ids)
             if not route:
                 continue
             found[et] += 1
@@ -102,6 +113,7 @@ def main(argv=None, db=None) -> dict:
     mode.add_argument("--dry-run", action="store_true", default=True)
     mode.add_argument("--apply", action="store_true")
     parser.add_argument("--batch", type=int, default=BATCH)
+    parser.add_argument("--vendors-only", action="store_true", help="only the staffing vendors' rows (contracts.vendors)")
     args = parser.parse_args(argv)
     own = db is None
     if own:
@@ -109,7 +121,7 @@ def main(argv=None, db=None) -> dict:
         import contracts.models  # noqa: F401
         db = SessionLocal()
     try:
-        return migrate(db, apply=args.apply, batch=args.batch)
+        return migrate(db, apply=args.apply, batch=args.batch, vendors_only=args.vendors_only)
     finally:
         if own:
             db.close()

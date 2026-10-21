@@ -541,6 +541,17 @@ def _base_conditions(
     return conds
 
 
+def _distinct(conds: list) -> list:
+    """conds plus: one row per jobs.dedup_key (the lowest id) among the rows conds keep.
+
+    Deduplicating inside the filtered set means a filter that keeps only one copy
+    (a city, a company) still finds it."""
+    key = func.coalesce(Job.dedup_key, cast(Job.id, String))
+    rn = func.row_number().over(partition_by=key, order_by=Job.id).label("rn")
+    ranked = select(Job.id.label("id"), rn).where(*conds).subquery()
+    return [*conds, Job.id.in_(select(ranked.c.id).where(ranked.c.rn == 1))]
+
+
 LIST_ORDERS = ("salary_high", "salary_low", "company")
 
 
@@ -712,7 +723,7 @@ def get_jobs(
     selection = dict(
         status=status, source=source, active_only=active_only, company_id=company_id,
         posted_within_hours=posted_within_hours, role=",".join(role_slugs), all_jobs=all,
-        include_evergreen=include_evergreen, v="firm3",
+        include_evergreen=include_evergreen, v="firm4",
         country=viewer_country or "ALL", confirmed_only=confirmed_only, min_score=min_score,
         viewer=current_user.id if current_user else None,
         q=q, q_description=q_description, location=location, work_type=work_type,
@@ -734,6 +745,7 @@ def get_jobs(
         include_evergreen=include_evergreen, viewer_country=viewer_country, confirmed_only=confirmed_only,
         posted_within_hours=posted_within_hours,
     ) + filter_conds
+    conds = _distinct(conds)
 
     def recent_listing(extra: Optional[dict] = None) -> dict:
         query = db.query(Job).options(joinedload(Job.company)).filter(*conds)
@@ -869,7 +881,7 @@ def job_facets(
         q=q, q_description=q_description, location=location, work_type=work_type, salary_min=salary_min,
         salary_max=salary_max, company=company, employment_type=employment_type, role_category=role_category,
         seniority_level=seniority_level, domain=domain, countries=countries, visa_ok=visa_ok,
-        viewer=current_user.id if current_user else None, v=2,
+        viewer=current_user.id if current_user else None, v=3,
     )
     key = _get_cache_key("jobs_facets", **params)
     if not no_cache:
@@ -884,7 +896,7 @@ def job_facets(
         role_category, seniority_level, domain, countries, visa_ok)
 
     def where(*leave_out: str) -> list:
-        return base + [c for k, c in filters.items() if k not in leave_out]
+        return _distinct(base + [c for k, c in filters.items() if k not in leave_out])
 
     def grouped(column, *leave_out: str) -> dict:
         rows = db.query(column, func.count(Job.id)).select_from(Job).filter(*where(*leave_out)).group_by(column).all()

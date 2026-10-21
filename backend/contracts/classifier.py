@@ -847,6 +847,14 @@ def contract_routing(title: Optional[str], description: Optional[str] = None, ra
     et = detect_employment_type(title, description, raw)
     if et in ROUTED_TYPES:
         return True, et
+    if et is None:
+        # A staffing source quoting an hourly / daily rate ("Rate: $60/hr") is billing a contract.
+        try:
+            pay = parse_pay(f"{title or ''} \n {to_text(description)}")
+            if pay and pay[2] in ("hour", "day"):
+                return True, "contract"
+        except Exception:
+            pass
     if et == "temporary":
         if staffing:
             return True, et
