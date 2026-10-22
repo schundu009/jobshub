@@ -108,7 +108,7 @@ class Settings(BaseSettings):
     # it belongs to (GET /api/v1/auth/me). Jobportal never holds cariara's
     # signing secret. See services/cariara_identity.py.
     cariara_auth_enabled: bool = True
-    cariara_api_url: str = "https://copilot-prep.up.railway.app"
+    cariara_api_url: str = "https://prep-api.cariara.com"
     cariara_me_path: str = "/api/v1/auth/me"
     cariara_subscription_path: str = "/api/v1/billing/subscription"
     cariara_verify_timeout_seconds: float = 3.0
