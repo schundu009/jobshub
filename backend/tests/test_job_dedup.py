@@ -116,6 +116,7 @@ def test_save_hook_refreshes_the_pay_key(db):
 
 def test_staffing_vendors_route_their_contract_reqs():
     assert is_contract_vendor("Akraya, Inc.") and is_contract_vendor("VDart") and is_contract_vendor("yochana")
+    assert is_contract_vendor("ICONMA") and is_contract_vendor("Iconma , LLC") and is_contract_vendor("Diverse Lynx")
     assert not is_contract_vendor("Michael Page") and not is_contract_vendor("Target") and not is_contract_vendor(None)
     rate = "Location: Houston, TX. Rate - $55/hr. Customer interview in person. HubSpot workflows and reporting."
     assert contract_routing("HubSpot Marketing Specialist", rate, None, staffing=True) == (True, "contract")
