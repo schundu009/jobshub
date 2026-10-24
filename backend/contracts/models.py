@@ -1,6 +1,6 @@
 """contract_jobs: contract / C2H / temp / freelance roles, separate from jobs."""
 from sqlalchemy import (
-    JSON, Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint,
+    event, JSON, Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -22,6 +22,7 @@ class ContractJob(Base):
         Index("ix_contract_jobs_active_type", "is_active", "employment_type"),
         Index("ix_contract_jobs_country_codes", "country_codes"),
         Index("ix_contract_jobs_source_active", "source", "is_active"),
+        Index("ix_contract_jobs_role_category", "role_category"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -54,8 +55,21 @@ class ContractJob(Base):
     contract_duration_months = Column(Integer, nullable=True)
     visa_terms = Column(JSON, nullable=True)
     skills = Column(JSON, nullable=True)
+    # services.job_taxonomy.ROLE_CATEGORIES slug from the title, as jobs.role_category
+    role_category = Column(String(32), nullable=True)
 
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     company = relationship("Company")
+
+
+@event.listens_for(ContractJob, "before_insert")
+@event.listens_for(ContractJob, "before_update")
+def _contract_role_on_save(mapper, connection, target):
+    """Keep contract_jobs.role_category in step with the title (the Role filter)."""
+    try:
+        from services.job_taxonomy import role_category
+        target.role_category = role_category(target.title)
+    except Exception:  # never block a save over a label
+        pass

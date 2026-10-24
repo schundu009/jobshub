@@ -27,6 +27,7 @@ from contracts.classifier import CONTRACT_TYPES, TAX_TERMS, VISA_TERMS
 from contracts.models import ContractJob
 from database import get_db
 from services.job_location import country_filter, from_country_codes, normalize_country
+from services.job_taxonomy import ROLE_CATEGORIES
 from middleware.auth import get_current_admin
 
 try:
@@ -272,6 +273,7 @@ def list_contract_jobs(
     min_match: Optional[int] = Query(None, ge=0, le=100, description="Only jobs with match_score >= this (needs roles or skills)"),
     remote: Optional[bool] = Query(None, description="true = remote only"),
     agency: Optional[str] = Query(None, max_length=500, description="Comma list of agency names or source slugs"),
+    role_category: Optional[str] = Query(None, max_length=400, description="Comma list of job_taxonomy.ROLE_CATEGORIES slugs"),
     posted_within_days: Optional[int] = Query(None, ge=1, le=365),
     sort: str = Query("recent", description="recent | rate | duration | match (match needs roles or skills)"),
     limit: int = Query(25, ge=1, le=MAX_LIMIT),
@@ -284,6 +286,7 @@ def list_contract_jobs(
     taxes = _csv(tax_terms, TAX_TERMS, "tax_terms")
     required_visa = _csv(visa, VISA_TERMS, "visa")
     excluded_visa = _csv(exclude_visa, VISA_TERMS, "exclude_visa")
+    role_cats = _csv(role_category, tuple(ROLE_CATEGORIES), "role_category")
     if sort not in SORTS:
         raise HTTPException(status_code=400, detail=f"Invalid sort. Allowed: {', '.join(SORTS)}")
     viewer = _viewer_country(country)
@@ -303,7 +306,8 @@ def list_contract_jobs(
                   min_duration_months=min_duration_months, visa=",".join(required_visa) or None,
                   exclude_visa=",".join(excluded_visa) or None, country=viewer, confirmed_only=confirmed_only,
                   q=q, location=location,
-                  remote=remote, agency=agency, posted_within_days=posted_within_days, sort=sort,
+                  remote=remote, agency=agency, role_category=",".join(role_cats) or None,
+                  posted_within_days=posted_within_days, sort=sort,
                   limit=limit, offset=offset, description_chars=description_chars)
     key = _cache_key("jobs", **params)
     if not no_cache:
@@ -314,6 +318,8 @@ def list_contract_jobs(
     query = _base_query(db, viewer, confirmed_only)
     if types:
         query = query.filter(ContractJob.employment_type.in_(types))
+    if role_cats:
+        query = query.filter(ContractJob.role_category.in_(role_cats))
     if taxes:
         query = query.filter(or_(*[_json_has(ContractJob.tax_terms, t) for t in taxes]))
     for code in required_visa:
@@ -416,7 +422,7 @@ def contract_facets(
 ):
     """Counts for filter chips over active contract roles visible in ``country``."""
     viewer = _viewer_country(country)
-    key = _cache_key("facets", country=viewer, confirmed_only=confirmed_only)
+    key = _cache_key("facets", country=viewer, confirmed_only=confirmed_only, v="roles1")
     if not no_cache:
         cached = _cache_get(key)
         if cached is not None:
@@ -448,6 +454,8 @@ def contract_facets(
         .filter(ContractJob.agency_name.isnot(None)) \
         .group_by(ContractJob.agency_name).order_by(func.count(ContractJob.id).desc()).limit(50).all()
     with_rate = base.filter(ContractJob.pay_period.in_(["hour", "day"])).count()
+    roles = dict(base.with_entities(ContractJob.role_category, func.count(ContractJob.id))
+                 .group_by(ContractJob.role_category).all())
     result = {
         "total": total,
         "country": viewer,
@@ -456,6 +464,7 @@ def contract_facets(
         "tax_terms": combo_counts(ContractJob.tax_terms, TAX_TERMS),
         "visa_terms": combo_counts(ContractJob.visa_terms, VISA_TERMS),
         "agencies": [{"name": a, "count": int(n)} for a, n in agencies],
+        "role_category": [{"value": k, "label": v, "count": int(roles.get(k) or 0)} for k, v in ROLE_CATEGORIES.items()],
         "with_hourly_rate": with_rate,
     }
     _cache_set(key, result)

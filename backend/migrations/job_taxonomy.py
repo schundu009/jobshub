@@ -43,6 +43,39 @@ def migrate_job_taxonomy(connection, max_rows: int = 500_000, commit_batches: bo
         connection.commit()
     labelled = backfill_job_taxonomy(connection, max_rows=max_rows, commit_batches=commit_batches)
     relabel_forward_deployed(connection, commit_batches=commit_batches)
+    if insp.has_table("contract_jobs"):
+        _add_column(connection, "contract_jobs", "role_category", "VARCHAR(32)", postgres)
+        connection.execute(text("CREATE INDEX IF NOT EXISTS ix_contract_jobs_role_category ON contract_jobs(role_category)"))
+        if commit_batches:
+            connection.commit()
+        backfill_contract_roles(connection, max_rows=max_rows, commit_batches=commit_batches)
+    return labelled
+
+
+def backfill_contract_roles(connection, max_rows: int = 500_000, commit_batches: bool = False) -> int:
+    """Label contract_jobs whose role_category is NULL from the title, in id batches."""
+    from services.job_taxonomy import role_category
+
+    labelled, last_id = 0, 0
+    while labelled < max_rows:
+        rows = connection.execute(text(
+            "SELECT id, title FROM contract_jobs WHERE role_category IS NULL AND id > :last ORDER BY id LIMIT :batch"
+        ), {"last": last_id, "batch": BATCH}).fetchall()
+        if not rows:
+            break
+        groups: dict[str, list[int]] = defaultdict(list)
+        for job_id, title in rows:
+            groups[role_category(title)].append(job_id)
+        for cat, ids in groups.items():
+            connection.execute(
+                text(f"UPDATE contract_jobs SET role_category = :c WHERE id IN ({','.join(str(int(i)) for i in ids)})"),
+                {"c": cat})
+        labelled += len(rows)
+        last_id = rows[-1][0]
+        if commit_batches:
+            connection.commit()
+    if labelled:
+        logger.info(f"Backfilled contract_jobs.role_category on {labelled} rows")
     return labelled
 
 

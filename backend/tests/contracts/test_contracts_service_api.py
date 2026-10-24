@@ -133,6 +133,8 @@ def test_country_and_confirmed_only(client, seeded):
     ("agency=acme staffing", ["1", "2", "4", "5"]),
     ("location=herndon", ["5"]),
     ("remote=true", ["2", "4"]),
+    ("role_category=qa", ["4"]),
+    ("role_category=security,qa", ["4", "5"]),
 ])
 def test_filters(client, seeded, query, expected):
     r = client.get(f"/api/contracts/jobs?{query}")
@@ -159,6 +161,9 @@ def test_detail_and_facets(client, seeded):
     assert f["employment_type"] == {"contract": 2, "contract_to_hire": 1, "temporary": 1, "freelance": 0}
     assert f["tax_terms"] == {"w2": 1, "c2c": 1, "1099": 1}
     assert f["visa_terms"]["usc_gc_only"] == 1 and f["agencies"] == [{"name": "Acme Staffing", "count": 4}]
+    roles = {o["value"]: o["count"] for o in f["role_category"]}
+    assert roles["qa"] == 1 and roles["security"] == 1 and list(roles)[0] == "software"
+    assert client.get("/api/contracts/jobs?role_category=chef").status_code == 400
 
 
 def test_cors_preflight_for_cariara(client):
