@@ -108,3 +108,28 @@ def test_ttl_cache_expiry_and_lru():
     assert c.get("d") is None
     c.clear()
     assert c.get("a") is None
+
+
+def test_a_job_filed_outside_it_gets_no_title_credit():
+    profile = fm.build_profile("devops,sre", None, None)
+    title = "Senior Power Infrastructure Engineer"
+    assert fm.score_job(title, [], profile)[0] > 0
+    assert fm.score_job(title, [], profile, "other")[0] == 0
+    assert fm.score_job("Site Reliability Engineer", [], profile, "devops_sre_cloud")[0] > 0
+
+
+def test_roles_filed_as_other_from_the_title_keep_their_match():
+    assert fm.score_job("Production Engineer", [], fm.build_profile("SRE", None, None), "other")[0] == 100
+    assert fm.score_job("Quality Engineer", [], fm.build_profile("QA Engineer", None, None), "other")[0] == 60
+
+
+def test_a_title_word_alone_earns_nothing_once_the_jd_filed_the_job_elsewhere():
+    devops = fm.build_profile("DevOps Engineer,SRE,Platform Engineer", None, None)
+    for title in ("Power Infrastructure Engineer", "Reliability Engineer 3/4"):
+        assert fm.score_job(title, [], devops)[0] == 100
+        assert fm.score_job(title, [], devops, "other")[0] == 0
+
+
+def test_the_role_that_asks_for_that_field_keeps_it():
+    assert fm.score_job("Power Systems Engineer", [], fm.build_profile("Power Systems Engineer", None, None), "other")[0] == 100
+    assert fm.score_job("Firmware Engineer", [], fm.build_profile("embedded", None, None), "embedded_hw")[0] > 0

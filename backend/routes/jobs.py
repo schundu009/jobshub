@@ -778,7 +778,7 @@ def get_jobs(
     threshold = float(min_match if min_match is not None else (min_score if min_score is not None else 0))
     ranked = None if no_cache else _ranked_get(ranked_key)
     if ranked is None:
-        cand = db.query(Job.id, Job.title, Job.ai_tech_stack).filter(*conds)
+        cand = db.query(Job.id, Job.title, Job.ai_tech_stack, Job.role_category).filter(*conds)
         if rank_only:
             pass  # the filters decide the set; the profile only orders it
         elif profile.roles:
@@ -791,8 +791,8 @@ def get_jobs(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
         ranked = []
-        for job_id, title, stack in rows:
-            score, reasons = fm.score_job(title or "", _stack_list(stack), profile)
+        for job_id, title, stack, category in rows:
+            score, reasons = fm.score_job(title or "", _stack_list(stack), profile, category)
             if score is not None and score >= threshold:
                 ranked.append([job_id, score, reasons or []])
         if sort != "recent":

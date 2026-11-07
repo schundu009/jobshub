@@ -27,6 +27,8 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Iterable, Optional
 
+from services.jd_terms import title_word_misleads
+
 # ================================================================== work type
 
 WORK_TYPES = ("remote", "hybrid", "onsite")
@@ -482,8 +484,17 @@ def seniority_fit(title: str, wanted: str) -> tuple[float, Optional[str]]:
 
 # ================================================================== score
 
-def score_job(title: str, job_skills: Optional[Iterable[str]], profile: MatchProfile) -> tuple[Optional[int], Optional[list[str]]]:
-    """(match_score 0-100, reasons) from the title, the job's tech stack (+ title words) and seniority."""
+def _title_counts(title: str, role: Role, category: Optional[str]) -> bool:
+    """A word like "infrastructure" in a job filed outside IT is no match for a DevOps role."""
+    if not title_word_misleads(title, category) or (category == "embedded_hw" and role.group == "embedded"):
+        return True
+    return bool(role.phrase.strip()) and role.phrase in norm(title)
+
+
+def score_job(title: str, job_skills: Optional[Iterable[str]], profile: MatchProfile,
+              category: Optional[str] = None) -> tuple[Optional[int], Optional[list[str]]]:
+    """(match_score 0-100, reasons) from the title, the job's tech stack (+ title words) and seniority.
+    category is the job's role_category, when the caller has it."""
     if not profile.active:
         return None, None
     parts: list[tuple[float, float]] = []  # (weight, 0..1)
@@ -492,7 +503,7 @@ def score_job(title: str, job_skills: Optional[Iterable[str]], profile: MatchPro
     if profile.roles:
         best, best_role = 0.0, None
         for r in profile.roles:
-            sim = title_similarity(title, r)
+            sim = title_similarity(title, r) if _title_counts(title, r, category) else 0.0
             if sim > best:
                 best, best_role = sim, r
         parts.append((TITLE_WEIGHT, best))

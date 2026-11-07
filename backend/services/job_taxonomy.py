@@ -2,7 +2,8 @@
 The labels the jobs filters group by: a job's role category and seniority, and its company's domain.
 
 - role_category: services.it_roles.it_category (the same classifier that keeps non-IT jobs out),
-  "other" when it is not an IT role. Set on save (models.py) and backfilled (migrations/job_taxonomy.py).
+  "other" when it is not an IT role; a title that only says "infrastructure", "platform", "reliability"…
+  is checked against the description's terminology (services.jd_terms). Set on save (models.py) and backfilled (migrations/job_taxonomy.py).
 - seniority: from the title alone. Its own rules, not firm_matching.title_level: that one scores a
   match, so "Product Manager" reads as lead there; here a manager is someone who manages people.
 - domain: a company's primary business, from data/company_domains.json (company name -> slug).
@@ -77,10 +78,20 @@ DOMAINS = {
 
 # ------------------------------------------------------------------ role category
 
-def role_category(title: Optional[str], department: Optional[str] = None) -> str:
+# The categories a title can only claim by a word that other fields use too (services.jd_terms).
+_READ_THE_DESCRIPTION = {"devops_sre_cloud", "software", "network_systems_dba"}
+
+
+def role_category(title: Optional[str], department: Optional[str] = None, description: Optional[str] = None) -> str:
     from services.it_roles import it_category
+    from services.jd_terms import physical_field, title_needs_description
     try:
-        return it_category(title, department=department) or "other"
+        cat = it_category(title, department=department) or "other"
+        if cat in _READ_THE_DESCRIPTION and title_needs_description(title):
+            field = physical_field(description, title)
+            if field:
+                return "embedded_hw" if field == "electronics" else "other"
+        return cat
     except Exception:  # never block a save over a label
         return "other"
 

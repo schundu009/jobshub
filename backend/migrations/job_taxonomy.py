@@ -49,6 +49,7 @@ def migrate_job_taxonomy(connection, max_rows: int = 500_000, commit_batches: bo
         if commit_batches:
             connection.commit()
         backfill_contract_roles(connection, max_rows=max_rows, commit_batches=commit_batches)
+    relabel_by_description(connection, commit_batches=commit_batches)
     return labelled
 
 
@@ -117,6 +118,59 @@ def relabel_forward_deployed(connection, commit_batches: bool = False) -> int:
     if ids:
         logger.info(f"Relabelled {len(ids)} jobs as forward_deployed")
     return len(ids)
+
+
+# Rows whose label could be wrong: an IT category from a title with one of jd_terms' words of many fields.
+_READ_DESCRIPTION_SQL = (
+    "role_category IN ('devops_sre_cloud', 'software', 'network_systems_dba') AND "
+    "LOWER(title) ~ '(infrastructure|platform|reliability|production|automation|system)'")
+
+
+def relabel_by_description(connection, commit_batches: bool = False, dry_run: bool = False) -> list:
+    """Move jobs filed by a title word alone ("Power Infrastructure Engineer" as DevOps) to what their
+    title and description say they are. Titles are read first and only the few that need it fetch a
+    description, in batches. Idempotent: a moved row no longer matches, a kept one is left alone.
+    Returns the [table, id, title, old, new] of every move."""
+    from services.jd_terms import title_needs_description
+    from services.job_taxonomy import role_category
+
+    moves: list = []
+    for table, desc in (("jobs", "job_description"), ("contract_jobs", "description")):
+        if not inspect(connection).has_table(table):
+            continue
+        dept = "department" if table == "jobs" else "NULL"
+        rows = connection.execute(text(
+            f"SELECT id, title, {dept}, role_category FROM {table} WHERE {_READ_DESCRIPTION_SQL}")).fetchall()
+        changed: dict[str, list[int]] = defaultdict(list)
+        to_read: dict[int, tuple] = {}
+        for job_id, title, department, old in rows:
+            new = role_category(title, department)
+            if new != old:
+                changed[new].append(job_id)
+                moves.append([table, job_id, title, old, new])
+            elif title_needs_description(title):
+                to_read[job_id] = (title, department, old)
+        ids = list(to_read)
+        for i in range(0, len(ids), BATCH):
+            chunk = ",".join(str(int(j)) for j in ids[i:i + BATCH])
+            for job_id, description in connection.execute(
+                    text(f"SELECT id, {desc} FROM {table} WHERE id IN ({chunk})")).fetchall():
+                title, department, old = to_read[job_id]
+                new = role_category(title, department, description)
+                if new != old:
+                    changed[new].append(job_id)
+                    moves.append([table, job_id, title, old, new])
+        if dry_run:
+            continue
+        for new, ids in changed.items():
+            for i in range(0, len(ids), BATCH):
+                chunk = ",".join(str(int(j)) for j in ids[i:i + BATCH])
+                connection.execute(text(f"UPDATE {table} SET role_category = :c WHERE id IN ({chunk})"), {"c": new})
+                if commit_batches:
+                    connection.commit()
+    if moves and not dry_run:
+        logger.info(f"Relabelled {len(moves)} jobs from their titles and descriptions")
+    return moves
 
 
 def backfill_job_taxonomy(connection, max_rows: int = 500_000, commit_batches: bool = False) -> int:

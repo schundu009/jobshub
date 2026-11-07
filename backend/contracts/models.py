@@ -67,9 +67,9 @@ class ContractJob(Base):
 @event.listens_for(ContractJob, "before_insert")
 @event.listens_for(ContractJob, "before_update")
 def _contract_role_on_save(mapper, connection, target):
-    """Keep contract_jobs.role_category in step with the title (the Role filter)."""
+    """Keep contract_jobs.role_category in step with the title and description (the Role filter)."""
     try:
         from services.job_taxonomy import role_category
-        target.role_category = role_category(target.title)
+        target.role_category = role_category(target.title, description=target.description)
     except Exception:  # never block a save over a label
         pass

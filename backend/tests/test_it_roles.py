@@ -200,3 +200,12 @@ def test_forward_deployed_does_not_swallow_other_roles():
     assert it_category("Deployment Engineer") == "software"
     assert it_category("AI Engineer") == "ml_ai"
     assert not is_it_role("Sales Manager, Forward Deployed Team")
+
+
+def test_physical_infrastructure_is_not_it():
+    for title in ("Power Infrastructure Engineer", "Electrical Infrastructure Engineer", "Water Infrastructure Engineer",
+                  "Cooling Infrastructure Engineer", "Senior Mechanical Infrastructure Engineer"):
+        assert classify_it(title).is_it is False, title
+    for title in ("Infrastructure Engineer", "Cloud Infrastructure Engineer", "Energy Infrastructure Software Engineer",
+                  "Power Platform Developer"):
+        assert classify_it(title).is_it is True, title

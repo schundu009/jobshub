@@ -370,7 +370,7 @@ def list_contract_jobs(
         cands = (query.options(joinedload(ContractJob.company))
                  .order_by(ContractJob.effective_posted_at.desc().nullslast(), ContractJob.id.desc())
                  .limit(MATCH_CANDIDATES).all())
-        scored = [(r, score_job(r.title, r.skills, profile)) for r in cands]
+        scored = [(r, score_job(r.title, r.skills, profile, r.role_category)) for r in cands]
         if min_match:
             scored = [x for x in scored if x[1][0] >= min_match]
         if sort == "match":
@@ -402,7 +402,7 @@ def list_contract_jobs(
             .order_by(*order, ContractJob.id.desc()).offset(offset).limit(limit).all())
     result = {
         "jobs": [contract_to_dict(r, now, description_chars=description_chars,
-                                  match=score_job(r.title, r.skills, profile) if profile.active else None)
+                                  match=score_job(r.title, r.skills, profile, r.role_category) if profile.active else None)
                  for r in rows],
         "total": total,
         "limit": limit,

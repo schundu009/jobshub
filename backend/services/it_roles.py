@@ -482,6 +482,13 @@ def _tam_verdict(full: str) -> Optional[tuple]:
 _FORWARD_DEPLOYED_ANYWHERE = re.compile(r"(?<![a-z0-9])forward deployed(?![a-z0-9])")
 
 
+# "Power Infrastructure Engineer" is power engineering: "infrastructure engineer" alone would file it as DevOps.
+_PHYSICAL_INFRASTRUCTURE = re.compile(
+    r"(?<![a-z0-9])(?:power|electrical|electromechanical|mechanical|cooling|thermal|hvac|facilities|facility|civil|structural|"
+    r"substation|utility|utilities|energy|water|wastewater|pipeline|rail|transmission|plumbing)(?: \w+)? infrastructure(?![a-z0-9])")
+_SOFTWARE_IN_TITLE = re.compile(r"(?<![a-z0-9])(?:software|firmware|cloud|data|devops|sre|platform|network|security)(?![a-z0-9])")
+
+
 def _strong_in(primary: str, full: str) -> Optional[str]:
     # "Software Engineer, Forward Deployed": the role is named in a later segment.
     if _STRONG_IN[0][1].search(primary) or (_FORWARD_DEPLOYED_ANYWHERE.search(full) and any(rx.search(primary) for _c, rx in _STRONG_IN)):
@@ -652,6 +659,8 @@ def _decide_title(title: str) -> tuple[Optional[bool], Optional[str], str, Optio
     tam = _tam_verdict(full)
     if tam is not None:
         return tam
+    if _PHYSICAL_INFRASTRUCTURE.search(primary if primary.strip() else full) and not _SOFTWARE_IN_TITLE.search(full):
+        return False, None, "title_out", None
     strong = _strong_in(primary if primary.strip() else full, full)
     if strong:
         return True, strong, "title", None

@@ -148,3 +148,78 @@ def test_relabel_forward_deployed_moves_only_fde_titles(db):
     db.commit()
     cats = dict(db.execute(text("SELECT id, role_category FROM jobs")).fetchall())
     assert cats[fde.id] == "forward_deployed" and cats[swe.id] == "software"
+
+
+# ------------------------------------------------------------------ the job description decides
+_TERADYNE_JD = (
+    "The Power Infrastructure Team builds next-generation Semiconductor Testers. Tester Power Subassembly Design "
+    "and Development, System-Level Product Safety and EMC Testing, Manufacturing Support. Scalable electromechanical "
+    "architectures and electromechanical mass-termination docking systems for advanced semiconductor testing. "
+    "Bachelor of Science in Electrical Engineering and a strong grasp of electrical engineering principles.")
+_PLANT_JD = ("Own the reliability of pumps and compressors across the site. Lead FMEA reviews, build preventive "
+             "maintenance plans in the CMMS and support plant operations with root cause analysis on rotating equipment, "
+             "working with maintenance planners and operators on every shift to raise availability across the whole of the plant.")
+_SRE_JD = ("Run our production Kubernetes clusters on AWS. Terraform, Prometheus, Grafana, on call, SLOs and incident "
+           "response. You write Python and Go, keep our CI/CD pipelines fast and own observability for every service, "
+           "working with product teams to raise availability and to reduce the toil of the rotation.")
+_ASIC_RELIABILITY_JD = ("Lead product qualification of our silicon. You plan stress tests, run failure analysis and report "
+                        "lifetime data to customers, working with design, packaging and foundry teams on every new "
+                        "product family, from early test chips through to high volume ramp at the fab, and you publish "
+                        "the qualification report for every release.")
+
+
+def test_the_two_teradyne_jobs_are_not_devops():
+    assert tx.role_category("Power Infrastructure Engineer (Teradyne, Augora Hills, CA)", "Engineering", _TERADYNE_JD) == "other"
+    assert tx.role_category("Senior Power Infrastructure Engineer (Teradyne, Agoura Hills, CA)", "Engineering", None) == "other"
+
+
+def test_a_word_of_many_fields_is_settled_by_the_description():
+    assert tx.role_category("Platform Engineer", None, _TERADYNE_JD) == "embedded_hw"
+    assert tx.role_category("Reliability Engineer", None, _PLANT_JD) == "other"
+    assert tx.role_category("Reliability Engineer", None, _ASIC_RELIABILITY_JD) == "other"
+    assert tx.role_category("Reliability Engineer", None, _SRE_JD) == "devops_sre_cloud"
+    assert tx.role_category("Senior Hardware Test and Reliability Engineer") == "embedded_hw"
+    assert tx.role_category("Platform Engineer", None, _SRE_JD) == "devops_sre_cloud"
+
+
+def test_no_description_keeps_the_titles_label():
+    assert tx.role_category("Infrastructure Engineer") == "devops_sre_cloud"
+    assert tx.role_category("Reliability Engineer", None, "Apply now.") == "devops_sre_cloud"
+    assert tx.role_category("Platform Engineer", None, "") == "devops_sre_cloud"
+
+
+def test_a_title_that_names_the_field_is_never_overruled():
+    for title in ("DevOps Engineer", "Site Reliability Engineer", "Cloud Infrastructure Engineer", "SRE, Platform"):
+        assert tx.role_category(title, None, _TERADYNE_JD) == "devops_sre_cloud", title
+    assert tx.role_category("Senior System Software Engineer, SoC Power and Performance - O-RAN Infrastructure") == "software"
+
+
+def test_power_products_stay_it():
+    assert tx.role_category("Power Platform Engineer") != "other"
+    assert tx.role_category("Power BI Developer") != "other"
+    assert tx.role_category("Energy Infrastructure Software Engineer") == "software"
+
+
+def test_words_that_mean_something_else_in_tech_are_not_field_terms():
+    jd = ("Build the serving platform for our transformers and diffusion generators. Internal tooling, model rollout, "
+          "and capacity planning for a London listed plc, working with researchers on every launch and with finance on "
+          "the budget for the fleet, and owning the roadmap for the whole group across all of our regions.")
+    assert tx.role_category("Platform Engineer", None, jd) == "devops_sre_cloud"
+
+
+def test_a_reliability_title_whose_description_says_sre_stays_it():
+    from services.jd_terms import physical_field
+    filler = " We hire people who care about their teams and their customers." * 8
+    sre = "You lead site reliability for our distributed systems." + filler
+    assert physical_field(sre, "Engineering Manager - Reliability Engineering") is None
+    assert physical_field("Our SRE group owns observability for the fleet." + filler, "Operations Engineering Manager, Fleet Reliability") is None
+    # The same title without SRE words, or with plant words beside them, is still not an IT job.
+    assert physical_field("You own Python tooling for reliability." + filler, "Reliability Engineer") == "physical"
+    assert physical_field("Run FMEA on pumps, with an SRE mindset." + filler, "Reliability Engineer") == "physical"
+
+
+def test_a_hardware_administrator_looks_after_machines():
+    from services.jd_terms import physical_field
+    filler = " We hire people who care about their teams and their customers." * 8
+    assert physical_field("Maintain Linux hosts and networking." + filler, "Hardware Systems Administrator") is None
+    assert physical_field("Maintain Linux hosts and networking." + filler, "Hardware Systems Engineer") == "electronics"

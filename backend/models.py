@@ -864,14 +864,16 @@ def _job_dedup_key_on_save(mapper, connection, target):
 @event.listens_for(Job, "before_insert")
 @event.listens_for(Job, "before_update")
 def _job_taxonomy_on_save(mapper, connection, target):
-    """Keep jobs.role_category / seniority in step with the title and department."""
+    """Keep jobs.role_category / seniority in step with the title, department and description."""
     state = sa_inspect(target)
-    if state.persistent and not any(state.attrs[a].history.has_changes() for a in ("title", "department")) \
+    if state.persistent and not any(state.attrs[a].history.has_changes() for a in ("title", "department", "job_description")) \
             and target.role_category and target.seniority:
         return
     try:
         from services.job_taxonomy import role_category, seniority
-        target.role_category = role_category(target.title, target.department)
+        # A deferred description stays unloaded rather than costing a read per save: the title decides then.
+        description = state.dict.get("job_description")
+        target.role_category = role_category(target.title, target.department, description)
         target.seniority = seniority(target.title)
     except Exception:  # never block a save over a label
         pass
